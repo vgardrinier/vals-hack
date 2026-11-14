@@ -26,7 +26,8 @@ each folder in `tasks/` is one task:
 tasks are generated, not committed (the company docs are big):
 
     gen/fetch_redwood.sh ../ext/redwood
-    python3 gen/build_invoice_task.py ../ext/redwood tasks
+    python3 gen/build_invoice_task.py ../ext/redwood tasks    # v1: REVIEW in the tracker (too easy, opus 3/3)
+    python3 gen/build_approval_task.py ../ext/redwood tasks   # v2: approval habit only in email history
 
 `bridge/` is a command-line bridge to Zapier's simulated company apps (AutomationBench), parked for later.
 
