@@ -4,3 +4,4 @@ modal.json
 *.key
 .env
 results-*.json
+tasks/
