@@ -27,7 +27,9 @@ tasks are generated, not committed (the company docs are big):
 
     gen/fetch_redwood.sh ../ext/redwood
     python3 gen/build_invoice_task.py ../ext/redwood tasks    # v1: REVIEW in the tracker (too easy, opus 3/3)
-    python3 gen/build_approval_task.py ../ext/redwood tasks   # v2: approval habit only in email history
+    python3 gen/build_approval_task.py ../ext/redwood tasks   # v2: approval habit only in email history (opus 3/3)
+    python3 gen/build_approval_v3.py ../ext/redwood tasks     # v3: threshold change + vendor exception
+    python3 gen/test_approval_v3_grader.py tasks/invoice-approval-v3   # grader vs 14 answer shapes
 
 `bridge/` is a command-line bridge to Zapier's simulated company apps (AutomationBench), parked for later.
 
