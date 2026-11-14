@@ -1,0 +1,6 @@
+.DS_Store
+*.json.secret
+modal.json
+*.key
+.env
+results-*.json
