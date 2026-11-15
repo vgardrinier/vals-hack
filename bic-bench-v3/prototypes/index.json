@@ -1,0 +1,15 @@
+{
+  "status": "design_review",
+  "dataset": "onyx-dot-app/EnterpriseRAG-Bench",
+  "dataset_revision": "69916e31c68aa5963c00248fd7f0bc12d04fd235",
+  "prototype_files": [
+    "redwood-northwind-paid-claim.json",
+    "redwood-acme-credit-ledger.json",
+    "redwood-nordbank-residency-commitment.json",
+    "redwood-proxima-exception-renewal.json"
+  ],
+  "harbor_generated": false,
+  "valkyrie_uploaded": false,
+  "model_runs_started": false
+}
+
