@@ -1,218 +1,290 @@
 [
  {
-  "version": "morning3-k2-nohandbook",
-  "handbook": false,
-  "strategy": "copy last time for this supplier",
-  "score": 0.8667
- },
- {
-  "version": "morning3-k2-nohandbook",
-  "handbook": false,
-  "strategy": "copy last time for this supplier, same size",
-  "score": 1.0
- },
- {
-  "version": "morning3-k2-nohandbook",
-  "handbook": false,
-  "strategy": "follow the handbook",
-  "score": 0.5333
- },
- {
-  "version": "morning3-k2-nohandbook",
-  "handbook": false,
-  "strategy": "majority for this supplier",
-  "score": 0.6
- },
- {
-  "version": "morning3-k2-nohandbook",
-  "handbook": false,
-  "strategy": "log everything, no notes",
-  "score": 0.8
- },
- {
-  "version": "morning3-k2-nohandbook",
-  "handbook": false,
-  "strategy": "flag everything over $5k",
-  "score": 0.6667
- },
- {
   "version": "morning3-k3-nohandbook",
   "handbook": false,
   "strategy": "copy last time for this supplier",
-  "score": 0.8
+  "score": 0.8,
+  "level": "L1",
+  "dose": 3
  },
  {
   "version": "morning3-k3-nohandbook",
   "handbook": false,
   "strategy": "copy last time for this supplier, same size",
-  "score": 1.0
+  "score": 1.0,
+  "level": "L1",
+  "dose": 3
  },
  {
   "version": "morning3-k3-nohandbook",
   "handbook": false,
   "strategy": "follow the handbook",
-  "score": 0.5333
+  "score": 0.5333,
+  "level": "L1",
+  "dose": 3
  },
  {
   "version": "morning3-k3-nohandbook",
   "handbook": false,
   "strategy": "majority for this supplier",
-  "score": 0.6
+  "score": 0.6,
+  "level": "L1",
+  "dose": 3
  },
  {
   "version": "morning3-k3-nohandbook",
   "handbook": false,
   "strategy": "log everything, no notes",
-  "score": 0.8
+  "score": 0.8,
+  "level": "L1",
+  "dose": 3
  },
  {
   "version": "morning3-k3-nohandbook",
   "handbook": false,
   "strategy": "flag everything over $5k",
-  "score": 0.6667
+  "score": 0.6667,
+  "level": "L1",
+  "dose": 3
  },
  {
   "version": "morning3-k5-nohandbook",
   "handbook": false,
   "strategy": "copy last time for this supplier",
-  "score": 0.8667
+  "score": 0.8667,
+  "level": "L1",
+  "dose": 5
  },
  {
   "version": "morning3-k5-nohandbook",
   "handbook": false,
   "strategy": "copy last time for this supplier, same size",
-  "score": 1.0
+  "score": 1.0,
+  "level": "L1",
+  "dose": 5
  },
  {
   "version": "morning3-k5-nohandbook",
   "handbook": false,
   "strategy": "follow the handbook",
-  "score": 0.5333
+  "score": 0.5333,
+  "level": "L1",
+  "dose": 5
  },
  {
   "version": "morning3-k5-nohandbook",
   "handbook": false,
   "strategy": "majority for this supplier",
-  "score": 0.6667
+  "score": 0.6667,
+  "level": "L1",
+  "dose": 5
  },
  {
   "version": "morning3-k5-nohandbook",
   "handbook": false,
   "strategy": "log everything, no notes",
-  "score": 0.8
+  "score": 0.8,
+  "level": "L1",
+  "dose": 5
  },
  {
   "version": "morning3-k5-nohandbook",
   "handbook": false,
   "strategy": "flag everything over $5k",
-  "score": 0.6667
+  "score": 0.6667,
+  "level": "L1",
+  "dose": 5
  },
  {
-  "version": "morning3-k2-handbook",
+  "version": "morningL2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier",
+  "score": 0.6667,
+  "level": "L2",
+  "dose": 3
+ },
+ {
+  "version": "morningL2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier, same size",
+  "score": 0.9333,
+  "level": "L2",
+  "dose": 3
+ },
+ {
+  "version": "morningL2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "follow the handbook",
+  "score": 0.2,
+  "level": "L2",
+  "dose": 3
+ },
+ {
+  "version": "morningL2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "majority for this supplier",
+  "score": 0.2667,
+  "level": "L2",
+  "dose": 3
+ },
+ {
+  "version": "morningL2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "log everything, no notes",
+  "score": 0.3333,
+  "level": "L2",
+  "dose": 3
+ },
+ {
+  "version": "morningL2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "flag everything over $5k",
+  "score": 0.2667,
+  "level": "L2",
+  "dose": 3
+ },
+ {
+  "version": "morningL2-k5-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier",
+  "score": 0.7333,
+  "level": "L2",
+  "dose": 5
+ },
+ {
+  "version": "morningL2-k5-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier, same size",
+  "score": 0.9333,
+  "level": "L2",
+  "dose": 5
+ },
+ {
+  "version": "morningL2-k5-nohandbook",
+  "handbook": false,
+  "strategy": "follow the handbook",
+  "score": 0.2,
+  "level": "L2",
+  "dose": 5
+ },
+ {
+  "version": "morningL2-k5-nohandbook",
+  "handbook": false,
+  "strategy": "majority for this supplier",
+  "score": 0.2667,
+  "level": "L2",
+  "dose": 5
+ },
+ {
+  "version": "morningL2-k5-nohandbook",
+  "handbook": false,
+  "strategy": "log everything, no notes",
+  "score": 0.3333,
+  "level": "L2",
+  "dose": 5
+ },
+ {
+  "version": "morningL2-k5-nohandbook",
+  "handbook": false,
+  "strategy": "flag everything over $5k",
+  "score": 0.2,
+  "level": "L2",
+  "dose": 5
+ },
+ {
+  "version": "morningL2-k3-handbook",
   "handbook": true,
   "strategy": "copy last time for this supplier",
-  "score": 0.8667
+  "score": 0.6667,
+  "level": "L3",
+  "dose": 3
  },
  {
-  "version": "morning3-k2-handbook",
+  "version": "morningL2-k3-handbook",
   "handbook": true,
   "strategy": "copy last time for this supplier, same size",
-  "score": 1.0
+  "score": 0.9333,
+  "level": "L3",
+  "dose": 3
  },
  {
-  "version": "morning3-k2-handbook",
+  "version": "morningL2-k3-handbook",
   "handbook": true,
   "strategy": "follow the handbook",
-  "score": 0.5333
+  "score": 0.2,
+  "level": "L3",
+  "dose": 3
  },
  {
-  "version": "morning3-k2-handbook",
+  "version": "morningL2-k3-handbook",
   "handbook": true,
   "strategy": "majority for this supplier",
-  "score": 0.6
+  "score": 0.2667,
+  "level": "L3",
+  "dose": 3
  },
  {
-  "version": "morning3-k2-handbook",
+  "version": "morningL2-k3-handbook",
   "handbook": true,
   "strategy": "log everything, no notes",
-  "score": 0.8
+  "score": 0.3333,
+  "level": "L3",
+  "dose": 3
  },
  {
-  "version": "morning3-k2-handbook",
+  "version": "morningL2-k3-handbook",
   "handbook": true,
   "strategy": "flag everything over $5k",
-  "score": 0.6667
+  "score": 0.2667,
+  "level": "L3",
+  "dose": 3
  },
  {
-  "version": "morning3-k3-handbook",
+  "version": "morningL2-k5-handbook",
   "handbook": true,
   "strategy": "copy last time for this supplier",
-  "score": 0.8
+  "score": 0.7333,
+  "level": "L3",
+  "dose": 5
  },
  {
-  "version": "morning3-k3-handbook",
+  "version": "morningL2-k5-handbook",
   "handbook": true,
   "strategy": "copy last time for this supplier, same size",
-  "score": 1.0
+  "score": 0.9333,
+  "level": "L3",
+  "dose": 5
  },
  {
-  "version": "morning3-k3-handbook",
+  "version": "morningL2-k5-handbook",
   "handbook": true,
   "strategy": "follow the handbook",
-  "score": 0.5333
+  "score": 0.2,
+  "level": "L3",
+  "dose": 5
  },
  {
-  "version": "morning3-k3-handbook",
+  "version": "morningL2-k5-handbook",
   "handbook": true,
   "strategy": "majority for this supplier",
-  "score": 0.6
+  "score": 0.2667,
+  "level": "L3",
+  "dose": 5
  },
  {
-  "version": "morning3-k3-handbook",
+  "version": "morningL2-k5-handbook",
   "handbook": true,
   "strategy": "log everything, no notes",
-  "score": 0.8
+  "score": 0.3333,
+  "level": "L3",
+  "dose": 5
  },
  {
-  "version": "morning3-k3-handbook",
+  "version": "morningL2-k5-handbook",
   "handbook": true,
   "strategy": "flag everything over $5k",
-  "score": 0.6667
- },
- {
-  "version": "morning3-k5-handbook",
-  "handbook": true,
-  "strategy": "copy last time for this supplier",
-  "score": 0.8667
- },
- {
-  "version": "morning3-k5-handbook",
-  "handbook": true,
-  "strategy": "copy last time for this supplier, same size",
-  "score": 1.0
- },
- {
-  "version": "morning3-k5-handbook",
-  "handbook": true,
-  "strategy": "follow the handbook",
-  "score": 0.5333
- },
- {
-  "version": "morning3-k5-handbook",
-  "handbook": true,
-  "strategy": "majority for this supplier",
-  "score": 0.6667
- },
- {
-  "version": "morning3-k5-handbook",
-  "handbook": true,
-  "strategy": "log everything, no notes",
-  "score": 0.8
- },
- {
-  "version": "morning3-k5-handbook",
-  "handbook": true,
-  "strategy": "flag everything over $5k",
-  "score": 0.6667
+  "score": 0.2,
+  "level": "L3",
+  "dose": 5
  }
 ]

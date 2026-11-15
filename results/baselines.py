@@ -21,8 +21,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 V3 = "--v3" in sys.argv
-VERSIONS = (["morning3-k2-nohandbook", "morning3-k3-nohandbook", "morning3-k5-nohandbook",
-             "morning3-k2-handbook", "morning3-k3-handbook", "morning3-k5-handbook"] if V3 else
+VERSIONS = (["morning3-k3-nohandbook", "morning3-k5-nohandbook", "morningL2-k3-nohandbook",
+             "morningL2-k5-nohandbook", "morningL2-k3-handbook", "morningL2-k5-handbook"] if V3 else
             ["morning2-k1-nohandbook", "morning2-k2-nohandbook", "morning2-k3-nohandbook",
              "morning2-k2-handbook", "morning2-k3-handbook"])
 OUT = ROOT / "results" / ("baselines_v3.json" if V3 else "baselines.json")
@@ -63,7 +63,7 @@ def read_inbox(env: Path) -> list[dict]:
 
 def handbook_cc() -> dict:
     # the stale policy's table (same in every version; read from the handbook build)
-    hb = ROOT / "tasks" / ("morning3-k2-handbook" if V3 else "morning2-k2-handbook") / "environment" / "company" / "drive" / "AP_Policy_2026.md"
+    hb = ROOT / "tasks" / ("morningL2-k3-handbook" if V3 else "morning2-k2-handbook") / "environment" / "company" / "drive" / "AP_Policy_2026.md"
     return {m.group(1).strip(): m.group(2).strip()
             for m in re.finditer(r"^\| ([^|]+?) \| ([^|]+?) \|$", hb.read_text(), re.M)
             if m.group(1).strip() not in ("Supplier", "---")}
@@ -149,7 +149,9 @@ def main() -> None:
                      "Logged By": "Baseline", "Notes": note}
                 new_rows.append([d.get(h, "") for h in header])
             s = grade(task, new_rows, q4)
-            results.append({"version": v, "handbook": "nohandbook" not in v, "strategy": name, "score": s})
+            lvl = "L1" if v.startswith("morning3-") else ("L3" if "nohandbook" not in v else "L2")
+            results.append({"version": v, "handbook": "nohandbook" not in v, "strategy": name, "score": s,
+                            "level": lvl, "dose": int(re.search(r"-k(\d)-", v).group(1))})
     OUT.write_text(json.dumps(results, indent=1))
 
     print(f"{'strategy':46s} {'no handbook':>12s} {'handbook':>10s} {'all':>6s}  pass@1")
