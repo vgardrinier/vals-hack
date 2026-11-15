@@ -1,7 +1,7 @@
 #!/bin/bash
 # Start Valkyrie runs one by one, never letting the team go above MAX_ACTIVE runs at once.
 #
-#   DATASET=yaya/precedent@4 TASKS=task-a,task-b scripts/queue_runs.sh runs.txt "agent|model|ENV_VAR secret-name" ...
+#   DATASET=yaya/precedent@4 TASKS=task-a,task-b [CONCURRENCY=2] scripts/queue_runs.sh runs.txt "agent|model|ENV_VAR secret-name" ...
 #
 # Appends "<model> <run_id>" to runs.txt for each started run.
 # The limit counts every in-progress run in the org (yours and teammates'), not just this script's.
@@ -16,7 +16,7 @@ for spec in "$@"; do
   IFS='|' read -r agent model secret <<< "$spec"
   while [ "$(active)" -ge "$MAX_ACTIVE" ]; do sleep 30; done
   res=$(valkyrie run start --agent "$agent" --dataset "$DATASET" --task-ids "$TASKS" \
-        --model "$model" --provider modal -s $secret --concurrency 2 2>&1)
+        --model "$model" --provider modal -s $secret --concurrency "${CONCURRENCY:-2}" 2>&1)
   id=$(echo "$res" | grep -oE "Run ID: +[a-f0-9-]+" | awk '{print $3}')
   if [ -z "$id" ]; then echo "FAILED $model: $(echo "$res" | tail -2)"; continue; fi
   echo "${model#*/} $id" >> "$out"; echo "started $model $id"
