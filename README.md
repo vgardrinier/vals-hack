@@ -12,6 +12,48 @@ from January. Each rule is shown by 3 or 5 recent examples. A told control state
 Story and numbers: `docs/findings.md` and `docs/STATUS.md`. Numbers on the live page come from
 `results/morning_v3.json`, exported by `scripts/export_precedentbench.py` in Yacine's repo.
 
+## results
+
+![results](results/results_chart.svg)
+
+| model | full pass (all 15 invoices right) | 95% range | average share of invoices right | told the rules: full pass | cost / attempt |
+|---|---|---|---|---|---|
+| GPT-6.1 Sol | **7/20 (35%)** | 18% to 57% | 83% | 5/5 | $0.16 |
+| GPT-6 Astra | **3/20 (15%)** | 5% to 36% | 76% | 5/5 | $0.84 |
+| Claude Fable 5.2 | **2/20 (10%)** | 3% to 30% | 76% | 5/5 | $0.91 |
+| Claude Opus 5.5 | **0/20 (0%)** | 0% to 16% | 59% | 5/5 | $0.65 |
+| Claude Sonnet 5.5 | **0/20 (0%)** | 0% to 16% | 38% | 5/5 | $0.13 |
+
+8 unwritten rules, each shown by 3 recent examples in the tracker. 20 attempts per model (10 with an old
+policy doc from January in the drive, 10 without), each in a fresh Valkyrie sandbox. Told control: the same
+task with the 8 rules stated in the instruction, 5 attempts per model. No-AI baselines (copy the last decision,
+follow the old doc, majority vote, flag everything over $5k, log with no notes) never get a whole morning right;
+the best one gets 93% of invoices (`results/baselines_v3.json`).
+Cost per attempt is from the live page's export. Data: `results/morning_v3.json`.
+
+## a failure, concretely
+
+Claude Fable 5.2, Valkyrie run `4d0d826e-e060-4dbd-b54d-63c2253b3303`, task `morningL2-k3-nohandbook-r5`.
+Until September the team flagged every invoice over $5,000 for review. Since October it only flags over
+$10,000, and the tracker shows 3 invoices between $5k and $10k left unflagged. Fable got 13 of 15 invoices
+right, but logged Marrow & Finch MFL-2026-0350 ($6,924.18) as `REVIEW: Mireille`, keeping the old cutoff
+"in case the recent rows were slips". Told the rule, Fable gets the whole morning right 5 of 5 times.
+More annotated runs, one per model: `results/examples_v3.json`.
+
+Valkyrie runs behind the table (two per model): Sol `9df3920d`, `d7017072` · Astra `adbb1b8c`, `8b3f2043` ·
+Fable `4d0d826e`, `cb3c4559` · Opus `de093376`, `0715031f` · Sonnet `7be340d5`, `c043466f`.
+Dataset on Valkyrie: `yaya/precedent`.
+
+## why this harness
+
+Every model runs in the same minimal agent (`agents/plain-agent`): one system prompt, one shell tool,
+reasoning effort high, 80 steps, no fallback model. Only the model changes, so the comparison is between
+models and not between vendor agents. We checked it isn't the bottleneck: on the same tasks, Claude models in
+Claude Code and GPT models in Codex scored the same or lower (`results/morning_vendor.json`).
+The sandbox has internet on because the agent calls the model API from inside it. The company is synthetic
+(Redwood Inference from EnterpriseRAG-Bench plus our generated finance history), so the answers don't exist
+anywhere online.
+
 ## what's where
 
     gen/          task generator (build_morning.py, imports the rule engine in build_approval_v3.py),
