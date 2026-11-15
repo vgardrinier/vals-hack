@@ -56,3 +56,35 @@ tasks are generated, not committed (the company docs are big):
     python3 results/collect_drift.py runs.txt [reruns.txt]           # -> results/drift_attempts.json
     python3 results/classify_drift.py && python3 results/tag_hesitation.py   # how each miss happened
     python3 results/render.py                                        # -> results/leaderboard.html
+
+## Run the drift benchmark on a model (the harness)
+
+Every model runs in the same plain agent (`agents/plain-agent/agent.py`): same system prompt,
+one `run` (bash) tool, reasoning effort "high", 80 steps max, no fallback models. Only the model changes.
+
+    # 0. once: tools + login
+    uv tool install valkyrie-cli && valkyrie login
+    valkyrie agent push agents/plain-agent                 # only if you changed the agent
+
+    # 1. build the tasks (company docs are big, so they're generated, not committed)
+    gen/fetch_redwood.sh ../ext/redwood
+    python3 gen/build_drift.py ../ext/redwood tasks
+    python3 gen/test_drift_grader.py tasks/drift-*-k[137]    # grader vs the obvious wrong answers
+
+    # 2. 5 numbered copies of each task so ONE run holds all tries for a model
+    IDS=$(python3 gen/replicate.py tasks tasks 5 drift-cutoff-k1 drift-cutoff-k3 drift-cutoff-k7 \
+          drift-stopped-k1 drift-stopped-k3 drift-stopped-k7 drift-approver-k1 drift-approver-k3 \
+          drift-approver-k7 drift-returned-k1 drift-returned-k3 drift-returned-k7)
+    valkyrie dataset push yaya/precedent ./tasks --tag my-run
+
+    # 3. one run per model, through the queue (never more than 10 runs org-wide)
+    DATASET=yaya/precedent TASKS=$IDS CONCURRENCY=30 scripts/queue_runs.sh /tmp/my_runs.txt \
+      "plain-agent|anthropic/claude-fable-5-2|ANTHROPIC_API_KEY anthropic-api-key" \
+      "plain-agent|openai/gpt-6.1-sol|OPENAI_API_KEY openai-api-key-victor"
+
+    # 4. collect, label failures, render the page
+    python3 results/collect_drift.py /tmp/my_runs.txt
+    python3 results/classify_drift.py && python3 results/tag_hesitation.py
+    python3 results/render.py && open results/leaderboard.html
+
+Model names: `anthropic/<id>` uses ANTHROPIC_API_KEY, `openai/<id>` uses OPENAI_API_KEY (see agent.py).
