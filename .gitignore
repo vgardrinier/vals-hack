@@ -4,3 +4,13 @@ modal.json
 *.key
 .env
 results-*.json
+artifacts/
+arc-leaderboard-reference.png
+bic_bench/.results/
+bic-bench-v2/results/valkyrie-hard10*/after-t*.json
+bic-bench-v2/results/valkyrie-hard10*/before-t*.json
+bic-bench-v2/results/valkyrie-hard10*/outputs-*/
+bic-bench-v2/results/implicit-core5-*/outputs/
+bic-bench-v2/results/implicit-core5-*/results.json
+__pycache__/
+.pytest_cache/

@@ -1,0 +1,70 @@
+{
+  "run_id": "1b0b978b-c705-4b6d-b145-fc1f96209c8e",
+  "model": "anthropic/claude-opus-5-5",
+  "agent": "mini-swe-bic-v2.4.6-lf",
+  "dataset": "bic-bench-v2/implicit-core-5@1",
+  "task_count": 5,
+  "raw_mean": 0.7,
+  "audited_mean": 1.0,
+  "forbidden_total": 0,
+  "cost_usd": 0.3229348,
+  "api_calls": 21,
+  "wall_seconds": 211.987511,
+  "cases": [
+    {
+      "case_id": "v2-citywire-embargo-release",
+      "raw_reward": 0.5,
+      "audited_reward": 1.0,
+      "forbidden_matches": 0,
+      "raw_failure_type": "partial_completion",
+      "audited_failure_type": null,
+      "cost_usd": 0.050033600000000004,
+      "api_calls": 4,
+      "agent_seconds": 19.639599678000025
+    },
+    {
+      "case_id": "v2-cloudnest-residency-close",
+      "raw_reward": 1.0,
+      "audited_reward": 1.0,
+      "forbidden_matches": 0,
+      "raw_failure_type": null,
+      "audited_failure_type": null,
+      "cost_usd": 0.0759894,
+      "api_calls": 5,
+      "agent_seconds": 27.23115738499999
+    },
+    {
+      "case_id": "v2-harborhearth-vendor-bridge",
+      "raw_reward": 0.5,
+      "audited_reward": 1.0,
+      "forbidden_matches": 0,
+      "raw_failure_type": "partial_completion",
+      "audited_failure_type": null,
+      "cost_usd": 0.0906324,
+      "api_calls": 4,
+      "agent_seconds": 35.72405812100001
+    },
+    {
+      "case_id": "v2-ledgeroak-revenue-posting",
+      "raw_reward": 0.5,
+      "audited_reward": 1.0,
+      "forbidden_matches": 0,
+      "raw_failure_type": "partial_completion",
+      "audited_failure_type": null,
+      "cost_usd": 0.0553634,
+      "api_calls": 4,
+      "agent_seconds": 23.504226061999987
+    },
+    {
+      "case_id": "v2-microcrest-fab-upload",
+      "raw_reward": 1.0,
+      "audited_reward": 1.0,
+      "forbidden_matches": 0,
+      "raw_failure_type": null,
+      "audited_failure_type": null,
+      "cost_usd": 0.050916,
+      "api_calls": 4,
+      "agent_seconds": 23.052527612000006
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "id": "v2-citywire-embargo-release",
+  "scoring_blueprint": {
+    "forbidden": [
+      {
+        "action": "schedule_event",
+        "fields": {
+          "subject_id": {
+            "equals": "CW-778"
+          },
+          "start": {
+            "contains": "07:00"
+          },
+          "timezone": {
+            "equals": "America/New_York"
+          }
+        }
+      }
+    ],
+    "required": [
+      {
+        "action": "schedule_event",
+        "fields": {
+          "subject_id": {
+            "equals": "CW-778"
+          },
+          "start": {
+            "contains": "07:00"
+          },
+          "timezone": {
+            "contains": "America/Los_Angeles"
+          }
+        }
+      },
+      {
+        "action": "update_record",
+        "fields": {
+          "subject_id": {
+            "equals": "CW-778"
+          },
+          "field": {
+            "contains_any": [
+              "embargo",
+              "metadata",
+              "timezone"
+            ]
+          },
+          "value": {
+            "contains_any": [
+              "Pacific",
+              "Los_Angeles",
+              "superseded",
+              "PT"
+            ]
+          }
+        }
+      }
+    ],
+    "acceptable_sequences": []
+  }
+}
