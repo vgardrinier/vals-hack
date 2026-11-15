@@ -3,243 +3,299 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PrecedentBench leaderboard</title>
+<title>PrecedentBench: can AI agents follow the rules nobody wrote down?</title>
 <style>
 .viz-root {
   color-scheme: light;
-  --surface-1: #fcfcfb; --surface-2: #f3f2ef; --grid: #e6e5e1;
-  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
-  --series-1: #2a78d6; --series-1-wash: rgba(42,120,214,.28);
-  --series-2: #0b0b0b;
+  --surface-1: #ffffff; --surface-2: #f6f6f4; --card: #ffffff; --line: #e8e8e5; --track: #f1f1ef;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #8a8984;
+  --anthropic-a: #f3a27b; --anthropic-b: #eb6834; --anthropic-c: #c4501f;
+  --openai-a: #7dd8b6; --openai-b: #1baf7a; --openai-c: #128a5f;
+  --whisker: #9a9993; --cell-0: #f1f1ef; --cell-ink: #0b0b0b;
 }
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])).viz-root {
     color-scheme: dark;
-    --surface-1: #1a1a19; --surface-2: #232321; --grid: #33332f;
+    --surface-1: #141413; --surface-2: #1d1d1b; --card: #1a1a19; --line: #2e2e2b; --track: #262624;
     --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8e8d86;
-    --series-1: #3987e5; --series-1-wash: rgba(57,135,229,.38);
-    --series-2: #f0efec;
+    --anthropic-a: #b9532a; --anthropic-b: #d95926; --anthropic-c: #f08a5d;
+    --openai-a: #11704e; --openai-b: #199e70; --openai-c: #4cc795;
+    --whisker: #77766f; --cell-0: #262624; --cell-ink: #f0efec;
   }
 }
 :root[data-theme="dark"].viz-root {
   color-scheme: dark;
-  --surface-1: #1a1a19; --surface-2: #232321; --grid: #33332f;
+  --surface-1: #141413; --surface-2: #1d1d1b; --card: #1a1a19; --line: #2e2e2b; --track: #262624;
   --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8e8d86;
-  --series-1: #3987e5; --series-1-wash: rgba(57,135,229,.38);
-  --series-2: #f0efec;
+  --anthropic-a: #b9532a; --anthropic-b: #d95926; --anthropic-c: #f08a5d;
+  --openai-a: #11704e; --openai-b: #199e70; --openai-c: #4cc795;
+  --whisker: #77766f; --cell-0: #262624; --cell-ink: #f0efec;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--surface-1); color: var(--text-primary);
-  font: 15px/1.45 ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif; }
-.page { max-width: 1000px; margin: 0 auto; padding: 48px 28px 56px; }
-.eyebrow { color: var(--text-muted); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; margin: 0 0 8px; }
-h1 { font-size: 34px; line-height: 1.15; margin: 0 0 10px; font-weight: 650; letter-spacing: -.01em; }
-.lede { color: var(--text-secondary); margin: 0 0 28px; max-width: 720px; }
-.controls { display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
-  border-top: 1px solid var(--grid); padding: 14px 0 6px; }
-.legend { display: flex; gap: 20px; flex-wrap: wrap; color: var(--text-secondary); font-size: 13px; }
-.legend span { display: inline-flex; align-items: center; gap: 8px; }
-.key-bar { width: 22px; height: 10px; border-radius: 0 3px 3px 0; background: var(--series-1); }
-.key-ci { width: 22px; height: 4px; border-radius: 2px; background: var(--series-1-wash); }
-.key-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-1);
-  border: 2px solid var(--series-2); }
-.toggle button { font: inherit; font-size: 13px; color: var(--text-secondary); background: none;
-  border: 1px solid var(--grid); padding: 5px 12px; cursor: pointer; }
-.toggle button:first-child { border-radius: 6px 0 0 6px; }
-.toggle button:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
-.toggle button[aria-pressed="true"] { background: var(--surface-2); color: var(--text-primary); }
-.head, .row { display: grid; grid-template-columns: 28px 250px 1fr 76px 76px; align-items: center; gap: 14px; }
-.head { color: var(--text-muted); font-size: 12px; padding: 14px 0 6px; }
-.head .axis { position: relative; height: 16px; }
-.head .axis span { position: absolute; transform: translateX(-50%); }
-.head .axis span:first-child { transform: none; }
-.head .axis span:last-child { transform: translateX(-100%); }
-.head .r { text-align: right; }
-.row { padding: 12px 0; border-top: 1px solid var(--grid); outline: none; }
-.row:hover, .row:focus-visible { background: var(--surface-2); }
-.rank { color: var(--text-muted); font-variant-numeric: tabular-nums; text-align: right; }
-.who { display: flex; flex-direction: column; }
-.name { font-weight: 600; }
-.lab { color: var(--text-muted); font-size: 12px; }
-.why { color: var(--text-secondary); font-size: 12px; margin-top: 2px; }
-.plot { position: relative; height: 28px; }
-.plot .gridlines i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--grid); }
-.track { position: absolute; inset: 0; background-image: linear-gradient(var(--grid), var(--grid));
-  background-size: 1px 100%; background-repeat: no-repeat; }
-.ci { position: absolute; top: 12px; height: 4px; background: var(--series-1-wash); border-radius: 2px; }
-.bar { position: absolute; left: 0; top: 7px; height: 14px; background: var(--series-1); border-radius: 0 4px 4px 0; }
-.dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
-  background: var(--surface-1); border: 2px solid var(--series-2); box-shadow: 0 0 0 2px var(--surface-1); }
-.score { text-align: right; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; }
-.score .big { font-size: 20px; font-weight: 650; }
-.score .pm { color: var(--text-muted); font-size: 12px; }
-.score.written { color: var(--text-secondary); font-size: 16px; }
-table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; margin-top: 10px; }
-th, td { text-align: left; padding: 10px 8px; border-top: 1px solid var(--grid); }
-th { color: var(--text-muted); font-weight: 500; font-size: 12px; }
-[hidden] { display: none !important; }
+  font: 15px/1.55 Inter, ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1140px; margin: 0 auto; padding: 0 40px; }
+.crumbs { font-size: 12px; color: var(--text-muted); padding: 18px 0; border-bottom: 1px solid var(--line); }
+.crumbs b { color: var(--text-primary); font-weight: 500; }
+.hero { text-align: center; padding: 72px 0 56px; }
+.hero h1 { font-size: 46px; line-height: 1.12; font-weight: 500; letter-spacing: -.02em; margin: 0 0 14px; }
+.hero .with { color: var(--text-muted); font-size: 13px; margin-bottom: 18px; }
+.hero p { color: var(--text-secondary); max-width: 640px; margin: 0 auto 26px; }
+.btns { display: flex; gap: 10px; justify-content: center; }
+.btn { font: inherit; font-size: 13px; padding: 9px 18px; border-radius: 6px; text-decoration: none;
+  background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--line); }
+.btn.primary { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); padding: 34px 0 70px; }
+.stat { text-align: center; border-left: 1px solid var(--line); }
+.stat:first-child { border-left: 0; }
+.stat .v { font-size: 44px; font-weight: 400; letter-spacing: -.02em; line-height: 1.1; }
+.stat .k { color: var(--text-muted); font-size: 17px; }
+.lb { display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: start; padding-bottom: 90px; }
+.lb h2, .sec h2 { font-size: 22px; font-weight: 500; margin: 0 0 18px; }
+.lb .copy p { color: var(--text-secondary); margin: 0 0 16px; }
+.chips { display: flex; gap: 8px; margin-top: 22px; }
+.chips a { font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px;
+  padding: 5px 11px; color: var(--text-primary); text-decoration: none; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 26px 26px 20px; }
+.card-head { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 13px; margin-bottom: 6px; }
+.lrow { padding: 10px 6px 6px; margin: 0 -6px; outline: none; border-radius: 6px; }
+.lrow:hover, .lrow:focus-visible { background: var(--surface-2); }
+.ltop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.mname { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 7px; }
+.mark { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.mtag { color: var(--text-muted); font-size: 12px; font-weight: 400; }
+.mscore { font-size: 14px; white-space: nowrap; }
+.mscore .ci { color: var(--text-muted); font-size: 12px; margin-left: 6px; }
+.lbar { position: relative; height: 6px; margin-top: 9px; background: var(--track); border-radius: 3px; }
+.lbar .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+.lbar .lo { position: absolute; top: 0; bottom: 0; border-radius: 0 3px 3px 0; }
+.lbar .wh { position: absolute; top: 50%; height: 1px; background: var(--whisker); }
+.lbar .wh::after { content: ""; position: absolute; right: -1px; top: -3px; width: 1px; height: 7px; background: var(--whisker); }
+.why { color: var(--text-muted); font-size: 12px; margin-top: 5px; min-height: 18px; }
+.axis { position: relative; height: 22px; margin-top: 18px; border-top: 1px solid var(--line); }
+.axis span { position: absolute; top: 6px; transform: translateX(-50%); color: var(--text-muted); font-size: 11px; }
+.axis span:first-child { transform: none; }
+.axis span:last-child { transform: translateX(-100%); }
+.card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 12px; flex-wrap: wrap; }
+select { font: inherit; font-size: 13px; color: var(--text-primary); background: var(--card);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+.sec { padding: 0 0 80px; }
+.takeaways { list-style: none; padding: 0; margin: 0; max-width: 760px; counter-reset: t; }
+.takeaways li { counter-increment: t; padding: 16px 0 16px 34px; border-bottom: 1px solid var(--line); position: relative; }
+.takeaways li::before { content: counter(t); position: absolute; left: 6px; top: 16px; color: #4f46e5; }
+.takeaways b { display: block; font-weight: 500; font-size: 16px; margin-bottom: 3px; }
+.takeaways span { color: var(--text-secondary); font-size: 14px; }
+.grid { width: 100%; border-collapse: separate; border-spacing: 2px; }
+.grid th { color: var(--text-muted); font-weight: 400; font-size: 13px; text-align: left; padding: 8px 10px; }
+.grid th.c { text-align: center; }
+.grid td { padding: 0; }
+.grid td.nm { padding: 0 14px 0 4px; white-space: nowrap; font-weight: 500; }
+.cell { height: 46px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 14px; }
+.cell small { font-size: 11px; opacity: .8; }
+.sub { color: var(--text-secondary); margin: -8px 0 22px; max-width: 760px; }
+.method { color: var(--text-secondary); font-size: 14px; max-width: 820px; }
+.method p { margin: 0 0 12px; }
+.method b { color: var(--text-primary); font-weight: 500; }
 .tip { position: fixed; pointer-events: none; background: var(--text-primary); color: var(--surface-1);
-  font-size: 13px; padding: 9px 11px; border-radius: 8px; max-width: 320px; line-height: 1.4; z-index: 9; }
+  font-size: 12.5px; padding: 9px 11px; border-radius: 8px; max-width: 300px; line-height: 1.45; z-index: 9; }
 .tip b { display: block; margin-bottom: 3px; }
-.method { margin-top: 34px; color: var(--text-secondary); font-size: 13px; border-top: 1px solid var(--grid);
-  padding-top: 16px; display: grid; gap: 6px; }
-.method b { color: var(--text-primary); font-weight: 600; }
-@media (max-width: 720px) {
-  .head, .row { grid-template-columns: 22px 1fr 60px 60px; }
-  .plot, .head .axis { grid-column: 1 / -1; grid-row: 2; }
+[hidden] { display: none !important; }
+@media (max-width: 900px) {
+  .lb { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); row-gap: 24px; }
+  .hero h1 { font-size: 34px; }
 }
 </style>
 </head>
 <body>
-<div class="page">
-  <p class="eyebrow">PrecedentBench · Vals Hacks 2026</p>
-  <h1>Can AI agents follow the rules nobody wrote down?</h1>
-  <p class="lede">Each agent joins the finance team at a simulated AI company, gets five new supplier
-  invoices and three months of company email, Slack and tickets. Which invoices need the finance director's
-  approval was never written down: the cutoff moved from $5,000 to $10,000 in October, and one supplier stopped
-  needing approval after signing a contract. The only way to know is to read how the team actually worked.</p>
+<div class="wrap">
+  <div class="crumbs">Vals Hacks 2026 › Build your own eval › <b>PrecedentBench</b></div>
 
-  <div class="controls">
-    <div class="legend" aria-label="Legend">
-      <span><i class="key-bar"></i>Pass rate, rule only in past work</span>
-      <span><i class="key-ci"></i>95% range</span>
-      <span><i class="key-dot"></i>Pass rate, same rule written in an email</span>
-    </div>
-    <div class="toggle" role="group" aria-label="View">
-      <button aria-pressed="true" data-view="chart">Chart</button><button aria-pressed="false" data-view="table">Table</button>
-    </div>
-  </div>
-
-  <section id="chart">
-    <div class="head">
-      <div></div><div>Model</div>
-      <div class="axis"><span style="left:0%">0%</span><span style="left:20%">20%</span><span style="left:40%">40%</span><span style="left:60%">60%</span><span style="left:80%">80%</span><span style="left:100%">100%</span></div>
-      <div class="r">Unwritten</div><div class="r">Written</div>
-    </div>
-    
-      <div class="row" tabindex="0" data-tip="Claude Fable 5.2|Rule only in past work: 4/5 passed (80%, 95% range 38% to 96%)|Rule written in an email: 5/5 passed (100%)|Misses, rule only in past work: followed the old $5k rule (1)">
-        <div class="rank">1</div>
-        <div class="who"><span class="name">Claude Fable 5.2</span><span class="lab">Anthropic</span><span class="why">Misses: followed the old $5k rule (1)</span></div>
-        <div class="plot">
-          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
-          <div class="track"></div>
-          <div class="ci" style="left:37.55%;width:58.82%"></div>
-          <div class="bar" style="width:80.00%"></div>
-          <div class="dot" style="left:100.00%" aria-hidden="true"></div>
-        </div>
-        <div class="score"><span class="big">80%</span><span class="pm">4/5</span></div>
-        <div class="score written">100%<span class="pm">5/5</span></div>
-      </div>
-      <div class="row" tabindex="0" data-tip="Claude Opus 5.5|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 4/5 passed (80%)|Misses, rule only in past work: never asked anyone (2), followed the old $5k rule (3)">
-        <div class="rank">2</div>
-        <div class="who"><span class="name">Claude Opus 5.5</span><span class="lab">Anthropic</span><span class="why">Misses: never asked anyone (2), followed the old $5k rule (3)</span></div>
-        <div class="plot">
-          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
-          <div class="track"></div>
-          <div class="ci" style="left:0.00%;width:43.45%"></div>
-          <div class="bar" style="width:0.60%"></div>
-          <div class="dot" style="left:80.00%" aria-hidden="true"></div>
-        </div>
-        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
-        <div class="score written">80%<span class="pm">4/5</span></div>
-      </div>
-      <div class="row" tabindex="0" data-tip="Claude Haiku 5.5|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 0/5 passed (0%)|Misses, rule only in past work: never asked anyone (5)">
-        <div class="rank">3</div>
-        <div class="who"><span class="name">Claude Haiku 5.5</span><span class="lab">Anthropic</span><span class="why">Misses: never asked anyone (5)</span></div>
-        <div class="plot">
-          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
-          <div class="track"></div>
-          <div class="ci" style="left:0.00%;width:43.45%"></div>
-          <div class="bar" style="width:0.60%"></div>
-          <div class="dot" style="left:0.00%" aria-hidden="true"></div>
-        </div>
-        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
-        <div class="score written">0%<span class="pm">0/5</span></div>
-      </div>
-      <div class="row" tabindex="0" data-tip="Claude Sonnet 5.5|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 0/5 passed (0%)|Misses, rule only in past work: never asked anyone (5)">
-        <div class="rank">4</div>
-        <div class="who"><span class="name">Claude Sonnet 5.5</span><span class="lab">Anthropic</span><span class="why">Misses: never asked anyone (5)</span></div>
-        <div class="plot">
-          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
-          <div class="track"></div>
-          <div class="ci" style="left:0.00%;width:43.45%"></div>
-          <div class="bar" style="width:0.60%"></div>
-          <div class="dot" style="left:0.00%" aria-hidden="true"></div>
-        </div>
-        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
-        <div class="score written">0%<span class="pm">0/5</span></div>
-      </div>
-      <div class="row" tabindex="0" data-tip="GPT-6 Astra|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 0/5 passed (0%)|Misses, rule only in past work: never asked anyone (5)">
-        <div class="rank">5</div>
-        <div class="who"><span class="name">GPT-6 Astra</span><span class="lab">OpenAI</span><span class="why">Misses: never asked anyone (5)</span></div>
-        <div class="plot">
-          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
-          <div class="track"></div>
-          <div class="ci" style="left:0.00%;width:43.45%"></div>
-          <div class="bar" style="width:0.60%"></div>
-          <div class="dot" style="left:0.00%" aria-hidden="true"></div>
-        </div>
-        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
-        <div class="score written">0%<span class="pm">0/5</span></div>
-      </div>
-      <div class="row" tabindex="0" data-tip="GPT-6.1 Sol|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 0/5 passed (0%)|Misses, rule only in past work: never asked anyone (5)">
-        <div class="rank">6</div>
-        <div class="who"><span class="name">GPT-6.1 Sol</span><span class="lab">OpenAI</span><span class="why">Misses: never asked anyone (5)</span></div>
-        <div class="plot">
-          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
-          <div class="track"></div>
-          <div class="ci" style="left:0.00%;width:43.45%"></div>
-          <div class="bar" style="width:0.60%"></div>
-          <div class="dot" style="left:0.00%" aria-hidden="true"></div>
-        </div>
-        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
-        <div class="score written">0%<span class="pm">0/5</span></div>
-      </div>
+  <section class="hero">
+    <h1>Can AI agents follow the rules<br>nobody wrote down?</h1>
+    <div class="with">PrecedentBench · built on Valkyrie, run on Modal</div>
+    <p>Every company runs on habits that live in past work, not in a handbook. PrecedentBench drops an agent
+    into a company's finance team and checks whether it does the job the way this team does it, using only
+    what the team did before.</p>
+    <div class="btns"><a class="btn primary" href="#leaderboard">See the leaderboard</a><a class="btn" href="#method">Read methodology</a></div>
   </section>
 
-  <section id="table" hidden>
-    <table>
-      <thead><tr><th>Model</th><th>Unwritten, passed</th><th>Unwritten, rate</th><th>95% range</th>
-      <th>Written, passed</th><th>Written, rate</th><th>How it missed (unwritten)</th></tr></thead>
-      <tbody><tr><td>Claude Fable 5.2</td><td>4/5</td><td>80%</td><td>38% to 96%</td><td>5/5</td><td>100%</td><td>followed the old $5k rule (1)</td></tr><tr><td>Claude Opus 5.5</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>4/5</td><td>80%</td><td>never asked anyone (2), followed the old $5k rule (3)</td></tr><tr><td>Claude Haiku 5.5</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>0/5</td><td>0%</td><td>never asked anyone (5)</td></tr><tr><td>Claude Sonnet 5.5</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>0/5</td><td>0%</td><td>never asked anyone (5)</td></tr><tr><td>GPT-6 Astra</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>0/5</td><td>0%</td><td>never asked anyone (5)</td></tr><tr><td>GPT-6.1 Sol</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>0/5</td><td>0%</td><td>never asked anyone (5)</td></tr></tbody>
-    </table>
+  <section class="stats">
+    <div class="stat"><div class="v">6</div><div class="k">Frontier models</div></div>
+    <div class="stat"><div class="v">3</div><div class="k">Levels of hidden</div></div>
+    <div class="stat"><div class="v">8</div><div class="k">Attempts per level</div></div>
+    <div class="stat"><div class="v">79.2%</div><div class="k">Top rule score</div></div>
   </section>
 
-  <div class="method">
-    <div><b>Pass</b> means every check holds: the one invoice that needs approval goes to the director, the four
-    that don't are logged and she isn't bothered about them, and past records are left untouched.</div>
-    <div><b>Attempts:</b> 5 per model per version, each in a fresh sandbox. Range is a 95% Wilson
-    interval on the pass rate, wide because the number of attempts is small.</div>
-    <div><b>Written version</b> is the same company with three extra emails from the director stating the rules.
-    It checks the task is fair: a model that fails here is not failing because the rule is hidden.</div>
-    <div><b>Agents:</b> Claude models run in Claude Code, GPT models run in Codex, on Valkyrie with Modal sandboxes.
-    Company background: Redwood Inference corpus (EnterpriseRAG-Bench, Onyx, MIT).</div>
-  </div>
+  <section class="lb" id="leaderboard">
+    <div class="copy">
+      <h2>The PrecedentBench leaderboard</h2>
+      <p>The agent joins Redwood Inference's finance team. Five supplier invoices just came in, and three months
+      of company email, Slack and tickets sit in its workspace. The request is one line: log the invoices.</p>
+      <p>The catch: big invoices need the finance director's approval first, the cutoff quietly moved from $5,000
+      to $10,000 in October, and one supplier stopped needing approval after signing a contract. None of it is
+      written down. It only shows in how the team handled the last 90 invoices.</p>
+      <p>Each model runs the same task three ways: with the rule only in past work, with the rule also written in
+      an email, and with the rule told in the instruction. The last one is the fairness check.</p>
+      <div class="chips"><a href="#ladder">Where it breaks</a><a href="#takeaways">Takeaways</a><a href="#method">Methodology</a></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span>Model</span><span id="metric-label">Score</span></div>
+      <div id="rows"></div>
+      <div class="axis" id="axis"></div>
+      <div class="card-foot">
+        <select id="level" aria-label="Level"></select>
+        <select id="metric" aria-label="Metric">
+          <option value="rule">Rule score</option>
+          <option value="pass">Pass rate</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="takeaways">
+    <h2>Key takeaways</h2>
+    <ol class="takeaways" id="tk"></ol>
+  </section>
+
+  <section class="sec" id="ladder">
+    <h2>Where it breaks</h2>
+    <p class="sub">Rule score per model as the rule gets harder to find. Same company, same invoices, same checks;
+    only where the rule lives changes.</p>
+    <table class="grid" id="grid"></table>
+  </section>
+
+  <section class="sec method" id="method">
+    <h2>Methodology</h2>
+    <p><b>Task.</b> Log five new supplier invoices. One ($13,960) needs the director's approval. Two ($7,280 and
+    $6,925) are under the new $10,000 cutoff. One ($11,340.50) is from the exempt supplier, and one is a small office
+    supply bill. The $6,925 one comes from a supplier whose last large invoice did go for approval, so copying the
+    last case for that supplier gets it wrong.</p>
+    <p><b>Rule score</b> is the share of the rule's three parts an attempt got right: (1) asked the director about the
+    one invoice that needs it, (2) left the two invoices under $10,000 alone, (3) left the exempt supplier alone.
+    Parts 2 and 3 only count when part 1 holds, so asking nobody earns nothing. <b>Pass rate</b> is the share of
+    attempts where every check holds, including bookkeeping (each invoice logged once, past records untouched).</p>
+    <p><b>Intervals.</b> Rule score: 95% bootstrap over attempts, 10,000 resamples. Pass rate: 95% Wilson interval.
+    Attempt counts are small, so intervals are wide. When every attempt scores zero the bootstrap range collapses to
+    zero; the pass-rate interval (0 to 32% for 0 of 8) is the honest bound there.</p>
+    <p><b>Company.</b> Background is 2,100 emails, Slack threads and tickets from the Redwood Inference corpus
+    (EnterpriseRAG-Bench by Onyx, MIT), filtered so nothing contradicts or hints at the rule. The finance history
+    (90 invoices, every supplier email, 16 approval threads) is generated from the rule itself, so it can't
+    disagree with the answer key.</p>
+    <p><b>Agents.</b> Claude models run in Claude Code, GPT models in Codex, each attempt in a fresh sandbox, via
+    Valkyrie on Modal. The grader is deterministic: no model grades another.</p>
+  </section>
 </div>
 <div class="tip" hidden></div>
 <script>
 const t = new URLSearchParams(location.search).get("theme");
 if (t) document.documentElement.dataset.theme = t;
-const tip = document.querySelector('.tip');
-document.querySelectorAll('.row').forEach(row => {
-  const show = (x, y) => {
-    const [title, ...lines] = row.dataset.tip.split('|');
-    tip.innerHTML = '<b>' + title + '</b>' + lines.join('<br>');
-    tip.hidden = false;
-    const w = tip.offsetWidth;
-    tip.style.left = Math.min(x + 14, innerWidth - w - 8) + 'px';
-    tip.style.top = (y + 14) + 'px';
-  };
-  row.addEventListener('mousemove', e => show(e.clientX, e.clientY));
-  row.addEventListener('mouseleave', () => tip.hidden = true);
-  row.addEventListener('focus', () => { const r = row.getBoundingClientRect(); show(r.left + 240, r.top); });
-  row.addEventListener('blur', () => tip.hidden = true);
-});
-document.querySelectorAll('.toggle button').forEach(b => b.addEventListener('click', () => {
-  document.querySelectorAll('.toggle button').forEach(x => x.setAttribute('aria-pressed', x === b));
-  document.getElementById('chart').hidden = b.dataset.view !== 'chart';
-  document.getElementById('table').hidden = b.dataset.view !== 'table';
-}));
+const D = {"models": {"claude-fable-5-2": {"name": "Fable 5.2", "lab": "Anthropic", "agent": "Claude Code", "levels": {"hidden": {"n": 8, "k": 5, "pass": [0.625, 0.30573785458380187, 0.863158240538479], "rule": [0.7916666666666666, 0.5833333333333333, 0.9583333333333334], "fails": {"used the old $5k rule": 2, "missed the $10k change": 1}}, "written": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}}}, "claude-opus-5-5": {"name": "Opus 5.5", "lab": "Anthropic", "agent": "Claude Code", "levels": {"hidden": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.29166666666666663, 0.16666666666666666, 0.4166666666666667], "fails": {"never asked for approval": 2, "used the old $5k rule": 5, "missed the $10k change": 1}}, "written": {"n": 8, "k": 7, "pass": [0.875, 0.5291051942301386, 0.9775830911367038], "rule": [0.875, 0.625, 1.0], "fails": {"never asked for approval": 1}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}}}, "claude-sonnet-5-5": {"name": "Sonnet 5.5", "lab": "Anthropic", "agent": "Claude Code", "levels": {"hidden": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "written": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}}}, "claude-haiku-5-5": {"name": "Haiku 5.5", "lab": "Anthropic", "agent": "Claude Code", "levels": {"hidden": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "written": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}}}, "gpt-6-astra": {"name": "GPT-6 Astra", "lab": "OpenAI", "agent": "Codex", "levels": {"hidden": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "written": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}}}, "gpt-6.1-sol": {"name": "GPT-6.1 Sol", "lab": "OpenAI", "agent": "Codex", "levels": {"hidden": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "written": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}}}}, "levels": [["hidden", "Rule only in past work"], ["written", "Rule in an email somewhere"], ["told", "Rule told in the instruction"]], "quote": "There is no written approval policy in the company files, so I inferred the rule from past practice in the tracker and mail archive."};
+const levelSel = document.getElementById("level"), metricSel = document.getElementById("metric");
+D.levels.forEach(([k, label]) => levelSel.add(new Option(label, k)));
+const qp = new URLSearchParams(location.search);
+if (qp.get("level")) levelSel.value = qp.get("level");
+if (qp.get("metric")) metricSel.value = qp.get("metric");
+const LAB = l => l === "Anthropic" ? "anthropic" : "openai";
+const fmt = x => (x * 100).toFixed(1) + "%";
+
+function rows() {
+  const lv = levelSel.value, mt = metricSel.value;
+  document.getElementById("metric-label").textContent = mt === "rule" ? "Rule score" : "Pass rate";
+  const list = Object.values(D.models).filter(m => m.levels[lv])
+    .map(m => ({m, s: m.levels[lv][mt], d: m.levels[lv]}))
+    .sort((a, b) => b.s[0] - a.s[0] || b.s[2] - a.s[2] || a.m.name.localeCompare(b.m.name));
+  document.getElementById("rows").innerHTML = list.map(({m, s, d}) => {
+    const [p, lo, hi] = s, c = LAB(m.lab);
+    const why = Object.entries(d.fails).map(([k, n]) => `${k} (${n})`).join(", ");
+    const tip = [m.name + " · " + m.agent,
+      `Rule score ${fmt(d.rule[0])} (95%: ${fmt(d.rule[1])}–${fmt(d.rule[2])})`,
+      `Pass rate ${d.k}/${d.n} = ${fmt(d.pass[0])} (95%: ${fmt(d.pass[1])}–${fmt(d.pass[2])})`,
+      why ? "Misses: " + why : "No misses"].join("|");
+    return `<div class="lrow" tabindex="0" data-tip="${tip.replace(/"/g, "&quot;")}">
+      <div class="ltop"><span class="mname"><i class="mark" style="background:var(--${c}-b)"></i>${m.name}
+        <span class="mtag">${m.agent}</span></span>
+        <span class="mscore mono">${fmt(p)}<span class="ci">${fmt(lo)}–${fmt(hi)}</span></span></div>
+      <div class="lbar">
+        <div class="fill" style="width:${Math.max(p * 100, .8)}%;background:linear-gradient(90deg,var(--${c}-a),var(--${c}-b))"></div>
+        ${p > lo ? `<div class="lo" style="left:${lo * 100}%;width:${(p - lo) * 100}%;background:var(--${c}-c)"></div>` : ""}
+        ${hi > p ? `<div class="wh" style="left:${p * 100}%;width:${(hi - p) * 100}%"></div>` : ""}
+      </div>
+      <div class="why">${why ? "Misses: " + why : "&nbsp;"}</div>
+    </div>`;
+  }).join("");
+  bindTips();
+}
+
+document.getElementById("axis").innerHTML = [0, 20, 40, 60, 80, 100].map(v => `<span style="left:${v}%">${v}%</span>`).join("");
+
+function grid() {
+  const hid = m => (m.levels.hidden ? m.levels.hidden.rule[0] : 0);
+  const order = Object.values(D.models).sort((a, b) => hid(b) - hid(a) || a.name.localeCompare(b.name));
+  const lv = [...D.levels].reverse();
+  const head = "<tr><th></th>" + lv.map(([, l]) => `<th class="c">${l}</th>`).join("") + "</tr>";
+  const body = order.map(m => "<tr><td class='nm'>" + m.name + "</td>" + lv.map(([k]) => {
+    const d = m.levels[k];
+    if (!d) return "<td><div class='cell' style='background:var(--cell-0);color:var(--text-muted)'>running</div></td>";
+    const v = d.rule[0];
+    const bg = `color-mix(in oklab, #2a78d6 ${Math.round(v * 85)}%, var(--cell-0))`;
+    const ink = v > .55 ? "#fff" : "var(--cell-ink)";
+    return `<td><div class="cell mono" style="background:${bg};color:${ink}">${fmt(v)}<small>${d.k}/${d.n} passed</small></div></td>`;
+  }).join("") + "</tr>").join("");
+  document.getElementById("grid").innerHTML = head + body;
+}
+
+function takeaways() {
+  const M = Object.values(D.models);
+  const H = M.filter(m => m.levels.hidden);
+  const best = H.reduce((a, b) => (b.levels.hidden.rule[0] > a.levels.hidden.rule[0] ? b : a));
+  const never = H.filter(m => (m.levels.hidden.fails["never asked for approval"] || 0) === m.levels.hidden.n).length;
+  const items = [[`Only ${best.name} reliably works out the unwritten rule`,
+    `It reaches a ${fmt(best.levels.hidden.rule[0])} rule score when the rule lives only in past work. ` +
+    `In its own words: "${D.quote}"`]];
+  items.push([`${never} of ${H.length} models never ask for approval at all`,
+    "Asked to log five invoices, they log all five and stop. In the runs we read, they looked at the inbox and the " +
+    "spreadsheet and never opened the email history, so they never met the rule, not even when it was written in an email. " +
+    "Told the rule in the instruction, the same models follow it."]);
+  const opus = M.find(m => m.name === "Opus 5.5");
+  if (opus && opus.levels.hidden) {
+    const f = opus.levels.hidden.fails, wrong = (f["used the old $5k rule"] || 0) + (f["missed the Halverson exception"] || 0) + (f["missed the $10k change"] || 0);
+    items.push(["Finding the habit is not the same as getting it right",
+      `In ${wrong} of ${opus.levels.hidden.n} attempts Opus 5.5 found the approval threads and still got the rule wrong, ` +
+      "mostly by applying the old $5,000 cutoff to everything. Rule changes and exceptions are where precedent reasoning breaks."]);
+  }
+  const told = M.filter(m => m.levels.told);
+  if (told.length) {
+    const all = told.filter(m => m.levels.told.k === m.levels.told.n).length;
+    const att = told.reduce((s, m) => s + m.levels.told.n, 0), passed = told.reduce((s, m) => s + m.levels.told.k, 0);
+    items.push(["Told the rule, every model follows it",
+      `${all} of ${told.length} models pass every attempt when the rule is in the instruction (${passed} of ${att} attempts overall), ` +
+      "so the task itself is fair. " +
+      "The gap between that and the hidden version is the cost of rules nobody wrote down."]);
+  }
+  document.getElementById("tk").innerHTML = items.map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("");
+}
+
+const tip = document.querySelector(".tip");
+function bindTips() {
+  document.querySelectorAll(".lrow").forEach(row => {
+    const show = (x, y) => {
+      const [title, ...lines] = row.dataset.tip.split("|");
+      tip.innerHTML = "<b>" + title + "</b>" + lines.join("<br>");
+      tip.hidden = false;
+      tip.style.left = Math.min(x + 14, innerWidth - tip.offsetWidth - 8) + "px";
+      tip.style.top = (y + 14) + "px";
+    };
+    row.onmousemove = e => show(e.clientX, e.clientY);
+    row.onmouseleave = () => tip.hidden = true;
+    row.onfocus = () => { const r = row.getBoundingClientRect(); show(r.left + 30, r.bottom); };
+    row.onblur = () => tip.hidden = true;
+  });
+}
+levelSel.onchange = rows; metricSel.onchange = rows;
+rows(); grid(); takeaways();
 </script>
 </body>
 </html>

@@ -382,9 +382,11 @@ function takeaways() {
   }
   const told = M.filter(m => m.levels.told);
   if (told.length) {
-    const ok = told.filter(m => m.levels.told.rule[0] >= .8).length;
-    items.push(["Told the rule, models follow it",
-      `${ok} of ${told.length} models score 80% or more when the rule is in the instruction. ` +
+    const all = told.filter(m => m.levels.told.k === m.levels.told.n).length;
+    const att = told.reduce((s, m) => s + m.levels.told.n, 0), passed = told.reduce((s, m) => s + m.levels.told.k, 0);
+    items.push(["Told the rule, every model follows it",
+      `${all} of ${told.length} models pass every attempt when the rule is in the instruction (${passed} of ${att} attempts overall), ` +
+      "so the task itself is fair. " +
       "The gap between that and the hidden version is the cost of rules nobody wrote down."]);
   }
   document.getElementById("tk").innerHTML = items.map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("");
