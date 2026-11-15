@@ -1,0 +1,254 @@
+[
+ {
+  "task": "refunds-l1-k3",
+  "strategy": "old habits / follow the old doc",
+  "mean": 0.6667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k3",
+  "strategy": "copy last decision for the customer",
+  "mean": 0.4,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k3",
+  "strategy": "majority for the customer",
+  "mean": 0.4,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k3",
+  "strategy": "credit everything",
+  "mean": 0.5333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k3",
+  "strategy": "refund everything",
+  "mean": 0.1333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k3",
+  "strategy": "deny everything",
+  "mean": 0.0,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k5",
+  "strategy": "old habits / follow the old doc",
+  "mean": 0.6667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k5",
+  "strategy": "copy last decision for the customer",
+  "mean": 0.4667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k5",
+  "strategy": "majority for the customer",
+  "mean": 0.3333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k5",
+  "strategy": "credit everything",
+  "mean": 0.5333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k5",
+  "strategy": "refund everything",
+  "mean": 0.1333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l1-k5",
+  "strategy": "deny everything",
+  "mean": 0.0,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k3",
+  "strategy": "old habits / follow the old doc",
+  "mean": 0.6,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k3",
+  "strategy": "copy last decision for the customer",
+  "mean": 0.2,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k3",
+  "strategy": "majority for the customer",
+  "mean": 0.2667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k3",
+  "strategy": "credit everything",
+  "mean": 0.4,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k3",
+  "strategy": "refund everything",
+  "mean": 0.1333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k3",
+  "strategy": "deny everything",
+  "mean": 0.0667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k5",
+  "strategy": "old habits / follow the old doc",
+  "mean": 0.6,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k5",
+  "strategy": "copy last decision for the customer",
+  "mean": 0.2667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k5",
+  "strategy": "majority for the customer",
+  "mean": 0.4,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k5",
+  "strategy": "credit everything",
+  "mean": 0.4,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k5",
+  "strategy": "refund everything",
+  "mean": 0.1333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l2-k5",
+  "strategy": "deny everything",
+  "mean": 0.0667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k3",
+  "strategy": "old habits / follow the old doc",
+  "mean": 0.6,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k3",
+  "strategy": "copy last decision for the customer",
+  "mean": 0.2,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k3",
+  "strategy": "majority for the customer",
+  "mean": 0.2667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k3",
+  "strategy": "credit everything",
+  "mean": 0.4,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k3",
+  "strategy": "refund everything",
+  "mean": 0.1333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k3",
+  "strategy": "deny everything",
+  "mean": 0.0667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k5",
+  "strategy": "old habits / follow the old doc",
+  "mean": 0.6,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k5",
+  "strategy": "copy last decision for the customer",
+  "mean": 0.2667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k5",
+  "strategy": "majority for the customer",
+  "mean": 0.4,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k5",
+  "strategy": "credit everything",
+  "mean": 0.4,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k5",
+  "strategy": "refund everything",
+  "mean": 0.1333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-l3-k5",
+  "strategy": "deny everything",
+  "mean": 0.0667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-told",
+  "strategy": "old habits / follow the old doc",
+  "mean": 0.6,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-told",
+  "strategy": "copy last decision for the customer",
+  "mean": 0.2,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-told",
+  "strategy": "majority for the customer",
+  "mean": 0.2667,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-told",
+  "strategy": "credit everything",
+  "mean": 0.4,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-told",
+  "strategy": "refund everything",
+  "mean": 0.1333,
+  "pass": 0.0
+ },
+ {
+  "task": "refunds-told",
+  "strategy": "deny everything",
+  "mean": 0.0667,
+  "pass": 0.0
+ }
+]

@@ -28,3 +28,13 @@ dated Jan 2026 AP policy, finance with the Q4 tracker and the Q2/Q3 archive) and
 No `tests/`, `expected.json`, `check.py`, `solution/` or `solve.sh` anywhere in the image.
 No doc contains "REVIEW: Tomasz" / "REVIEW: Mireille" (they only appear as tracker notes), and no email or
 drive doc mentions $10,000. The old policy states only the January rule. Clean.
+
+## Refunds job (Nov 15, 11:00)
+
+Box checked: `refunds-l3-k3` (8 habits + old policy doc). What the agent can see: 15 inbox emails, the
+three quarterly refunds logs (`company/support/`), the old policy in `company/drive/`, and ~2,500 Redwood
+emails, Slack threads and tickets. No `tests/`, `expected.json`, `check.py` or `solve.sh` anywhere in the box.
+Answer words ("Fairbairn", "finance check", "DUPLICATE") only appear in the refunds log history and the
+Harrowgate contract email (addressed to Lucas Fairbairn, says nothing about refunds). Redwood background
+docs mention "duplicate" in ordinary engineering contexts (retries, dedup) and never state a refund rule.
+The new requests' emails state ticket, customer, amount and reason only. Clean.
