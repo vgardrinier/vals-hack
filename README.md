@@ -62,6 +62,7 @@ anywhere online.
                   no-AI strategies with the same checker; *.json are the raw results
     docs/         findings.md (what we found, how we checked it's fair), leak_check.md, STATUS.md (lab notebook)
     demo/         deck.html, the demo
+    examples/     two full tasks as they run on Valkyrie (main + told control), open them without building
     archive/      every earlier round and parked experiment, kept so nothing is cherry-picked
 
 Python standard library only. The only install is `valkyrie-cli`.
