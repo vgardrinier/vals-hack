@@ -3,576 +3,386 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PrecedentBench: can AI agents follow the rules nobody wrote down?</title>
+<title>PrecedentBench: the habits nobody wrote down</title>
 <style>
 .viz-root {
   color-scheme: light;
-  --surface-1: #ffffff; --surface-2: #f5f5f4; --card: #ffffff; --line: #e7e7e4; --track: #f1f1f0;
-  --text-primary: #0b0b0b; --text-secondary: #4b4b48; --text-muted: #8b8b87;
-  --accent: #4f46e5;
-  --anthropic-a: #f6a879; --anthropic-b: #e8672f; --anthropic-c: #b9471a;
-  --openai-a: #7fd6b5; --openai-b: #16a06e; --openai-c: #0c7650;
-  --whisker: #a3a39e; --cell-0: #f1f1f0; --cell-ink: #0b0b0b; --quote-bg: #0f0f0e; --quote-ink: #f5f5f4;
-  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --grid: #e7e7e4;
-}
-@media (prefers-color-scheme: dark) {
-  :root:where(:not([data-theme="light"])).viz-root {
-    color-scheme: dark;
-    --surface-1: #121211; --surface-2: #1c1c1a; --card: #171716; --line: #2c2c29; --track: #262624;
-    --text-primary: #f0efec; --text-secondary: #c3c2b9; --text-muted: #8d8c85; --accent: #7c74f0;
-    --anthropic-a: #a8501f; --anthropic-b: #e0632b; --anthropic-c: #f39a6a;
-    --openai-a: #0f6b4a; --openai-b: #1aa874; --openai-c: #5fd3a5;
-    --whisker: #6f6e68; --cell-0: #262624; --cell-ink: #f0efec; --quote-bg: #f0efec; --quote-ink: #121211;
-    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --grid: #2c2c29;
-  }
+  --surface-1:#FFFFFF; --surface-2:#F7F8FA; --card:#FFFFFF; --line:#E5E7EB; --track:#F1F5F9;
+  --text-primary:#111827; --text-secondary:#475569; --text-muted:#94A3B8; --accent:#4F46E5;
+  --anthropic-a:#FED7C3; --anthropic-b:#F28C5C; --anthropic-c:#B9522B;
+  --openai-a:#A7E3CF; --openai-b:#38A77C; --openai-c:#147A59;
+  --base:#CBD5E1; --success:#147A59; --warning:#B7791F; --danger:#C2413B; --quote-bg:#111827; --quote-ink:#F8FAFC;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100; --s5:#e87ba4;
 }
 :root[data-theme="dark"].viz-root {
   color-scheme: dark;
-  --surface-1: #121211; --surface-2: #1c1c1a; --card: #171716; --line: #2c2c29; --track: #262624;
-  --text-primary: #f0efec; --text-secondary: #c3c2b9; --text-muted: #8d8c85; --accent: #7c74f0;
-  --anthropic-a: #a8501f; --anthropic-b: #e0632b; --anthropic-c: #f39a6a;
-  --openai-a: #0f6b4a; --openai-b: #1aa874; --openai-c: #5fd3a5;
-  --whisker: #6f6e68; --cell-0: #262624; --cell-ink: #f0efec; --quote-bg: #f0efec; --quote-ink: #121211;
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --grid: #2c2c29;
+  --surface-1:#0F1115; --surface-2:#171A20; --card:#14171C; --line:#272B33; --track:#1E2229;
+  --text-primary:#F1F5F9; --text-secondary:#B6C0CD; --text-muted:#7B8696; --accent:#8B85F0;
+  --anthropic-a:#7A3518; --anthropic-b:#D96A3A; --anthropic-c:#F3A27B;
+  --openai-a:#0F5A41; --openai-b:#2E9E72; --openai-c:#6FD3AE;
+  --base:#475569; --quote-bg:#1E2230;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70; --s4:#c98500; --s5:#d55181;
 }
-.dose-wrap { display: grid; grid-template-columns: 1fr 220px; gap: 28px; align-items: start; }
-.dose svg { width: 100%; height: auto; display: block; overflow: visible; }
-.dose .gl { stroke: var(--grid); stroke-width: 1; }
-.dose .ax { fill: var(--text-muted); font-size: 11px; }
-.dose .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.dose .pt { stroke: var(--card); stroke-width: 2; cursor: default; }
-.dose .hit { fill: transparent; }
-.dose .lab { font-size: 12px; fill: var(--text-secondary); }
-.legend2 { list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--text-secondary); }
-.legend2 li { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
-.legend2 i { width: 18px; height: 2px; border-radius: 1px; display: inline-block; position: relative; }
-.legend2 i::after { content: ""; position: absolute; left: 5px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: inherit; }
-.legend2 .v { margin-left: auto; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-.note { color: var(--text-muted); font-size: 13px; margin: 6px 0 18px; }
-@media (max-width: 900px) { .dose-wrap { grid-template-columns: 1fr; } }
-* { box-sizing: border-box; }
-body { margin: 0; background: var(--surface-1); color: var(--text-primary);
-  font: 15px/1.55 Inter, ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased; }
-a { color: inherit; }
-.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
-.wrap { max-width: 1180px; margin: 0 auto; padding: 0 48px; }
-nav.top { border-bottom: 1px solid var(--line); }
-nav.top .wrap { display: flex; align-items: center; height: 64px; gap: 36px; }
-.brand { display: flex; align-items: center; gap: 9px; font-weight: 650; font-size: 16px; letter-spacing: -.01em; text-decoration: none; }
-.brand i { width: 22px; height: 22px; border-radius: 6px; background: linear-gradient(135deg, #8b85f5, var(--accent)); display: inline-block; }
-.navlinks { display: flex; gap: 30px; font-size: 14px; }
-.navlinks a { text-decoration: none; color: var(--text-primary); }
-.navlinks a:hover { color: var(--accent); }
-.navright { margin-left: auto; font-size: 13px; border: 1px solid var(--line); border-radius: 6px; padding: 7px 16px; text-decoration: none; }
-.crumbs { font-size: 12px; color: var(--text-muted); padding: 14px 0; }
-.crumbs b { color: var(--text-primary); font-weight: 500; }
-.crumbs span { margin: 0 7px; }
-.hero { text-align: center; padding: 64px 0 60px; }
-.hero h1 { font-size: 48px; line-height: 1.1; font-weight: 450; letter-spacing: -.025em; margin: 0 0 18px; }
-.hero .with { color: var(--text-muted); font-size: 13px; margin-bottom: 22px; display: flex; gap: 8px; justify-content: center; align-items: baseline; }
-.hero .with b { color: var(--text-primary); font-size: 17px; font-weight: 650; letter-spacing: -.02em; }
-.hero p { color: var(--text-secondary); max-width: 600px; margin: 0 auto 26px; }
-.btns { display: flex; gap: 10px; justify-content: center; }
-.btn { font: inherit; font-size: 13px; padding: 9px 18px; border-radius: 6px; text-decoration: none;
-  background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--line); }
-.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-.stats { display: grid; grid-template-columns: repeat(4, 1fr); padding: 40px 0 96px; }
-.stat { text-align: center; border-left: 1px solid var(--line); padding: 6px 0; }
-.stat:first-child { border-left: 0; }
-.stat .v { font-size: 44px; font-weight: 400; letter-spacing: -.02em; line-height: 1.15; }
-.stat .k { color: var(--text-muted); font-size: 17px; }
-.lb { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: start; padding-bottom: 110px; }
-h2 { font-size: 21px; font-weight: 500; margin: 0 0 22px; letter-spacing: -.01em; }
-.lb .copy p { color: var(--text-secondary); margin: 0 0 18px; }
-.chips { display: flex; gap: 8px; margin-top: 26px; flex-wrap: wrap; }
-.chips a { font-size: 13px; background: var(--surface-2); border-radius: 6px; padding: 6px 12px; text-decoration: none; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 26px 28px 30px; }
-.card-head { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 13px; margin-bottom: 8px; }
-.lrow { padding: 13px 0 12px; outline: none; border-radius: 6px; cursor: default; }
-.lrow:hover .mname, .lrow:focus-visible .mname { color: var(--accent); }
-.ltop { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-.mname { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 7px; }
-.mname svg { width: 16px; height: 16px; fill: currentColor; flex: none; }
-.mtag { color: var(--text-muted); font-size: 12.5px; font-weight: 400; }
-.mscore { font-size: 14px; white-space: nowrap; }
-.mscore .pm { color: var(--text-muted); font-size: 12.5px; margin-left: 7px; }
-.lbar { position: relative; height: 6px; margin-top: 10px; background: var(--track); border-radius: 3px; }
-.lbar .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
-.lbar .lo { position: absolute; top: 0; bottom: 0; border-radius: 0 3px 3px 0; }
-.lbar .lo::before { content: ""; position: absolute; left: 0; top: -1px; bottom: -1px; width: 1px; background: var(--whisker); opacity: .7; }
-.lbar .wh { position: absolute; top: 50%; height: 1px; background: var(--whisker); }
-.lbar .wh::after { content: ""; position: absolute; right: -1px; top: -3px; width: 1px; height: 7px; background: var(--whisker); }
-.axis { position: relative; height: 24px; margin-top: 30px; border-top: 1px solid var(--line); }
-.axis span { position: absolute; top: 9px; transform: translateX(-50%); color: var(--text-muted); font-size: 12px; opacity: .8; }
-.axis span:first-child { transform: none; }
-.axis span:last-child { transform: translateX(-100%); }
-.card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 34px; gap: 10px; }
-.card-foot > a { white-space: nowrap; }
-.card-foot > a { font-size: 14px; text-decoration: none; }
-.card-foot > a:hover { color: var(--accent); }
-.selects { display: flex; gap: 14px; align-items: center; }
-.sel { position: relative; font-size: 14px; }
-.sel select { max-width: 190px; text-overflow: ellipsis; appearance: none; -webkit-appearance: none; font: inherit; color: var(--text-primary); background: transparent;
-  border: 0; padding: 2px 22px 2px 0; cursor: pointer; text-align: right; }
-.sel::after { content: ""; position: absolute; right: 4px; top: 7px; width: 6px; height: 6px; border-right: 1.3px solid var(--text-muted);
-  border-bottom: 1.3px solid var(--text-muted); transform: rotate(45deg); pointer-events: none; }
-.sel select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
-.kt { display: grid; grid-template-columns: 1.15fr .85fr; gap: 56px; align-items: start; padding-bottom: 110px; }
-.takeaways { list-style: none; padding: 0; margin: 0; counter-reset: t; }
-.takeaways li { counter-increment: t; padding: 18px 0 18px 30px; border-bottom: 1px solid var(--line); position: relative; }
-.takeaways li::before { content: counter(t); position: absolute; left: 8px; top: 18px; color: var(--accent); font-size: 15px; }
-.takeaways b { display: block; font-weight: 500; font-size: 16px; margin-bottom: 4px; }
-.takeaways span { color: var(--text-secondary); font-size: 13.5px; }
-.quote { background: var(--quote-bg); color: var(--quote-ink); border-radius: 10px; padding: 34px 32px; margin-top: 40px; }
-.quote q { display: block; font-size: 21px; line-height: 1.4; letter-spacing: -.01em; quotes: "\201C" "\201D"; }
-.quote .who { margin-top: 22px; font-size: 13px; opacity: .7; display: flex; gap: 8px; align-items: center; }
-.quote .who svg { width: 14px; height: 14px; fill: currentColor; }
-.sec { padding: 0 0 100px; }
-.sub { color: var(--text-secondary); margin: -10px 0 26px; max-width: 640px; }
-.tabs { display: flex; gap: 26px; border-bottom: 1px solid var(--line); margin-bottom: 30px; }
-.tabs button { font: inherit; font-size: 14px; background: none; border: 0; padding: 0 0 10px; color: var(--text-secondary);
-  cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
-.tabs button[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); }
-.grid { width: 100%; border-collapse: separate; border-spacing: 2px; }
-.grid th { color: var(--text-muted); font-weight: 400; font-size: 12.5px; text-align: left; padding: 8px 10px; vertical-align: bottom; }
-.grid th.c { text-align: center; }
-.grid th small { display: block; opacity: .8; }
-.grid td { padding: 0; }
-.grid td.nm { padding: 0 16px 0 4px; white-space: nowrap; font-weight: 500; }
-.grid td.nm svg { width: 14px; height: 14px; fill: currentColor; vertical-align: -2px; margin-right: 6px; }
-.cell { height: 48px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; }
-.cell small { font-size: 11px; opacity: .8; }
-table.plain { width: 100%; border-collapse: collapse; font-size: 14px; }
-table.plain th, table.plain td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); }
-table.plain th { color: var(--text-muted); font-weight: 400; font-size: 12.5px; }
-.method { color: var(--text-secondary); font-size: 14px; max-width: 820px; }
-.method p { margin: 0 0 12px; }
-.method b { color: var(--text-primary); font-weight: 500; }
-footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size: 12px; padding: 22px 0 40px; }
-.tip { position: fixed; pointer-events: none; background: var(--text-primary); color: var(--surface-1);
-  font-size: 12.5px; padding: 9px 11px; border-radius: 8px; max-width: 320px; line-height: 1.45; z-index: 9; }
-.tip b { display: block; margin-bottom: 3px; }
-[hidden] { display: none !important; }
-@media (max-width: 920px) {
-  .lb, .kt { grid-template-columns: 1fr; }
-  .stats { grid-template-columns: repeat(2, 1fr); row-gap: 24px; }
-  .hero h1 { font-size: 34px; }
-  .navlinks { display: none; }
-  .wrap { padding: 0 22px; }
+* { box-sizing:border-box; }
+html { scroll-behavior:smooth; overflow-x:hidden; }
+body { margin:0; background:var(--surface-1); color:var(--text-primary); font:15px/1.55 Inter,ui-sans-serif,-apple-system,"Segoe UI",Helvetica,Arial,sans-serif; -webkit-font-smoothing:antialiased; }
+a { color:inherit; }
+.mono { font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace; font-variant-numeric:tabular-nums; }
+.wrap { max-width:1380px; margin:0 auto; padding:0 56px; }
+nav.top { border-bottom:1px solid var(--line); position:sticky; top:0; z-index:5; background:color-mix(in srgb,var(--surface-1) 92%,transparent); backdrop-filter:blur(12px); }
+nav.top .wrap { display:flex; align-items:center; min-height:64px; gap:36px; }
+.brand { display:flex; align-items:center; gap:9px; font-weight:650; font-size:16px; text-decoration:none; }
+.brand-mark { width:22px; height:22px; border-radius:6px; background:linear-gradient(135deg,#A5B4FC,var(--accent)); }
+.navlinks { display:flex; gap:30px; font-size:14px; }
+.navlinks a { text-decoration:none; }
+.navright { margin-left:auto; font-size:13px; border:1px solid var(--line); border-radius:6px; padding:7px 16px; text-decoration:none; }
+.crumbs { font-size:12px; color:var(--text-muted); padding:14px 0; }
+.crumbs b { color:var(--text-primary); font-weight:500; }
+.hero { text-align:center; padding:54px 0 40px; }
+.hero h1 { font-size:56px; line-height:1.06; font-weight:450; letter-spacing:-.035em; margin:0 0 18px; }
+.hero .with { color:var(--text-muted); font-size:13px; margin-bottom:22px; display:flex; gap:8px; justify-content:center; align-items:baseline; flex-wrap:wrap; }
+.hero .with b { color:var(--text-primary); font-size:17px; font-weight:650; }
+.hero p { color:var(--text-secondary); max-width:760px; margin:0 auto 26px; font-size:16px; }
+.buttons { display:flex; gap:10px; justify-content:center; }
+.button { font-size:13px; padding:9px 18px; border-radius:6px; text-decoration:none; background:var(--surface-2); border:1px solid var(--line); }
+.button.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:550; }
+.stats { display:grid; grid-template-columns:repeat(4,1fr); padding:28px 0 46px; }
+.stat { text-align:center; border-left:1px solid var(--line); padding:6px 0; }
+.stat:first-child { border-left:0; }
+.stat .value { font-size:44px; font-weight:400; letter-spacing:-.03em; line-height:1.15; }
+.stat .key { color:var(--text-muted); font-size:16px; }
+.answers { display:grid; grid-template-columns:1fr 1fr; gap:18px; padding-bottom:84px; }
+.answer { border:1px solid var(--line); border-radius:12px; padding:22px 24px; background:var(--surface-2); }
+.answer .q { font-size:12px; text-transform:uppercase; letter-spacing:.1em; color:var(--accent); font-weight:650; }
+.answer p { margin:8px 0 0; font-size:15.5px; color:var(--text-primary); }
+.leaderboard { padding-bottom:100px; }
+.leaderboard-intro { display:grid; grid-template-columns:minmax(250px,.72fr) minmax(0,1.28fr); gap:80px; align-items:start; margin-bottom:34px; }
+.section-kicker { color:var(--accent); font-size:11px; font-weight:650; text-transform:uppercase; letter-spacing:.12em; margin-bottom:10px; }
+.leaderboard-intro h2 { font-size:34px; line-height:1.13; letter-spacing:-.025em; margin:0; }
+.leaderboard-body { display:grid; grid-template-columns:1fr 1fr; gap:26px 42px; }
+.leaderboard-body p { color:var(--text-secondary); margin:0; }
+.leaderboard-body .chips { grid-column:1 / -1; }
+h2 { font-size:21px; font-weight:500; margin:0 0 22px; letter-spacing:-.01em; }
+.chips { display:flex; gap:8px; flex-wrap:wrap; }
+.chips a { font-size:13px; background:var(--surface-2); border-radius:6px; padding:6px 12px; text-decoration:none; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:32px 38px 34px; box-shadow:0 14px 44px rgba(15,23,42,.055); }
+.ranking-card { margin-bottom:24px; }
+.plot-card { max-width:1040px; margin:0 auto; }
+.control-bar { display:flex; align-items:flex-end; justify-content:space-between; gap:16px; padding-bottom:22px; margin-bottom:8px; border-bottom:1px solid var(--line); }
+.control-group > span { display:block; color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:.07em; margin-bottom:7px; }
+.segmented { display:inline-flex; padding:3px; gap:2px; border-radius:7px; background:var(--surface-2); border:1px solid var(--line); }
+.segmented button { border:0; border-radius:5px; background:transparent; color:var(--text-secondary); font:inherit; font-size:12px; padding:6px 9px; cursor:pointer; }
+.segmented button[aria-pressed="true"] { background:var(--card); color:var(--text-primary); box-shadow:0 1px 4px rgba(0,0,0,.08); }
+.card-head { color:var(--text-muted); font-size:12px; margin:18px 0 5px; }
+.leader-columns, .leader-top { display:grid; grid-template-columns:minmax(170px,1fr) 150px 120px; gap:12px; align-items:center; }
+.leader-columns span:not(:first-child) { text-align:right; }
+.leader-row { padding:13px 10px 12px; margin:0 -10px; border-radius:8px; outline:none; }
+.leader-row:hover, .leader-row:focus-visible { background:var(--surface-2); }
+.leader-row.baseline .model-name { color:var(--text-secondary); font-weight:400; font-size:14px; }
+.model-name { font-size:16px; font-weight:500; display:flex; align-items:center; gap:7px; min-width:0; }
+.model-name svg { width:16px; height:16px; fill:currentColor; flex:none; }
+.model-tag { color:var(--text-muted); font-size:12.5px; font-weight:400; white-space:nowrap; }
+.model-score, .model-metric { font-size:13px; white-space:nowrap; text-align:right; }
+.model-score small, .model-metric small { color:var(--text-muted); font-size:11.5px; margin-left:6px; }
+.leader-bar { position:relative; height:6px; margin-top:10px; background:var(--track); border-radius:3px; overflow:hidden; }
+.leader-fill { position:absolute; inset:0 auto 0 0; border-radius:3px; }
+.base-divider { color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; margin:18px 0 2px; padding-top:14px; border-top:1px dashed var(--line); }
+.axis { position:relative; height:24px; margin-top:26px; border-top:1px solid var(--line); }
+.axis span { position:absolute; top:9px; transform:translateX(-50%); color:var(--text-muted); font-size:12px; }
+.axis span:first-child { transform:none; }
+.axis span:last-child { transform:translateX(-100%); }
+.card-foot { display:flex; justify-content:space-between; align-items:center; margin-top:24px; gap:12px; color:var(--text-muted); font-size:12px; }
+.plot-head { display:flex; justify-content:space-between; gap:24px; align-items:flex-end; margin-bottom:16px; }
+.plot-head b { font-size:18px; font-weight:520; }
+.plot-head .sub2 { display:block; color:var(--text-muted); font-size:12px; margin-top:4px; }
+svg.curve { width:100%; height:360px; overflow:visible; }
+svg.curve text { fill:var(--text-muted); font-size:11px; }
+svg.curve .grid { stroke:var(--line); stroke-width:1; }
+svg.curve .lbl { fill:var(--text-primary); font-size:12px; }
+.legend { display:flex; gap:16px; flex-wrap:wrap; font-size:12.5px; color:var(--text-secondary); margin-top:12px; }
+.legend i { display:inline-block; width:14px; height:3px; border-radius:2px; margin-right:6px; vertical-align:middle; }
+.takeaway-layout { display:grid; grid-template-columns:1.15fr .85fr; gap:56px; align-items:start; padding:90px 0 100px; }
+.takeaways { list-style:none; padding:0; margin:0; counter-reset:t; }
+.takeaways li { counter-increment:t; padding:18px 0 18px 30px; border-bottom:1px solid var(--line); position:relative; }
+.takeaways li::before { content:counter(t); position:absolute; left:8px; top:18px; color:var(--accent); }
+.takeaways b { display:block; font-weight:500; font-size:16px; margin-bottom:4px; }
+.takeaways span { color:var(--text-secondary); font-size:13.5px; }
+.quote { background:var(--quote-bg); color:var(--quote-ink); border-radius:10px; padding:34px 32px; margin-top:40px; }
+.quote strong { display:block; font-size:46px; line-height:1; font-weight:450; letter-spacing:-.04em; }
+.quote p { font-size:18px; line-height:1.45; margin:16px 0 0; }
+.quote .who { margin-top:22px; font-size:13px; opacity:.7; }
+.section { padding:0 0 96px; }
+.sub { color:var(--text-secondary); margin:-10px 0 26px; max-width:760px; }
+.tabs { display:flex; gap:26px; border-bottom:1px solid var(--line); margin-bottom:30px; overflow-x:auto; }
+.tabs button { font:inherit; font-size:14px; background:none; border:0; padding:0 0 10px; color:var(--text-secondary); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; }
+.tabs button[aria-selected="true"] { color:var(--accent); border-bottom-color:var(--accent); }
+.plain { width:100%; border-collapse:collapse; font-size:14px; }
+.plain th, .plain td { text-align:left; padding:11px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+.plain th { color:var(--text-muted); font-weight:400; font-size:12.5px; }
+.plain td.score, .plain th.score { text-align:right; }
+.plain td small { color:var(--text-muted); display:block; font-size:12px; }
+.score-pill { display:inline-flex; justify-content:center; min-width:58px; padding:5px 8px; border-radius:5px; font-size:12px; }
+.score-high { background:color-mix(in srgb,var(--success) 14%,var(--surface-1)); color:var(--success); }
+.score-mid { background:color-mix(in srgb,var(--warning) 14%,var(--surface-1)); color:var(--warning); }
+.score-low { background:color-mix(in srgb,var(--danger) 12%,var(--surface-1)); color:var(--danger); }
+.trajectory-list { display:grid; gap:14px; }
+.trajectory { border:1px solid var(--line); border-radius:10px; padding:22px; display:grid; grid-template-columns:200px 1fr; gap:26px; }
+.trajectory .eyebrow { color:var(--text-muted); font-size:11px; text-transform:uppercase; letter-spacing:.08em; }
+.trajectory h3 { font-size:17px; font-weight:550; margin:5px 0 8px; }
+.trajectory p { color:var(--text-secondary); margin:0 0 10px; }
+.trajectory blockquote { margin:0 0 10px; padding-left:12px; border-left:3px solid var(--line); color:var(--text-primary); font-size:14px; }
+.trajectory code { color:var(--text-muted); font-size:11px; overflow-wrap:anywhere; }
+.fair { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+.fair div { border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+.fair b { display:block; font-weight:550; margin-bottom:4px; }
+.fair span { color:var(--text-secondary); font-size:13.5px; }
+.method { color:var(--text-secondary); font-size:14px; max-width:880px; }
+.method p { margin:0 0 14px; }
+.method b { color:var(--text-primary); font-weight:500; }
+.method-callout { border-left:3px solid var(--accent); padding:12px 16px; background:var(--surface-2); border-radius:0 7px 7px 0; margin:24px 0; }
+footer { border-top:1px solid var(--line); color:var(--text-muted); font-size:12px; padding:22px 0 40px; }
+.tip { position:fixed; pointer-events:none; background:var(--text-primary); color:var(--surface-1); font-size:12.5px; padding:10px 12px; border-radius:10px; max-width:340px; line-height:1.45; z-index:9; }
+.tip b { display:block; margin-bottom:3px; }
+[hidden] { display:none !important; }
+@media (max-width:920px) {
+  .takeaway-layout, .leaderboard-intro, .leaderboard-body, .answers, .fair { grid-template-columns:1fr; }
+  .stats { grid-template-columns:repeat(2,1fr); row-gap:24px; }
+  .hero h1 { font-size:36px; }
+  .navlinks { display:none; }
+  .wrap { padding:0 22px; }
+  .trajectory { grid-template-columns:1fr; gap:10px; }
 }
 </style>
 </head>
 <body>
 <nav class="top"><div class="wrap">
-  <a class="brand" href="#"><i></i>PrecedentBench</a>
-  <div class="navlinks"><a href="#leaderboard">Leaderboard</a><a href="#results">Results</a><a href="#method">Methodology</a><a href="#takeaways">Takeaways</a></div>
+  <a class="brand" href="#"><span class="brand-mark"></span>PrecedentBench</a>
+  <div class="navlinks"><a href="#leaderboard">Leaderboard</a><a href="#results">Results</a><a href="#trajectories">Trajectories</a><a href="#method">Methodology</a><a href="#takeaways">Takeaways</a></div>
   <a class="navright" href="#method">Vals Hacks 2026</a>
 </div></nav>
 <div class="wrap">
-  <div class="crumbs">Home<span>›</span>Benchmarks<span>›</span><b>PrecedentBench</b></div>
+  <div class="crumbs">Home <span>›</span> Benchmarks <span>›</span> <b>PrecedentBench</b></div>
 
   <section class="hero">
-    <h1>Can AI agents follow the rules<br>nobody wrote down?</h1>
-    <div class="with">Built on <b>Valkyrie</b> · run on <b>Modal</b></div>
-    <p>PrecedentBench drops an agent into a company's finance team and checks whether it does the job the way this
-    team does it, using only what the team did before. Nobody wrote the changes down.</p>
-    <div class="btns"><a class="btn primary" href="#leaderboard">See the leaderboard</a><a class="btn" href="#method">Read methodology</a></div>
+    <h1>The benchmark for the habits<br>nobody wrote down.</h1>
+    <div class="with">Built on <b>Valkyrie</b> · <b>one plain agent for every model</b> <span>by Yaya &amp; Vivi team</span></div>
+    <p>Most of what a company knows lives in how people did things before, not in a handbook. PrecedentBench gives
+    an agent a finance team's history and a normal Monday of invoices, and checks whether it logs them the way the team
+    actually works now.</p>
+    <div class="buttons"><a class="button primary" href="#leaderboard">Explore leaderboard</a><a class="button" href="#method">Read methodology</a></div>
   </section>
 
-  <section class="stats"><div class="stat"><div class="v">5</div><div class="k">Frontier models</div></div><div class="stat"><div class="v">4</div><div class="k">Habits changing at once</div></div><div class="stat"><div class="v">15</div><div class="k">Invoices per try</div></div><div class="stat"><div class="v">69.6%</div><div class="k">Top score</div></div></section>
+  <section class="stats">
+    <div class="stat"><div class="value">5</div><div class="key">frontier models</div></div>
+    <div class="stat"><div class="value">8</div><div class="key">habits, nobody wrote down</div></div>
+    <div class="stat"><div class="value">93%</div><div class="key">best whole-job pass rate, 5 examples</div></div>
+    <div class="stat"><div class="value">13%</div><div class="key">top-3 pass rate, 8 habits, 3 examples each</div></div>
+  </section>
 
-  <section class="lb" id="leaderboard">
-    <div class="copy">
-      <h2>The PrecedentBench leaderboard</h2>
-      <p>It's Monday at Redwood Inference. Fifteen supplier invoices are in the finance inbox, and the request is one
-      line: log them in this quarter's tracker. Around them sit two archived quarters of trackers, about 300 invoices,
-      and 2,500 company emails, Slack threads and tickets.</p>
-      <p>This quarter the team quietly changed four habits at once. The review cutoff went from $5,000 to $10,000,
-      except for Security. Review notes started naming who reviews. One supplier stopped needing review after signing
-      a contract. Another moved to a different cost center. Nobody wrote any of it down; the only clue is how the last
-      few weeks of rows look. In some versions an old AP policy in the shared drive still states the old rules.</p>
-      <p>Each version shows 1, 2 or 3 invoices handled the new way per habit. A careful new hire would catch on. The
-      score is the share of the 15 invoices the agent logs the team's current way.</p>
-      <p>Every model runs in the same plain agent: same instructions, one terminal tool, same limits.</p>
-      <div class="chips"><a href="#results">Dose curve</a><a href="#takeaways">Takeaways</a><a href="#method">Methodology</a></div>
+  <section class="answers">
+    <div class="answer"><div class="q">Is it hard?</div><p>It depends on how much evidence the team left. With 8 habits each shown by 3 recent invoices, the top three agents get the whole morning right in 2 of 15 tries; with 5 invoices per habit, 10 of 15. Opus and Sonnet get 3 of 30 even with 5 examples, yet 10 of 10 when told the habits.</p></div>
+    <div class="answer"><div class="q">Is it fair?</div><p>Yes. Every habit is shown by 3 or 5 recent examples in the history. Told the 8 habits in plain words, agents get 25 of 25 tries fully right. Same plain agent for every model. Brainless scripts get 0% fully right; a &#x27;copy the latest invoice from the same supplier and size&#x27; lookup gets 33%.</p></div>
+  </section>
+
+  <section class="leaderboard" id="leaderboard">
+    <div class="leaderboard-intro">
+      <div><div class="section-kicker">Company knowledge</div><h2>The PrecedentBench leaderboard</h2></div>
+      <div class="leaderboard-body">
+        <p>The agent joins Redwood Inference's finance team on a Monday. Fifteen supplier invoices are in the inbox,
+        and the workspace holds three quarters of invoice history, about 2,500 emails, Slack threads and tickets.
+        The request is one line: log the invoices.</p>
+        <p>Nothing says how. The team's habits only show in the past rows. Level 1 has 4 habits; level 2 has 8 at once,
+        like a real team: some changed this autumn, some depend on two conditions. Level 3 adds last year's policy doc.
+        Every habit is shown by recent examples, so a careful new hire can get every invoice right.</p>
+        <div class="chips"><a href="#results">Where it breaks</a><a href="#trajectories">Trajectory evidence</a><a href="#takeaways">Research insights</a></div>
+      </div>
     </div>
-    <div class="card">
-      <div class="card-head"><span>Model</span><span>Score</span></div>
+
+    <div class="card ranking-card">
+      <div class="control-bar">
+        <div class="control-group"><span>Score view</span><div class="segmented" id="score-toggle"><button data-mode="pass" aria-pressed="true">Whole job right</button><button data-mode="mean" aria-pressed="false">Invoices right</button></div></div>
+        <div class="control-group"><span>Level</span><div class="segmented" id="doc-toggle"><button data-doc="main" aria-pressed="true">All levels</button><button data-doc="L1" aria-pressed="false">4 habits</button><button data-doc="L2" aria-pressed="false">8 habits</button><button data-doc="L3" aria-pressed="false">8 + old doc</button></div></div>
+      </div>
+      <div class="card-head leader-columns"><span>Model</span><span id="score-head">Whole job right</span><span>Invoices right</span></div>
       <div id="rows"></div>
       <div class="axis" id="axis"></div>
-      <div class="card-foot">
-        <a href="#results">View results for all tasks</a>
-        <div class="selects">
-          <div class="sel"><select id="level" aria-label="Level"></select></div>
-          <div class="sel"><select id="metric" aria-label="Metric">
-            <option value="rule">Mean Score</option>
-            <option value="pass">Pass@1</option>
-          </select></div>
-        </div>
+      <div class="card-foot"><span>Shared plain agent, same prompt and tools for every model. Brainless scripts below the line, graded by the same checker.</span><span class="mono" id="foot-n"></span></div>
+    </div>
+
+    <div class="card plot-card">
+      <div class="plot-head">
+        <div><b>The complexity ladder</b><span class="sub2">Whole job right as the team's habits get more like a real company's</span></div>
+        <div class="control-group"><span>Examples per habit</span><div class="segmented" id="curve-toggle"><button data-c="5" aria-pressed="true">5</button><button data-c="3" aria-pressed="false">3</button></div></div>
       </div>
+      <svg class="curve" id="curve" viewBox="0 0 960 360" role="img" aria-label="Pass rate by level, one line per model"></svg>
+      <div class="legend" id="legend"></div>
     </div>
   </section>
 
-  <section class="kt" id="takeaways">
-    <div>
-      <h2>Key takeaways</h2>
-      <ol class="takeaways" id="tk"></ol>
-    </div>
-    <div class="quote">
-      <q id="quote"></q>
-      <div class="who"><svg role="img" aria-hidden="true" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><title>Anthropic</title><path d="M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z"/></svg> Fable 5.2, after following the old AP policy in the shared drive (counted as a miss)</div>
-    </div>
+  <section class="takeaway-layout" id="takeaways">
+    <div><h2>Research insights</h2><ol class="takeaways" id="insights"></ol></div>
+    <div class="quote"><strong>13%</strong><p>Whole-job pass rate of the three best agents when the team runs on 8 unwritten habits, each shown by 3 recent invoices. A careful new hire has what they need; the agents mostly don't put it together.</p><div class="who">Same company, same agent, told control at 100%</div></div>
   </section>
 
-  <section class="sec" id="results">
+  <section class="section" id="results">
     <h2>Results</h2>
-    <p class="sub">How much evidence each model needs before it notices the team changed its habits, and what an out of date handbook does to it.</p>
+    <p class="sub">Where it breaks, per version, and against brainless baselines. Hover a score for detail.</p>
     <div class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="t-dose">Dose curve</button>
-      <button role="tab" aria-selected="false" data-tab="t-kind">By habit</button>
-      <button role="tab" aria-selected="false" data-tab="t-hb">With vs without the handbook</button>
-      <button role="tab" aria-selected="false" data-tab="t-vendor">Shared agent vs own agent</button>
-      <button role="tab" aria-selected="false" data-tab="t-table">Table</button>
-      <button role="tab" aria-selected="false" data-tab="t-ladder">Earlier: ladder</button>
-      <button role="tab" aria-selected="false" data-tab="t-levels">Earlier: levels</button>
+      <button role="tab" aria-selected="true" data-tab="t-breaks">Where it breaks</button>
+      <button role="tab" aria-selected="false" data-tab="t-versions">By version</button>
+      <button role="tab" aria-selected="false" data-tab="t-base">Baselines</button>
+      <button role="tab" aria-selected="false" data-tab="t-vendor">Own-agent check</button>
     </div>
-    <div id="t-dose"><div class="dose-wrap"><div class="dose" id="dose"></div><ul class="legend2" id="dleg"></ul></div>
-      <p class="note">Score = share of the 15 invoices logged the team's current way, versions without the handbook, five
-      tries each. Hover a point for details.</p></div>
-    <div id="t-kind" hidden><table class="grid" id="kgrid"></table>
-      <p class="note">Each cell: share of that habit's invoices handled the team's current way, versions without the
-      handbook, small numbers per number of examples.</p>
-      <p class="note" id="hes-note"></p></div>
-    <div id="t-hb" hidden><table class="grid" id="hbgrid"></table>
-      <p class="note">The stale handbook is an AP policy dated January 2026 in the shared drive. It states the old rules
-      (REVIEW over $5,000, Wrenfield coded to Marketing) and says nothing about the changes. "Followed the handbook" counts
-      tries whose every mistake matches the written policy. The version with 1 example and the handbook is not scored:
-      one deviating row per habit against a written policy and 40 old rows is a defensible reading either way.</p></div>
-    <div id="t-ladder" hidden><p class="note">Earlier experiment. Each model ran in its own vendor's agent (Claude Code or
-      Codex), not the shared agent, so these numbers mix the model and the product around it.</p>
-      <table class="grid" id="lgrid"></table></div>
-    <div id="t-levels" hidden><p class="note">Earlier experiment, vendor agents (Claude Code or Codex), not the shared agent.</p>
-      <p class="sub" style="margin-top:0">The approval task (task 5) run four ways. Same company, same invoices, same checks;
-      only where the rule lives changes.</p>
-      <table class="grid" id="grid"></table>
-    </div>
-    <div id="t-vendor" hidden>
-      <p class="note">Same 25 task copies as the main benchmark (5 versions, 5 tries each), run two ways. Shared agent:
-      one minimal loop for every model (same prompt, one terminal tool, effort high). Own agent: Claude models in
-      Claude Code, GPT models in Codex, each with its vendor's built-in prompt and tools. If the minimal agent were
-      holding models back, the own-agent scores would be much higher.</p>
-      <table class="grid" id="vgrid"></table>
-    </div>
-    <div id="t-table" hidden><table class="plain" id="ptable"></table></div>
+    <div id="t-breaks"><table class="plain" id="breaks"></table></div>
+    <div id="t-versions" hidden><table class="plain" id="versions"></table></div>
+    <div id="t-base" hidden><table class="plain" id="base"></table></div>
+    <div id="t-vendor" hidden><p class="sub" style="margin-top:0">Earlier round of the same task family: each model in its own brand's agent (Claude Code or Codex) against our shared plain agent. Whole job right.</p><table class="plain" id="vendor"></table></div>
   </section>
 
-  <section class="sec method" id="method">
+  <section class="section" id="trajectories">
+    <h2>Representative trajectories</h2>
+    <p class="sub">Real tries from the v3 run, picked by reading the logs. What we saw, and why it matters.</p>
+    <div class="trajectory-list" id="trajectory-list"></div>
+  </section>
+
+  <section class="section" id="fair">
+    <h2>How we checked it's fair</h2>
+    <div class="fair" id="fairbox"></div>
+  </section>
+
+  <section class="section method" id="method">
     <h2>Methodology</h2>
-    <p><b>Main benchmark: a messy monday.</b> The agent logs 15 supplier invoices in the live quarterly tracker. History:
-    two archived quarterly trackers and the live one, about 300 invoices, plus 2,500 Redwood Inference emails, Slack threads
-    and tickets (including hundreds about invoices, billing and vendors, filtered so none contradicts the habits). Four
-    habits changed in Q4, none written down: (1) the REVIEW cutoff moved from $5,000 to $10,000 on Oct 5, except Security
-    invoices, which kept $5,000; (2) since Oct 5 the note names the reviewer, "REVIEW: Tomasz" for Infra and "REVIEW:
-    Mireille" otherwise; (3) Halverson Data Centers signed a contract on Nov 2 (the countersigned-contract email is in the
-    history, it says nothing about review) and its invoices get no REVIEW since; (4) Wrenfield Creative moved from
-    Marketing to G&A on Oct 12. Human mess: two big invoices before October where someone forgot REVIEW, and a few vendor
-    name typos. Versions: 1, 2 or 3 rows showing each new habit, and with or without a stale AP policy stating the old
-    rules (the 1-example version with the policy is not scored, see the handbook tab). Every one of the 15 invoices touches
-    a changed habit. <b>Score</b> per try: the share of the 15 invoices logged exactly once with the right note (no REVIEW,
-    or REVIEW naming the right reviewer) and the right cost center; zero if any past row was changed. Mean Score is the
-    mean over tries; Pass@1 the share of tries with all 15 right. The design and the rules for adjusting it overnight were
-    written before any results: docs/plans/next-iteration-messy-morning.md. Round 1 was a pilot; round 2 dropped the
-    ambiguous version, fixed round-number invoice amounts, and made the cutoff change partial (Security), as those rules
-    required. Each round's results are kept in results/morning_round*.json.</p>
-    <p><b>Earlier: one habit changes.</b> Four kinds of unannounced change in how the team marks invoices in the tracker:
-    the REVIEW cutoff moved from $5,000 to $10,000; the team stopped marking REVIEW; approvals moved from Mireille Ashdown
-    (tag "REVIEW - MA") to Rosalind Quennell ("REVIEW - RQ"); REVIEW paused for six weeks and came back. Each kind comes at
-    three doses: the tracker shows 1, 3 or 7 invoices handled the new way since the latest change, where the new and old
-    habit disagree. Everything else in the company is identical across doses. All evidence is in the tracker the agent
-    edits, so no score depends on whether an agent opens email. For "came back", a model that ignores dates also passes;
-    that kind tests whether the pause makes a model drop the habit.</p>
-    <p>In that earlier benchmark, on "habit stopped" Fable 5.2 noticed the change in all 15 tries but kept REVIEW to be safe; the answer key counted those as misses. <b>Score</b> there: for each try, the share of the four non-trivial test invoices that are logged exactly once with
-    the team's current note (the tiny office-supply bill is left out: every version of the habit agrees on it). The
-    model score is the mean over 12 versions × 5 tries, with a 95% bootstrap interval over tries. Pass@1 is the share
-    of tries where every check holds, including bookkeeping.</p>
-    <p><b>Shared agent.</b> The main benchmark and the earlier one-habit benchmark come from one plain agent loop, the same for all models: the same system
-    prompt, a single tool that runs a bash command, reasoning effort "high", at most 80 steps, and no fallback to another
-    model on refusal. Claude models are called through Anthropic's API, GPT models through OpenAI's. This keeps the
-    comparison about the model, not the vendor's agent product.</p>
-    <p><b>Earlier experiments</b> (ladder and levels tabs, and their options in the leaderboard dropdown) ran each model
-    inside its own vendor's agent, Claude Code or Codex. They are kept for reference; they mix model and product.</p>
-    <p><b>Ladder.</b> Six tasks, same company and the same five new invoices, no pointer in the instruction:
-    (1) big invoices get REVIEW in the tracker's Notes; (2) same, but the cutoff moved from $5,000 to $10,000 in October;
-    (3) same, but one supplier stopped getting REVIEW after signing a contract; (4) big invoices are emailed to the
-    director for approval; (5) approvals with the cutoff change and the exempt supplier; (6) approvals, but the director
-    is on leave and staff send them to a deputy, whose name only appears in those threads. Each task's history is
-    generated from its rule, and each has a simpler rule that gives different answers on the test invoices.</p>
-    <p><b>Mean Score</b> per task is the share of the five invoices where the agent made the team's call, zero if it never
-    acted on the habit at all. The ladder score is the mean over the six tasks, per try. <b>Pass@1</b> is the share of
-    task attempts where every check holds, including bookkeeping (each invoice logged once, past records untouched).
-    Intervals: Mean Score, 95% bootstrap over tries (10,000 resamples); Pass@1, 95% Wilson. "±" shows half the
-    interval's width.</p>
-    <p><b>Levels.</b> For task 5 only: pointed (the instruction adds "handle these the way the team usually does"),
-    rule written in an email among ~800 others, and rule told in the instruction. Every model passes every
-    told attempt, so the task is fair.</p>
-    <p><b>Company.</b> Background is 2,100 emails, Slack threads and tickets from the Redwood Inference corpus
-    (EnterpriseRAG-Bench by Onyx, MIT), filtered so nothing contradicts or hints at a rule. The grader is deterministic:
-    no model grades another.</p>
-    <p><b>Infrastructure.</b> Each attempt runs in a fresh sandbox via Valkyrie on Modal. Logos from Simple Icons (CC0).</p>
+    <p><b>World.</b> Redwood Inference, a fake AI company built on the EnterpriseRAG-Bench corpus (Onyx, MIT): about 2,500 real-looking emails, Slack threads and tickets, plus a finance history we generate from the team's habits so it can never disagree with the answer key. Three quarterly invoice trackers (about 300 invoices), the older two archived.</p>
+    <p><b>Habits.</b> Before October, every invoice over $5,000 got a REVIEW note. Since then: only invoices over $10,000 get one, naming Tomasz for Infra suppliers and Mireille for everyone else; Security kept the $5,000 cutoff; Halverson stopped needing review after its contract on November 2; Wrenfield moved from Marketing to G&amp;A on October 12. Two old rows have someone's forgotten REVIEW, and a few supplier names have typos. None of it is written anywhere.</p>
+    <p><b>Levels.</b> Level 1: the 4 habits above. Level 2: 8 habits at once, adding four conventions that only show in the tracker: unreviewed Infra invoices are noted "PO matched"; Selbourne invoices over $5,000 are coded Recruiting; since October 19, small Kellerby and Pellham invoices are noted "card"; a re-sent invoice (same number and amount) is logged "DUPLICATE - do not pay". Level 3: level 2 plus last year's AP policy in the drive, dated January 2026. Each habit is shown by 3 or 5 recent examples. A told control states all 8 habits in the instruction. Fifteen new invoices per task.</p>
+    <p><b>Grading.</b> Deterministic: each invoice must be logged once, with the right note (no flag, or REVIEW naming the right reviewer; wording is free, and notes like "no review needed" count as no flag) and the right cost center. Past rows must stay untouched. <b>Whole job right</b> = all 15 invoices right in a try (headline). <b>Invoices right</b> = share of the 15. Intervals: 95% Wilson for whole-job, bootstrap for invoices.</p>
+    <p><b>Agent.</b> One plain loop for every model: same instructions, one tool that runs a shell command, reasoning effort high, 80 steps, no fallback model. Five tries per version per model, each in a fresh sandbox on Valkyrie and Modal.</p>
+    <div class="method-callout"><b>Limits.</b> The finance history is synthetic and lives in one company and one kind of job. Five tries per version gives wide intervals: neighbours in the ranking are often statistically tied. Earlier rounds were adjusted with rules fixed before seeing results, and every round is kept in the repo's archive. On 4 habits a simple precedent lookup (latest invoice of the same supplier and size) solves almost everything; on 8 habits it no longer does. A side version with 4 habits and the dated policy doc showed that a clearly dated doc no longer fools the top models. The "PO matched" note reads like a claim that a check was done: Opus and Sonnet often refuse to write it because they cannot verify a purchase order, a defensible choice that the grader counts as a miss (both write it when told).</div>
   </section>
 </div>
-<footer><div class="wrap">PrecedentBench · Vals Hacks 2026 · built on Valkyrie</div></footer>
+<footer><div class="wrap">PrecedentBench · Vals Hacks 2026 · Yaya &amp; Vivi team</div></footer>
 <div class="tip" hidden></div>
 <script>
-const t = new URLSearchParams(location.search).get("theme");
-if (t) document.documentElement.dataset.theme = t;
-const D = {"models": {"claude-fable-5-2": {"name": "Fable 5.2", "lab": "Anthropic", "agent": "Claude Code", "levels": {"nudged": {"n": 3, "k": 2, "pass": [0.6666666666666666, 0.2076549551264879, 0.9385096847238394], "rule": [0.8888888888888888, 0.6666666666666666, 1.0], "fails": {"missed the $10k change": 1}}, "written": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}, "drift_old": {"n": 60, "k": 40, "agent": "High", "cells": {"cutoff-1": {"score": 0.5, "k": 0, "n": 5}, "cutoff-3": {"score": 1.0, "k": 5, "n": 5}, "cutoff-7": {"score": 1.0, "k": 5, "n": 5}, "stopped-1": {"score": 0.0, "k": 0, "n": 5}, "stopped-3": {"score": 0.0, "k": 0, "n": 5}, "stopped-7": {"score": 0.0, "k": 0, "n": 5}, "approver-1": {"score": 1.0, "k": 5, "n": 5}, "approver-3": {"score": 1.0, "k": 5, "n": 5}, "approver-7": {"score": 1.0, "k": 5, "n": 5}, "returned-1": {"score": 1.0, "k": 5, "n": 5}, "returned-3": {"score": 1.0, "k": 5, "n": 5}, "returned-7": {"score": 1.0, "k": 5, "n": 5}}, "dose": {"1": [0.625, 0.45, 0.8], "3": [0.75, 0.55, 0.9], "7": [0.75, 0.55, 0.9]}, "kind": {"cutoff": 0.8333333333333334, "stopped": 0.0, "approver": 1.0, "returned": 1.0}, "pass": [0.6666666666666666, 0.540566298666634, 0.7727090578407216], "rule": [0.7083333333333334, 0.5916666666666667, 0.8166666666666667], "fails": {"kept old habit": 20}, "fails_by_type": {"cutoff": {"kept old habit": 5}, "stopped": {"kept old habit": 15}}}, "drift": {"n": 25, "k": 4, "agent": "High", "cells": {"cutoff-1": {"score": 0.06666666666666667, "n": 5, "k": 0}, "cutoff-2": {"score": 0.5, "n": 5, "k": 0}, "cutoff-3": {"score": 0.8, "n": 5, "k": 4}, "reviewer-1": {"score": 0.4, "n": 5, "k": 2}, "reviewer-2": {"score": 1.0, "n": 5, "k": 5}, "reviewer-3": {"score": 0.8, "n": 5, "k": 4}, "contract-1": {"score": 0.0, "n": 5, "k": 0}, "contract-2": {"score": 1.0, "n": 5, "k": 5}, "contract-3": {"score": 0.8, "n": 5, "k": 4}, "costcenter-1": {"score": 0.8, "n": 5, "k": 4}, "costcenter-2": {"score": 1.0, "n": 5, "k": 5}, "costcenter-3": {"score": 0.8, "n": 5, "k": 4}}, "dose": {"1": [0.22668, 0.0667, 0.41332], "2": [0.8, 0.8, 0.8], "3": [0.8, 0.4, 1.0]}, "kind": {"cutoff": 0.45555555555555555, "reviewer": 0.7333333333333333, "contract": 0.6, "costcenter": 0.8666666666666667}, "hb": {"no": [0.8, 0.6, 0.9399999999999998], "yes": [0.26667, 0.08, 0.45333999999999997], "followed": 5, "n": 10}, "pass": [0.16, 0.06403347608577989, 0.34654013980238163], "rule": [0.4720040000000001, 0.32267199999999996, 0.6213320000000002], "fails": {"caught some changes, not all": 12, "kept the old habits": 3, "followed the handbook": 5, "bookkeeping": 1}, "fails_by_type": {}}, "vendor": {"n": 25, "k": 1, "agent": "Claude Code", "fails": {"followed the handbook": 4, "caught some changes, not all": 15, "kept the old habits": 5}, "hb": {"no": 0.5111199999999999, "yes": 0.27999}, "pass": [0.04, 0.007096050386699165, 0.19544472405022525], "rule": [0.41866800000000004, 0.282672, 0.5493400000000002]}, "ladder": {"n": 30, "k": 27, "runs": 5, "tasks": {"ladder-1-tracker-review": {"score": 1.0, "k": 5, "n": 5}, "ladder-2-tracker-change": {"score": 1.0, "k": 5, "n": 5}, "ladder-3-tracker-exception": {"score": 1.0, "k": 5, "n": 5}, "ladder-4-email-approval": {"score": 1.0, "k": 5, "n": 5}, "invoice-approval-v3": {"score": 0.6, "k": 2, "n": 5}, "ladder-6-email-deputy": {"score": 1.0, "k": 5, "n": 5}}, "pass": [0.9, 0.7437855868473339, 0.9654007400402839], "rule": [0.9333333333333332, 0.8866666666666667, 0.9800000000000001], "fails": {"weakest: Cutoff moved + exception": "60%"}}}}, "claude-opus-5-5": {"name": "Opus 5.5", "lab": "Anthropic", "agent": "Claude Code", "levels": {"nudged": {"n": 3, "k": 1, "pass": [0.3333333333333333, 0.0614903152761605, 0.7923450448735121], "rule": [0.5555555555555555, 0.3333333333333333, 1.0], "fails": {"used the old $5k rule": 2}}, "written": {"n": 8, "k": 7, "pass": [0.875, 0.5291051942301386, 0.9775830911367038], "rule": [0.875, 0.625, 1.0], "fails": {"never asked for approval": 1}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}, "drift_old": {"n": 60, "k": 18, "agent": "High", "cells": {"cutoff-1": {"score": 0.5, "k": 0, "n": 5}, "cutoff-3": {"score": 0.7, "k": 2, "n": 5}, "cutoff-7": {"score": 0.5, "k": 0, "n": 5}, "stopped-1": {"score": 0.0, "k": 0, "n": 5}, "stopped-3": {"score": 0.0, "k": 0, "n": 5}, "stopped-7": {"score": 0.6, "k": 3, "n": 5}, "approver-1": {"score": 0.6, "k": 3, "n": 5}, "approver-3": {"score": 1.0, "k": 5, "n": 5}, "approver-7": {"score": 1.0, "k": 5, "n": 5}, "returned-1": {"score": 0.0, "k": 0, "n": 5}, "returned-3": {"score": 0.0, "k": 0, "n": 5}, "returned-7": {"score": 0.0, "k": 0, "n": 5}}, "dose": {"1": [0.275, 0.125, 0.45], "3": [0.425, 0.225, 0.625], "7": [0.525, 0.35, 0.725]}, "kind": {"cutoff": 0.5666666666666667, "stopped": 0.2, "approver": 0.8666666666666667, "returned": 0.0}, "pass": [0.3, 0.19898010252726892, 0.42508946966390415], "rule": [0.4083333333333333, 0.3, 0.5166666666666667], "fails": {"kept old habit": 30, "left blank, asked": 12}, "fails_by_type": {"cutoff": {"kept old habit": 12, "left blank, asked": 1}, "stopped": {"kept old habit": 12}, "approver": {"kept old habit": 2}, "returned": {"kept old habit": 4, "left blank, asked": 11}}}, "drift": {"n": 25, "k": 2, "agent": "High", "cells": {"cutoff-1": {"score": 0.0, "n": 5, "k": 0}, "cutoff-2": {"score": 0.4, "n": 5, "k": 0}, "cutoff-3": {"score": 0.5999999999999999, "n": 5, "k": 2}, "reviewer-1": {"score": 0.0, "n": 5, "k": 0}, "reviewer-2": {"score": 0.6, "n": 5, "k": 3}, "reviewer-3": {"score": 1.0, "n": 5, "k": 5}, "contract-1": {"score": 0.4, "n": 5, "k": 2}, "contract-2": {"score": 0.6, "n": 5, "k": 3}, "contract-3": {"score": 1.0, "n": 5, "k": 5}, "costcenter-1": {"score": 0.0, "n": 5, "k": 0}, "costcenter-2": {"score": 1.0, "n": 5, "k": 5}, "costcenter-3": {"score": 1.0, "n": 5, "k": 5}}, "dose": {"1": [0.05332, 0.0, 0.10664], "2": [0.54668, 0.30667999999999995, 0.7200200000000001], "3": [0.84002, 0.7067, 0.97334]}, "kind": {"cutoff": 0.3333333333333333, "reviewer": 0.5333333333333333, "contract": 0.6666666666666666, "costcenter": 0.6666666666666666}, "hb": {"no": [0.6933499999999999, 0.5266799999999999, 0.8333499999999999], "yes": [0.0, 0.0, 0.0], "followed": 10, "n": 10}, "pass": [0.08, 0.02221993369109193, 0.24966512122957818], "rule": [0.288004, 0.149336, 0.43734400000000007], "fails": {"kept the old habits": 6, "caught some changes, not all": 7, "followed the handbook": 10}, "fails_by_type": {}}, "vendor": {"n": 25, "k": 0, "agent": "Claude Code", "fails": {"followed the handbook": 10, "caught some changes, not all": 8, "kept the old habits": 7}, "hb": {"no": 0.36443333333333333, "yes": 0.0}, "pass": [0.0, 0.0, 0.13319649395317873], "rule": [0.21866, 0.11733200000000002, 0.32798399999999994]}, "ladder": {"n": 30, "k": 19, "runs": 5, "tasks": {"ladder-1-tracker-review": {"score": 1.0, "k": 5, "n": 5}, "ladder-2-tracker-change": {"score": 0.32, "k": 1, "n": 5}, "ladder-3-tracker-exception": {"score": 1.0, "k": 5, "n": 5}, "ladder-4-email-approval": {"score": 0.8, "k": 4, "n": 5}, "invoice-approval-v3": {"score": 0.43999999999999995, "k": 0, "n": 5}, "ladder-6-email-deputy": {"score": 0.8, "k": 4, "n": 5}}, "pass": [0.6333333333333333, 0.45513246433604937, 0.7812629779598231], "rule": [0.7266666666666667, 0.6333333333333332, 0.8266666666666665], "fails": {"weakest: Cutoff moved": "32%"}}}}, "claude-sonnet-5-5": {"name": "Sonnet 5.5", "lab": "Anthropic", "agent": "Claude Code", "levels": {"nudged": {"n": 3, "k": 0, "pass": [0.0, 0.0, 0.5615060804490177], "rule": [0.3333333333333333, 0.3333333333333333, 0.3333333333333333], "fails": {"used the old $5k rule": 3}}, "written": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}, "drift_old": {"n": 60, "k": 10, "agent": "High", "cells": {"cutoff-1": {"score": 0.5, "k": 0, "n": 5}, "cutoff-3": {"score": 0.5, "k": 0, "n": 5}, "cutoff-7": {"score": 0.7, "k": 2, "n": 5}, "stopped-1": {"score": 0.0, "k": 0, "n": 5}, "stopped-3": {"score": 0.6, "k": 3, "n": 5}, "stopped-7": {"score": 0.6, "k": 3, "n": 5}, "approver-1": {"score": 0.0, "k": 0, "n": 5}, "approver-3": {"score": 0.0, "k": 0, "n": 5}, "approver-7": {"score": 0.4, "k": 2, "n": 5}, "returned-1": {"score": 0.0, "k": 0, "n": 5}, "returned-3": {"score": 0.0, "k": 0, "n": 5}, "returned-7": {"score": 0.0, "k": 0, "n": 5}}, "dose": {"1": [0.125, 0.05, 0.225], "3": [0.275, 0.125, 0.45], "7": [0.425, 0.225, 0.625]}, "kind": {"cutoff": 0.5666666666666667, "stopped": 0.4, "approver": 0.13333333333333333, "returned": 0.0}, "pass": [0.16666666666666666, 0.09313077201321032, 0.28031851497207827], "rule": [0.275, 0.18333333333333332, 0.375], "fails": {"kept old habit": 20, "left blank, asked": 17, "left approver open": 13}, "fails_by_type": {"cutoff": {"kept old habit": 11, "left blank, asked": 2}, "stopped": {"kept old habit": 9}, "approver": {"left approver open": 13}, "returned": {"left blank, asked": 15}}}, "drift": {"n": 25, "k": 0, "agent": "High", "cells": {"cutoff-1": {"score": 0.03333333333333333, "n": 5, "k": 0}, "cutoff-2": {"score": 0.2, "n": 5, "k": 0}, "cutoff-3": {"score": 0.3666666666666667, "n": 5, "k": 0}, "reviewer-1": {"score": 0.0, "n": 5, "k": 0}, "reviewer-2": {"score": 0.16666666666666669, "n": 5, "k": 0}, "reviewer-3": {"score": 0.2, "n": 5, "k": 1}, "contract-1": {"score": 0.0, "n": 5, "k": 0}, "contract-2": {"score": 0.2, "n": 5, "k": 1}, "contract-3": {"score": 0.4, "n": 5, "k": 2}, "costcenter-1": {"score": 0.6, "n": 5, "k": 3}, "costcenter-2": {"score": 0.8, "n": 5, "k": 4}, "costcenter-3": {"score": 1.0, "n": 5, "k": 5}}, "dose": {"1": [0.05334, 0.01334, 0.09334], "2": [0.22668, 0.0667, 0.41332], "3": [0.34665999999999997, 0.16002, 0.5333]}, "kind": {"cutoff": 0.2, "reviewer": 0.12222222222222223, "contract": 0.2, "costcenter": 0.8}, "hb": {"no": [0.28667000000000004, 0.14669, 0.42665], "yes": [0.0, 0.0, 0.0], "followed": 10, "n": 10}, "pass": [0.0, 0.0, 0.13319649395317873], "rule": [0.125336, 0.05334, 0.20799199999999998], "fails": {"kept the old habits": 10, "caught some changes, not all": 5, "followed the handbook": 10}, "fails_by_type": {}}, "vendor": {"n": 25, "k": 0, "agent": "Claude Code", "fails": {"followed the handbook": 6, "caught some changes, not all": 16, "kept the old habits": 3}, "hb": {"no": 0.4355333333333333, "yes": 0.18666}, "pass": [0.0, 0.0, 0.13319649395317873], "rule": [0.3359839999999999, 0.23999199999999998, 0.426644]}, "ladder": {"n": 30, "k": 7, "runs": 5, "tasks": {"ladder-1-tracker-review": {"score": 1.0, "k": 5, "n": 5}, "ladder-2-tracker-change": {"score": 0.64, "k": 2, "n": 5}, "ladder-3-tracker-exception": {"score": 0.8, "k": 0, "n": 5}, "ladder-4-email-approval": {"score": 0.0, "k": 0, "n": 5}, "invoice-approval-v3": {"score": 0.0, "k": 0, "n": 5}, "ladder-6-email-deputy": {"score": 0.0, "k": 0, "n": 5}}, "pass": [0.23333333333333334, 0.11792239210501232, 0.40928672330324267], "rule": [0.4066666666666666, 0.35333333333333333, 0.4533333333333333], "fails": {"weakest: Approval by email": "0%"}}}}, "claude-haiku-5-5": {"name": "Haiku 5.5", "lab": "Anthropic", "agent": "Claude Code", "levels": {"written": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}}}, "gpt-6-astra": {"name": "GPT-6 Astra", "lab": "OpenAI", "agent": "Codex", "levels": {"written": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}, "drift_old": {"n": 60, "k": 26, "agent": "High", "cells": {"cutoff-1": {"score": 0.5, "k": 0, "n": 5}, "cutoff-3": {"score": 0.6, "k": 1, "n": 5}, "cutoff-7": {"score": 0.8, "k": 3, "n": 5}, "stopped-1": {"score": 0.0, "k": 0, "n": 5}, "stopped-3": {"score": 0.0, "k": 0, "n": 5}, "stopped-7": {"score": 0.4, "k": 2, "n": 5}, "approver-1": {"score": 1.0, "k": 5, "n": 5}, "approver-3": {"score": 1.0, "k": 5, "n": 5}, "approver-7": {"score": 1.0, "k": 5, "n": 5}, "returned-1": {"score": 0.0, "k": 0, "n": 5}, "returned-3": {"score": 0.0, "k": 0, "n": 5}, "returned-7": {"score": 1.0, "k": 5, "n": 5}}, "dose": {"1": [0.375, 0.2, 0.55], "3": [0.4, 0.225, 0.6], "7": [0.8, 0.625, 0.95]}, "kind": {"cutoff": 0.6333333333333333, "stopped": 0.13333333333333333, "approver": 1.0, "returned": 0.3333333333333333}, "pass": [0.43333333333333335, 0.31572200394400635, 0.5589678534530513], "rule": [0.525, 0.4083333333333333, 0.6416666666666667], "fails": {"kept old habit": 34}, "fails_by_type": {"cutoff": {"kept old habit": 11}, "stopped": {"kept old habit": 13}, "returned": {"kept old habit": 10}}}, "drift": {"n": 25, "k": 12, "agent": "High", "cells": {"cutoff-1": {"score": 0.26666666666666666, "n": 5, "k": 0}, "cutoff-2": {"score": 0.7, "n": 5, "k": 2}, "cutoff-3": {"score": 1.0, "n": 5, "k": 5}, "reviewer-1": {"score": 0.9333333333333332, "n": 5, "k": 4}, "reviewer-2": {"score": 1.0, "n": 5, "k": 5}, "reviewer-3": {"score": 1.0, "n": 5, "k": 5}, "contract-1": {"score": 1.0, "n": 5, "k": 5}, "contract-2": {"score": 1.0, "n": 5, "k": 5}, "contract-3": {"score": 1.0, "n": 5, "k": 5}, "costcenter-1": {"score": 0.4, "n": 5, "k": 2}, "costcenter-2": {"score": 1.0, "n": 5, "k": 5}, "costcenter-3": {"score": 1.0, "n": 5, "k": 5}}, "dose": {"1": [0.59998, 0.50666, 0.6933], "2": [0.8799999999999999, 0.8, 0.96], "3": [1.0, 1.0, 1.0]}, "kind": {"cutoff": 0.6555555555555554, "reviewer": 0.9777777777777777, "contract": 1.0, "costcenter": 0.8}, "hb": {"no": [0.9399999999999998, 0.8800000000000001, 1.0], "yes": [0.5, 0.2, 0.8], "followed": 5, "n": 10}, "pass": [0.48, 0.30031003928960015, 0.6650178204685269], "rule": [0.695996, 0.53866, 0.839996], "fails": {"caught some changes, not all": 8, "followed the handbook": 5}, "fails_by_type": {}}, "vendor": {"n": 25, "k": 5, "agent": "Codex", "fails": {"followed the handbook": 10, "caught some changes, not all": 10}, "hb": {"no": 0.8266666666666668, "yes": 0.0}, "pass": [0.2, 0.08860454100652487, 0.3913133553653824], "rule": [0.4960000000000001, 0.325336, 0.661332]}, "ladder": {"n": 30, "k": 7, "runs": 5, "tasks": {"ladder-1-tracker-review": {"score": 1.0, "k": 5, "n": 5}, "ladder-2-tracker-change": {"score": 0.32, "k": 1, "n": 5}, "ladder-3-tracker-exception": {"score": 0.36, "k": 1, "n": 5}, "ladder-4-email-approval": {"score": 0.0, "k": 0, "n": 5}, "invoice-approval-v3": {"score": 0.0, "k": 0, "n": 5}, "ladder-6-email-deputy": {"score": 0.0, "k": 0, "n": 5}}, "pass": [0.23333333333333334, 0.11792239210501232, 0.40928672330324267], "rule": [0.27999999999999997, 0.19999999999999998, 0.36], "fails": {"weakest: Approval by email": "0%"}}}}, "gpt-6.1-sol": {"name": "GPT-6.1 Sol", "lab": "OpenAI", "agent": "Codex", "levels": {"nudged": {"n": 3, "k": 1, "pass": [0.3333333333333333, 0.0614903152761605, 0.7923450448735121], "rule": [0.5555555555555555, 0.3333333333333333, 1.0], "fails": {"used the old $5k rule": 2}}, "written": {"n": 8, "k": 0, "pass": [0.0, 0.0, 0.3244156195108769], "rule": [0.0, 0.0, 0.0], "fails": {"never asked for approval": 8}}, "told": {"n": 8, "k": 8, "pass": [1.0, 0.6755843804891231, 1.0], "rule": [1.0, 1.0, 1.0], "fails": {}}, "drift_old": {"n": 60, "k": 29, "agent": "High", "cells": {"cutoff-1": {"score": 0.5, "k": 0, "n": 5}, "cutoff-3": {"score": 0.5, "k": 0, "n": 5}, "cutoff-7": {"score": 0.7, "k": 2, "n": 5}, "stopped-1": {"score": 0.2, "k": 1, "n": 5}, "stopped-3": {"score": 0.8, "k": 4, "n": 5}, "stopped-7": {"score": 1.0, "k": 5, "n": 5}, "approver-1": {"score": 0.8, "k": 4, "n": 5}, "approver-3": {"score": 1.0, "k": 5, "n": 5}, "approver-7": {"score": 1.0, "k": 5, "n": 5}, "returned-1": {"score": 0.0, "k": 0, "n": 5}, "returned-3": {"score": 0.0, "k": 0, "n": 5}, "returned-7": {"score": 0.6, "k": 3, "n": 5}}, "dose": {"1": [0.375, 0.2, 0.575], "3": [0.575, 0.375, 0.75], "7": [0.825, 0.675, 0.95]}, "kind": {"cutoff": 0.5666666666666667, "stopped": 0.6666666666666666, "approver": 0.9333333333333333, "returned": 0.2}, "pass": [0.48333333333333334, 0.3617484128577001, 0.6069240514915643], "rule": [0.5916666666666667, 0.48333333333333334, 0.7], "fails": {"kept old habit": 26, "overcorrected": 4, "left approver open": 1}, "fails_by_type": {"cutoff": {"kept old habit": 9, "overcorrected": 4}, "stopped": {"kept old habit": 5}, "approver": {"left approver open": 1}, "returned": {"kept old habit": 12}}}, "drift": {"n": 25, "k": 5, "agent": "High", "cells": {"cutoff-1": {"score": 0.3333333333333333, "n": 5, "k": 0}, "cutoff-2": {"score": 0.5666666666666667, "n": 5, "k": 0}, "cutoff-3": {"score": 1.0, "n": 5, "k": 5}, "reviewer-1": {"score": 1.0, "n": 5, "k": 5}, "reviewer-2": {"score": 1.0, "n": 5, "k": 5}, "reviewer-3": {"score": 1.0, "n": 5, "k": 5}, "contract-1": {"score": 1.0, "n": 5, "k": 5}, "contract-2": {"score": 1.0, "n": 5, "k": 5}, "contract-3": {"score": 1.0, "n": 5, "k": 5}, "costcenter-1": {"score": 1.0, "n": 5, "k": 5}, "costcenter-2": {"score": 1.0, "n": 5, "k": 5}, "costcenter-3": {"score": 1.0, "n": 5, "k": 5}}, "dose": {"1": [0.73332, 0.69334, 0.77332], "2": [0.82668, 0.8, 0.85336], "3": [1.0, 1.0, 1.0]}, "kind": {"cutoff": 0.6333333333333333, "reviewer": 1.0, "contract": 1.0, "costcenter": 1.0}, "hb": {"no": [0.91334, 0.85334, 0.96667], "yes": [0.0, 0.0, 0.0], "followed": 10, "n": 10}, "pass": [0.2, 0.08860454100652487, 0.3913133553653824], "rule": [0.512, 0.341332, 0.6773320000000002], "fails": {"caught some changes, not all": 10, "followed the handbook": 10}, "fails_by_type": {}}, "vendor": {"n": 25, "k": 3, "agent": "Codex", "fails": {"followed the handbook": 10, "caught some changes, not all": 9, "kept the old habits": 3}, "hb": {"no": 0.6533266666666668, "yes": 0.0}, "pass": [0.12, 0.04166741357068093, 0.2995619218337349], "rule": [0.3919960000000001, 0.23732399999999998, 0.546668]}, "ladder": {"n": 30, "k": 5, "runs": 5, "tasks": {"ladder-1-tracker-review": {"score": 1.0, "k": 5, "n": 5}, "ladder-2-tracker-change": {"score": 0.24, "k": 0, "n": 5}, "ladder-3-tracker-exception": {"score": 0.0, "k": 0, "n": 5}, "ladder-4-email-approval": {"score": 0.0, "k": 0, "n": 5}, "invoice-approval-v3": {"score": 0.0, "k": 0, "n": 5}, "ladder-6-email-deputy": {"score": 0.0, "k": 0, "n": 5}}, "pass": [0.16666666666666666, 0.07336434240351683, 0.33564705185680177], "rule": [0.20666666666666664, 0.16666666666666666, 0.24666666666666667], "fails": {"weakest: Supplier exception": "0%"}}}}}, "levels": [["drift", "Main benchmark"], ["vendor", "Same tasks, each brand's own agent"], ["drift_old", "Earlier: one habit changes"], ["ladder", "Earlier: 6-task ladder"], ["nudged", "Earlier: pointed at past work, rule unstated"], ["written", "Earlier: rule in an email somewhere"], ["told", "Earlier: rule told in the instruction"]], "quote": "The three existing Q4 Wrenfield rows are under G&A, while the policy and the Q2/Q3 trackers say Marketing. I left those rows alone, so the tracker is now inconsistent until someone confirms which is right.", "ladder": [["ladder-1-tracker-review", "REVIEW note", "tracker"], ["ladder-2-tracker-change", "Cutoff moved", "tracker"], ["ladder-3-tracker-exception", "Supplier exception", "tracker"], ["ladder-4-email-approval", "Approval by email", "email"], ["invoice-approval-v3", "Cutoff moved + exception", "email"], ["ladder-6-email-deputy", "Director on leave", "email"]], "drift": {"types": [["cutoff", "Cutoff", "$5k to $10k, Security kept $5k"], ["reviewer", "Reviewer", "Tomasz for Infra, Mireille otherwise"], ["contract", "Contract supplier", "Halverson stopped getting REVIEW"], ["costcenter", "Cost center", "Wrenfield moved to G&A"]], "doses": [1, 2, 3]}, "order": ["claude-fable-5-2", "claude-opus-5-5", "claude-sonnet-5-5", "claude-haiku-5-5", "gpt-6-astra", "gpt-6.1-sol"]};
-const ICON = {"Anthropic": "<svg role=\"img\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><title>Anthropic</title><path d=\"M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z\"/></svg>", "OpenAI": "<svg role=\"img\" aria-hidden=\"true\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><title>OpenAI</title><path d=\"M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z\"/></svg>"};
-const levelSel = document.getElementById("level"), metricSel = document.getElementById("metric");
-D.levels.forEach(([k, label]) => levelSel.add(new Option(label, k)));
-const qp = new URLSearchParams(location.search);
-if (qp.get("level")) levelSel.value = qp.get("level");
-if (qp.get("metric")) metricSel.value = qp.get("metric");
-if (qp.get("tab")) setTimeout(() => document.querySelector(`[data-tab="${qp.get("tab")}"]`).click());
-const LAB = l => l === "Anthropic" ? "anthropic" : "openai";
-const fmt = x => (x * 100).toFixed(1) + "%";
-const pm = (lo, hi) => "±" + ((hi - lo) * 50).toFixed(1) + "%";
-document.getElementById("quote").textContent = D.quote;
-
-function rows() {
-  const lv = levelSel.value, mt = metricSel.value;
-  const list = Object.values(D.models).filter(m => m.levels[lv])
-    .map(m => ({m, s: m.levels[lv][mt], d: m.levels[lv]}))
-    .sort((a, b) => b.s[0] - a.s[0] || b.s[2] - a.s[2] || a.m.name.localeCompare(b.m.name));
-  document.getElementById("rows").innerHTML = list.map(({m, s, d}) => {
-    const [p, lo, hi] = s, c = LAB(m.lab);
-    const why = Object.entries(d.fails || {}).map(([k, n]) => `${k} (${n})`).join(", ");
-    const tip = [m.name + " · " + (d.agent || m.agent),
-      `Mean Score ${fmt(d.rule[0])} (95%: ${fmt(d.rule[1])} to ${fmt(d.rule[2])})`,
-      `Pass@1 ${d.k}/${d.n} = ${fmt(d.pass[0])} (95%: ${fmt(d.pass[1])} to ${fmt(d.pass[2])})`,
-      why ? "Misses: " + why : ""].filter(Boolean).join("|");
-    return `<div class="lrow" tabindex="0" data-tip="${tip.replace(/"/g, "&quot;")}">
-      <div class="ltop"><span class="mname">${ICON[m.lab] || ""}${m.name}<span class="mtag">${d.agent || m.agent}</span></span>
-        <span class="mscore mono">${fmt(p)}<span class="pm">${pm(lo, hi)}</span></span></div>
-      <div class="lbar">
-        <div class="fill" style="width:${Math.max(p * 100, .8)}%;background:linear-gradient(90deg,var(--${c}-a),var(--${c}-b))"></div>
-        ${p > lo ? `<div class="lo" style="left:${lo * 100}%;width:${(p - lo) * 100}%;background:var(--${c}-c)"></div>` : ""}
-        ${hi > p ? `<div class="wh" style="left:${p * 100}%;width:${(hi - p) * 100}%"></div>` : ""}
-      </div>
-    </div>`;
-  }).join("");
-  bindTips();
-}
-document.getElementById("axis").innerHTML = [0, 10, 20, 30, 40, 50, 60, 70, 80, 100].map(v => `<span style="left:${v}%">${v}%</span>`).join("");
-
-const cellHtml = (v, sub) => {
-  const bg = `color-mix(in oklab, #2a78d6 ${Math.round(v * 85)}%, var(--cell-0))`;
-  const ink = v > .55 ? "#fff" : "var(--cell-ink)";
-  return `<td><div class="cell mono" style="background:${bg};color:${ink}">${fmt(v)}<small>${sub}</small></div></td>`;
-};
-const notRun = "<td><div class='cell' style='background:var(--cell-0);color:var(--text-muted)'>not run</div></td>";
-const nameCell = m => `<td class='nm'>${ICON[m.lab] || ""}${m.name}</td>`;
-
-function lgrid() {
-  const L = Object.values(D.models).filter(m => m.levels.ladder)
-    .sort((a, b) => b.levels.ladder.rule[0] - a.levels.ladder.rule[0]);
-  const head = "<tr><th></th>" + D.ladder.map(([t, l, w], i) =>
-    `<th class="c">${i + 1}. ${l}<small>${w === "tracker" ? "in the spreadsheet" : "only in email"}</small></th>`).join("") +
-    "<th class='c'>Overall<small>passed</small></th></tr>";
-  document.getElementById("lgrid").innerHTML = head + L.map(m => {
-    const d = m.levels.ladder;
-    return "<tr>" + nameCell(m) + D.ladder.map(([t]) => d.tasks[t]
-      ? cellHtml(d.tasks[t].score, `${d.tasks[t].k}/${d.tasks[t].n} passed`) : notRun).join("")
-      + cellHtml(d.rule[0], `${d.runs} tries`) + "</tr>";
-  }).join("");
-}
-
-function grid() {
-  const hid = m => (m.levels.nudged ? m.levels.nudged.rule[0] : -1) + (m.levels.written ? m.levels.written.rule[0] / 10 : 0);
-  const order = Object.values(D.models).filter(m => Object.keys(m.levels).length).sort((a, b) => hid(b) - hid(a));
-  const lv = ["told", "written", "nudged"].map(k => D.levels.find(l => l[0] === k)).filter(Boolean);
-  const head = "<tr><th></th>" + lv.map(([, l]) => `<th class="c">${l}</th>`).join("") + "</tr>";
-  document.getElementById("grid").innerHTML = head + order.map(m => "<tr>" + nameCell(m) + lv.map(([k]) => {
-    const d = m.levels[k];
-    return d ? cellHtml(d.rule[0], `${d.k}/${d.n} passed`) : notRun;
-  }).join("") + "</tr>").join("");
-}
-
-const DRIFT = () => Object.values(D.models).filter(m => m.levels.drift)
-  .sort((a, b) => b.levels.drift.rule[0] - a.levels.drift.rule[0]);
-// series color follows the model (fixed order), never its rank
-const SERIES = m => "var(--s" + (D.order.filter(k => D.models[k] && D.models[k].levels.drift).indexOf(
-  Object.keys(D.models).find(k => D.models[k] === m)) + 1) + ")";
-
-function doseChart() {
-  const M = DRIFT();
-  if (!M.length) { document.getElementById("t-dose").innerHTML = "<p class='note'>Drift results not in yet.</p>"; return; }
-  const W = 640, H = 320, pl = 44, pr = 92, pt = 14, pb = 34;
-  const xs = D.drift.doses, X = i => pl + i * (W - pl - pr) / (xs.length - 1), Y = v => pt + (1 - v) * (H - pt - pb);
-  let g = "";
-  for (const v of [0, .25, .5, .75, 1]) g += `<line class="gl" x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}"/>` +
-    `<text class="ax" x="${pl - 8}" y="${Y(v) + 4}" text-anchor="end">${v * 100}%</text>`;
-  xs.forEach((d, i) => { g += `<text class="ax" x="${X(i)}" y="${H - 12}" text-anchor="middle">${d} example${d > 1 ? "s" : ""}</text>`; });
-  const ends = [];
-  for (const m of M) {
-    const c = SERIES(m), pts = xs.map((d, i) => [X(i), Y(m.levels.drift.dose[d][0]), d, m.levels.drift.dose[d]]);
-    g += `<polyline class="ln" stroke="${c}" points="${pts.map(p => p[0] + "," + p[1]).join(" ")}"/>`;
-    for (const [x, y, d, v] of pts) {
-      const tip = `${m.name}|${d} example${d > 1 ? "s" : ""} after the change|Score ${fmt(v[0])} (95%: ${fmt(v[1])} to ${fmt(v[2])})`;
-      g += `<circle class="pt" cx="${x}" cy="${y}" r="5" fill="${c}"/><circle class="hit dpt" cx="${x}" cy="${y}" r="12" data-tip="${tip}"/>`;
-    }
-    ends.push([pts[pts.length - 1][1], m]);
-  }
-  // direct end labels only where they don't collide; the legend always carries identity
-  ends.sort((a, b) => a[0] - b[0]);
-  let last = -99;
-  for (const [y, m] of ends) { if (y - last >= 15) { g += `<text class="lab" x="${W - pr + 10}" y="${y + 4}">${m.name}</text>`; last = y; } }
-  document.getElementById("dose").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Score by number of examples after the change, one line per model">${g}</svg>`;
-  document.getElementById("dleg").innerHTML = M.map(m =>
-    `<li><i style="background:${SERIES(m)}"></i>${m.name}<span class="v">${fmt(m.levels.drift.rule[0])}</span></li>`).join("");
-  document.querySelectorAll(".dpt").forEach(el => {
-    el.onmousemove = e => { const [t1, ...ls] = el.dataset.tip.split("|"); tip.innerHTML = "<b>" + t1 + "</b>" + ls.join("<br>");
-      tip.hidden = false; tip.style.left = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px"; };
+const t = new URLSearchParams(location.search).get("theme"); if (t) document.documentElement.dataset.theme = t;
+const D = {"models": [{"id": "claude-fable-5-2", "name": "Claude Fable 5.2", "lab": "anthropic", "levels": {"L1": {"all": {"n": 10, "k": 9, "pass": 0.9, "pass_lo": 0.5958436145024278, "pass_hi": 0.9821242504842788, "mean": 0.9933299999999999, "mean_lo": 0.9799900000000001, "mean_hi": 1.0}, "3": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}, "5": {"n": 5, "k": 4, "pass": 0.8, "pass_lo": 0.3755282641185388, "pass_hi": 0.9637768390302125, "mean": 0.98666, "mean_lo": 0.95998, "mean_hi": 1.0}}, "L2": {"all": {"n": 10, "k": 6, "pass": 0.6, "pass_lo": 0.3126695474501864, "pass_hi": 0.8318224187964902, "mean": 0.94668, "mean_lo": 0.9066899999999999, "mean_hi": 0.9866699999999999}, "3": {"n": 5, "k": 1, "pass": 0.2, "pass_lo": 0.03622316096978745, "pass_hi": 0.6244717358814613, "mean": 0.89336, "mean_lo": 0.8667, "mean_hi": 0.94668}, "5": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}}, "L3": {"all": {"n": 10, "k": 6, "pass": 0.6, "pass_lo": 0.3126695474501864, "pass_hi": 0.8318224187964902, "mean": 0.91334, "mean_lo": 0.82, "mean_hi": 0.9866699999999999}, "3": {"n": 5, "k": 1, "pass": 0.2, "pass_lo": 0.03622316096978745, "pass_hi": 0.6244717358814613, "mean": 0.82668, "mean_lo": 0.66666, "mean_hi": 0.94668}, "5": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}}}, "main": {"n": 15, "k": 14, "pass": 0.9333333333333333, "pass_lo": 0.7018292244757601, "pass_hi": 0.9881334113938051, "mean": 0.9955533333333333, "mean_lo": 0.9866599999999999, "mean_hi": 1.0}, "told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}, "habits": {"changed": 0.9, "team": 1.0, "two": 0.94, "routine": 1.0}, "l1_doc": {"n": 15, "k": 13, "pass": 0.8666666666666667, "pass_lo": 0.6211750079348376, "pass_hi": 0.9626395301086407, "mean": 0.9866666666666667, "mean_lo": 0.9644533333333333, "mean_hi": 1.0}, "l1_told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}}, {"id": "gpt-6-astra", "name": "GPT-6 Astra", "lab": "openai", "levels": {"L1": {"all": {"n": 10, "k": 8, "pass": 0.8, "pass_lo": 0.49015684672072335, "pass_hi": 0.9433190520193067, "mean": 0.98666, "mean_lo": 0.9666499999999999, "mean_hi": 1.0}, "3": {"n": 5, "k": 4, "pass": 0.8, "pass_lo": 0.3755282641185388, "pass_hi": 0.9637768390302125, "mean": 0.98666, "mean_lo": 0.95998, "mean_hi": 1.0}, "5": {"n": 5, "k": 4, "pass": 0.8, "pass_lo": 0.3755282641185388, "pass_hi": 0.9637768390302125, "mean": 0.98666, "mean_lo": 0.95998, "mean_hi": 1.0}}, "L2": {"all": {"n": 10, "k": 3, "pass": 0.3, "pass_lo": 0.10778928748621183, "pass_hi": 0.6032267800204347, "mean": 0.8200099999999999, "mean_lo": 0.7133599999999999, "mean_hi": 0.9199999999999999}, "3": {"n": 5, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.43449149475208104, "mean": 0.73334, "mean_lo": 0.61334, "mean_hi": 0.8666599999999999}, "5": {"n": 5, "k": 3, "pass": 0.6, "pass_lo": 0.23071993220883708, "pass_hi": 0.8823817688407467, "mean": 0.90668, "mean_lo": 0.77336, "mean_hi": 1.0}}, "L3": {"all": {"n": 10, "k": 7, "pass": 0.7, "pass_lo": 0.39677321997956516, "pass_hi": 0.892210712513788, "mean": 0.92667, "mean_lo": 0.8333499999999999, "mean_hi": 1.0}, "3": {"n": 5, "k": 2, "pass": 0.4, "pass_lo": 0.1176182311592533, "pass_hi": 0.769280067791163, "mean": 0.85334, "mean_lo": 0.7200200000000001, "mean_hi": 0.98666}, "5": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}}}, "main": {"n": 15, "k": 12, "pass": 0.8, "pass_lo": 0.5481406466534955, "pass_hi": 0.9295257935638959, "mean": 0.9644466666666667, "mean_lo": 0.9155533333333333, "mean_hi": 1.0}, "told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}, "habits": {"changed": 0.66, "team": 1.0, "two": 0.8, "routine": 1.0}, "l1_doc": {"n": 15, "k": 15, "pass": 1.0, "pass_lo": 0.7961107336956521, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}, "l1_told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}}, {"id": "gpt-6.1-sol", "name": "GPT-6.1 Sol", "lab": "openai", "levels": {"L1": {"all": {"n": 10, "k": 9, "pass": 0.9, "pass_lo": 0.5958436145024278, "pass_hi": 0.9821242504842788, "mean": 0.9933299999999999, "mean_lo": 0.9799900000000001, "mean_hi": 1.0}, "3": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}, "5": {"n": 5, "k": 4, "pass": 0.8, "pass_lo": 0.3755282641185388, "pass_hi": 0.9637768390302125, "mean": 0.98666, "mean_lo": 0.95998, "mean_hi": 1.0}}, "L2": {"all": {"n": 10, "k": 3, "pass": 0.3, "pass_lo": 0.10778928748621183, "pass_hi": 0.6032267800204347, "mean": 0.7866899999999999, "mean_lo": 0.7000299999999998, "mean_hi": 0.8866799999999999}, "3": {"n": 5, "k": 1, "pass": 0.2, "pass_lo": 0.03622316096978745, "pass_hi": 0.6244717358814613, "mean": 0.77336, "mean_lo": 0.6667, "mean_hi": 0.90668}, "5": {"n": 5, "k": 2, "pass": 0.4, "pass_lo": 0.1176182311592533, "pass_hi": 0.769280067791163, "mean": 0.80002, "mean_lo": 0.6667, "mean_hi": 0.9333400000000001}}, "L3": {"all": {"n": 10, "k": 7, "pass": 0.7, "pass_lo": 0.39677321997956516, "pass_hi": 0.892210712513788, "mean": 0.94001, "mean_lo": 0.86668, "mean_hi": 1.0}, "3": {"n": 5, "k": 3, "pass": 0.6, "pass_lo": 0.23071993220883708, "pass_hi": 0.8823817688407467, "mean": 0.94668, "mean_lo": 0.89336, "mean_hi": 1.0}, "5": {"n": 5, "k": 4, "pass": 0.8, "pass_lo": 0.3755282641185388, "pass_hi": 0.9637768390302125, "mean": 0.9333400000000001, "mean_lo": 0.80002, "mean_hi": 1.0}}}, "main": {"n": 15, "k": 10, "pass": 0.6666666666666666, "pass_lo": 0.41713125151212976, "pass_hi": 0.8482389930530876, "mean": 0.9066733333333334, "mean_lo": 0.8222400000000002, "mean_hi": 0.9733333333333334}, "told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}, "habits": {"changed": 0.6, "team": 1.0, "two": 0.76, "routine": 1.0}, "l1_doc": {"n": 15, "k": 14, "pass": 0.9333333333333333, "pass_lo": 0.7018292244757601, "pass_hi": 0.9881334113938051, "mean": 0.9688866666666667, "mean_lo": 0.90666, "mean_hi": 1.0}, "l1_told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}}, {"id": "claude-opus-5-5", "name": "Claude Opus 5.5", "lab": "anthropic", "levels": {"L1": {"all": {"n": 10, "k": 3, "pass": 0.3, "pass_lo": 0.10778928748621183, "pass_hi": 0.6032267800204347, "mean": 0.9399799999999999, "mean_lo": 0.89998, "mean_hi": 0.97332}, "3": {"n": 5, "k": 2, "pass": 0.4, "pass_lo": 0.1176182311592533, "pass_hi": 0.769280067791163, "mean": 0.95998, "mean_lo": 0.9333, "mean_hi": 0.98666}, "5": {"n": 5, "k": 1, "pass": 0.2, "pass_lo": 0.03622316096978745, "pass_hi": 0.6244717358814613, "mean": 0.91998, "mean_lo": 0.8533200000000001, "mean_hi": 0.97332}}, "L2": {"all": {"n": 10, "k": 1, "pass": 0.1, "pass_lo": 0.01787574951572113, "pass_hi": 0.4041563854975721, "mean": 0.65333, "mean_lo": 0.54668, "mean_hi": 0.76666}, "3": {"n": 5, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.43449149475208104, "mean": 0.58666, "mean_lo": 0.50666, "mean_hi": 0.6799799999999999}, "5": {"n": 5, "k": 1, "pass": 0.2, "pass_lo": 0.03622316096978745, "pass_hi": 0.6244717358814613, "mean": 0.72, "mean_lo": 0.5466599999999999, "mean_hi": 0.9066600000000001}}, "L3": {"all": {"n": 10, "k": 1, "pass": 0.1, "pass_lo": 0.01787574951572113, "pass_hi": 0.4041563854975721, "mean": 0.6066499999999999, "mean_lo": 0.5332999999999999, "mean_hi": 0.7066799999999999}, "3": {"n": 5, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.43449149475208104, "mean": 0.55998, "mean_lo": 0.5333, "mean_hi": 0.61334}, "5": {"n": 5, "k": 1, "pass": 0.2, "pass_lo": 0.03622316096978745, "pass_hi": 0.6244717358814613, "mean": 0.6533200000000001, "mean_lo": 0.5333, "mean_hi": 0.8400000000000001}}}, "main": {"n": 15, "k": 3, "pass": 0.2, "pass_lo": 0.07047420643610414, "pass_hi": 0.4518593533465045, "mean": 0.7644333333333334, "mean_lo": 0.6622133333333334, "mean_hi": 0.8666533333333334}, "told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}, "habits": {"changed": 0.46, "team": 0.8, "two": 0.62, "routine": 1.0}, "l1_doc": {"n": 15, "k": 6, "pass": 0.4, "pass_lo": 0.19824228082594664, "pass_hi": 0.642535572434923, "mean": 0.9155666666666666, "mean_lo": 0.8755666666666665, "mean_hi": 0.9555666666666666}, "l1_told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}}, {"id": "claude-sonnet-5-5", "name": "Claude Sonnet 5.5", "lab": "anthropic", "levels": {"L1": {"all": {"n": 10, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.2775401687666166, "mean": 0.7866699999999999, "mean_lo": 0.7533299999999999, "mean_hi": 0.81334}, "3": {"n": 5, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.43449149475208104, "mean": 0.76, "mean_lo": 0.70668, "mean_hi": 0.8}, "5": {"n": 5, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.43449149475208104, "mean": 0.81334, "mean_lo": 0.8, "mean_hi": 0.84002}}, "L2": {"all": {"n": 10, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.2775401687666166, "mean": 0.49334, "mean_lo": 0.44001999999999997, "mean_hi": 0.5466799999999999}, "3": {"n": 5, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.43449149475208104, "mean": 0.56, "mean_lo": 0.50666, "mean_hi": 0.62668}, "5": {"n": 5, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.43449149475208104, "mean": 0.42668, "mean_lo": 0.4, "mean_hi": 0.45336}}, "L3": {"all": {"n": 10, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.2775401687666166, "mean": 0.34668000000000004, "mean_lo": 0.2867, "mean_hi": 0.42000000000000004}, "3": {"n": 5, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.43449149475208104, "mean": 0.28002, "mean_lo": 0.2667, "mean_hi": 0.30666}, "5": {"n": 5, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.43449149475208104, "mean": 0.41334, "mean_lo": 0.3067, "mean_hi": 0.5199800000000001}}}, "main": {"n": 15, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.20388926630434784, "mean": 0.5511200000000002, "mean_lo": 0.45334, "mean_hi": 0.6577866666666667}, "told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}, "habits": {"changed": 0.36, "team": 0.36666666666666664, "two": 0.5, "routine": 1.0}, "l1_doc": {"n": 15, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.20388926630434784, "mean": 0.5332999999999999, "mean_lo": 0.5332999999999999, "mean_hi": 0.5332999999999999}, "l1_told": {"n": 5, "k": 5, "pass": 1.0, "pass_lo": 0.5655085052479191, "pass_hi": 1.0, "mean": 1.0, "mean_lo": 1.0, "mean_hi": 1.0}}], "levels": [["L1", "4 habits"], ["L2", "8 habits"], ["L3", "8 habits + old policy doc"]], "baselines": [{"version": "morning3-k3-nohandbook", "handbook": false, "strategy": "copy last time for this supplier", "score": 0.8, "level": "L1", "dose": 3}, {"version": "morning3-k3-nohandbook", "handbook": false, "strategy": "copy last time for this supplier, same size", "score": 1.0, "level": "L1", "dose": 3}, {"version": "morning3-k3-nohandbook", "handbook": false, "strategy": "follow the handbook", "score": 0.5333, "level": "L1", "dose": 3}, {"version": "morning3-k3-nohandbook", "handbook": false, "strategy": "majority for this supplier", "score": 0.6, "level": "L1", "dose": 3}, {"version": "morning3-k3-nohandbook", "handbook": false, "strategy": "log everything, no notes", "score": 0.8, "level": "L1", "dose": 3}, {"version": "morning3-k3-nohandbook", "handbook": false, "strategy": "flag everything over $5k", "score": 0.6667, "level": "L1", "dose": 3}, {"version": "morning3-k5-nohandbook", "handbook": false, "strategy": "copy last time for this supplier", "score": 0.8667, "level": "L1", "dose": 5}, {"version": "morning3-k5-nohandbook", "handbook": false, "strategy": "copy last time for this supplier, same size", "score": 1.0, "level": "L1", "dose": 5}, {"version": "morning3-k5-nohandbook", "handbook": false, "strategy": "follow the handbook", "score": 0.5333, "level": "L1", "dose": 5}, {"version": "morning3-k5-nohandbook", "handbook": false, "strategy": "majority for this supplier", "score": 0.6667, "level": "L1", "dose": 5}, {"version": "morning3-k5-nohandbook", "handbook": false, "strategy": "log everything, no notes", "score": 0.8, "level": "L1", "dose": 5}, {"version": "morning3-k5-nohandbook", "handbook": false, "strategy": "flag everything over $5k", "score": 0.6667, "level": "L1", "dose": 5}, {"version": "morningL2-k3-nohandbook", "handbook": false, "strategy": "copy last time for this supplier", "score": 0.6667, "level": "L2", "dose": 3}, {"version": "morningL2-k3-nohandbook", "handbook": false, "strategy": "copy last time for this supplier, same size", "score": 0.9333, "level": "L2", "dose": 3}, {"version": "morningL2-k3-nohandbook", "handbook": false, "strategy": "follow the handbook", "score": 0.2, "level": "L2", "dose": 3}, {"version": "morningL2-k3-nohandbook", "handbook": false, "strategy": "majority for this supplier", "score": 0.2667, "level": "L2", "dose": 3}, {"version": "morningL2-k3-nohandbook", "handbook": false, "strategy": "log everything, no notes", "score": 0.3333, "level": "L2", "dose": 3}, {"version": "morningL2-k3-nohandbook", "handbook": false, "strategy": "flag everything over $5k", "score": 0.2667, "level": "L2", "dose": 3}, {"version": "morningL2-k5-nohandbook", "handbook": false, "strategy": "copy last time for this supplier", "score": 0.7333, "level": "L2", "dose": 5}, {"version": "morningL2-k5-nohandbook", "handbook": false, "strategy": "copy last time for this supplier, same size", "score": 0.9333, "level": "L2", "dose": 5}, {"version": "morningL2-k5-nohandbook", "handbook": false, "strategy": "follow the handbook", "score": 0.2, "level": "L2", "dose": 5}, {"version": "morningL2-k5-nohandbook", "handbook": false, "strategy": "majority for this supplier", "score": 0.2667, "level": "L2", "dose": 5}, {"version": "morningL2-k5-nohandbook", "handbook": false, "strategy": "log everything, no notes", "score": 0.3333, "level": "L2", "dose": 5}, {"version": "morningL2-k5-nohandbook", "handbook": false, "strategy": "flag everything over $5k", "score": 0.2, "level": "L2", "dose": 5}, {"version": "morningL2-k3-handbook", "handbook": true, "strategy": "copy last time for this supplier", "score": 0.6667, "level": "L3", "dose": 3}, {"version": "morningL2-k3-handbook", "handbook": true, "strategy": "copy last time for this supplier, same size", "score": 0.9333, "level": "L3", "dose": 3}, {"version": "morningL2-k3-handbook", "handbook": true, "strategy": "follow the handbook", "score": 0.2, "level": "L3", "dose": 3}, {"version": "morningL2-k3-handbook", "handbook": true, "strategy": "majority for this supplier", "score": 0.2667, "level": "L3", "dose": 3}, {"version": "morningL2-k3-handbook", "handbook": true, "strategy": "log everything, no notes", "score": 0.3333, "level": "L3", "dose": 3}, {"version": "morningL2-k3-handbook", "handbook": true, "strategy": "flag everything over $5k", "score": 0.2667, "level": "L3", "dose": 3}, {"version": "morningL2-k5-handbook", "handbook": true, "strategy": "copy last time for this supplier", "score": 0.7333, "level": "L3", "dose": 5}, {"version": "morningL2-k5-handbook", "handbook": true, "strategy": "copy last time for this supplier, same size", "score": 0.9333, "level": "L3", "dose": 5}, {"version": "morningL2-k5-handbook", "handbook": true, "strategy": "follow the handbook", "score": 0.2, "level": "L3", "dose": 5}, {"version": "morningL2-k5-handbook", "handbook": true, "strategy": "majority for this supplier", "score": 0.2667, "level": "L3", "dose": 5}, {"version": "morningL2-k5-handbook", "handbook": true, "strategy": "log everything, no notes", "score": 0.3333, "level": "L3", "dose": 5}, {"version": "morningL2-k5-handbook", "handbook": true, "strategy": "flag everything over $5k", "score": 0.2, "level": "L3", "dose": 5}], "baseline_summary": [{"name": "copy last time for this supplier", "pass": 0.0, "mean": 0.7777666666666666, "by": {"L1": 0.0, "L2": 0.0, "L3": 0.0}}, {"name": "copy last time for this supplier, same size", "pass": 0.3333333333333333, "mean": 0.9555333333333333, "by": {"L1": 1.0, "L2": 0.0, "L3": 0.0}}, {"name": "flag everything over $5k", "pass": 0.0, "mean": 0.35556666666666664, "by": {"L1": 0.0, "L2": 0.0, "L3": 0.0}}, {"name": "follow the handbook", "pass": 0.0, "mean": 0.3111, "by": {"L1": 0.0, "L2": 0.0, "L3": 0.0}}, {"name": "log everything, no notes", "pass": 0.0, "mean": 0.4888666666666666, "by": {"L1": 0.0, "L2": 0.0, "L3": 0.0}}, {"name": "majority for this supplier", "pass": 0.0, "mean": 0.4000333333333333, "by": {"L1": 0.0, "L2": 0.0, "L3": 0.0}}], "vendor": [{"name": "Claude Fable 5.2", "shared": {"n": 25, "k": 4, "pass": 0.16, "pass_lo": 0.06403347608577989, "pass_hi": 0.34654013980238163, "mean": 0.4720040000000001, "mean_lo": 0.32533600000000007, "mean_hi": 0.6186680000000002}, "own": {"n": 25, "k": 1, "pass": 0.04, "pass_lo": 0.007096050386699165, "pass_hi": 0.19544472405022525, "mean": 0.41866800000000004, "mean_lo": 0.282668, "mean_hi": 0.5493400000000002}, "agent": "Claude Code"}, {"name": "Claude Opus 5.5", "shared": {"n": 25, "k": 2, "pass": 0.08, "pass_lo": 0.02221993369109193, "pass_hi": 0.24966512122957818, "mean": 0.288004, "mean_lo": 0.146672, "mean_hi": 0.437336}, "own": {"n": 25, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.13319649395317873, "mean": 0.21866, "mean_lo": 0.11732800000000002, "mean_hi": 0.32533199999999995}, "agent": "Claude Code"}, {"name": "Claude Sonnet 5.5", "shared": {"n": 25, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.13319649395317873, "mean": 0.125336, "mean_lo": 0.05334, "mean_hi": 0.20533200000000001}, "own": {"n": 25, "k": 0, "pass": 0.0, "pass_lo": 0.0, "pass_hi": 0.13319649395317873, "mean": 0.3359839999999999, "mean_lo": 0.23999199999999998, "mean_hi": 0.426644}, "agent": "Claude Code"}, {"name": "GPT-6.1 Sol", "shared": {"n": 25, "k": 5, "pass": 0.2, "pass_lo": 0.08860454100652487, "pass_hi": 0.3913133553653824, "mean": 0.512, "mean_lo": 0.33866399999999997, "mean_hi": 0.6800000000000002}, "own": {"n": 25, "k": 3, "pass": 0.12, "pass_lo": 0.04166741357068093, "pass_hi": 0.2995619218337349, "mean": 0.3919960000000001, "mean_lo": 0.23732399999999998, "mean_hi": 0.546664}, "agent": "Codex"}, {"name": "GPT-6 Astra", "shared": {"n": 25, "k": 12, "pass": 0.48, "pass_lo": 0.30031003928960015, "pass_hi": 0.6650178204685269, "mean": 0.695996, "mean_lo": 0.535996, "mean_hi": 0.839996}, "own": {"n": 25, "k": 5, "pass": 0.2, "pass_lo": 0.08860454100652487, "pass_hi": 0.3913133553653824, "mean": 0.4960000000000001, "mean_lo": 0.32266799999999995, "mean_hi": 0.661336}, "agent": "Codex"}], "examples": [{"label": "Gets it right", "model": "Claude Fable 5.2", "version": "8 habits, 5 examples each", "quote": "Every Halverson invoice since the MSA was countersigned on 2 Nov has been logged that way, even above $10k.", "observed": "Logged all 15 invoices correctly. It spotted the re-sent Vantor invoice, split Selbourne between Recruiting and People by size, noted card payments and read the contract exemption from the rows after November 2.", "why": "With enough recent examples, a strong agent can rebuild eight unwritten habits from a tracker alone. The habits are learnable.", "run": "valkyrie run 4d0d826e-e060-4dbd-b54d-63c2253b3303 \u00b7 morningL2-k5-nohandbook-r5"}, {"label": "Thin evidence", "model": "Claude Fable 5.2", "version": "8 habits, 3 examples each", "quote": "", "observed": "Got 13 of 15 right, but flagged the $6,924 Marrow & Finch and $7,640 Selbourne invoices for review: with only three rows showing the new $10,000 cutoff, it kept the older $5,000 habit for them.", "why": "The same agent that is perfect at five examples misses a changed cutoff at three. Eight habits at once plus thin evidence is where the top models break.", "run": "valkyrie run 4d0d826e-e060-4dbd-b54d-63c2253b3303 \u00b7 morningL2-k3-nohandbook-r5"}, {"label": "Misses a newer habit", "model": "GPT-6 Astra", "version": "8 habits, 3 examples each", "quote": "VUM-2026-0497 marked DUPLICATE - do not pay", "observed": "Caught the duplicate and the reviewers, but left the Kellerby and Pellham invoices blank instead of noting \"card\", a habit that only started on October 19.", "why": "The most recent change, with the fewest rows behind it, is the one that slips. GPT-6.1 Sol made the same miss with the old policy doc in the drive.", "run": "valkyrie run adbb1b8c-1b0b-4966-b430-f31515e131d5 \u00b7 morningL2-k3-nohandbook-r5"}, {"label": "Caution over precedent", "model": "Claude Opus 5.5", "version": "8 habits, 5 examples each", "quote": "I didn't mark anything \"PO matched\". I couldn't check purchase orders, so the Infra invoices have no PO note.", "observed": "Read most habits correctly (reviewers, Recruiting split, duplicate, reclassified cost center) but refused to write the team's \"PO matched\" note because it could not verify a purchase order itself, and skipped the card notes.", "why": "This is a fair reading of an ambiguous note, and it is also why smaller models score low: they treat the team's conventions as claims to verify rather than habits to follow. Told the habit, Opus writes it every time.", "run": "valkyrie run de093376-839d-4b50-bd9c-74af6b064d20 \u00b7 morningL2-k5-nohandbook-r5"}, {"label": "Half follows the old doc", "model": "Claude Sonnet 5.5", "version": "8 habits + old policy doc, 5 examples", "quote": "Where the AP policy and the tracker disagree, I followed what the tracker does.", "observed": "Said it would follow the tracker over the policy, did so for cost centers, then still flagged every invoice over $5,000 for review, the January rule, including Halverson and the two mid-size invoices.", "why": "Stating the right principle and applying it everywhere are different things. Sonnet gets 0 of 15 tries fully right across levels at 5 examples, and 5 of 5 when told.", "run": "valkyrie run 7be340d5-7b63-4d12-9b9d-0755ba59d571 \u00b7 morningL2-k5-handbook-r5"}, {"label": "Not fooled by the old doc", "model": "Claude Fable 5.2", "version": "8 habits + old policy doc, 5 examples", "quote": "", "observed": "Logged all 15 invoices correctly with last year's AP policy in the drive, following the current quarter's rows wherever the policy was out of date.", "why": "A clearly dated policy is not a trap for the top models. The hard part is the number of habits and how many examples back each one.", "run": "valkyrie run 4d0d826e-e060-4dbd-b54d-63c2253b3303 \u00b7 morningL2-k5-handbook-r5"}], "n_tries": 15, "icons": {"anthropic": "<svg role=\"img\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><title>Anthropic</title><path d=\"M17.3041 3.541h-3.6718l6.696 16.918H24Zm-10.6082 0L0 20.459h3.7442l1.3693-3.5527h7.0052l1.3693 3.5528h3.7442L10.5363 3.5409Zm-.3712 10.2232 2.2914-5.9456 2.2914 5.9456Z\"/></svg>", "openai": "<svg role=\"img\" viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\"><title>OpenAI</title><path d=\"M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.872zm16.5963 3.8558L13.1038 8.364 15.1192 7.2a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z\"/></svg>"}};
+const P = x => (x * 100).toFixed(0) + "%";
+const P1 = x => (x * 100).toFixed(1) + "%";
+const ICON = l => D.icons[l] || "";
+const COLORS = ["--s1","--s2","--s3","--s4","--s5"];
+const LV = {L1: "4 habits", L2: "8 habits", L3: "8 habits + old doc"};
+let mode = "pass", lev = "main", dose = 5;
+const tip = document.querySelector(".tip");
+function bindTips(root) {
+  root.querySelectorAll("[data-tip]").forEach(el => {
+    el.onmousemove = e => { const [h, ...r] = el.dataset.tip.split("|"); tip.innerHTML = "<b>" + h + "</b>" + r.join("<br>"); tip.hidden = false;
+      tip.style.left = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px"; };
     el.onmouseleave = () => tip.hidden = true;
   });
 }
-
-function kgrid() {
-  const M = DRIFT();
-  if (!M.length) return;
-  const head = "<tr><th></th>" + D.drift.types.map(([k, l, w]) => `<th class="c">${l}<small>${w}</small></th>`).join("") +
-    "<th class='c'>Overall</th></tr>";
-  const body = M.map(m => { const d = m.levels.drift;
-    return "<tr>" + nameCell(m) + D.drift.types.map(([k]) => {
-      const cs = D.drift.doses.map(x => d.cells[k + "-" + x]).filter(Boolean);
-      if (!cs.length) return notRun;
-      const sub = D.drift.doses.map(x => { const c = d.cells[k + "-" + x]; return c ? Math.round(c.score * 100) : "–"; }).join(" · ");
-      return cellHtml(d.kind[k], D.drift.doses.join(" · ") + " ex: " + sub);
-    }).join("") + cellHtml(d.rule[0], d.k + "/" + d.n) + "</tr>"; }).join("");
-  document.getElementById("kgrid").innerHTML = head + body;
-  const hes = M.map(m => [m.name, ((m.levels.drift.fails_by_type || {}).returned || {})["left blank, asked"] || 0,
-    D.drift.doses.reduce((s, x) => s + ((m.levels.drift.cells["returned-" + x] || {}).n || 0), 0)]).filter(x => x[1] > 0);
-  document.getElementById("hes-note").innerHTML = hes.length ? '<b>About "habit came back".</b> ' +
-    hes.map(([n, c, t]) => `${n} left the notes blank and asked in ${c} of ${t} tries`).join("; ") +
-    ". In those tries the agent read that REVIEW was back on recent invoices but would not apply it without being told, so the answer key counts a miss." : "";
+const pick = m => lev === "main" ? m.main : m.levels[lev][5];
+function rows() {
+  document.getElementById("score-head").textContent = mode === "pass" ? "Whole job right" : "Invoices right";
+  const list = D.models.map(m => ({m, s: pick(m)})).sort((a, b) => (mode === "pass" ? b.s.pass - a.s.pass : b.s.mean - a.s.mean) || b.s.mean - a.s.mean);
+  let html = list.map(({m, s}) => {
+    const v = mode === "pass" ? s.pass : s.mean, lo = mode === "pass" ? s.pass_lo : s.mean_lo, hi = mode === "pass" ? s.pass_hi : s.mean_hi;
+    const tipx = `${m.name}|Whole job right: ${s.k}/${s.n} tries (${P1(s.pass)}, 95%: ${P(s.pass_lo)}-${P(s.pass_hi)})|Invoices right: ${P1(s.mean)}|4 habits ${P(m.levels.L1[5].pass)} · 8 habits ${P(m.levels.L2[5].pass)} · 8 + old doc ${P(m.levels.L3[5].pass)}`;
+    return `<div class="leader-row" tabindex="0" data-tip="${tipx}"><div class="leader-top">
+      <span class="model-name">${ICON(m.lab)}${m.name}<span class="model-tag">${m.lab === "anthropic" ? "Anthropic" : "OpenAI"} · effort high</span></span>
+      <span class="model-score mono">${P1(v)}<small>${P(lo)}-${P(hi)}</small></span>
+      <span class="model-metric mono">${P1(s.mean)}<small>${s.k}/${s.n}</small></span></div>
+      <div class="leader-bar"><div class="leader-fill" style="width:${Math.max(v * 100, .6)}%;background:linear-gradient(90deg,var(--${m.lab}-a),var(--${m.lab}-b))"></div></div></div>`;
+  }).join("");
+  html += `<div class="base-divider">Brainless scripts, same checker</div>` + D.baseline_summary.map(b => {
+    const v = mode === "pass" ? (lev === "main" ? b.pass : b.by[lev]) : b.mean;
+    return `<div class="leader-row baseline"><div class="leader-top"><span class="model-name">${b.name}</span><span class="model-score mono">${P1(v)}</span><span class="model-metric mono">${P1(b.mean)}</span></div>
+      <div class="leader-bar"><div class="leader-fill" style="width:${Math.max(v * 100, .6)}%;background:var(--base)"></div></div></div>`;
+  }).join("");
+  document.getElementById("rows").innerHTML = html;
+  document.getElementById("foot-n").textContent = `${D.models[0] ? pick(D.models[0]).n : 0} tries / model · 5 examples per habit`;
+  bindTips(document.getElementById("rows"));
 }
-
-function hbgrid() {
-  const M = DRIFT().filter(m => m.levels.drift.hb && m.levels.drift.hb.yes);
-  if (!M.length) return;
-  const head = "<tr><th></th><th class='c'>Without the handbook<small>2 and 3 examples</small></th>" +
-    "<th class='c'>With the stale handbook<small>2 and 3 examples</small></th><th class='c'>Followed the handbook<small>tries</small></th></tr>";
-  document.getElementById("hbgrid").innerHTML = head + M.map(m => { const h = m.levels.drift.hb;
-    return "<tr>" + nameCell(m) + cellHtml(h.no[0], "±" + ((h.no[2] - h.no[1]) * 50).toFixed(0) + "%") +
-      cellHtml(h.yes[0], "±" + ((h.yes[2] - h.yes[1]) * 50).toFixed(0) + "%") +
-      `<td><div class="cell mono" style="background:var(--cell-0);color:var(--cell-ink)">${h.followed} of ${h.n}</div></td></tr>`; }).join("");
-}
-
-function vgrid() {
-  const M = Object.values(D.models).filter(m => m.levels.vendor && m.levels.drift)
-    .sort((a, b) => b.levels.drift.rule[0] - a.levels.drift.rule[0]);
-  if (!M.length) return;
-  const head = "<tr><th></th><th class='c'>Shared agent<small>mean score</small></th><th class='c'>Own agent<small>mean score</small></th>" +
-    "<th class='c'>Shared agent<small>pass@1</small></th><th class='c'>Own agent<small>pass@1</small></th></tr>";
-  document.getElementById("vgrid").innerHTML = head + M.map(m => { const s = m.levels.drift, v = m.levels.vendor;
-    return "<tr>" + nameCell(m) + cellHtml(s.rule[0], s.agent || "shared") + cellHtml(v.rule[0], v.agent) +
-      cellHtml(s.pass[0], `${s.k}/${s.n}`) + cellHtml(v.pass[0], `${v.k}/${v.n}`) + "</tr>"; }).join("");
-}
-
-function ptable() {
-  const order = Object.values(D.models).sort((a, b) =>
-    ((b.levels.drift || b.levels.ladder || {rule: [-1]}).rule[0]) - ((a.levels.drift || a.levels.ladder || {rule: [-1]}).rule[0]));
-  const cols = D.levels.map(([k, l]) => [k, l]);
-  const head = "<tr><th>Model</th><th>Agent</th>" + cols.map(([, l]) => `<th>${l}</th>`).join("") + "</tr>";
-  document.getElementById("ptable").innerHTML = head + order.map(m => `<tr><td>${m.name}</td><td>${m.agent} / shared</td>` +
-    cols.map(([k]) => { const d = m.levels[k]; return `<td class="mono">${d ? fmt(d.rule[0]) + " · " + d.k + "/" + d.n : "–"}</td>`; }).join("") +
-    "</tr>").join("");
-}
-
-function takeaways() {
-  const M = Object.values(D.models);
-  const items = [];
-  const Dm = DRIFT();
-  if (Dm.length) {
-    const top = Dm[0], bot = Dm[Dm.length - 1];
-    const zero = Dm.filter(m => m.levels.drift.rule[0] === 0).map(m => m.name);
-    items.push([`${top.name} leads at ${fmt(top.levels.drift.rule[0])}; ${bot.name} trails at ${fmt(bot.levels.drift.rule[0])}`,
-      (zero.length ? `${zero.join(", ")} score${zero.length > 1 ? "" : "s"} zero overall. ` : "Every model scores above zero. ") +
-      "Same agent, same instructions, same tool for every model: the gap is the model."]);
-    const lo = D.drift.doses[0], hiD = D.drift.doses[D.drift.doses.length - 1];
-    const d1 = Dm.reduce((s, m) => s + m.levels.drift.dose[lo][0], 0) / Dm.length;
-    const d7 = Dm.reduce((s, m) => s + m.levels.drift.dose[hiD][0], 0) / Dm.length;
-    const H = Dm.filter(m => m.levels.drift.hb && m.levels.drift.hb.yes);
-    if (H.length) {
-      const no = H.reduce((s, m) => s + m.levels.drift.hb.no[0], 0) / H.length, yes = H.reduce((s, m) => s + m.levels.drift.hb.yes[0], 0) / H.length;
-      const fol = H.reduce((s, m) => s + m.levels.drift.hb.followed, 0), tot = H.reduce((s, m) => s + m.levels.drift.hb.n, 0);
-      items.push(["A stale handbook makes every model worse",
-        `With 2 or 3 examples of the new habits, the average score is ${fmt(no)} without the old AP policy in the shared drive and ${fmt(yes)} with it. ` +
-        `In ${fol} of ${tot} tries with the handbook, the agent followed the written policy over what the team actually does.`]);
-    }
-    items.push(["Models need repeated evidence before they notice a change",
-      `Without the handbook, the average score is ${fmt(d1)} when the tracker shows ${lo} invoice${lo > 1 ? "s" : ""} per new habit and ${fmt(d7)} with ${hiD}.`]);
-    const kinds = D.drift.types.map(([k, l]) => [l, Dm.reduce((s, m) => s + (m.levels.drift.kind[k] || 0), 0) / Dm.length]).sort((a, b) => a[1] - b[1]);
-    items.push([`Hardest habit: ${kinds[0][0].toLowerCase()}`,
-      `Share of each habit's invoices right, averaged over models (no handbook): ${kinds.map(([l, v]) => `${l.toLowerCase()} ${fmt(v)}`).join(", ")}.`]);
-    document.getElementById("tk").innerHTML = items.map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("");
-    return;   // earlier (vendor-agent) takeaways only show when there are no drift results
-  }
-  const L = M.filter(m => m.levels.ladder).sort((a, b) => b.levels.ladder.rule[0] - a.levels.ladder.rule[0]);
-  if (L.length) {
-    const zero = L.filter(m => m.levels.ladder.rule[0] === 0).map(m => m.name);
-    items.push([`${L[0].name} leads the ladder at ${fmt(L[0].levels.ladder.rule[0])}; ${L[L.length - 1].name} trails at ${fmt(L[L.length - 1].levels.ladder.rule[0])}`,
-      (zero.length ? `${zero.join(", ")} score${zero.length > 1 ? "" : "s"} zero overall. ` : "Every model scores above zero overall. ") +
-      "The spread comes from the hard tasks: the easy ones are solved by everyone."]);
-    const part = (m, w) => { const ts = D.ladder.filter(x => x[2] === w).map(x => m.levels.ladder.tasks[x[0]]).filter(Boolean);
-      return ts.reduce((s, x) => s + x.score, 0) / ts.length; };
-    const sheet = L.reduce((s, m) => s + part(m, "tracker"), 0) / L.length;
-    const mail = L.reduce((s, m) => s + part(m, "email"), 0) / L.length;
-    const lookers = L.filter(m => part(m, "email") > .5).map(m => m.name);
-    items.push(["If the habit isn't in the file they edit, most agents never find it",
-      `Across models, the average score is ${fmt(sheet)} when the habit shows in the spreadsheet and ${fmt(mail)} when it only shows in email. ` +
-      (lookers.length ? `Only ${lookers.join(" and ")} score above 50% on the email tasks.` : "No model scores above 50% on the email tasks.")]);
-  }
-  const N = M.filter(m => m.levels.nudged);
-  if (N.length) {
-    const old = N.reduce((s, m) => s + (m.levels.nudged.fails["used the old $5k rule"] || 0), 0);
-    const miss = N.reduce((s, m) => s + (m.levels.nudged.n - m.levels.nudged.k), 0);
-    items.push(["Finding the habit is not the same as getting it right",
-      `Told to handle invoices "the way the team usually does", every model finds the approval habit. Of ${miss} failed attempts, ` +
-      `${old} applied the old $5,000 cutoff: they learned the habit but missed that it changed.`]);
-  }
-  const told = M.filter(m => m.levels.told);
-  if (told.length) {
-    const att = told.reduce((s, m) => s + m.levels.told.n, 0), passed = told.reduce((s, m) => s + m.levels.told.k, 0);
-    items.push(["Told the rule, every model follows it",
-      `${passed} of ${att} attempts pass when the rule is in the instruction. The gap between that and the ladder is the cost of rules nobody wrote down.`]);
-  }
-  document.getElementById("tk").innerHTML = items.map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("");
-}
-
-const tip = document.querySelector(".tip");
-function bindTips() {
-  document.querySelectorAll(".lrow").forEach(row => {
-    const show = (x, y) => {
-      const [title, ...lines] = row.dataset.tip.split("|");
-      tip.innerHTML = "<b>" + title + "</b>" + lines.join("<br>");
-      tip.hidden = false;
-      tip.style.left = Math.min(x + 14, innerWidth - tip.offsetWidth - 8) + "px";
-      tip.style.top = (y + 14) + "px";
-    };
-    row.onmousemove = e => show(e.clientX, e.clientY);
-    row.onmouseleave = () => tip.hidden = true;
-    row.onfocus = () => { const r = row.getBoundingClientRect(); show(r.left + 30, r.bottom); };
-    row.onblur = () => tip.hidden = true;
+document.getElementById("axis").innerHTML = [0,20,40,60,80,100].map(v => `<span style="left:${v}%">${v}%</span>`).join("");
+function curve() {
+  const svg = document.getElementById("curve"), W = 960, H = 360, L = 60, R = 160, T = 16, B = 40;
+  const xs = ["L1", "L2", "L3"], X = i => L + i * (W - L - R) / 2, Y = v => T + (1 - v) * (H - T - B);
+  let s = [0, .25, .5, .75, 1].map(v => `<line class="grid" x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}"/><text x="${L - 10}" y="${Y(v) + 4}" text-anchor="end">${v * 100}%</text>`).join("");
+  s += xs.map((k, i) => `<text x="${X(i)}" y="${H - 14}" text-anchor="middle">${LV[k]}</text>`).join("");
+  const ends = [];
+  D.models.forEach((m, i) => {
+    const pts = xs.map((k, j) => [X(j), Y(m.levels[k][dose].pass)]);
+    s += `<polyline fill="none" stroke="var(${COLORS[i]})" stroke-width="2" stroke-linejoin="round" points="${pts.map(p => p.join(",")).join(" ")}"/>`;
+    s += pts.map((p, j) => { const c = m.levels[xs[j]][dose]; return `<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="var(${COLORS[i]})" stroke="var(--card)" stroke-width="2" data-tip="${m.name}|${LV[xs[j]]}, ${dose} examples: ${c.k}/${c.n} whole job right"/>`; }).join("");
+    ends.push([pts[2][1], m.name]);
   });
+  ends.sort((a, b) => a[0] - b[0]);
+  let last = -99;
+  ends.forEach(([y, name]) => { const yy = Math.max(y, last + 15); last = yy; s += `<text class="lbl" x="${W - R + 12}" y="${yy + 4}">${name}</text>`; });
+  svg.innerHTML = s;
+  document.getElementById("legend").innerHTML = D.models.map((m, i) => `<span><i style="background:var(${COLORS[i]})"></i>${m.name}</span>`).join("");
+  bindTips(svg);
 }
-document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
-  document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
-  ["t-dose", "t-kind", "t-hb", "t-vendor", "t-ladder", "t-levels", "t-table"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab);
-});
-levelSel.onchange = rows; metricSel.onchange = rows;
-rows(); doseChart(); kgrid(); hbgrid(); vgrid(); lgrid(); grid(); ptable(); takeaways();
+function pill(v, tipx) { const c = v >= .67 ? "score-high" : v >= .34 ? "score-mid" : "score-low"; return `<span class="score-pill ${c} mono" ${tipx ? `data-tip="${tipx}"` : ""}>${P(v)}</span>`; }
+function tables() {
+  const H = D.models.map(m => `<th class="score">${m.name}</th>`).join("");
+  const habitRow = (label, small, k) => `<tr><td>${label}<small>${small}</small></td>${D.models.map(m => `<td class="score">${m.habits[k] !== undefined ? pill(m.habits[k], `${m.name}|${label}: ${P1(m.habits[k])} of these invoices right`) : "-"}</td>`).join("")}</tr>`;
+  document.getElementById("breaks").innerHTML = `<thead><tr><th>What the habit looks like (8-habit level, invoices right)</th>${H}</tr></thead><tbody>
+    ${habitRow("Stable, routine", "small invoices, nothing special: no note, usual cost center", "routine")}
+    ${habitRow("Stable, two conditions", "PO matched on unreviewed Infra; Selbourne coded by size; re-sent invoices marked duplicate", "two")}
+    ${habitRow("Depends on the team", "who reviews depends on the supplier's team; Security kept the old cutoff", "team")}
+    ${habitRow("Changed this autumn", "cutoff moved, contract supplier, reclassified cost center, card payments", "changed")}
+    <tr><td>Contradicted by an old doc<small>8 habits + last year's policy, whole job right</small></td>${D.models.map(m => `<td class="score">${pill(m.levels.L3[5].pass, `${m.name}|${m.levels.L3[5].k}/${m.levels.L3[5].n} whole job right`)}</td>`).join("")}</tr>
+    <tr><td>Told in plain words<small>control: all 8 habits stated in the instruction, whole job right</small></td>${D.models.map(m => `<td class="score">${pill(m.told.pass, `${m.name}|told: ${m.told.k}/${m.told.n} whole job right`)}</td>`).join("")}</tr>
+  </tbody>`;
+  const vers = [["L1", 3], ["L1", 5], ["L2", 3], ["L2", 5], ["L3", 3], ["L3", 5]];
+  document.getElementById("versions").innerHTML = `<thead><tr><th>Version</th>${H}</tr></thead><tbody>${vers.map(([k, d]) =>
+    `<tr><td>${LV[k]}<small>${d} examples per habit</small></td>${D.models.map(m => `<td class="score">${pill(m.levels[k][d].pass, `${m.name}|${m.levels[k][d].k}/${m.levels[k][d].n} whole job right, ${P1(m.levels[k][d].mean)} invoices right`)}</td>`).join("")}</tr>`).join("")}
+    <tr><td>Told control<small>8 habits + old doc, all habits stated, 3 examples</small></td>${D.models.map(m => `<td class="score">${pill(m.told.pass)}</td>`).join("")}</tr>
+    <tr><td>4 habits + dated old doc<small>side version, 2/3/5 examples pooled</small></td>${D.models.map(m => `<td class="score">${pill(m.l1_doc.pass)}</td>`).join("")}</tr></tbody>`;
+  document.getElementById("base").innerHTML = `<thead><tr><th>Brainless script (no AI), 5 examples</th><th class="score">4 habits</th><th class="score">8 habits</th><th class="score">8 + old doc</th><th class="score">Invoices right</th></tr></thead><tbody>${D.baseline_summary.map(b =>
+    `<tr><td>${b.name}</td><td class="score mono">${P(b.by.L1)}</td><td class="score mono">${P(b.by.L2)}</td><td class="score mono">${P(b.by.L3)}</td><td class="score mono">${P1(b.mean)}</td></tr>`).join("")}</tbody>`;
+  document.getElementById("vendor").innerHTML = `<thead><tr><th>Model</th><th class="score">Shared plain agent</th><th class="score">Own agent</th></tr></thead><tbody>${D.vendor.map(v =>
+    `<tr><td>${v.name}<small>own agent: ${v.agent}</small></td><td class="score mono">${P1(v.shared.pass)}</td><td class="score mono">${P1(v.own.pass)}</td></tr>`).join("")}</tbody>`;
+  bindTips(document.getElementById("results"));
+}
+function insights() {
+  const m = D.models, avg = a => a.reduce((s, x) => s + x, 0) / a.length;
+  const l1 = avg(m.map(x => x.levels.L1[5].pass)), l2 = avg(m.map(x => x.levels.L2[5].pass)), l3 = avg(m.map(x => x.levels.L3[5].pass));
+  const best2 = [...m].sort((a, b) => b.levels.L2[5].pass - a.levels.L2[5].pass)[0];
+  const told = m.reduce((s, x) => s + x.told.k, 0), toldn = m.reduce((s, x) => s + x.told.n, 0);
+  const rt = avg(m.map(x => x.habits.routine || 0)), ch = avg(m.map(x => x.habits.changed || 0)), tw = avg(m.map(x => x.habits.two || 0));
+  const items = [
+    ["Many habits plus thin evidence breaks even the best agents.", `With 8 habits shown 3 times each, the average whole-job pass rate is ${P(avg(m.map(x => x.levels.L2[3].pass)))}; with 5 times each, ${P(avg(m.map(x => x.levels.L2[5].pass)))}. With 4 habits it is ${P(avg(m.map(x => x.levels.L1[3].pass)))} at 3 examples.`],
+    ["Smaller models fail even with plenty of evidence.", `Opus and Sonnet rarely get a morning right at any level, yet both pass every try when the habits are told. The gap between the top three and the rest is about reading the history, not doing the job.`],
+    ["Routine is easy; changed and two-condition habits are not.", `On the 8-habit level, agents get ${P(rt)} of routine invoices right, ${P(tw)} of two-condition ones and ${P(ch)} of the habits that changed this autumn.`],
+    ["A clearly dated old policy does not fool the top models.", `Adding last year's AP policy (8 + old doc) barely changes the top models' scores; Opus and Sonnet stay low either way.`],
+    ["It is the hidden habits, not the job.", `Told the 8 habits in the instruction, agents get ${told} of ${toldn} tries fully right.`],
+  ];
+  document.getElementById("insights").innerHTML = items.map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("");
+}
+function examples() {
+  document.getElementById("trajectory-list").innerHTML = D.examples.map(e => `<article class="trajectory">
+    <div><div class="eyebrow">${e.label}</div><h3>${e.model}</h3><code>${e.version}</code></div>
+    <div>${e.quote ? `<blockquote>"${e.quote}"</blockquote>` : ""}<p><b>What we saw.</b> ${e.observed}</p><p><b>Why it matters.</b> ${e.why}</p><code>${e.run}</code></div></article>`).join("");
+}
+function fair() {
+  const m = D.models, told = m.reduce((s, x) => s + x.told.k, 0), toldn = m.reduce((s, x) => s + x.told.n, 0);
+  const dumb = D.baseline_summary.filter(b => !/same size/.test(b.name)), copy = D.baseline_summary.find(b => /same size/.test(b.name));
+  const items = [
+    ["Same agent for every model", "One plain loop, same instructions, one shell tool, same limits, effort high, no fallback model."],
+    ["Told control", `With all 8 habits stated in the instruction: ${told}/${toldn} tries fully right. The box, tools and grader work; what is hard is finding the habits.`],
+    ["Enough evidence", "Every habit is shown by at least 3 (or 5) recent examples in the tracker. Nothing hinges on a single row."],
+    ["Grader tests", "Every version is graded against the obvious wrong answers before any model runs; the right answer scores 1, an empty tracker 0; notes are read by meaning, not exact wording."],
+    ["Leak check", "Nothing in the sandbox holds the answer: no tests, no key, no solution; the habits only show as tracker rows."],
+    ["Brainless baselines", `Scripts get ${P(Math.max(...dumb.map(b => b.pass)))} fully right. Copying the latest invoice of the same supplier and size gets ${copy ? P(copy.by.L1) : "n/a"} on 4 habits but ${copy ? P(copy.by.L2) : "n/a"} on 8: the 8-habit level needs more than lookup.`],
+  ];
+  document.getElementById("fairbox").innerHTML = items.map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join("");
+}
+document.querySelectorAll("#score-toggle button").forEach(b => b.onclick = () => { mode = b.dataset.mode; document.querySelectorAll("#score-toggle button").forEach(x => x.setAttribute("aria-pressed", x === b)); rows(); });
+document.querySelectorAll("#doc-toggle button").forEach(b => b.onclick = () => { lev = b.dataset.doc; document.querySelectorAll("#doc-toggle button").forEach(x => x.setAttribute("aria-pressed", x === b)); rows(); });
+document.querySelectorAll("#curve-toggle button").forEach(b => b.onclick = () => { dose = +b.dataset.c; document.querySelectorAll("#curve-toggle button").forEach(x => x.setAttribute("aria-pressed", x === b)); curve(); });
+document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
+  ["t-breaks","t-versions","t-base","t-vendor"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab); });
+rows(); curve(); tables(); insights(); examples(); fair();
 </script>
 </body>
 </html>

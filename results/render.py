@@ -174,17 +174,22 @@ def page(d: dict) -> str:
     small = [m for m in ms if m["id"] in ("claude-sonnet-5-5", "claude-opus-5-5")]
     copy = next((b for b in d["baseline_summary"] if "same size" in b["name"]), None)
     dumb = max((b["pass"] for b in d["baseline_summary"] if "same size" not in b["name"]), default=0)
-    hard = (f"Yes, once the work looks like a real team's. With 4 habits the best agents get the whole job right most of the time; "
-            f"with 8 habits at once the best ({l2[0]['name']}) manages {pct(l2[0]['levels']['L2'][5]['pass'])}, "
-            f"and with last year's policy doc added, {pct(l3[0]['levels']['L3'][5]['pass'])}. "
-            + ", ".join(f"{m['name'].split(' ', 1)[1]} {pct(m['levels']['L2'][5]['pass'])}" for m in small) + " on 8 habits.")
-    fair = (f"Yes. Every habit is shown by 5 recent examples in the history. Told the 8 habits in plain words, agents get "
+    top3 = ms[:3]
+    k3 = sum(m["levels"]["L2"][3]["k"] for m in top3), sum(m["levels"]["L2"][3]["n"] for m in top3)
+    k5 = sum(m["levels"]["L2"][5]["k"] for m in top3), sum(m["levels"]["L2"][5]["n"] for m in top3)
+    sm = sum(m["main"]["k"] for m in small), sum(m["main"]["n"] for m in small)
+    hard = (f"It depends on how much evidence the team left. With 8 habits each shown by 3 recent invoices, the top three "
+            f"agents get the whole morning right in {k3[0]} of {k3[1]} tries; with 5 invoices per habit, {k5[0]} of {k5[1]}. "
+            f"Opus and Sonnet get {sm[0]} of {sm[1]} even with 5 examples, yet {sum(m['told']['k'] for m in small)} of "
+            f"{sum(m['told']['n'] for m in small)} when told the habits.")
+    fair = (f"Yes. Every habit is shown by 3 or 5 recent examples in the history. Told the 8 habits in plain words, agents get "
             f"{told_k} of {told_n} tries fully right. Same plain agent for every model. Brainless scripts get {pct(dumb)} fully right; "
             f"a 'copy the latest invoice from the same supplier and size' lookup gets {pct(copy['pass']) if copy else 'n/a'}.")
     blob = json.dumps({**d, "icons": ICON})
     return (TEMPLATE.replace("__DATA__", blob)
             .replace("__HARD__", escape(hard)).replace("__FAIR__", escape(fair))
             .replace("__N_MODELS__", str(len(ms))).replace("__N_TRIES__", str(d["n_tries"]))
+            .replace("__L2K3__", pct(k3[0] / max(1, k3[1])))
             .replace("__BEST__", pct(best["main"]["pass"])).replace("__L2_BEST__", pct(l2[0]["levels"]["L2"][5]["pass"]))
             .replace("__DOC_BEST__", pct(l3[0]["levels"]["L3"][5]["pass"]))
             .replace("__BEST_NAME__", escape(best["name"])))
@@ -367,8 +372,8 @@ footer { border-top:1px solid var(--line); color:var(--text-muted); font-size:12
   <section class="stats">
     <div class="stat"><div class="value">__N_MODELS__</div><div class="key">frontier models</div></div>
     <div class="stat"><div class="value">8</div><div class="key">habits, nobody wrote down</div></div>
-    <div class="stat"><div class="value">__BEST__</div><div class="key">best whole-job pass rate</div></div>
-    <div class="stat"><div class="value">__L2_BEST__</div><div class="key">best, with all 8 habits at once</div></div>
+    <div class="stat"><div class="value">__BEST__</div><div class="key">best whole-job pass rate, 5 examples</div></div>
+    <div class="stat"><div class="value">__L2K3__</div><div class="key">top-3 pass rate, 8 habits, 3 examples each</div></div>
   </section>
 
   <section class="answers">
@@ -413,7 +418,7 @@ footer { border-top:1px solid var(--line); color:var(--text-muted); font-size:12
 
   <section class="takeaway-layout" id="takeaways">
     <div><h2>Research insights</h2><ol class="takeaways" id="insights"></ol></div>
-    <div class="quote"><strong>__L2_BEST__</strong><p>Best whole-job pass rate when the team runs on 8 unwritten habits at once, each shown by 5 recent examples. With 4 habits, the same agents are near perfect.</p><div class="who">Same company, same agent, more habits</div></div>
+    <div class="quote"><strong>__L2K3__</strong><p>Whole-job pass rate of the three best agents when the team runs on 8 unwritten habits, each shown by 3 recent invoices. A careful new hire has what they need; the agents mostly don't put it together.</p><div class="who">Same company, same agent, told control at 100%</div></div>
   </section>
 
   <section class="section" id="results">
@@ -449,7 +454,7 @@ footer { border-top:1px solid var(--line); color:var(--text-muted); font-size:12
     <p><b>Levels.</b> Level 1: the 4 habits above. Level 2: 8 habits at once, adding four conventions that only show in the tracker: unreviewed Infra invoices are noted "PO matched"; Selbourne invoices over $5,000 are coded Recruiting; since October 19, small Kellerby and Pellham invoices are noted "card"; a re-sent invoice (same number and amount) is logged "DUPLICATE - do not pay". Level 3: level 2 plus last year's AP policy in the drive, dated January 2026. Each habit is shown by 3 or 5 recent examples. A told control states all 8 habits in the instruction. Fifteen new invoices per task.</p>
     <p><b>Grading.</b> Deterministic: each invoice must be logged once, with the right note (no flag, or REVIEW naming the right reviewer; wording is free, and notes like "no review needed" count as no flag) and the right cost center. Past rows must stay untouched. <b>Whole job right</b> = all 15 invoices right in a try (headline). <b>Invoices right</b> = share of the 15. Intervals: 95% Wilson for whole-job, bootstrap for invoices.</p>
     <p><b>Agent.</b> One plain loop for every model: same instructions, one tool that runs a shell command, reasoning effort high, 80 steps, no fallback model. Five tries per version per model, each in a fresh sandbox on Valkyrie and Modal.</p>
-    <div class="method-callout"><b>Limits.</b> The finance history is synthetic and lives in one company and one kind of job. Five tries per version gives wide intervals: neighbours in the ranking are often statistically tied. Earlier rounds were adjusted with rules fixed before seeing results, and every round is kept in the repo's archive. On 4 habits a simple precedent lookup (latest invoice of the same supplier and size) solves almost everything; on 8 habits it no longer does. A side version with 4 habits and the dated policy doc showed that a clearly dated doc no longer fools the top models.</div>
+    <div class="method-callout"><b>Limits.</b> The finance history is synthetic and lives in one company and one kind of job. Five tries per version gives wide intervals: neighbours in the ranking are often statistically tied. Earlier rounds were adjusted with rules fixed before seeing results, and every round is kept in the repo's archive. On 4 habits a simple precedent lookup (latest invoice of the same supplier and size) solves almost everything; on 8 habits it no longer does. A side version with 4 habits and the dated policy doc showed that a clearly dated doc no longer fools the top models. The "PO matched" note reads like a claim that a check was done: Opus and Sonnet often refuse to write it because they cannot verify a purchase order, a defensible choice that the grader counts as a miss (both write it when told).</div>
   </section>
 </div>
 <footer><div class="wrap">PrecedentBench · Vals Hacks 2026 · Yaya &amp; Vivi team</div></footer>
@@ -543,9 +548,10 @@ function insights() {
   const told = m.reduce((s, x) => s + x.told.k, 0), toldn = m.reduce((s, x) => s + x.told.n, 0);
   const rt = avg(m.map(x => x.habits.routine || 0)), ch = avg(m.map(x => x.habits.changed || 0)), tw = avg(m.map(x => x.habits.two || 0));
   const items = [
-    ["More habits, fewer clean mornings.", `Average whole-job pass rate across models: ${P(l1)} with 4 habits, ${P(l2)} with 8, ${P(l3)} with 8 plus last year's policy doc. Same company, same evidence per habit.`],
+    ["Many habits plus thin evidence breaks even the best agents.", `With 8 habits shown 3 times each, the average whole-job pass rate is ${P(avg(m.map(x => x.levels.L2[3].pass)))}; with 5 times each, ${P(avg(m.map(x => x.levels.L2[5].pass)))}. With 4 habits it is ${P(avg(m.map(x => x.levels.L1[3].pass)))} at 3 examples.`],
+    ["Smaller models fail even with plenty of evidence.", `Opus and Sonnet rarely get a morning right at any level, yet both pass every try when the habits are told. The gap between the top three and the rest is about reading the history, not doing the job.`],
     ["Routine is easy; changed and two-condition habits are not.", `On the 8-habit level, agents get ${P(rt)} of routine invoices right, ${P(tw)} of two-condition ones and ${P(ch)} of the habits that changed this autumn.`],
-    ["Even the best agent rarely does the whole morning.", `With 8 habits, ${best2.name} gets all 15 invoices right in ${P(best2.levels.L2[5].pass)} of tries.`],
+    ["A clearly dated old policy does not fool the top models.", `Adding last year's AP policy (8 + old doc) barely changes the top models' scores; Opus and Sonnet stay low either way.`],
     ["It is the hidden habits, not the job.", `Told the 8 habits in the instruction, agents get ${told} of ${toldn} tries fully right.`],
   ];
   document.getElementById("insights").innerHTML = items.map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("");

@@ -1,0 +1,56 @@
+[
+  {
+    "label": "Gets it right",
+    "model": "Claude Fable 5.2",
+    "version": "8 habits, 5 examples each",
+    "quote": "Every Halverson invoice since the MSA was countersigned on 2 Nov has been logged that way, even above $10k.",
+    "observed": "Logged all 15 invoices correctly. It spotted the re-sent Vantor invoice, split Selbourne between Recruiting and People by size, noted card payments and read the contract exemption from the rows after November 2.",
+    "why": "With enough recent examples, a strong agent can rebuild eight unwritten habits from a tracker alone. The habits are learnable.",
+    "run": "valkyrie run 4d0d826e-e060-4dbd-b54d-63c2253b3303 · morningL2-k5-nohandbook-r5"
+  },
+  {
+    "label": "Thin evidence",
+    "model": "Claude Fable 5.2",
+    "version": "8 habits, 3 examples each",
+    "quote": "",
+    "observed": "Got 13 of 15 right, but flagged the $6,924 Marrow & Finch and $7,640 Selbourne invoices for review: with only three rows showing the new $10,000 cutoff, it kept the older $5,000 habit for them.",
+    "why": "The same agent that is perfect at five examples misses a changed cutoff at three. Eight habits at once plus thin evidence is where the top models break.",
+    "run": "valkyrie run 4d0d826e-e060-4dbd-b54d-63c2253b3303 · morningL2-k3-nohandbook-r5"
+  },
+  {
+    "label": "Misses a newer habit",
+    "model": "GPT-6 Astra",
+    "version": "8 habits, 3 examples each",
+    "quote": "VUM-2026-0497 marked DUPLICATE - do not pay",
+    "observed": "Caught the duplicate and the reviewers, but left the Kellerby and Pellham invoices blank instead of noting \"card\", a habit that only started on October 19.",
+    "why": "The most recent change, with the fewest rows behind it, is the one that slips. GPT-6.1 Sol made the same miss with the old policy doc in the drive.",
+    "run": "valkyrie run adbb1b8c-1b0b-4966-b430-f31515e131d5 · morningL2-k3-nohandbook-r5"
+  },
+  {
+    "label": "Caution over precedent",
+    "model": "Claude Opus 5.5",
+    "version": "8 habits, 5 examples each",
+    "quote": "I didn't mark anything \"PO matched\". I couldn't check purchase orders, so the Infra invoices have no PO note.",
+    "observed": "Read most habits correctly (reviewers, Recruiting split, duplicate, reclassified cost center) but refused to write the team's \"PO matched\" note because it could not verify a purchase order itself, and skipped the card notes.",
+    "why": "This is a fair reading of an ambiguous note, and it is also why smaller models score low: they treat the team's conventions as claims to verify rather than habits to follow. Told the habit, Opus writes it every time.",
+    "run": "valkyrie run de093376-839d-4b50-bd9c-74af6b064d20 · morningL2-k5-nohandbook-r5"
+  },
+  {
+    "label": "Half follows the old doc",
+    "model": "Claude Sonnet 5.5",
+    "version": "8 habits + old policy doc, 5 examples",
+    "quote": "Where the AP policy and the tracker disagree, I followed what the tracker does.",
+    "observed": "Said it would follow the tracker over the policy, did so for cost centers, then still flagged every invoice over $5,000 for review, the January rule, including Halverson and the two mid-size invoices.",
+    "why": "Stating the right principle and applying it everywhere are different things. Sonnet gets 0 of 15 tries fully right across levels at 5 examples, and 5 of 5 when told.",
+    "run": "valkyrie run 7be340d5-7b63-4d12-9b9d-0755ba59d571 · morningL2-k5-handbook-r5"
+  },
+  {
+    "label": "Not fooled by the old doc",
+    "model": "Claude Fable 5.2",
+    "version": "8 habits + old policy doc, 5 examples",
+    "quote": "",
+    "observed": "Logged all 15 invoices correctly with last year's AP policy in the drive, following the current quarter's rows wherever the policy was out of date.",
+    "why": "A clearly dated policy is not a trap for the top models. The hard part is the number of habits and how many examples back each one.",
+    "run": "valkyrie run 4d0d826e-e060-4dbd-b54d-63c2253b3303 · morningL2-k5-handbook-r5"
+  }
+]
