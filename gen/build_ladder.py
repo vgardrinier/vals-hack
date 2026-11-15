@@ -76,6 +76,7 @@ class Task:
     alt: Rule          # what a model that misses the twist would do
     msa: bool = False  # include the Halverson contract email as context
     desc: str = ""
+    dose: Optional[int] = None  # keep only this many 5k-10k rows after the change (the evidence it changed)
 
 
 TASKS = [
@@ -177,6 +178,12 @@ print(f"reward={1 if all(results) else 0} ({sum(results)}/{len(results)} checks)
 
 def build_history(rng: random.Random, task: Task) -> tuple[list[dict], list[dict]]:
     events, new = v3.build_history(rng)        # same 90 invoices and 5 new ones as v3
+    if task.dose is not None:
+        # evidence of the change = mid-size invoices after Oct 5 that did NOT get the old treatment.
+        # keep the most recent `dose` of them; shrink the rest to small amounts so they prove nothing
+        mid_after = [e for e in events if e["received"] >= v3.CHANGE_DATE and 5000 < e["amount"] <= 10000]
+        for e in mid_after[:max(0, len(mid_after) - task.dose)]:
+            e["amount"] = round(e["amount"] * 0.42, 2)
     for e in events:
         e["action"] = task.rule(e["vendor"], e["amount"], e["received"])
         e["forwarded"] = task.mode == "email" and e["action"] is not None
@@ -197,6 +204,9 @@ def self_check(task: Task, events: list[dict], new: list[dict]) -> None:
         f"{task.name}: the simpler habit gives the same answers, task tests nothing"
     assert any(i["expect"] for i in new) and any(not i["expect"] for i in new), \
         f"{task.name}: test must need both doing and not doing the habit"
+    if task.dose is not None:
+        mid = sum(bool(e["received"] >= v3.CHANGE_DATE and 5000 < e["amount"] <= 10000) for e in events)
+        assert mid == task.dose, f"{task.name}: wanted {task.dose} post-change examples, got {mid}"
     if task.name == "ladder-2-tracker-change":
         after = [e for e in events if e["received"] >= v3.CHANGE_DATE]
         assert sum(bool(5000 < e["amount"] <= 10000 and not e["action"]) for e in after) >= 5
@@ -263,7 +273,7 @@ def leak_check(task: Task, our_files: list[tuple[str, str]], tracker_text: str) 
 
 # --------------------------------------------------------------------------- build
 
-def build(redwood: Path, out: Path) -> None:
+def build(redwood: Path, out: Path, tasks: Optional[list[Task]] = None) -> None:
     rng0 = random.Random(SEED)
     noise = v3.sample_noise(redwood, rng0)
     upper_review = re.compile(r"\bREVIEW\b")
@@ -272,7 +282,7 @@ def build(redwood: Path, out: Path) -> None:
     for word in DEPUTY[0].split():
         assert word not in blob, f"name collision with Redwood docs: {word}"
 
-    for task in TASKS:
+    for task in tasks or TASKS:
         rng = random.Random(v3.SEED)          # same invoices as v3 for every task
         events, new = build_history(rng, task)
         self_check(task, events, new)

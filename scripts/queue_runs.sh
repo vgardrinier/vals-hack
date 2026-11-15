@@ -18,6 +18,12 @@ for spec in "$@"; do
   res=$(valkyrie run start --agent "$agent" --dataset "$DATASET" --task-ids "$TASKS" \
         --model "$model" --provider modal -s $secret --concurrency "${CONCURRENCY:-2}" 2>&1)
   id=$(echo "$res" | grep -oE "Run ID: +[a-f0-9-]+" | awk '{print $3}')
+  if [ -z "$id" ] && echo "$res" | grep -qE "nodename|Errno|timed out|outcome may be unknown"; then
+    echo "network blip on $model, retrying in 60s"; sleep 60
+    res=$(valkyrie run start --agent "$agent" --dataset "$DATASET" --task-ids "$TASKS" \
+          --model "$model" --provider modal -s $secret --concurrency "${CONCURRENCY:-2}" 2>&1)
+    id=$(echo "$res" | grep -oE "Run ID: +[a-f0-9-]+" | awk '{print $3}')
+  fi
   if [ -z "$id" ]; then echo "FAILED $model: $(echo "$res" | tail -2)"; continue; fi
   echo "${model#*/} $id" >> "$out"; echo "started $model $id"
   sleep 10  # let the new run show up as in progress before counting again
