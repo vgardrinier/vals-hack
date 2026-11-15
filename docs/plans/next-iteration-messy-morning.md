@@ -81,3 +81,30 @@ it goes: the generator, the tasks' build script, the results, the page.
 - how they failed, from reading the runs
 - anything that looked broken and what got fixed
 - `docs/STATUS.md` updated so Yacine can catch up
+
+## plan b: review the scores and adjust, with rules decided now
+
+after the pilot and after the full run, check the scores against these rules. the rules are fixed before
+we see any results, they apply to the whole benchmark (never to one model), and every round is kept and
+reported, including the ones we threw away. no cherry-picking.
+
+**too hard** (it's binary again) if any of these:
+- 3 or more of the 5 models have a mean score under 10%
+- some version scores 0 for every model
+- fix, in this order, one step per round: (1) read the zero runs and fix anything broken or ambiguous,
+  (2) raise examples from 1/2/3 to 2/3/5, (3) remove the human-mess lapses, (4) drop one of the 4 habits
+
+**too easy** if:
+- Fable's mean score is above 50%
+- fix, in this order, one step per round: (1) tighten the habit Fable finds easiest (fewer examples for
+  it, or make it partial), (2) add the human-mess lapses to every habit, (3) lower examples to 1/2
+
+**good enough, stop** when:
+- Fable and the top GPT are under 30% mean score, and
+- no model is under 5%, and
+- the curve still goes up with more examples
+
+limits: at most 2 adjustment rounds overnight. if the OpenAI credit runs out or something keeps
+breaking, stop and write down where things are instead of burning runs. each round gets pushed with
+its own results file (`results/morning_round1.json`, `round2`...) and a line in `docs/STATUS.md`
+saying what changed and why.
