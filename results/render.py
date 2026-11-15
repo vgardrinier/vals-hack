@@ -34,8 +34,8 @@ MODELS = {
     "gpt-6.1-sol": ("GPT-6.1 Sol", "OpenAI"),
 }
 AGENT = {"Anthropic": "Claude Code", "OpenAI": "Codex"}
-FABLE_QUOTE = ("There is no written approval policy in the company files, so I inferred the rule "
-               "from past practice in the tracker and mail archive.")
+FABLE_QUOTE = ("I can't tell whether the practice was deliberately dropped or just lapsed. I flagged the new "
+               "ones because a stray flag is easy to remove, while a missed review on a large invoice is not.")
 
 
 def rule_parts(a: dict) -> list[bool]:
@@ -177,14 +177,17 @@ def summarize_drift(data: dict, attempts: list[dict]) -> int:
             xs = [a["score"] for a in mine if a["type"] == t]
             if xs:
                 kind[t] = sum(xs) / len(xs)
-        fails = {}
+        fails, by_type = {}, {}
         for a in mine:
             if a["reward"] != 1:
-                fails[a.get("kind_of_miss", "other")] = fails.get(a.get("kind_of_miss", "other"), 0) + 1
+                kd = a.get("kind_of_miss", "other")
+                fails[kd] = fails.get(kd, 0) + 1
+                by_type.setdefault(a["type"], {})[kd] = by_type.setdefault(a["type"], {}).get(kd, 0) + 1
         entry = data.setdefault(model, {"name": name, "lab": lab, "agent": AGENT[lab], "levels": {}})
         entry["levels"]["drift"] = {
             "n": n, "k": k, "agent": SHARED, "cells": cells, "dose": dose, "kind": kind,
             "pass": [k / n, *wilson(k, n)], "rule": [sum(scores) / n, *bootstrap(scores)], "fails": fails,
+            "fails_by_type": by_type,
         }
     return tries
 
@@ -442,7 +445,7 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
     </div>
     <div class="quote">
       <q id="quote"></q>
-      <div class="who">__ANTHROPIC__ Fable 5.2, explaining how it handled the invoices</div>
+      <div class="who">__ANTHROPIC__ Fable 5.2, on a team that had quietly stopped marking REVIEW (counted as a miss)</div>
     </div>
   </section>
 
@@ -460,7 +463,13 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
       <p class="note">Score = share of the four test invoices (all but the tiny office bill) logged with the team's current
       note, averaged over the four kinds of change and five tries. Hover a point for details.</p></div>
     <div id="t-kind" hidden><table class="grid" id="kgrid"></table>
-      <p class="note">Each cell: score over the three versions (1, 3 and 7 examples) and five tries.</p></div>
+      <p class="note">Each cell: score over the three versions (1, 3 and 7 examples) and five tries.</p>
+      <p class="note"><b>About "habit stopped".</b> It is the hardest kind for Fable 5.2, and not because it misses the change. In all 15 of its tries it pointed out the recent large invoices without REVIEW. With 3 or 7 examples (10 tries) it said outright that the practice may have been dropped, for example "Since 2026-10-28, none of the invoices over $5,000 logged by Keiko, Tomasz and Mireille carry it", but added that it could not tell "whether the practice was deliberately dropped or just lapsed", kept REVIEW on the new invoices to be safe, and in 2 of those tries emailed finance about it. With 1 example it read the single unmarked invoice as an earlier slip. Our answer key counts all 15 as misses (no REVIEW is the only correct answer); a more lenient key would give those 10 cautious tries credit.</p>
+      <p class="note" id="hes-note"></p>
+      <p class="note"><b>About "approver changed".</b> Most of Sonnet 5.5's misses wrote "REVIEW - pending approver" or a
+      bare REVIEW instead of the new approver's initials. It seems to read the initials as a sign-off the approver adds
+      herself, which an agent shouldn't fill in. That is a fair reading of an ambiguous tag; the answer key still counts it
+      as a miss.</p></div>
     <div id="t-ladder" hidden><p class="note">Earlier experiment. Each model ran in its own vendor's agent (Claude Code or
       Codex), not the shared agent, so these numbers mix the model and the product around it.</p>
       <table class="grid" id="lgrid"></table></div>
@@ -481,6 +490,7 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
     habit disagree. Everything else in the company is identical across doses. All evidence is in the tracker the agent
     edits, so no score depends on whether an agent opens email. For "came back", a model that ignores dates also passes;
     that kind tests whether the pause makes a model drop the habit.</p>
+    <p><b>About "habit stopped".</b> It is the hardest kind for Fable 5.2, and not because it misses the change. In all 15 of its tries it pointed out the recent large invoices without REVIEW. With 3 or 7 examples (10 tries) it said outright that the practice may have been dropped, for example "Since 2026-10-28, none of the invoices over $5,000 logged by Keiko, Tomasz and Mireille carry it", but added that it could not tell "whether the practice was deliberately dropped or just lapsed", kept REVIEW on the new invoices to be safe, and in 2 of those tries emailed finance about it. With 1 example it read the single unmarked invoice as an earlier slip. Our answer key counts all 15 as misses (no REVIEW is the only correct answer); a more lenient key would give those 10 cautious tries credit.</p>
     <p><b>Score.</b> For each try, the share of the four non-trivial test invoices that are logged exactly once with
     the team's current note (the tiny office-supply bill is left out: every version of the habit agrees on it). The
     model score is the mean over 12 versions × 5 tries, with a 95% bootstrap interval over tries. Pass@1 is the share
@@ -568,7 +578,7 @@ function lgrid() {
     .sort((a, b) => b.levels.ladder.rule[0] - a.levels.ladder.rule[0]);
   const head = "<tr><th></th>" + D.ladder.map(([t, l, w], i) =>
     `<th class="c">${i + 1}. ${l}<small>${w === "tracker" ? "in the spreadsheet" : "only in email"}</small></th>`).join("") +
-    "<th class='c'>Overall</th></tr>";
+    "<th class='c'>Overall<small>passed</small></th></tr>";
   document.getElementById("lgrid").innerHTML = head + L.map(m => {
     const d = m.levels.ladder;
     return "<tr>" + nameCell(m) + D.ladder.map(([t]) => d.tasks[t]
@@ -638,8 +648,13 @@ function kgrid() {
       if (!cs.length) return notRun;
       const sub = D.drift.doses.map(x => { const c = d.cells[k + "-" + x]; return c ? Math.round(c.score * 100) : "–"; }).join(" · ");
       return cellHtml(d.kind[k], "1 · 3 · 7 ex: " + sub);
-    }).join("") + cellHtml(d.rule[0], d.k + "/" + d.n + " passed") + "</tr>"; }).join("");
+    }).join("") + cellHtml(d.rule[0], d.k + "/" + d.n) + "</tr>"; }).join("");
   document.getElementById("kgrid").innerHTML = head + body;
+  const hes = M.map(m => [m.name, ((m.levels.drift.fails_by_type || {}).returned || {})["left blank, asked"] || 0,
+    D.drift.doses.reduce((s, x) => s + ((m.levels.drift.cells["returned-" + x] || {}).n || 0), 0)]).filter(x => x[1] > 0);
+  document.getElementById("hes-note").innerHTML = hes.length ? '<b>About "habit came back".</b> ' +
+    hes.map(([n, c, t]) => `${n} left the notes blank and asked in ${c} of ${t} tries`).join("; ") +
+    ". In those tries the agent read that REVIEW was back on recent invoices but would not apply it without being told, so the answer key counts a miss." : "";
 }
 
 function ptable() {

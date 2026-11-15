@@ -46,3 +46,13 @@ tasks are generated, not committed (the company docs are big):
     valkyrie run start --agent claude_code-v1.0.0 --dataset yaya/precedent \
       --model anthropic/claude-sonnet-4-6 --provider modal \
       -s ANTHROPIC_API_KEY anthropic-api-key --concurrency 4
+
+## drift benchmark (main result)
+
+    python3 gen/build_drift.py ../ext/redwood tasks                  # 4 kinds of change x 1/3/7 examples
+    python3 gen/test_drift_grader.py tasks/drift-*-k[137]            # grader vs wrong answers
+    python3 gen/replicate.py tasks tasks 5 <task names>              # -r1..-r5 copies, one run per model
+    # runs: agent plain-agent (agents/plain-agent), same loop for every model, via scripts/queue_runs.sh
+    python3 results/collect_drift.py runs.txt [reruns.txt]           # -> results/drift_attempts.json
+    python3 results/classify_drift.py && python3 results/tag_hesitation.py   # how each miss happened
+    python3 results/render.py                                        # -> results/leaderboard.html

@@ -73,7 +73,7 @@ class Log:
 def loop_anthropic(model: str, prompt: str, log: Log) -> tuple[str, str]:
     import anthropic
 
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(max_retries=10)   # rate limits under parallel load are plumbing, not the model
     tools = [{"name": TOOL_NAME, "description": TOOL_DESC, "input_schema": TOOL_SCHEMA}]
     messages = [{"role": "user", "content": prompt}]
     for step in range(MAX_STEPS):
@@ -109,7 +109,7 @@ def loop_anthropic(model: str, prompt: str, log: Log) -> tuple[str, str]:
 def loop_openai(model: str, prompt: str, log: Log) -> tuple[str, str]:
     from openai import OpenAI
 
-    client = OpenAI()
+    client = OpenAI(max_retries=10)   # same retry policy for every provider
     tools = [{"type": "function", "name": TOOL_NAME, "description": TOOL_DESC,
               "parameters": TOOL_SCHEMA, "strict": True}]
     items: list = [{"role": "user", "content": prompt}]

@@ -1,6 +1,6 @@
 """Collect per-attempt results for the drift benchmark into results/drift_attempts.json.
 
-    python3 results/collect_drift.py runs.txt
+    python3 results/collect_drift.py runs.txt [rerun_runs.txt ...]
 
 runs.txt has lines "<model> <run_id>"; each run holds every copy (-r1..-r5) of the 12 drift
 tasks. Each attempt keeps its reward, the grader's check lines, and a partial-credit score:
@@ -50,7 +50,7 @@ def partial(task: str, checks: list[str]) -> float:
 
 
 attempts = []
-for line in Path(sys.argv[1]).read_text().split("\n"):
+for line in "\n".join(Path(f).read_text() for f in sys.argv[1:]).split("\n"):
     if not line.strip():
         continue
     model, run_id = line.split()
@@ -70,6 +70,10 @@ for line in Path(sys.argv[1]).read_text().split("\n"):
                     "error": d.get("error_message"), "score": partial(task, checks), "checks": checks,
                 })
 
+# reruns: when the same model+task has a finished attempt, drop its errored ones (they were plumbing)
+finished = {(a["model"], a["task"]) for a in attempts if a["status"] == "FINISHED" and a["reward"] is not None}
+attempts = [a for a in attempts if (a["model"], a["task"]) not in finished
+            or (a["status"] == "FINISHED" and a["reward"] is not None)]
 OUT.write_text(json.dumps(attempts, indent=1))
 done = [a for a in attempts if a["status"] == "FINISHED" and a["reward"] is not None]
 print(f"{len(attempts)} attempts, {len(done)} scored -> {OUT}")
