@@ -370,9 +370,10 @@ function takeaways() {
     `It reaches a ${fmt(best.levels.hidden.rule[0])} rule score when the rule lives only in past work. ` +
     `In its own words: "${D.quote}"`]];
   items.push([`${never} of ${H.length} models never ask for approval at all`,
-    "Asked to log five invoices, they log all five and stop. In the runs we read, they looked at the inbox and the " +
-    "spreadsheet and never opened the email history, so they never met the rule, not even when it was written in an email. " +
-    "Told the rule in the instruction, the same models follow it."]);
+    "Asked to log five invoices, they log all five and stop. In the runs we read, Sonnet and Haiku never open the " +
+    "company history. The GPT models do search it, but for a written procedure (\"invoice tracker\", \"log invoices\"); " +
+    "finding none, they log everything. One GPT-6.1 Sol run had the approval threads in its search results and never opened them. " +
+    "Told the rule in the instruction, all of them follow it."]);
   const opus = M.find(m => m.name === "Opus 5.5");
   if (opus && opus.levels.hidden) {
     const f = opus.levels.hidden.fails, wrong = (f["used the old $5k rule"] || 0) + (f["missed the Halverson exception"] || 0) + (f["missed the $10k change"] || 0);
