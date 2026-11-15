@@ -175,6 +175,10 @@ def build_history(rng: random.Random, dose: int, l2: bool) -> list[dict]:
             rng.uniform(560, 960), rng.choice(["overcharge", "downgrade"]))       # cutoff
         add(post[3 + i * 3], rng.choice(["Dunmore Health", "Islington Robotics", "Ashgrove Biotech"]),
             rng.uniform(1300, 3800), rng.choice(["downgrade", "overcharge"]))    # approver
+    if not l2:   # contrast for the new cutoff: ordinary refunds just above $1,000 after Oct 5
+        for i in range(3):
+            add(post[1 + i * 4], rng.choice(["Glenhaven Media", "Quillfeather Studio", "Juniperline Games"]),
+                rng.uniform(1030, 1180), "overcharge")
     if l2:
         pre_c = weekdays(date(2026, 8, 3), date(2026, 10, 30))
         for i in range(5):
@@ -194,7 +198,7 @@ def build_history(rng: random.Random, dose: int, l2: bool) -> list[dict]:
         # (no note) and Dedicated billing errors over $2,000 (credit, no note) after Oct 19
         for i in range(3):
             add(fin[2 + i * 2], rng.choice(["Ostrava Freight", "Cindervale Labs", "Glenhaven Media"]),
-                rng.uniform(1150, 1900), "billing error")
+                rng.uniform(1030, 1180), "billing error")
         for i in range(2):
             add(fin[3 + i * 3], rng.choice(["Farrowdale Logistics", "Kestrelmoor Insurance", "Tamsin Learning"]),
                 rng.uniform(2200, 4400), "billing error")
@@ -425,6 +429,13 @@ def self_check(ev: list[dict], new: list[dict], dose: int, l2: bool, blob: str) 
                    and e["customer"] != "Harrowgate Bank") >= 3, "no contrast for the $2,000 condition"
         assert sum(1 for e in bills if CUSTOMERS[e["customer"]] == "Dedicated" and e["amount"] > 2000) >= 2, \
             "no contrast for the refunds-only condition"
+    after = [e for e in ev if e["received"] >= CHANGE and CUSTOMERS[e["customer"]] != "Dedicated"
+             and e["customer"] != "Harrowgate Bank" and not e["dup"] and e["reason"] != "unused credits"]
+    lowest_refund = min(e["amount"] for e in after if e["decision"] == "refund")
+    asked = [q["amount"] for q in new if q["decision"] == "refund" and q["tier"] != "Dedicated"
+             and q["customer"] != "Harrowgate Bank"]
+    assert sum(1 for e in after if 1000 < e["amount"] <= 2000 and e["decision"] == "refund") >= 3 \
+        and lowest_refund < min(asked), f"cutoff not readable: lowest refund since Oct 5 {lowest_refund}, asked {sorted(asked)}"
     assert len(new) == 15 and len({q["ticket"] for q in new}) == 15
     # only the planted re-sent request may repeat a (customer, amount, reason) seen in the batch or the history
     seen = {(e["customer"], e["amount"], e["reason"]) for e in ev}
