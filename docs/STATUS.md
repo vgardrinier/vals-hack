@@ -2,7 +2,22 @@
 
 Read this first. The README has the commands; this has the story and the numbers.
 
-## Latest: the drift benchmark (main result now)
+## Messy monday morning (in progress, overnight Nov 14-15)
+
+Plan: docs/plans/next-iteration-messy-morning.md. Generator: gen/build_morning.py. Grader test: gen/test_morning_grader.py.
+Score = share of the 15 invoices fully right (right REVIEW note naming the right reviewer, right cost center, logged once).
+
+- **round 1 (pilot, 2 tries per version)**: Fable 59%, GPT-6 Astra 71%, GPT-6.1 Sol 43%, Opus 32%, Sonnet 20% mean score.
+  The stale handbook is brutal: without it Fable 84%, Sol 87%, Astra 93%, Opus 64%, Sonnet 40%; with it Fable 33%,
+  Astra 49%, Opus/Sonnet/Sol 0%. Plan b: BOTH rules fired. "Too hard": k1 with handbook scored 0 for every model.
+  "Too easy": Fable above 50%. Results: results/morning_round1.json.
+- **round 2 changes**: (too hard, step 1: fix broken/ambiguous) dropped k1+handbook (1 deviating row against a written
+  policy and ~40 old rows is a defensible reading either way, Fable said so in its runs); fixed a realism bug Fable
+  flagged (new invoices were round numbers, some far above what suppliers bill). (too easy, step 1: tighten Fable's
+  easiest habit) contract/cutoff/cost center tied at 100% for Fable without the handbook; tie-break picked cutoff and
+  made it partial: since Oct 5, Security invoices kept the $5k cutoff (REVIEW: Mireille). Tasks prefixed morning2-.
+
+## Previous main: the drift benchmark
 
 The question: when a company quietly changes how it does something, do agents notice?
 Same fake finance team at Redwood Inference. Its habit (a REVIEW note in the invoice tracker)

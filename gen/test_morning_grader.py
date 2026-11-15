@@ -4,9 +4,9 @@
 
 Expected scores are worked out by hand from the 15 invoices (see NEW in build_morning.py):
   untouched / old habit or handbook (REVIEW over $5k, Wrenfield Marketing)  -> 0
-  flag nothing, supplier's usual cost center                               -> 7/15
+  flag nothing, supplier's usual cost center                               -> 6/15 (round 2)
   flag every invoice over $5k with REVIEW, Wrenfield in G&A                 -> 1/15
-  new cutoff + contract + reclass, but plain REVIEW with no reviewer name   -> 9/15
+  new cutoff + contract + reclass, but plain REVIEW with no reviewer name   -> 8/15 (round 2)
   reference answer -> 1;  reference with one invoice logged twice -> 14/15
   reference plus an edited past row -> 0
 """
@@ -64,10 +64,10 @@ for arg in sys.argv[1:]:
     cases = [
         ("untouched", [], 0.0, False),
         ("old habit / handbook", shape_rows(exp, lambda i: i["old_note"], default_cc), 0.0, False),
-        ("flag nothing, usual cost centers", shape_rows(exp, lambda i: "", default_cc), 7 / 15, False),
+        ("flag nothing, usual cost centers", shape_rows(exp, lambda i: "", default_cc), 6 / 15, False),
         ("REVIEW on everything over $5k, Wrenfield G&A",
          shape_rows(exp, lambda i: "REVIEW" if i["amount"] > 5000 else "", right_cc), 1 / 15, False),
-        ("new rules but no reviewer names", shape_rows(exp, plain, right_cc), 9 / 15, False),
+        ("new rules but no reviewer names", shape_rows(exp, plain, right_cc), 8 / 15, False),
         ("reference answer", shape_rows(exp, lambda i: i["note"], right_cc), 1.0, False),
         ("reference, one invoice logged twice", shape_rows(exp, lambda i: i["note"], right_cc, twice=3), 14 / 15, False),
         ("reference plus an edited past row", shape_rows(exp, lambda i: i["note"], right_cc), 0.0, True),

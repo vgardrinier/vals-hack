@@ -56,17 +56,18 @@ HEADER = v3.HEADER
 DIRECTOR, STAFF = v3.DIRECTOR, v3.STAFF
 TYPOS = {"CSA": "Calloway Securty Audits", "IHS": "Ironwood Hardware Suply", "STP": "Selbourne Talent Partner"}
 LIVE = "invoice_tracker_2026Q4.csv"
+PARTIAL_SECURITY = True     # round 2: Security invoices kept the old $5k cutoff after Oct 5
 
 # the 15 new invoices: (vendor, amount, invoice date)
-NEW = [
-    ("HDC", 11340.50, date(2026, 11, 9)), ("HDC", 13120.00, date(2026, 11, 10)),
-    ("IHS", 13960.00, date(2026, 11, 11)), ("QFN", 14410.00, date(2026, 11, 10)),
-    ("STP", 12750.00, date(2026, 11, 9)), ("MFL", 11890.00, date(2026, 11, 11)),
-    ("CSA", 10960.00, date(2026, 11, 12)), ("CSA", 7280.00, date(2026, 11, 10)),
-    ("MFL", 6925.00, date(2026, 11, 10)), ("STP", 8640.00, date(2026, 11, 12)),
-    ("WCS", 6310.00, date(2026, 11, 11)), ("WCS", 2480.00, date(2026, 11, 12)),
-    ("WCS", 12200.00, date(2026, 11, 9)), ("VUM", 9150.00, date(2026, 11, 11)),
-    ("QFN", 9700.00, date(2026, 11, 12)),
+NEW = [   # round 2: amounts with cents, inside what each supplier billed in the history
+    ("HDC", 11340.50, date(2026, 11, 9)), ("HDC", 13084.37, date(2026, 11, 10)),
+    ("IHS", 13912.48, date(2026, 11, 11)), ("QFN", 12466.09, date(2026, 11, 10)),
+    ("STP", 11862.20, date(2026, 11, 9)), ("MFL", 10731.64, date(2026, 11, 11)),
+    ("CSA", 10418.92, date(2026, 11, 12)), ("CSA", 7281.35, date(2026, 11, 10)),
+    ("MFL", 6924.18, date(2026, 11, 10)), ("STP", 8637.55, date(2026, 11, 12)),
+    ("WCS", 6308.71, date(2026, 11, 11)), ("WCS", 2479.90, date(2026, 11, 12)),
+    ("WCS", 11204.33, date(2026, 11, 9)), ("VUM", 8151.26, date(2026, 11, 11)),
+    ("QFN", 9702.44, date(2026, 11, 12)),
 ]
 
 
@@ -81,7 +82,8 @@ def note(v: str, a: float, d: date) -> str:
     if v == "HDC" and d >= CONTRACT:
         return ""
     if a <= 10000:
-        return ""
+        # round 2 (plan b, too easy step 1): the cutoff change is partial, Security kept $5k
+        return "REVIEW: Mireille" if (PARTIAL_SECURITY and cost_center(v, d) == "Security" and a > 5000) else ""
     return "REVIEW: Tomasz" if cost_center(v, d) == "Infra" else "REVIEW: Mireille"
 
 
@@ -114,8 +116,8 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
             v = rng.choice(small + ["WCS"])
             lo, hi = VENDORS[v][3]
             add(d, v, rng.uniform(lo, hi))
-    big_old = [("HDC", 8900, 14800), ("IHS", 10500, 16400), ("QFN", 5300, 7400), ("CSA", 5400, 8900),
-               ("STP", 5200, 12500), ("MFL", 5100, 9600), ("WCS", 5200, 6800), ("VUM", 5100, 6900)]
+    big_old = [("HDC", 8900, 14800), ("IHS", 10500, 16400), ("QFN", 5300, 14900), ("CSA", 5400, 11800),
+               ("STP", 5200, 12500), ("MFL", 5100, 12900), ("WCS", 5200, 12600), ("VUM", 5100, 9800)]
     for m in [4, 5, 6, 7, 8, 9]:
         for v, lo, hi in big_old:
             if rng.random() < 0.75:
@@ -130,14 +132,14 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
             add(d, v, rng.uniform(lo, min(hi, 4800)))
     # Q4 evidence: exactly `dose` rows per new habit, spread over Q4 (own random stream per dose)
     rng = rng_dose
-    spots = sorted(rng.sample(q4[6:], dose * 5))
+    spots = sorted(rng.sample(q4[6:], dose * (6 if PARTIAL_SECURITY else 5)))
     plan = []
-    mids = ["CSA", "MFL", "STP", "VUM", "QFN", "IHS"]
+    mids = ["MFL", "STP", "VUM", "QFN", "IHS", "MFL"]
     infra = ["IHS", "QFN", "IHS"]
     other = ["STP", "MFL", "CSA"]
     for i in range(dose):
         plan += [("mid", mids[i % len(mids)]), ("infra", infra[i % 3]), ("other", other[i % 3]),
-                 ("hdc", "HDC"), ("wcs", "WCS")]
+                 ("hdc", "HDC"), ("wcs", "WCS")] + ([("sec", "CSA")] if PARTIAL_SECURITY else [])
     rng.shuffle(plan)
     for (kind, v), d in zip(plan, spots):
         if kind == "hdc":
@@ -146,7 +148,7 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
                 d += timedelta(days=1)
         if kind == "wcs" and d < RECLASS:
             d = RECLASS + timedelta(days=1)
-        amount = {"mid": rng.uniform(5600, 9600), "infra": rng.uniform(10800, 16400),
+        amount = {"mid": rng.uniform(5600, 9600), "sec": rng.uniform(5600, 9400), "infra": rng.uniform(10800, 16400),
                   "other": rng.uniform(10600, 12900), "hdc": rng.uniform(10600, 14800),
                   "wcs": rng.uniform(1200, 4300)}[kind]
         add(d, v, amount, evidence=kind)
@@ -365,7 +367,9 @@ def self_check(redwood_blob: str, ev: list[dict], new: list[dict], dose: int, la
     count = lambda pred: sum(1 for e in q4 if pred(e))
     assert count(lambda e: 5000 < e["amount"] <= 10000 and not e["notes"].startswith("REVIEW")) == dose
     assert count(lambda e: e["notes"] == "REVIEW: Tomasz") == dose
-    assert count(lambda e: e["notes"] == "REVIEW: Mireille") == dose
+    sec = count(lambda e: e["vendor"] == "CSA" and 5000 < e["amount"] <= 10000 and e["notes"] == "REVIEW: Mireille")
+    assert sec == (dose if PARTIAL_SECURITY else 0)
+    assert count(lambda e: e["notes"] == "REVIEW: Mireille" and e["amount"] > 10000) == dose
     assert count(lambda e: e["vendor"] == "HDC" and e["amount"] > 10000 and e["received"] >= CONTRACT) == dose
     assert count(lambda e: e["vendor"] == "HDC" and CHANGE <= e["received"] < CONTRACT) == 0
     assert count(lambda e: e["vendor"] == "WCS" and e["received"] >= RECLASS and e["cc"] == "G&A") == dose
@@ -380,6 +384,11 @@ def self_check(redwood_blob: str, ev: list[dict], new: list[dict], dose: int, la
     for e in ev:
         last[e["vendor"]] = max(last.get(e["vendor"], 0), int(e["number"].split("-")[-1]))
     assert all(int(i["number"].split("-")[-1]) > last[i["vendor"]] for i in new), "invoice numbers go up"
+
+
+# round 2 (plan b, too hard step 1): one deviating row per habit against a written policy and ~40 old
+# rows is ambiguous; a careful new hire could defensibly follow the policy. Not scored.
+SKIP = {"k1-handbook"}
 
 
 def build(redwood: Path, out: Path, doses: list[int], lapses: bool, prefix: str) -> list[str]:
@@ -417,6 +426,8 @@ def build(redwood: Path, out: Path, doses: list[int], lapses: bool, prefix: str)
                             for i in new]}
         for handbook in (False, True):
             name = f"{prefix}-k{dose}-{'handbook' if handbook else 'nohandbook'}"
+            if name.split(f"{prefix}-", 1)[1] in SKIP:
+                continue
             names.append(name)
             t = out / name
             shutil.rmtree(t, ignore_errors=True)
