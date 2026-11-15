@@ -22,7 +22,8 @@ from html import escape
 from pathlib import Path
 
 HERE = Path(__file__).parent
-LEVELS = [("nudged", "Pointed at past work, rule unstated"), ("hidden", "Rule only in past work, no pointer"),
+# the old no-pointer level is gone from the page: the ladder is all no-pointer, and its task 5 is that same task
+LEVELS = [("nudged", "Pointed at past work, rule unstated"),
           ("written", "Rule in an email somewhere"), ("told", "Rule told in the instruction")]
 MODELS = {
     "claude-fable-5-2": ("Fable 5.2", "Anthropic"),
@@ -152,7 +153,7 @@ def page(data: dict) -> str:
                  (f"{top[0] * 100:.1f}%", "Top ladder score")]
     else:
         top = max((m["levels"]["nudged"]["rule"][0], m["name"]) for m in data.values() if "nudged" in m["levels"])
-        stats = [(str(len(data)), "Frontier models"), ("4", "Levels of hidden"), ("3–8", "Attempts per level"),
+        stats = [(str(len(data)), "Frontier models"), ("3", "Levels of hidden"), ("3–8", "Attempts per level"),
                  (f"{top[0] * 100:.1f}%", "Top rule score, pointed")]
     stats_html = "".join(f'<div class="stat"><div class="v">{v}</div><div class="k">{k}</div></div>' for v, k in stats)
     blob = json.dumps({"models": data, "levels": levels, "quote": FABLE_QUOTE,
@@ -477,9 +478,9 @@ function lgrid() {
 }
 
 function grid() {
-  const hid = m => (m.levels.nudged ? m.levels.nudged.rule[0] : -1) + (m.levels.hidden ? m.levels.hidden.rule[0] / 10 : 0);
-  const order = Object.values(D.models).filter(m => m.levels.hidden || m.levels.nudged).sort((a, b) => hid(b) - hid(a));
-  const lv = ["told", "written", "nudged", "hidden"].map(k => D.levels.find(l => l[0] === k)).filter(Boolean);
+  const hid = m => (m.levels.nudged ? m.levels.nudged.rule[0] : -1) + (m.levels.written ? m.levels.written.rule[0] / 10 : 0);
+  const order = Object.values(D.models).filter(m => Object.keys(m.levels).length).sort((a, b) => hid(b) - hid(a));
+  const lv = ["told", "written", "nudged"].map(k => D.levels.find(l => l[0] === k)).filter(Boolean);
   const head = "<tr><th></th>" + lv.map(([, l]) => `<th class="c">${l}</th>`).join("") + "</tr>";
   document.getElementById("grid").innerHTML = head + order.map(m => "<tr>" + nameCell(m) + lv.map(([k]) => {
     const d = m.levels[k];
