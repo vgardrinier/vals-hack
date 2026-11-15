@@ -2,9 +2,12 @@
 
 ## Status
 
-Design review only. Four corpus-grounded prototypes are defined; the 12-15 task
-dataset, Harbor packages, Valkyrie upload, and model runs have not been created.
-The prior synthetic `implicit-challenge-12` pilot is not part of V3.
+Eight corpus-grounded Harbor tasks are packaged and published as
+`bic-bench-v3/enterprise-overlays-pilot8@2`. The three-trial Fable pilot is
+complete. Astra and Carbon were started with the same harness but blocked by
+provider credit/quota before inference. See `PILOT_REPORT.md` for scores, run
+IDs, trajectories, costs, and exact commands. The prior synthetic
+`implicit-challenge-12` pilot is not part of V3.
 
 ## Base corpus
 
@@ -38,7 +41,7 @@ released corpus.
 
 ### 2. Build a realistic retrieval neighborhood
 
-Each Harbor task receives 120-250 authentic Redwood documents, not a hand-made
+Each Harbor task receives at least 120 authentic Redwood documents, not a hand-made
 folder containing only the answer. The slice includes:
 
 - all required anchor documents for the decision;
@@ -73,7 +76,7 @@ least three facts across at least two systems, such as:
 - a measurement exclusion in Jira;
 - the current channel or deal state in HubSpot/Slack.
 
-At least half of the final tasks will have two superficially reasonable
+At least half of the pilot tasks have two superficially reasonable
 actions. The gold action is selected by scope, authority, time, evidence, and
 system-of-record precedence rather than by generic caution.
 
@@ -95,39 +98,59 @@ otherwise: 60% deterministic action completion
 
 ### 6. Package for offline Harbor execution
 
-Each task will copy its frozen Redwood slice and decision overlays into the
+Each task copies its frozen Redwood slice and decision overlays into the
 container. `allow_internet = false` remains mandatory. The target agent gets
 only local search, file inspection, and the fixed business-action API.
 
-## Four prototypes
+## Pilot tasks
 
-The review prototypes are machine-readable in `prototypes/`:
+The eight machine-readable pilot definitions are in `pilot_tasks.json`:
 
 1. `redwood-northwind-paid-claim` - evidence and permission scope.
 2. `redwood-acme-credit-ledger` - closed-period financial controls.
 3. `redwood-nordbank-residency-commitment` - claims and contractual authority.
 4. `redwood-proxima-exception-renewal` - temporal validity and change authority.
+5. `redwood-dedicated-slo-credit` - SLO evidence and financial authority.
+6. `redwood-model-catalog-launch` - release governance and claim validity.
+7. `redwood-audit-export-legal-hold` - retention, legal hold, and delivery scope.
+8. `redwood-smart-routing-fallback` - cross-layer diagnosis and entitlement scope.
 
-See `PROTOTYPES.md` for the human-readable task review and `DIFFICULTY.md`
-for the anti-shortcut checks and empirical acceptance gate.
+The generated Harbor packages are in
+`../valkyrie_tasks/enterprise-overlays-pilot8/`. See `PROTOTYPES.md` for the
+initial design review, `DIFFICULTY.md` for the empirical acceptance gate, and
+`PILOT_REPORT.md` for the run analysis.
 
-Validate this review stage locally with:
+Regenerate and validate locally with:
 
 ```powershell
-python bic-bench-v3/validate_prototypes.py
+python bic-bench-v3/build_pilot.py
+python bic-bench-v3/validate_pilot.py
 ```
 
-## Valkyrie gate
+Aggregate downloaded run exports with:
 
-No V3 Valkyrie command has been run. After the four prototypes are approved,
-the next sequence will be:
+```powershell
+python bic-bench-v3/analyze_pilot.py `
+  --result-dir bic-bench-v3/results/fable-final-v2 `
+  --json-output bic-bench-v3/results/fable-final-v2/summary.json `
+  --markdown-output bic-bench-v3/results/fable-final-v2/SUMMARY.md
+```
 
-1. expand to 12-15 tasks;
-2. materialize Harbor packages and validate the offline oracle;
-3. upload one versioned dataset;
-4. select six to eight task IDs explicitly;
-5. run three trials sequentially with mini-SWE-agent and concurrency 5;
-6. retrieve trajectories and produce the pilot report.
+## Valkyrie
 
-The exact commands will be recorded verbatim in this README when that gate is
-approved.
+Upload the pinned dataset with:
+
+```powershell
+valkyrie dataset push bic-bench-v3/enterprise-overlays-pilot8 `
+  .\valkyrie_tasks\enterprise-overlays-pilot8 --tag v2
+```
+
+The exact run commands and all nine run IDs are recorded in
+`PILOT_REPORT.md`. Tasks set `allow_internet = false`; the harness permits only
+the selected model provider API.
+
+## Submission note
+
+The hackathon requires the first README overview paragraph to be written
+entirely by the human team. Add that team-authored paragraph above `Status`
+before submission; do not label generated copy as human-written.

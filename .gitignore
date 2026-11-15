@@ -12,5 +12,7 @@ bic-bench-v2/results/valkyrie-hard10*/before-t*.json
 bic-bench-v2/results/valkyrie-hard10*/outputs-*/
 bic-bench-v2/results/implicit-core5-*/outputs/
 bic-bench-v2/results/implicit-core5-*/results.json
+bic-bench-v3/results/**/outputs-trial-*/
+bic-bench-v3/results/judge-smoke.json
 __pycache__/
 .pytest_cache/

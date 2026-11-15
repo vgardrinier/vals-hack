@@ -1,8 +1,8 @@
 # mini_swe_agent
 
 This local Valkyrie package preserves the upstream mini-SWE-agent loop and
-allows only the Anthropic and OpenAI model API hosts. Benchmark task sandboxes
-remain offline through their Harbor `allow_internet = false` setting.
+allows only the Anthropic, OpenAI, and Google model API hosts. Benchmark task
+sandboxes remain offline through their Harbor `allow_internet = false` setting.
 
 [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent) by the SWE-agent team, the minimal AI software engineering agent, run for Valkyrie as upstream ships it. The pinned upstream release is recorded in `upstream.json`.
 

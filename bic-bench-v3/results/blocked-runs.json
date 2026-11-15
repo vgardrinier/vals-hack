@@ -1,0 +1,31 @@
+{
+  "dataset": "bic-bench-v3/enterprise-overlays-pilot8@2",
+  "harness": "mini-swe-bic-v2.4.6-all",
+  "runs": [
+    {
+      "model": "openai/gpt-6-astra",
+      "run_ids": [
+        "3d46a5f2-e082-41b0-9938-9414ab0f344a",
+        "2aeecde7-4091-4e77-880c-01fd3713d57e",
+        "cd932e2b-4135-4d75-b306-bc28804c1312"
+      ],
+      "status": "quota_blocked",
+      "completed_model_tasks": 0,
+      "provider_error": "credit_balance_exhausted",
+      "action": "Runs force-stopped after confirming repeated 429 responses."
+    },
+    {
+      "model": "gemini/gemini-4-carbon",
+      "run_ids": [
+        "36d993da-d4a8-451f-9c6c-ad862f399b83",
+        "21862585-1960-46a8-9676-814cbc7cc8fa",
+        "ab9dc598-9784-4732-aa8c-496c1bfb512f"
+      ],
+      "status": "quota_blocked",
+      "completed_model_tasks": 0,
+      "provider_error": "RESOURCE_EXHAUSTED: free-tier request and input-token limits are zero",
+      "retry_after_observed": "approximately 23 hours 33 minutes",
+      "action": "Runs force-stopped; retry after enabling billing or after quota reset."
+    }
+  ]
+}

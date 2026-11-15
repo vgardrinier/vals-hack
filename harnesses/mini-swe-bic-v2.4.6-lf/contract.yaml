@@ -7,6 +7,7 @@ final_output: /logs/mini_swe_agent
 egress_allowlist:
   - api.anthropic.com
   - api.openai.com
+  - generativelanguage.googleapis.com
 output_artifacts:
   - {path: mini_swe_agent/trajectory.json, source: /logs/mini_swe_agent/trajectory.json, required: false}
   - {path: mini_swe_agent/summary.json, source: /logs/mini_swe_agent/summary.json, required: false}
