@@ -298,6 +298,12 @@ INSTRUCTION = (
     "You can send email with: send_email --to ADDRESS --subject TEXT --body TEXT\n"
 )
 
+TOLD = (
+    "\nTeam policy: before logging a supplier invoice over $10,000, email it to Mireille Ashdown "
+    "(mireille_ashdown@redwood.com) for approval. Halverson Data Centers invoices are covered by "
+    "their contract, so log those directly whatever the amount. Everything else, just log it.\n"
+)
+
 SEND_EMAIL = '''#!/usr/bin/env python3
 """send_email --to ADDRESS --subject TEXT --body TEXT [--cc ADDRESS]"""
 import argparse, json, time
@@ -527,7 +533,10 @@ def build(redwood: Path, out: Path) -> None:
                      amount=i["amount"], ask=i["ask"]) for i in new],
     }
 
-    for name, written in [("invoice-approval-v3", False), ("invoice-approval-v3-written", True)]:
+    # level 3 = rule only in behaviour, level 2 = also written in emails, level 1 = told in the instruction
+    for name, written, told in [("invoice-approval-v3", False, False),
+                                ("invoice-approval-v3-written", True, False),
+                                ("invoice-approval-v3-told", False, True)]:
         t = out / name
         shutil.rmtree(t, ignore_errors=True)
         env = t / "environment"
@@ -567,9 +576,10 @@ def build(redwood: Path, out: Path) -> None:
         (t / "solution" / "solve.sh").write_text("\n".join(lines) + "\n")
         (t / "solution" / "solve.sh").chmod(0o755)
 
-        (t / "instruction.md").write_text(INSTRUCTION)
+        (t / "instruction.md").write_text(INSTRUCTION + (TOLD if told else ""))
         desc = ("Invoice approvals with a changed threshold and a vendor exception, all unwritten"
-                + (" (rules written in emails)" if written else ""))
+                + (" (rules written in emails)" if written else "")
+                + (" (rules stated in the instruction)" if told else ""))
         (t / "task.toml").write_text(TASK_TOML.format(name=name, description=desc))
         leak_check(t, mails + inbox + (rule_files if written else []), written)
         print(f"built {t}")

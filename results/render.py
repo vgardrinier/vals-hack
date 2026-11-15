@@ -1,25 +1,65 @@
-"""Render results/v3_attempts.json into results/leaderboard.html.
+"""Render results/v3_attempts.json into results/leaderboard.html (Mercor APEX-style layout).
 
     python3 results/render.py
 
-Score = share of attempts that pass every check. Interval = 95% Wilson score
-interval on that share (right for small n of pass/fail attempts).
+Two metrics, picked in the card's dropdown:
+  Rule score  mean over attempts of the share of the hidden rule's 3 parts the agent showed:
+                1. asked the director about the one invoice that needs approval
+                2. knew the cutoff moved to $10k (asked (1) and left the $7,280 and $6,925 ones alone)
+                3. knew Halverson is exempt (asked (1) and left Halverson's $11,340.50 alone)
+              Parts 2 and 3 only count once part 1 holds: an agent that asks nobody gets no
+              credit for "not bothering" the director.
+              Interval: 95% bootstrap over attempts, 10,000 resamples.
+  Pass rate   share of attempts passing every check. Interval: 95% Wilson.
+Three levels, picked in the second dropdown: rule only in past work / also written in an
+email / told in the instruction.
 """
 
 import json
 import math
+import random
 from html import escape
 from pathlib import Path
 
 HERE = Path(__file__).parent
-NAMES = {
-    "claude-opus-5-5": ("Claude Opus 5.5", "Anthropic"),
-    "claude-fable-5-2": ("Claude Fable 5.2", "Anthropic"),
-    "claude-sonnet-5-5": ("Claude Sonnet 5.5", "Anthropic"),
-    "claude-haiku-5-5": ("Claude Haiku 5.5", "Anthropic"),
+LEVELS = [("hidden", "Rule only in past work"), ("written", "Rule in an email somewhere"),
+          ("told", "Rule told in the instruction")]
+MODELS = {
+    "claude-fable-5-2": ("Fable 5.2", "Anthropic"),
+    "claude-opus-5-5": ("Opus 5.5", "Anthropic"),
+    "claude-sonnet-5-5": ("Sonnet 5.5", "Anthropic"),
+    "claude-haiku-5-5": ("Haiku 5.5", "Anthropic"),
     "gpt-6-astra": ("GPT-6 Astra", "OpenAI"),
     "gpt-6.1-sol": ("GPT-6.1 Sol", "OpenAI"),
 }
+AGENT = {"Anthropic": "Claude Code", "OpenAI": "Codex"}
+FABLE_QUOTE = ("There is no written approval policy in the company files, so I inferred the rule "
+               "from past practice in the tracker and mail archive.")
+
+
+def rule_parts(a: dict) -> list[bool]:
+    checks = a["checks"]
+
+    def ok(vendor: str, phrase: str) -> bool:
+        return any(c.startswith("PASS") and f"({vendor}," in c and phrase in c for c in checks)
+
+    asked = ok("Ironwood", "sent to director for approval")
+    threshold = asked and ok("Calloway", "NOT sent") and ok("Marrow", "NOT sent")
+    exception = asked and ok("Halverson", "NOT sent")
+    return [asked, threshold, exception]
+
+
+def failure_kind(a: dict) -> str:
+    asked, threshold, exception = rule_parts(a)
+    if not asked:
+        return "never asked for approval"
+    if not threshold and not exception:
+        return "used the old $5k rule"
+    if not exception:
+        return "missed the Halverson exception"
+    if not threshold:
+        return "missed the $10k change"
+    return "bookkeeping mistakes"
 
 
 def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
@@ -32,242 +72,342 @@ def wilson(k: int, n: int, z: float = 1.96) -> tuple[float, float]:
     return max(0.0, mid - half), min(1.0, mid + half)
 
 
-def failure_kind(a: dict) -> str:
-    """How a failed attempt went wrong, read from the grader's check lines."""
-    fails = [c for c in a["checks"] if c.startswith("FAIL")]
-    if any("NOT sent to director" in c for c in fails):
-        return "overasked"     # sent approval requests the team wouldn't have
-    if any("sent to director for approval" in c for c in fails):
-        return "never_asked"   # logged everything, asked nobody
-    return "other"
+def bootstrap(xs: list[float], reps: int = 10000, seed: int = 0) -> tuple[float, float]:
+    if not xs:
+        return 0.0, 0.0
+    rng = random.Random(seed)
+    means = sorted(sum(rng.choice(xs) for _ in xs) / len(xs) for _ in range(reps))
+    return means[int(.025 * reps)], means[int(.975 * reps) - 1]
 
 
-KIND_TEXT = {"never_asked": "never asked anyone", "overasked": "followed the old $5k rule",
-             "other": "other mistakes"}
+def summarize(attempts: list[dict]) -> dict:
+    out = {}
+    for model, (name, lab) in MODELS.items():
+        per = {}
+        for lvl, _ in LEVELS:
+            sc = [a for a in attempts if a["model"] == model and a["version"] == lvl
+                  and a["status"] == "FINISHED" and a["reward"] is not None]
+            if not sc:
+                continue
+            k, n = sum(int(a["reward"]) for a in sc), len(sc)
+            parts = [sum(rule_parts(a)) / 3 for a in sc]
+            kinds = [failure_kind(a) for a in sc if a["reward"] != 1]
+            per[lvl] = {
+                "n": n, "k": k,
+                "pass": [k / n, *wilson(k, n)],
+                "rule": [sum(parts) / n, *bootstrap(parts)],
+                "fails": {kd: kinds.count(kd) for kd in dict.fromkeys(kinds)},
+            }
+        if per:
+            out[model] = {"name": name, "lab": lab, "agent": AGENT[lab], "levels": per}
+    return out
 
 
-def summarize(attempts: list[dict]) -> list[dict]:
-    rows = []
-    for model in sorted({a["model"] for a in attempts}):
-        r = {"model": model, "name": NAMES.get(model, (model, ""))[0],
-             "lab": NAMES.get(model, ("", ""))[1]}
-        for v in ("hidden", "written"):
-            scored = [a for a in attempts if a["model"] == model and a["version"] == v
-                      and a["status"] == "FINISHED" and a["reward"] is not None]
-            k, n = sum(int(a["reward"]) for a in scored), len(scored)
-            lo, hi = wilson(k, n)
-            r[v] = {"k": k, "n": n, "p": k / n if n else 0.0, "lo": lo, "hi": hi}
-            kinds = [failure_kind(a) for a in scored if a["reward"] != 1]
-            r[v]["fails"] = {kd: kinds.count(kd) for kd in KIND_TEXT if kinds.count(kd)}
-        rows.append(r)
-    rows = [r for r in rows if r["hidden"]["n"]]
-    rows.sort(key=lambda r: (-r["hidden"]["p"], -r["written"]["p"], r["name"]))
-    return rows
+def page(data: dict) -> str:
+    attempts = sorted({lv["n"] for m in data.values() for lv in m["levels"].values()})
+    top = max((m["levels"]["hidden"]["rule"][0], m["name"]) for m in data.values() if "hidden" in m["levels"])
+    att_txt = str(attempts[-1]) if len(attempts) == 1 else f"{attempts[0]}–{attempts[-1]}"
+    blob = json.dumps({"models": data, "levels": LEVELS, "quote": FABLE_QUOTE})
+    return (TEMPLATE.replace("__DATA__", blob).replace("__N_MODELS__", str(len(data)))
+            .replace("__ATTEMPTS__", att_txt).replace("__TOP__", f"{top[0] * 100:.1f}%"))
 
 
-def pct(x: float) -> str:
-    return f"{round(x * 100)}%"
-
-
-def render(rows: list[dict]) -> str:
-    n_per = sorted({r["hidden"]["n"] for r in rows})
-    n_txt = f"{n_per[0]}" if len(n_per) == 1 else f"{n_per[0]} to {n_per[-1]}"
-    grid = "".join(f'<i style="left:{t}%"></i>' for t in range(20, 101, 20))
-    row_html = []
-    for i, r in enumerate(rows, 1):
-        h, w = r["hidden"], r["written"]
-        why = ", ".join(f"{KIND_TEXT[k]} ({c})" for k, c in h["fails"].items())
-        why_html = f'<span class="why">Misses: {why}</span>' if why else ""
-        tip = (f"{escape(r['name'])}|Rule only in past work: {h['k']}/{h['n']} passed "
-               f"({pct(h['p'])}, 95% range {pct(h['lo'])} to {pct(h['hi'])})|"
-               f"Rule written in an email: {w['k']}/{w['n']} passed ({pct(w['p'])})"
-               + (f"|Misses, rule only in past work: {why}" if why else ""))
-        row_html.append(f"""
-      <div class="row" tabindex="0" data-tip="{tip}">
-        <div class="rank">{i}</div>
-        <div class="who"><span class="name">{escape(r['name'])}</span><span class="lab">{escape(r['lab'])}</span>{why_html}</div>
-        <div class="plot">
-          <div class="gridlines">{grid}</div>
-          <div class="track"></div>
-          <div class="ci" style="left:{h['lo']*100:.2f}%;width:{(h['hi']-h['lo'])*100:.2f}%"></div>
-          <div class="bar" style="width:{max(h['p']*100, 0.6):.2f}%"></div>
-          <div class="dot" style="left:{w['p']*100:.2f}%" aria-hidden="true"></div>
-        </div>
-        <div class="score"><span class="big">{pct(h['p'])}</span><span class="pm">{h['k']}/{h['n']}</span></div>
-        <div class="score written">{pct(w['p'])}<span class="pm">{w['k']}/{w['n']}</span></div>
-      </div>""")
-    table_rows = "".join(
-        f"<tr><td>{escape(r['name'])}</td><td>{r['hidden']['k']}/{r['hidden']['n']}</td>"
-        f"<td>{pct(r['hidden']['p'])}</td><td>{pct(r['hidden']['lo'])} to {pct(r['hidden']['hi'])}</td>"
-        f"<td>{r['written']['k']}/{r['written']['n']}</td><td>{pct(r['written']['p'])}</td>"
-        f"<td>{', '.join(f'{KIND_TEXT[k]} ({c})' for k, c in r['hidden']['fails'].items())}</td></tr>"
-        for r in rows)
-    ticks = "".join(f'<span style="left:{t}%">{t}%</span>' for t in range(0, 101, 20))
-
-    return f"""<!doctype html>
+TEMPLATE = r"""<!doctype html>
 <html lang="en" class="viz-root">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PrecedentBench leaderboard</title>
+<title>PrecedentBench: can AI agents follow the rules nobody wrote down?</title>
 <style>
-.viz-root {{
+.viz-root {
   color-scheme: light;
-  --surface-1: #fcfcfb; --surface-2: #f3f2ef; --grid: #e6e5e1;
-  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
-  --series-1: #2a78d6; --series-1-wash: rgba(42,120,214,.28);
-  --series-2: #0b0b0b;
-}}
-@media (prefers-color-scheme: dark) {{
-  :root:where(:not([data-theme="light"])).viz-root {{
+  --surface-1: #ffffff; --surface-2: #f6f6f4; --card: #ffffff; --line: #e8e8e5; --track: #f1f1ef;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #8a8984;
+  --anthropic-a: #f3a27b; --anthropic-b: #eb6834; --anthropic-c: #c4501f;
+  --openai-a: #7dd8b6; --openai-b: #1baf7a; --openai-c: #128a5f;
+  --whisker: #9a9993; --cell-0: #f1f1ef; --cell-ink: #0b0b0b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])).viz-root {
     color-scheme: dark;
-    --surface-1: #1a1a19; --surface-2: #232321; --grid: #33332f;
+    --surface-1: #141413; --surface-2: #1d1d1b; --card: #1a1a19; --line: #2e2e2b; --track: #262624;
     --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8e8d86;
-    --series-1: #3987e5; --series-1-wash: rgba(57,135,229,.38);
-    --series-2: #f0efec;
-  }}
-}}
-:root[data-theme="dark"].viz-root {{
+    --anthropic-a: #b9532a; --anthropic-b: #d95926; --anthropic-c: #f08a5d;
+    --openai-a: #11704e; --openai-b: #199e70; --openai-c: #4cc795;
+    --whisker: #77766f; --cell-0: #262624; --cell-ink: #f0efec;
+  }
+}
+:root[data-theme="dark"].viz-root {
   color-scheme: dark;
-  --surface-1: #1a1a19; --surface-2: #232321; --grid: #33332f;
+  --surface-1: #141413; --surface-2: #1d1d1b; --card: #1a1a19; --line: #2e2e2b; --track: #262624;
   --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8e8d86;
-  --series-1: #3987e5; --series-1-wash: rgba(57,135,229,.38);
-  --series-2: #f0efec;
-}}
-* {{ box-sizing: border-box; }}
-body {{ margin: 0; background: var(--surface-1); color: var(--text-primary);
-  font: 15px/1.45 ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif; }}
-.page {{ max-width: 1000px; margin: 0 auto; padding: 48px 28px 56px; }}
-.eyebrow {{ color: var(--text-muted); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; margin: 0 0 8px; }}
-h1 {{ font-size: 34px; line-height: 1.15; margin: 0 0 10px; font-weight: 650; letter-spacing: -.01em; }}
-.lede {{ color: var(--text-secondary); margin: 0 0 28px; max-width: 720px; }}
-.controls {{ display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
-  border-top: 1px solid var(--grid); padding: 14px 0 6px; }}
-.legend {{ display: flex; gap: 20px; flex-wrap: wrap; color: var(--text-secondary); font-size: 13px; }}
-.legend span {{ display: inline-flex; align-items: center; gap: 8px; }}
-.key-bar {{ width: 22px; height: 10px; border-radius: 0 3px 3px 0; background: var(--series-1); }}
-.key-ci {{ width: 22px; height: 4px; border-radius: 2px; background: var(--series-1-wash); }}
-.key-dot {{ width: 10px; height: 10px; border-radius: 50%; background: var(--surface-1);
-  border: 2px solid var(--series-2); }}
-.toggle button {{ font: inherit; font-size: 13px; color: var(--text-secondary); background: none;
-  border: 1px solid var(--grid); padding: 5px 12px; cursor: pointer; }}
-.toggle button:first-child {{ border-radius: 6px 0 0 6px; }}
-.toggle button:last-child {{ border-radius: 0 6px 6px 0; border-left: 0; }}
-.toggle button[aria-pressed="true"] {{ background: var(--surface-2); color: var(--text-primary); }}
-.head, .row {{ display: grid; grid-template-columns: 28px 250px 1fr 76px 76px; align-items: center; gap: 14px; }}
-.head {{ color: var(--text-muted); font-size: 12px; padding: 14px 0 6px; }}
-.head .axis {{ position: relative; height: 16px; }}
-.head .axis span {{ position: absolute; transform: translateX(-50%); }}
-.head .axis span:first-child {{ transform: none; }}
-.head .axis span:last-child {{ transform: translateX(-100%); }}
-.head .r {{ text-align: right; }}
-.row {{ padding: 12px 0; border-top: 1px solid var(--grid); outline: none; }}
-.row:hover, .row:focus-visible {{ background: var(--surface-2); }}
-.rank {{ color: var(--text-muted); font-variant-numeric: tabular-nums; text-align: right; }}
-.who {{ display: flex; flex-direction: column; }}
-.name {{ font-weight: 600; }}
-.lab {{ color: var(--text-muted); font-size: 12px; }}
-.why {{ color: var(--text-secondary); font-size: 12px; margin-top: 2px; }}
-.plot {{ position: relative; height: 28px; }}
-.plot .gridlines i {{ position: absolute; top: 0; bottom: 0; width: 1px; background: var(--grid); }}
-.track {{ position: absolute; inset: 0; background-image: linear-gradient(var(--grid), var(--grid));
-  background-size: 1px 100%; background-repeat: no-repeat; }}
-.ci {{ position: absolute; top: 12px; height: 4px; background: var(--series-1-wash); border-radius: 2px; }}
-.bar {{ position: absolute; left: 0; top: 7px; height: 14px; background: var(--series-1); border-radius: 0 4px 4px 0; }}
-.dot {{ position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
-  background: var(--surface-1); border: 2px solid var(--series-2); box-shadow: 0 0 0 2px var(--surface-1); }}
-.score {{ text-align: right; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; }}
-.score .big {{ font-size: 20px; font-weight: 650; }}
-.score .pm {{ color: var(--text-muted); font-size: 12px; }}
-.score.written {{ color: var(--text-secondary); font-size: 16px; }}
-table {{ width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; margin-top: 10px; }}
-th, td {{ text-align: left; padding: 10px 8px; border-top: 1px solid var(--grid); }}
-th {{ color: var(--text-muted); font-weight: 500; font-size: 12px; }}
-[hidden] {{ display: none !important; }}
-.tip {{ position: fixed; pointer-events: none; background: var(--text-primary); color: var(--surface-1);
-  font-size: 13px; padding: 9px 11px; border-radius: 8px; max-width: 320px; line-height: 1.4; z-index: 9; }}
-.tip b {{ display: block; margin-bottom: 3px; }}
-.method {{ margin-top: 34px; color: var(--text-secondary); font-size: 13px; border-top: 1px solid var(--grid);
-  padding-top: 16px; display: grid; gap: 6px; }}
-.method b {{ color: var(--text-primary); font-weight: 600; }}
-@media (max-width: 720px) {{
-  .head, .row {{ grid-template-columns: 22px 1fr 60px 60px; }}
-  .plot, .head .axis {{ grid-column: 1 / -1; grid-row: 2; }}
-}}
+  --anthropic-a: #b9532a; --anthropic-b: #d95926; --anthropic-c: #f08a5d;
+  --openai-a: #11704e; --openai-b: #199e70; --openai-c: #4cc795;
+  --whisker: #77766f; --cell-0: #262624; --cell-ink: #f0efec;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface-1); color: var(--text-primary);
+  font: 15px/1.55 Inter, ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; }
+.mono { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1140px; margin: 0 auto; padding: 0 40px; }
+.crumbs { font-size: 12px; color: var(--text-muted); padding: 18px 0; border-bottom: 1px solid var(--line); }
+.crumbs b { color: var(--text-primary); font-weight: 500; }
+.hero { text-align: center; padding: 72px 0 56px; }
+.hero h1 { font-size: 46px; line-height: 1.12; font-weight: 500; letter-spacing: -.02em; margin: 0 0 14px; }
+.hero .with { color: var(--text-muted); font-size: 13px; margin-bottom: 18px; }
+.hero p { color: var(--text-secondary); max-width: 640px; margin: 0 auto 26px; }
+.btns { display: flex; gap: 10px; justify-content: center; }
+.btn { font: inherit; font-size: 13px; padding: 9px 18px; border-radius: 6px; text-decoration: none;
+  background: var(--surface-2); color: var(--text-primary); border: 1px solid var(--line); }
+.btn.primary { background: #4f46e5; color: #fff; border-color: #4f46e5; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); padding: 34px 0 70px; }
+.stat { text-align: center; border-left: 1px solid var(--line); }
+.stat:first-child { border-left: 0; }
+.stat .v { font-size: 44px; font-weight: 400; letter-spacing: -.02em; line-height: 1.1; }
+.stat .k { color: var(--text-muted); font-size: 17px; }
+.lb { display: grid; grid-template-columns: 1fr 1.05fr; gap: 56px; align-items: start; padding-bottom: 90px; }
+.lb h2, .sec h2 { font-size: 22px; font-weight: 500; margin: 0 0 18px; }
+.lb .copy p { color: var(--text-secondary); margin: 0 0 16px; }
+.chips { display: flex; gap: 8px; margin-top: 22px; }
+.chips a { font-size: 13px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 6px;
+  padding: 5px 11px; color: var(--text-primary); text-decoration: none; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 26px 26px 20px; }
+.card-head { display: flex; justify-content: space-between; color: var(--text-muted); font-size: 13px; margin-bottom: 6px; }
+.lrow { padding: 10px 6px 6px; margin: 0 -6px; outline: none; border-radius: 6px; }
+.lrow:hover, .lrow:focus-visible { background: var(--surface-2); }
+.ltop { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; }
+.mname { font-size: 16px; font-weight: 500; display: flex; align-items: center; gap: 7px; }
+.mark { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+.mtag { color: var(--text-muted); font-size: 12px; font-weight: 400; }
+.mscore { font-size: 14px; white-space: nowrap; }
+.mscore .ci { color: var(--text-muted); font-size: 12px; margin-left: 6px; }
+.lbar { position: relative; height: 6px; margin-top: 9px; background: var(--track); border-radius: 3px; }
+.lbar .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; }
+.lbar .lo { position: absolute; top: 0; bottom: 0; border-radius: 0 3px 3px 0; }
+.lbar .wh { position: absolute; top: 50%; height: 1px; background: var(--whisker); }
+.lbar .wh::after { content: ""; position: absolute; right: -1px; top: -3px; width: 1px; height: 7px; background: var(--whisker); }
+.why { color: var(--text-muted); font-size: 12px; margin-top: 5px; min-height: 18px; }
+.axis { position: relative; height: 22px; margin-top: 18px; border-top: 1px solid var(--line); }
+.axis span { position: absolute; top: 6px; transform: translateX(-50%); color: var(--text-muted); font-size: 11px; }
+.axis span:first-child { transform: none; }
+.axis span:last-child { transform: translateX(-100%); }
+.card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 18px; gap: 12px; flex-wrap: wrap; }
+select { font: inherit; font-size: 13px; color: var(--text-primary); background: var(--card);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 8px; }
+.sec { padding: 0 0 80px; }
+.takeaways { list-style: none; padding: 0; margin: 0; max-width: 760px; counter-reset: t; }
+.takeaways li { counter-increment: t; padding: 16px 0 16px 34px; border-bottom: 1px solid var(--line); position: relative; }
+.takeaways li::before { content: counter(t); position: absolute; left: 6px; top: 16px; color: #4f46e5; }
+.takeaways b { display: block; font-weight: 500; font-size: 16px; margin-bottom: 3px; }
+.takeaways span { color: var(--text-secondary); font-size: 14px; }
+.grid { width: 100%; border-collapse: separate; border-spacing: 2px; }
+.grid th { color: var(--text-muted); font-weight: 400; font-size: 13px; text-align: left; padding: 8px 10px; }
+.grid th.c { text-align: center; }
+.grid td { padding: 0; }
+.grid td.nm { padding: 0 14px 0 4px; white-space: nowrap; font-weight: 500; }
+.cell { height: 46px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 14px; }
+.cell small { font-size: 11px; opacity: .8; }
+.sub { color: var(--text-secondary); margin: -8px 0 22px; max-width: 760px; }
+.method { color: var(--text-secondary); font-size: 14px; max-width: 820px; }
+.method p { margin: 0 0 12px; }
+.method b { color: var(--text-primary); font-weight: 500; }
+.tip { position: fixed; pointer-events: none; background: var(--text-primary); color: var(--surface-1);
+  font-size: 12.5px; padding: 9px 11px; border-radius: 8px; max-width: 300px; line-height: 1.45; z-index: 9; }
+.tip b { display: block; margin-bottom: 3px; }
+[hidden] { display: none !important; }
+@media (max-width: 900px) {
+  .lb { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); row-gap: 24px; }
+  .hero h1 { font-size: 34px; }
+}
 </style>
 </head>
 <body>
-<div class="page">
-  <p class="eyebrow">PrecedentBench · Vals Hacks 2026</p>
-  <h1>Can AI agents follow the rules nobody wrote down?</h1>
-  <p class="lede">Each agent joins the finance team at a simulated AI company, gets five new supplier
-  invoices and three months of company email, Slack and tickets. Which invoices need the finance director's
-  approval was never written down: the cutoff moved from $5,000 to $10,000 in October, and one supplier stopped
-  needing approval after signing a contract. The only way to know is to read how the team actually worked.</p>
+<div class="wrap">
+  <div class="crumbs">Vals Hacks 2026 › Build your own eval › <b>PrecedentBench</b></div>
 
-  <div class="controls">
-    <div class="legend" aria-label="Legend">
-      <span><i class="key-bar"></i>Pass rate, rule only in past work</span>
-      <span><i class="key-ci"></i>95% range</span>
-      <span><i class="key-dot"></i>Pass rate, same rule written in an email</span>
-    </div>
-    <div class="toggle" role="group" aria-label="View">
-      <button aria-pressed="true" data-view="chart">Chart</button><button aria-pressed="false" data-view="table">Table</button>
-    </div>
-  </div>
-
-  <section id="chart">
-    <div class="head">
-      <div></div><div>Model</div>
-      <div class="axis">{ticks}</div>
-      <div class="r">Unwritten</div><div class="r">Written</div>
-    </div>
-    {''.join(row_html)}
+  <section class="hero">
+    <h1>Can AI agents follow the rules<br>nobody wrote down?</h1>
+    <div class="with">PrecedentBench · built on Valkyrie, run on Modal</div>
+    <p>Every company runs on habits that live in past work, not in a handbook. PrecedentBench drops an agent
+    into a company's finance team and checks whether it does the job the way this team does it, using only
+    what the team did before.</p>
+    <div class="btns"><a class="btn primary" href="#leaderboard">See the leaderboard</a><a class="btn" href="#method">Read methodology</a></div>
   </section>
 
-  <section id="table" hidden>
-    <table>
-      <thead><tr><th>Model</th><th>Unwritten, passed</th><th>Unwritten, rate</th><th>95% range</th>
-      <th>Written, passed</th><th>Written, rate</th><th>How it missed (unwritten)</th></tr></thead>
-      <tbody>{table_rows}</tbody>
-    </table>
+  <section class="stats">
+    <div class="stat"><div class="v">__N_MODELS__</div><div class="k">Frontier models</div></div>
+    <div class="stat"><div class="v">3</div><div class="k">Levels of hidden</div></div>
+    <div class="stat"><div class="v">__ATTEMPTS__</div><div class="k">Attempts per level</div></div>
+    <div class="stat"><div class="v">__TOP__</div><div class="k">Top rule score</div></div>
   </section>
 
-  <div class="method">
-    <div><b>Pass</b> means every check holds: the one invoice that needs approval goes to the director, the four
-    that don't are logged and she isn't bothered about them, and past records are left untouched.</div>
-    <div><b>Attempts:</b> {n_txt} per model per version, each in a fresh sandbox. Range is a 95% Wilson
-    interval on the pass rate, wide because the number of attempts is small.</div>
-    <div><b>Written version</b> is the same company with three extra emails from the director stating the rules.
-    It checks the task is fair: a model that fails here is not failing because the rule is hidden.</div>
-    <div><b>Agents:</b> Claude models run in Claude Code, GPT models run in Codex, on Valkyrie with Modal sandboxes.
-    Company background: Redwood Inference corpus (EnterpriseRAG-Bench, Onyx, MIT).</div>
-  </div>
+  <section class="lb" id="leaderboard">
+    <div class="copy">
+      <h2>The PrecedentBench leaderboard</h2>
+      <p>The agent joins Redwood Inference's finance team. Five supplier invoices just came in, and three months
+      of company email, Slack and tickets sit in its workspace. The request is one line: log the invoices.</p>
+      <p>The catch: big invoices need the finance director's approval first, the cutoff quietly moved from $5,000
+      to $10,000 in October, and one supplier stopped needing approval after signing a contract. None of it is
+      written down. It only shows in how the team handled the last 90 invoices.</p>
+      <p>Each model runs the same task three ways: with the rule only in past work, with the rule also written in
+      an email, and with the rule told in the instruction. The last one is the fairness check.</p>
+      <div class="chips"><a href="#ladder">Where it breaks</a><a href="#takeaways">Takeaways</a><a href="#method">Methodology</a></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span>Model</span><span id="metric-label">Score</span></div>
+      <div id="rows"></div>
+      <div class="axis" id="axis"></div>
+      <div class="card-foot">
+        <select id="level" aria-label="Level"></select>
+        <select id="metric" aria-label="Metric">
+          <option value="rule">Rule score</option>
+          <option value="pass">Pass rate</option>
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <section class="sec" id="takeaways">
+    <h2>Key takeaways</h2>
+    <ol class="takeaways" id="tk"></ol>
+  </section>
+
+  <section class="sec" id="ladder">
+    <h2>Where it breaks</h2>
+    <p class="sub">Rule score per model as the rule gets harder to find. Same company, same invoices, same checks;
+    only where the rule lives changes.</p>
+    <table class="grid" id="grid"></table>
+  </section>
+
+  <section class="sec method" id="method">
+    <h2>Methodology</h2>
+    <p><b>Task.</b> Log five new supplier invoices. One ($13,960) needs the director's approval. Two ($7,280 and
+    $6,925) are under the new $10,000 cutoff. One ($11,340.50) is from the exempt supplier, and one is a small office
+    supply bill. The $6,925 one comes from a supplier whose last large invoice did go for approval, so copying the
+    last case for that supplier gets it wrong.</p>
+    <p><b>Rule score</b> is the share of the rule's three parts an attempt got right: (1) asked the director about the
+    one invoice that needs it, (2) left the two invoices under $10,000 alone, (3) left the exempt supplier alone.
+    Parts 2 and 3 only count when part 1 holds, so asking nobody earns nothing. <b>Pass rate</b> is the share of
+    attempts where every check holds, including bookkeeping (each invoice logged once, past records untouched).</p>
+    <p><b>Intervals.</b> Rule score: 95% bootstrap over attempts, 10,000 resamples. Pass rate: 95% Wilson interval.
+    Attempt counts are small, so intervals are wide. When every attempt scores zero the bootstrap range collapses to
+    zero; the pass-rate interval (0 to 32% for 0 of 8) is the honest bound there.</p>
+    <p><b>Company.</b> Background is 2,100 emails, Slack threads and tickets from the Redwood Inference corpus
+    (EnterpriseRAG-Bench by Onyx, MIT), filtered so nothing contradicts or hints at the rule. The finance history
+    (90 invoices, every supplier email, 16 approval threads) is generated from the rule itself, so it can't
+    disagree with the answer key.</p>
+    <p><b>Agents.</b> Claude models run in Claude Code, GPT models in Codex, each attempt in a fresh sandbox, via
+    Valkyrie on Modal. The grader is deterministic: no model grades another.</p>
+  </section>
 </div>
 <div class="tip" hidden></div>
 <script>
 const t = new URLSearchParams(location.search).get("theme");
 if (t) document.documentElement.dataset.theme = t;
-const tip = document.querySelector('.tip');
-document.querySelectorAll('.row').forEach(row => {{
-  const show = (x, y) => {{
-    const [title, ...lines] = row.dataset.tip.split('|');
-    tip.innerHTML = '<b>' + title + '</b>' + lines.join('<br>');
-    tip.hidden = false;
-    const w = tip.offsetWidth;
-    tip.style.left = Math.min(x + 14, innerWidth - w - 8) + 'px';
-    tip.style.top = (y + 14) + 'px';
-  }};
-  row.addEventListener('mousemove', e => show(e.clientX, e.clientY));
-  row.addEventListener('mouseleave', () => tip.hidden = true);
-  row.addEventListener('focus', () => {{ const r = row.getBoundingClientRect(); show(r.left + 240, r.top); }});
-  row.addEventListener('blur', () => tip.hidden = true);
-}});
-document.querySelectorAll('.toggle button').forEach(b => b.addEventListener('click', () => {{
-  document.querySelectorAll('.toggle button').forEach(x => x.setAttribute('aria-pressed', x === b));
-  document.getElementById('chart').hidden = b.dataset.view !== 'chart';
-  document.getElementById('table').hidden = b.dataset.view !== 'table';
-}}));
+const D = __DATA__;
+const levelSel = document.getElementById("level"), metricSel = document.getElementById("metric");
+D.levels.forEach(([k, label]) => levelSel.add(new Option(label, k)));
+const qp = new URLSearchParams(location.search);
+if (qp.get("level")) levelSel.value = qp.get("level");
+if (qp.get("metric")) metricSel.value = qp.get("metric");
+const LAB = l => l === "Anthropic" ? "anthropic" : "openai";
+const fmt = x => (x * 100).toFixed(1) + "%";
+
+function rows() {
+  const lv = levelSel.value, mt = metricSel.value;
+  document.getElementById("metric-label").textContent = mt === "rule" ? "Rule score" : "Pass rate";
+  const list = Object.values(D.models).filter(m => m.levels[lv])
+    .map(m => ({m, s: m.levels[lv][mt], d: m.levels[lv]}))
+    .sort((a, b) => b.s[0] - a.s[0] || b.s[2] - a.s[2] || a.m.name.localeCompare(b.m.name));
+  document.getElementById("rows").innerHTML = list.map(({m, s, d}) => {
+    const [p, lo, hi] = s, c = LAB(m.lab);
+    const why = Object.entries(d.fails).map(([k, n]) => `${k} (${n})`).join(", ");
+    const tip = [m.name + " · " + m.agent,
+      `Rule score ${fmt(d.rule[0])} (95%: ${fmt(d.rule[1])}–${fmt(d.rule[2])})`,
+      `Pass rate ${d.k}/${d.n} = ${fmt(d.pass[0])} (95%: ${fmt(d.pass[1])}–${fmt(d.pass[2])})`,
+      why ? "Misses: " + why : "No misses"].join("|");
+    return `<div class="lrow" tabindex="0" data-tip="${tip.replace(/"/g, "&quot;")}">
+      <div class="ltop"><span class="mname"><i class="mark" style="background:var(--${c}-b)"></i>${m.name}
+        <span class="mtag">${m.agent}</span></span>
+        <span class="mscore mono">${fmt(p)}<span class="ci">${fmt(lo)}–${fmt(hi)}</span></span></div>
+      <div class="lbar">
+        <div class="fill" style="width:${Math.max(p * 100, .8)}%;background:linear-gradient(90deg,var(--${c}-a),var(--${c}-b))"></div>
+        ${p > lo ? `<div class="lo" style="left:${lo * 100}%;width:${(p - lo) * 100}%;background:var(--${c}-c)"></div>` : ""}
+        ${hi > p ? `<div class="wh" style="left:${p * 100}%;width:${(hi - p) * 100}%"></div>` : ""}
+      </div>
+      <div class="why">${why ? "Misses: " + why : "&nbsp;"}</div>
+    </div>`;
+  }).join("");
+  bindTips();
+}
+
+document.getElementById("axis").innerHTML = [0, 20, 40, 60, 80, 100].map(v => `<span style="left:${v}%">${v}%</span>`).join("");
+
+function grid() {
+  const hid = m => (m.levels.hidden ? m.levels.hidden.rule[0] : 0);
+  const order = Object.values(D.models).sort((a, b) => hid(b) - hid(a) || a.name.localeCompare(b.name));
+  const lv = [...D.levels].reverse();
+  const head = "<tr><th></th>" + lv.map(([, l]) => `<th class="c">${l}</th>`).join("") + "</tr>";
+  const body = order.map(m => "<tr><td class='nm'>" + m.name + "</td>" + lv.map(([k]) => {
+    const d = m.levels[k];
+    if (!d) return "<td><div class='cell' style='background:var(--cell-0);color:var(--text-muted)'>running</div></td>";
+    const v = d.rule[0];
+    const bg = `color-mix(in oklab, #2a78d6 ${Math.round(v * 85)}%, var(--cell-0))`;
+    const ink = v > .55 ? "#fff" : "var(--cell-ink)";
+    return `<td><div class="cell mono" style="background:${bg};color:${ink}">${fmt(v)}<small>${d.k}/${d.n} passed</small></div></td>`;
+  }).join("") + "</tr>").join("");
+  document.getElementById("grid").innerHTML = head + body;
+}
+
+function takeaways() {
+  const M = Object.values(D.models);
+  const H = M.filter(m => m.levels.hidden);
+  const best = H.reduce((a, b) => (b.levels.hidden.rule[0] > a.levels.hidden.rule[0] ? b : a));
+  const never = H.filter(m => (m.levels.hidden.fails["never asked for approval"] || 0) === m.levels.hidden.n).length;
+  const items = [[`Only ${best.name} reliably works out the unwritten rule`,
+    `It reaches a ${fmt(best.levels.hidden.rule[0])} rule score when the rule lives only in past work. ` +
+    `In its own words: "${D.quote}"`]];
+  items.push([`${never} of ${H.length} models never ask for approval at all`,
+    "Asked to log five invoices, they log all five and stop. In the runs we read, they looked at the inbox and the " +
+    "spreadsheet and never opened the email history, so they never met the rule, not even when it was written in an email. " +
+    "Told the rule in the instruction, the same models follow it."]);
+  const opus = M.find(m => m.name === "Opus 5.5");
+  if (opus && opus.levels.hidden) {
+    const f = opus.levels.hidden.fails, wrong = (f["used the old $5k rule"] || 0) + (f["missed the Halverson exception"] || 0) + (f["missed the $10k change"] || 0);
+    items.push(["Finding the habit is not the same as getting it right",
+      `In ${wrong} of ${opus.levels.hidden.n} attempts Opus 5.5 found the approval threads and still got the rule wrong, ` +
+      "mostly by applying the old $5,000 cutoff to everything. Rule changes and exceptions are where precedent reasoning breaks."]);
+  }
+  const told = M.filter(m => m.levels.told);
+  if (told.length) {
+    const ok = told.filter(m => m.levels.told.rule[0] >= .8).length;
+    items.push(["Told the rule, models follow it",
+      `${ok} of ${told.length} models score 80% or more when the rule is in the instruction. ` +
+      "The gap between that and the hidden version is the cost of rules nobody wrote down."]);
+  }
+  document.getElementById("tk").innerHTML = items.map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("");
+}
+
+const tip = document.querySelector(".tip");
+function bindTips() {
+  document.querySelectorAll(".lrow").forEach(row => {
+    const show = (x, y) => {
+      const [title, ...lines] = row.dataset.tip.split("|");
+      tip.innerHTML = "<b>" + title + "</b>" + lines.join("<br>");
+      tip.hidden = false;
+      tip.style.left = Math.min(x + 14, innerWidth - tip.offsetWidth - 8) + "px";
+      tip.style.top = (y + 14) + "px";
+    };
+    row.onmousemove = e => show(e.clientX, e.clientY);
+    row.onmouseleave = () => tip.hidden = true;
+    row.onfocus = () => { const r = row.getBoundingClientRect(); show(r.left + 30, r.bottom); };
+    row.onblur = () => tip.hidden = true;
+  });
+}
+levelSel.onchange = rows; metricSel.onchange = rows;
+rows(); grid(); takeaways();
 </script>
 </body>
 </html>
@@ -275,7 +415,8 @@ document.querySelectorAll('.toggle button').forEach(b => b.addEventListener('cli
 
 
 if __name__ == "__main__":
-    rows = summarize(json.loads((HERE / "v3_attempts.json").read_text()))
-    (HERE / "leaderboard.html").write_text(render(rows))
-    for r in rows:
-        print(f"{r['name']:20s} unwritten {r['hidden']['k']}/{r['hidden']['n']}  written {r['written']['k']}/{r['written']['n']}")
+    data = summarize(json.loads((HERE / "v3_attempts.json").read_text()))
+    (HERE / "leaderboard.html").write_text(page(data))
+    for m in data.values():
+        print(m["name"].ljust(12), "  ".join(
+            f"{k}: rule {v['rule'][0]*100:5.1f}% pass {v['k']}/{v['n']}" for k, v in m["levels"].items()))
