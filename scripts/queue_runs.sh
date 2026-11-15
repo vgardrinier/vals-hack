@@ -1,12 +1,12 @@
 #!/bin/bash
-# Start Valkyrie runs one by one, never letting the team go above MAX_ACTIVE runs at once.
+# Start Valkyrie runs one by one, never letting the team go above MAX_ACTIVE (10, the Vals org limit) runs at once.
 #
 #   DATASET=yaya/precedent@4 TASKS=task-a,task-b [CONCURRENCY=2] scripts/queue_runs.sh runs.txt "agent|model|ENV_VAR secret-name" ...
 #
 # Appends "<model> <run_id>" to runs.txt for each started run.
 # The limit counts every in-progress run in the org (yours and teammates'), not just this script's.
 set -u
-MAX_ACTIVE=5
+MAX_ACTIVE=10   # vals caps the org at 10 runs at once; use all of it
 out=$1; shift
 cd /tmp
 
