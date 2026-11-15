@@ -401,8 +401,8 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
     task attempts where every check holds, including bookkeeping (each invoice logged once, past records untouched).
     Intervals: Mean Score, 95% bootstrap over tries (10,000 resamples); Pass@1, 95% Wilson. "±" shows half the
     interval's width.</p>
-    <p><b>Levels.</b> For task 5 only: pointed (the instruction adds "handle these the way the team usually does"), no
-    pointer, rule written in an email among ~800 others, and rule told in the instruction. Every model passes every
+    <p><b>Levels.</b> For task 5 only: pointed (the instruction adds "handle these the way the team usually does"),
+    rule written in an email among ~800 others, and rule told in the instruction. Every model passes every
     told attempt, so the task is fair.</p>
     <p><b>Company.</b> Background is 2,100 emails, Slack threads and tickets from the Redwood Inference corpus
     (EnterpriseRAG-Bench by Onyx, MIT), filtered so nothing contradicts or hints at a rule. The grader is deterministic:
