@@ -190,6 +190,14 @@ def build_history(rng: random.Random, dose: int, l2: bool) -> list[dict]:
         for i in range(dose):
             add(fin[1 + i * 2], rng.choice(["Juniperline Games", "Ellingham Retail", "Quillfeather Studio"]),
                 rng.uniform(2200, 4600), "billing error")                          # finance
+        # contrast rows so the finance habit is readable: billing-error refunds between $1,000 and $2,000
+        # (no note) and Dedicated billing errors over $2,000 (credit, no note) after Oct 19
+        for i in range(3):
+            add(fin[2 + i * 2], rng.choice(["Ostrava Freight", "Cindervale Labs", "Glenhaven Media"]),
+                rng.uniform(1150, 1900), "billing error")
+        for i in range(2):
+            add(fin[3 + i * 3], rng.choice(["Farrowdale Logistics", "Kestrelmoor Insurance", "Tamsin Learning"]),
+                rng.uniform(2200, 4400), "billing error")
         # stable duplicate habit: a few re-sent requests over the months
         for i in range(6):
             src = rng.choice([e for e in ev if not e["dup"] and e["customer"] != "Harrowgate Bank"])
@@ -410,6 +418,13 @@ def self_check(ev: list[dict], new: list[dict], dose: int, l2: bool, blob: str) 
     assert sum(1 for e in ev if e["dup"]) >= (5 if l2 else 0)
     assert sum(1 for e in ev if CUSTOMERS[e["customer"]] == "Dedicated") >= 8
     assert sum(1 for e in ev if e["reason"] == "outage") >= 8
+    if l2:   # every condition of the finance habit must be visible after Oct 19
+        bills = [e for e in ev if e["received"] >= FIN_DATE and e["reason"] == "billing error" and not e["dup"]]
+        assert sum(1 for e in bills if e["note"] == "finance check") >= dose
+        assert sum(1 for e in bills if e["decision"] == "refund" and 1000 < e["amount"] <= 2000
+                   and e["customer"] != "Harrowgate Bank") >= 3, "no contrast for the $2,000 condition"
+        assert sum(1 for e in bills if CUSTOMERS[e["customer"]] == "Dedicated" and e["amount"] > 2000) >= 2, \
+            "no contrast for the refunds-only condition"
     assert len(new) == 15 and len({q["ticket"] for q in new}) == 15
     # only the planted re-sent request may repeat a (customer, amount, reason) seen in the batch or the history
     seen = {(e["customer"], e["amount"], e["reason"]) for e in ev}

@@ -80,7 +80,7 @@
  {
   "task": "refunds-l2-k3",
   "strategy": "copy last decision for the customer",
-  "mean": 0.2,
+  "mean": 0.2667,
   "pass": 0.0
  },
  {
@@ -152,7 +152,7 @@
  {
   "task": "refunds-l3-k3",
   "strategy": "copy last decision for the customer",
-  "mean": 0.2,
+  "mean": 0.2667,
   "pass": 0.0
  },
  {
@@ -224,7 +224,7 @@
  {
   "task": "refunds-told",
   "strategy": "copy last decision for the customer",
-  "mean": 0.2,
+  "mean": 0.2667,
   "pass": 0.0
  },
  {
