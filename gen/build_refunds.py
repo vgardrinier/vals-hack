@@ -1,4 +1,4 @@
-"""PrecedentBench, second job: customer refund requests at Redwood Inference's support team.
+"""Implicit Action Bench (invoices track), second job: customer refund requests at Redwood Inference's support team.
 
     python3 gen/build_refunds.py <redwood_docs_dir> <out_dir>
 

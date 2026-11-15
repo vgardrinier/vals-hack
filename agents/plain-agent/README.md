@@ -1,6 +1,6 @@
 # plain-agent
 
-One minimal agent loop for every model, so PrecedentBench compares models, not products.
+One minimal agent loop for every model, so Implicit Action Bench compares models, not products.
 Same system prompt, one `run` (bash) tool, 80 steps max, reasoning effort "high", no fallbacks.
 
     valkyrie agent push agents/plain-agent

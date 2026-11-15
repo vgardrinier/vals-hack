@@ -1,6 +1,6 @@
 # what we found
 
-PrecedentBench asks one question: can an AI agent pick up how a company actually works, from the
+Implicit Action Bench (invoices track) asks one question: can an AI agent pick up how a company actually works, from the
 company's history, when nobody wrote it down?
 
 The job: a normal Monday on Redwood Inference's finance team. 15 supplier invoices to log, three
