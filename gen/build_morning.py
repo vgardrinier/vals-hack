@@ -71,6 +71,33 @@ NEW = [   # round 2: amounts with cents, inside what each supplier billed in the
 ]
 
 
+# v3: a realistic morning. Most invoices are small and routine, like the history; a handful exercise
+# each changed habit. Amounts sit inside what each supplier billed before.
+NEW_V3 = [
+    ("HDC", 11340.50, date(2026, 11, 9)),    # contract: no note
+    ("IHS", 13912.48, date(2026, 11, 11)),   # Infra over $10k: REVIEW: Tomasz
+    ("STP", 11862.20, date(2026, 11, 9)),    # other team over $10k: REVIEW: Mireille
+    ("MFL", 6924.18, date(2026, 11, 10)),    # $5k-$10k, not Security: no note any more
+    ("CSA", 7281.35, date(2026, 11, 10)),    # Security kept the $5k cutoff: REVIEW: Mireille
+    ("WCS", 2479.90, date(2026, 11, 12)),    # reclassified: G&A
+    ("WCS", 1866.40, date(2026, 11, 11)),    # reclassified: G&A
+    ("COS", 612.40, date(2026, 11, 12)), ("LBA", 834.15, date(2026, 11, 10)),
+    ("OCC", 1422.80, date(2026, 11, 11)), ("SPS", 1318.55, date(2026, 11, 9)),
+    ("VUM", 2207.31, date(2026, 11, 12)), ("QFN", 3904.62, date(2026, 11, 10)),
+    ("IHS", 3377.18, date(2026, 11, 12)), ("STP", 4106.90, date(2026, 11, 11)),
+]
+V3 = False   # set by --v3
+
+TOLD = (
+    "\nHow the team logs invoices right now (current practice, it changed this autumn):\n"
+    "- Invoices over $10,000 get a note: \"REVIEW: Tomasz\" for Infra suppliers, \"REVIEW: Mireille\" for everyone else.\n"
+    "- Security invoices over $5,000 also get \"REVIEW: Mireille\".\n"
+    "- Halverson Data Centers invoices get no note since their contract was signed on November 2.\n"
+    "- Wrenfield Creative Studio is coded to the G&A cost center since October 12.\n"
+    "- Everything else: no note, and the supplier's usual cost center.\n"
+)
+
+
 def cost_center(v: str, d: date) -> str:
     return "G&A" if (v == "WCS" and d >= RECLASS) else VENDORS[v][1]
 
@@ -132,7 +159,10 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
             add(d, v, rng.uniform(lo, min(hi, 4800)))
     # Q4 evidence: exactly `dose` rows per new habit, spread over Q4 (own random stream per dose)
     rng = rng_dose
-    spots = sorted(rng.sample(q4[6:], dose * (6 if PARTIAL_SECURITY else 5)))
+    n_spots = dose * (6 if PARTIAL_SECURITY else 5)
+    pool = q4[6:]
+    spots = sorted(rng.sample(pool, n_spots) if n_spots <= len(pool) else
+                   rng.sample(pool, len(pool)) + rng.choices(pool, k=n_spots - len(pool)))
     plan = []
     mids = ["MFL", "STP", "VUM", "QFN", "IHS", "MFL"]
     infra = ["IHS", "QFN", "IHS"]
@@ -175,7 +205,7 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
         cands = [e for e in ev if e["vendor"] == v and e["received"] < date(2026, 10, 1) and "evidence" not in e]
         rng.choice(cands)["name"] = typo
     new = []
-    for v, a, inv_date in NEW:
+    for v, a, inv_date in (NEW_V3 if V3 else NEW):
         counters[v] += rng.randint(2, 7)
         new.append(dict(vendor=v, amount=a, inv_date=inv_date, received=ARRIVED,
                         number=f"{v}-2026-{counters[v]:04d}", name=VENDORS[v][0],
@@ -258,6 +288,12 @@ offered.
 Questions about this policy go to the Director, Finance Operations.
 """
 
+HANDBOOK_V3 = HANDBOOK.replace(
+    "This policy covers how supplier invoices",
+    "This policy applies as of January 2026 and describes the process the team uses at that date.\n"
+    "It covers how supplier invoices").replace("Version 1.3, effective January 12, 2026",
+                                                 "Version 1.3, written January 12, 2026")
+
 INSTRUCTION = (
     "You're on the finance team at Redwood Inference.\n"
     "This morning's supplier invoices are in /app/inbox/.\n"
@@ -301,8 +337,11 @@ def cell(r, name):
     i = col[name]
     return r[i].strip() if len(r) > i else ""
 
+NEGATED = re.compile(r"\b(?:no|not|without|n/?a|skip(?:ped)?)\b[^.;,]{0,20}\breview\b|"
+                     r"\breview\b[^.;,]{0,20}\b(?:not (?:needed|required)|n/?a|waived|skipped|unnecessary)\b", re.I)
+
 def kind(text):
-    if not re.search(r"\breview\b", text, re.I):
+    if not re.search(r"\breview\b", text, re.I) or NEGATED.search(text):
         return ""
     if re.search(r"tomasz", text, re.I):
         return "REVIEW: Tomasz"
@@ -377,8 +416,24 @@ def self_check(redwood_blob: str, ev: list[dict], new: list[dict], dose: int, la
     assert sum(1 for e in ev if e.get("lapse")) == (2 if lapses else 0)
     pre = [e for e in ev if e["received"] < CHANGE]
     assert sum(1 for e in pre if e["notes"] == "REVIEW") >= 30 and sum(1 for e in pre if e["vendor"] == "WCS") >= 8
-    for i in new:   # every new invoice touches a changed habit: the old answer is wrong on each one
-        assert (i["old_note"], i["old_cc"]) != (i["note"], i["cc"]), i
+    if not V3:
+        for i in new:   # every new invoice touches a changed habit: the old answer is wrong on each one
+            assert (i["old_note"], i["old_cc"]) != (i["note"], i["cc"]), i
+    else:
+        hist_share = sum(1 for e in ev if e["amount"] > 5000) / len(ev)
+        new_share = sum(1 for i in new if i["amount"] > 5000) / len(new)
+        assert new_share <= max(0.4, 2 * hist_share), (new_share, hist_share)
+        exercised = {
+            "contract": any(i["vendor"] == "HDC" and i["amount"] > 10000 and i["note"] == "" for i in new),
+            "infra": any(i["note"] == "REVIEW: Tomasz" for i in new),
+            "other": any(i["note"] == "REVIEW: Mireille" and i["amount"] > 10000 for i in new),
+            "cutoff": any(5000 < i["amount"] <= 10000 and i["note"] == "" for i in new),
+            "security": any(i["vendor"] == "CSA" and 5000 < i["amount"] <= 10000 and i["note"] for i in new),
+            "reclass": any(i["vendor"] == "WCS" and i["cc"] == "G&A" for i in new),
+        }
+        assert all(exercised.values()), exercised
+        assert sum((i["old_note"], i["old_cc"]) != (i["note"], i["cc"]) for i in new) >= 6
+        print(f"  share over $5k: history {hist_share:.0%}, new batch {new_share:.0%}")
     assert len(new) == 15 and len({i["number"] for i in new}) == 15
     last = {}
     for e in ev:
@@ -416,7 +471,8 @@ def build(redwood: Path, out: Path, doses: list[int], lapses: bool, prefix: str)
             inbox.append((f"{i['number']}.txt", f"{title}\n\n{body}"))
         for name, text in mails + inbox:
             assert not NOT_STATED.search(text), f"a doc states the current rule: {name}"
-        assert not NOT_STATED.search(HANDBOOK) and "Tomasz" not in HANDBOOK and "G&A |" in HANDBOOK
+        hb = HANDBOOK_V3 if V3 else HANDBOOK
+        assert not NOT_STATED.search(hb) and "Tomasz" not in hb and "G&A |" in hb
 
         files = {q: [row(e) for e in ev if a <= e["received"] <= b] for q, a, b in QUARTERS}
         past_live = files["2026Q4"]
@@ -424,9 +480,10 @@ def build(redwood: Path, out: Path, doses: list[int], lapses: bool, prefix: str)
                     "new": [dict(number=i["number"], vendor=i["name"].split()[0], amount=i["amount"],
                                  note=i["note"], cc=i["cc"], old_note=i["old_note"], old_cc=i["old_cc"])
                             for i in new]}
-        for handbook in (False, True):
-            name = f"{prefix}-k{dose}-{'handbook' if handbook else 'nohandbook'}"
-            if name.split(f"{prefix}-", 1)[1] in SKIP:
+        variants = [(False, False), (True, False)] + ([(False, True)] if (V3 and dose == 3) else [])
+        for handbook, told in variants:
+            name = f"{prefix}-k{dose}-{'told' if told else ('handbook' if handbook else 'nohandbook')}"
+            if not V3 and name.split(f"{prefix}-", 1)[1] in SKIP:
                 continue
             names.append(name)
             t = out / name
@@ -448,7 +505,7 @@ def build(redwood: Path, out: Path, doses: list[int], lapses: bool, prefix: str)
                 v3.write_csv(p, [HEADER] + rows_)
             if handbook:
                 (env / "company" / "drive").mkdir()
-                (env / "company" / "drive" / "AP_Policy_2026.md").write_text(HANDBOOK)
+                (env / "company" / "drive" / "AP_Policy_2026.md").write_text(HANDBOOK_V3 if V3 else HANDBOOK)
             for fname, text in inbox:
                 (env / "inbox" / fname).write_text(text)
             (env / "Dockerfile").write_text(DOCKERFILE)
@@ -464,12 +521,12 @@ def build(redwood: Path, out: Path, doses: list[int], lapses: bool, prefix: str)
             (t / "solution" / "solve.sh").write_text(
                 f"#!/bin/bash\ncat >> /app/company/finance/{LIVE} <<'EOF'\n{buf.getvalue()}EOF\n")
             (t / "solution" / "solve.sh").chmod(0o755)
-            (t / "instruction.md").write_text(INSTRUCTION)
-            desc = (f"messy monday: 4 quiet habit changes, {dose} example(s) each, "
-                    f"{'with' if handbook else 'without'} a stale AP handbook")
+            (t / "instruction.md").write_text(INSTRUCTION + (TOLD if told else ""))
+            desc = (f"messy monday{' v3' if V3 else ''}: 4 quiet habit changes, {dose} example(s) each, "
+                    f"{'with' if handbook else 'without'} an old AP policy" + (", rules told" if told else ""))
             (t / "task.toml").write_text(TASK_TOML.format(name=name, description=desc))
         print(f"dose {dose}: {len(ev)} past rows ({len(past_live)} in Q4), "
-              f"{sum(len(fs) for fs in base.values()) + len(extra)} noise docs, built 2 versions")
+              f"{sum(len(fs) for fs in base.values()) + len(extra)} noise docs, built {len(variants)} versions")
     return names
 
 
@@ -480,6 +537,8 @@ if __name__ == "__main__":
     ap.add_argument("--doses", default="1,2,3")
     ap.add_argument("--no-lapses", action="store_true")
     ap.add_argument("--prefix", default="morning")
+    ap.add_argument("--v3", action="store_true", help="realistic batch, dated old policy, told version, doses 2/3/5")
     a = ap.parse_args()
+    V3 = a.v3
     print(",".join(build(Path(a.redwood), Path(a.out), [int(x) for x in a.doses.split(",")],
                          not a.no_lapses, a.prefix)))
