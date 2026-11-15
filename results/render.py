@@ -132,7 +132,9 @@ def build_data() -> dict:
         }
         out["models"].append({
             "id": mid, "name": name, "lab": lab, "levels": lvl,
-            "main": stats(by("L1", 5) + by("L2", 5) + by("L3", 5)),
+            # main view: 3 examples per habit (enough to see the pattern); 5 examples behind a toggle
+            "main": stats(by("L1", 3) + by("L2", 3) + by("L3", 3)),
+            "main5": stats(by("L1", 5) + by("L2", 5) + by("L3", 5)),
             "told": stats(by("TOLD")), "habits": {kk: sum(v) / len(v) for kk, v in hb.items() if v}, **extra,
         })
     out["models"].sort(key=lambda m: (-m["main"]["pass"], -m["main"]["mean"]))
@@ -177,7 +179,7 @@ def page(d: dict) -> str:
     top3 = ms[:3]
     k3 = sum(m["levels"]["L2"][3]["k"] for m in top3), sum(m["levels"]["L2"][3]["n"] for m in top3)
     k5 = sum(m["levels"]["L2"][5]["k"] for m in top3), sum(m["levels"]["L2"][5]["n"] for m in top3)
-    sm = sum(m["main"]["k"] for m in small), sum(m["main"]["n"] for m in small)
+    sm = sum(m["main5"]["k"] for m in small), sum(m["main5"]["n"] for m in small)
     hard = (f"It depends on how much evidence the team left. With 8 habits each shown by 3 recent invoices, the top three "
             f"agents get the whole morning right in {k3[0]} of {k3[1]} tries; with 5 invoices per habit, {k5[0]} of {k5[1]}. "
             f"Opus and Sonnet get {sm[0]} of {sm[1]} even with 5 examples, yet {sum(m['told']['k'] for m in small)} of "
@@ -372,7 +374,7 @@ footer { border-top:1px solid var(--line); color:var(--text-muted); font-size:12
   <section class="stats">
     <div class="stat"><div class="value">__N_MODELS__</div><div class="key">frontier models</div></div>
     <div class="stat"><div class="value">8</div><div class="key">habits, nobody wrote down</div></div>
-    <div class="stat"><div class="value">__BEST__</div><div class="key">best whole-job pass rate, 5 examples</div></div>
+    <div class="stat"><div class="value">__BEST__</div><div class="key">best whole-job pass rate, 3 examples</div></div>
     <div class="stat"><div class="value">__L2K3__</div><div class="key">top-3 pass rate, 8 habits, 3 examples each</div></div>
   </section>
 
@@ -399,6 +401,7 @@ footer { border-top:1px solid var(--line); color:var(--text-muted); font-size:12
       <div class="control-bar">
         <div class="control-group"><span>Score view</span><div class="segmented" id="score-toggle"><button data-mode="pass" aria-pressed="true">Whole job right</button><button data-mode="mean" aria-pressed="false">Invoices right</button></div></div>
         <div class="control-group"><span>Level</span><div class="segmented" id="doc-toggle"><button data-doc="main" aria-pressed="true">All levels</button><button data-doc="L1" aria-pressed="false">4 habits</button><button data-doc="L2" aria-pressed="false">8 habits</button><button data-doc="L3" aria-pressed="false">8 + old doc</button></div></div>
+        <div class="control-group"><span>Examples per habit</span><div class="segmented" id="dose-toggle"><button data-d="3" aria-pressed="true">3</button><button data-d="5" aria-pressed="false">5</button></div></div>
       </div>
       <div class="card-head leader-columns"><span>Model</span><span id="score-head">Whole job right</span><span>Invoices right</span></div>
       <div id="rows"></div>
@@ -409,7 +412,7 @@ footer { border-top:1px solid var(--line); color:var(--text-muted); font-size:12
     <div class="card plot-card">
       <div class="plot-head">
         <div><b>The complexity ladder</b><span class="sub2">Whole job right as the team's habits get more like a real company's</span></div>
-        <div class="control-group"><span>Examples per habit</span><div class="segmented" id="curve-toggle"><button data-c="5" aria-pressed="true">5</button><button data-c="3" aria-pressed="false">3</button></div></div>
+        <div class="control-group"><span>Examples per habit</span><div class="segmented" id="curve-toggle"><button data-c="3" aria-pressed="true">3</button><button data-c="5" aria-pressed="false">5</button></div></div>
       </div>
       <svg class="curve" id="curve" viewBox="0 0 960 360" role="img" aria-label="Pass rate by level, one line per model"></svg>
       <div class="legend" id="legend"></div>
@@ -467,7 +470,7 @@ const P1 = x => (x * 100).toFixed(1) + "%";
 const ICON = l => D.icons[l] || "";
 const COLORS = ["--s1","--s2","--s3","--s4","--s5"];
 const LV = {L1: "4 habits", L2: "8 habits", L3: "8 habits + old doc"};
-let mode = "pass", lev = "main", dose = 5;
+let mode = "pass", lev = "main", dose = 3, ldose = 3;
 const tip = document.querySelector(".tip");
 function bindTips(root) {
   root.querySelectorAll("[data-tip]").forEach(el => {
@@ -476,7 +479,7 @@ function bindTips(root) {
     el.onmouseleave = () => tip.hidden = true;
   });
 }
-const pick = m => lev === "main" ? m.main : m.levels[lev][5];
+const pick = m => lev === "main" ? (ldose === 5 ? m.main5 : m.main) : m.levels[lev][ldose];
 function rows() {
   document.getElementById("score-head").textContent = mode === "pass" ? "Whole job right" : "Invoices right";
   const list = D.models.map(m => ({m, s: pick(m)})).sort((a, b) => (mode === "pass" ? b.s.pass - a.s.pass : b.s.mean - a.s.mean) || b.s.mean - a.s.mean);
@@ -495,7 +498,7 @@ function rows() {
       <div class="leader-bar"><div class="leader-fill" style="width:${Math.max(v * 100, .6)}%;background:var(--base)"></div></div></div>`;
   }).join("");
   document.getElementById("rows").innerHTML = html;
-  document.getElementById("foot-n").textContent = `${D.models[0] ? pick(D.models[0]).n : 0} tries / model · 5 examples per habit`;
+  document.getElementById("foot-n").textContent = `${D.models[0] ? pick(D.models[0]).n : 0} tries / model · ${ldose} examples per habit`;
   bindTips(document.getElementById("rows"));
 }
 document.getElementById("axis").innerHTML = [0,20,40,60,80,100].map(v => `<span style="left:${v}%">${v}%</span>`).join("");
@@ -579,6 +582,7 @@ document.querySelectorAll("#doc-toggle button").forEach(b => b.onclick = () => {
 document.querySelectorAll("#curve-toggle button").forEach(b => b.onclick = () => { dose = +b.dataset.c; document.querySelectorAll("#curve-toggle button").forEach(x => x.setAttribute("aria-pressed", x === b)); curve(); });
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
   ["t-breaks","t-versions","t-base","t-vendor"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab); });
+document.querySelectorAll("#dose-toggle button").forEach(b => b.onclick = () => { ldose = +b.dataset.d; document.querySelectorAll("#dose-toggle button").forEach(x => x.setAttribute("aria-pressed", x === b)); rows(); });
 rows(); curve(); tables(); insights(); examples(); fair();
 </script>
 </body>
