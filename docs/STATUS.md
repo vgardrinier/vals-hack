@@ -1,3 +1,22 @@
+## Second job: customer refunds (Nov 15, ~11:50)
+
+Same idea at Redwood's support team: 15 open refund/credit requests, a refunds log with ~300 past decisions
+in three quarterly files, ~2,500 Redwood docs as noise (including real-looking credit/billing tickets).
+Habits: credit up to a cutoff that moved from $500 to $1,000 in October; Dedicated tier always credit;
+Private-tier refunds approved by Lucas Fairbairn since October (Nadia Thorsby otherwise); outage note;
+L2 adds a contract customer (Harrowgate) always refunded via Lucas, duplicates denied, unused credits denied,
+billing-error refunds over $2,000 noted "finance check". L3 adds January's support policy. Told control 25/25.
+
+Whole job right, 3 examples per habit, all levels pooled: Fable 79%, Sol 67%, Astra 67%, Sonnet 20%, Opus 7%.
+Invoices + refunds together: Sol 55%, Fable 46%, Astra 42%, Opus 8%, Sonnet 8%. Brainless scripts: 0%.
+
+What we fixed before trusting it (all three were our task's fault, caught by reading runs and the told control):
+1. the 8-habit batch had the same request twice by accident; models rightly called it a duplicate
+2. the history didn't show both sides of the "finance check" rule ($1-2k billing refunds, Dedicated credits)
+3. the history didn't pin the new cutoff (no refunds just above $1,000), so $1,210 / $1,460 were ambiguous
+Each fix added a self-check to gen/build_refunds.py; the final numbers come from one clean full rerun (yaya/refunds@4).
+Generator: gen/build_refunds.py, grader test + baselines: gen/test_refunds_grader.py, results: results/refunds_v1.json.
+
 # Status: where PrecedentBench is (Sun Nov 15, ~10:45am)
 
 Read this first. The README has the commands; this has the story and the numbers.

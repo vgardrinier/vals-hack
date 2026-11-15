@@ -1,0 +1,20 @@
+[
+ {
+  "label": "Sees the change, follows the old policy",
+  "model": "Claude Opus 5.5",
+  "version": "Refunds, 8 habits + old policy, 3 examples each",
+  "quote": "Since mid-October he has approved them... The policy names only Nadia Thorsby as approver... That doesn't make him an approver, so I listed Nadia on the Private refunds.",
+  "observed": "Followed January's written policy for all 15 requests: refunded everything over $500 and sent every refund to Nadia. It explicitly noticed Lucas Fairbairn approving Private-tier refunds since October, then discarded it because the policy doesn't say so.",
+  "why": "The agent had the evidence and reasoned about it, but trusted the outdated document over what the team actually does. That is the tacit-knowledge gap in one decision.",
+  "run": "valkyrie run 70a0973b-2ad5-4166-9454-03fd8c061db6 \u00b7 refunds-l3-k3-r1"
+ },
+ {
+  "label": "Reads the team, not the doc",
+  "model": "Claude Fable 5.2",
+  "version": "Refunds, 8 habits + old policy, 3 examples each",
+  "quote": "Four of them follow how the team has actually been deciding this quarter rather than the written policy, which was last reviewed in January and no longer matches the log.",
+  "observed": "All 15 decisions right: the new $1,000 credit cutoff, Lucas Fairbairn for Private-tier and Harrowgate refunds, the finance-check note only on billing-error refunds over $2,000, the duplicate and the unused-credits denial.",
+  "why": "With 3 recent examples per habit, the strongest agents can rebuild eight unwritten habits on a second, different job. The task is learnable.",
+  "run": "valkyrie run ae6d478c-fb80-4b58-b7c5-d7923e15a725 \u00b7 refunds-l3-k3-r1"
+ }
+]
