@@ -195,7 +195,7 @@ def summarize_drift(data: dict, attempts: list[dict]) -> int:
 def page(data: dict) -> str:
     lad = [m for m in data.values() if "ladder" in m["levels"]]
     dri = [m for m in data.values() if "drift" in m["levels"]]
-    levels = ([("drift", "Habit changes")] if dri else []) + \
+    levels = ([("drift", "Main benchmark")] if dri else []) + \
              ([("ladder", "Earlier: 6-task ladder")] if lad else []) + \
              [(k, f"Earlier: {l[0].lower() + l[1:]}") for k, l in LEVELS]
     if dri:
