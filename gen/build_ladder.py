@@ -76,7 +76,9 @@ class Task:
     alt: Rule          # what a model that misses the twist would do
     msa: bool = False  # include the Halverson contract email as context
     desc: str = ""
-    dose: Optional[int] = None  # keep only this many 5k-10k rows after the change (the evidence it changed)
+    dose: Optional[int] = None  # keep only this many rows after `change` where rule and alt disagree
+    change: Optional[date] = None  # date of the latest habit change (defaults to v3.CHANGE_DATE)
+    check_py: str = ""             # grader override (tag-aware grading for the approver task)
 
 
 TASKS = [
@@ -176,19 +178,26 @@ print(f"reward={1 if all(results) else 0} ({sum(results)}/{len(results)} checks)
 
 # --------------------------------------------------------------------------- history
 
+def evidence(task: Task, events: list[dict]) -> list[dict]:
+    start = task.change or v3.CHANGE_DATE
+    return [e for e in events if e["received"] >= start and
+            task.rule(e["vendor"], e["amount"], e["received"]) != task.alt(e["vendor"], e["amount"], e["received"])]
+
+
 def build_history(rng: random.Random, task: Task) -> tuple[list[dict], list[dict]]:
     events, new = v3.build_history(rng)        # same 90 invoices and 5 new ones as v3
     if task.dose is not None:
-        # evidence of the change = mid-size invoices after Oct 5 that did NOT get the old treatment.
-        # keep the most recent `dose` of them; shrink the rest to small amounts so they prove nothing
-        mid_after = [e for e in events if e["received"] >= v3.CHANGE_DATE and 5000 < e["amount"] <= 10000]
-        for e in mid_after[:max(0, len(mid_after) - task.dose)]:
-            e["amount"] = round(e["amount"] * 0.42, 2)
+        # evidence of the change = rows after the latest change where the new habit and the old one
+        # disagree. keep the most recent `dose` of them; shrink the rest to small amounts (always under
+        # $4,900, where every rule says do nothing) so they prove nothing
+        for e in evidence(task, events)[:-task.dose or None] if task.dose else evidence(task, events):
+            f = 0.42 if e["amount"] * 0.42 < 4900 else 0.3
+            e["amount"] = round(e["amount"] * f, 2)
     for e in events:
         e["action"] = task.rule(e["vendor"], e["amount"], e["received"])
         e["forwarded"] = task.mode == "email" and e["action"] is not None
         if task.mode == "tracker":
-            e["notes"] = "REVIEW" if e["action"] else e["notes"].replace("REVIEW", "")
+            e["notes"] = e["action"] if e["action"] else e["notes"].replace("REVIEW", "")
             e["logged_by"] = e["staff"][0] if e["action"] or e["logged_by"] != DIRECTOR[0] else e["logged_by"]
     for i in new:
         i["expect"] = task.rule(i["vendor"], i["amount"], v3.ARRIVED)
@@ -198,14 +207,14 @@ def build_history(rng: random.Random, task: Task) -> tuple[list[dict], list[dict
 
 def self_check(task: Task, events: list[dict], new: list[dict]) -> None:
     acts = [e for e in events if e["action"]]
-    assert len(acts) >= 8, f"{task.name}: too little evidence ({len(acts)} acted rows)"
+    assert len(acts) >= (5 if task.dose is not None else 8), f"{task.name}: too little evidence ({len(acts)} acted rows)"
     assert len(events) - len(acts) >= 40, f"{task.name}: too few plain rows"
     assert [i["expect"] for i in new] != [i["alt"] for i in new], \
         f"{task.name}: the simpler habit gives the same answers, task tests nothing"
-    assert any(i["expect"] for i in new) and any(not i["expect"] for i in new), \
+    assert task.name.startswith("drift-stopped") or (any(i["expect"] for i in new) and any(not i["expect"] for i in new)), \
         f"{task.name}: test must need both doing and not doing the habit"
     if task.dose is not None:
-        mid = sum(bool(e["received"] >= v3.CHANGE_DATE and 5000 < e["amount"] <= 10000) for e in events)
+        mid = len(evidence(task, events))
         assert mid == task.dose, f"{task.name}: wanted {task.dose} post-change examples, got {mid}"
     if task.name == "ladder-2-tracker-change":
         after = [e for e in events if e["received"] >= v3.CHANGE_DATE]
@@ -318,7 +327,7 @@ def build(redwood: Path, out: Path, tasks: Optional[list[Task]] = None) -> None:
 
         (t / "tests").mkdir()
         (t / "tests" / "test.sh").write_text(v3.TEST_SH)
-        (t / "tests" / "check.py").write_text(CHECK_PY)
+        (t / "tests" / "check.py").write_text(task.check_py or CHECK_PY)
         (t / "tests" / "expected.json").write_text(json.dumps(expected, indent=1))
         (t / "tests" / "test.sh").chmod(0o755)
 
@@ -328,7 +337,7 @@ def build(redwood: Path, out: Path, tasks: Optional[list[Task]] = None) -> None:
                 lines.append(f"send_email --to {i['expect']} --subject 'Fwd: Invoice {i['number']}' "
                              f"--body 'Can you approve this one before I log it? ${v3.money(i['amount'])}.'")
                 continue
-            note = "REVIEW" if (task.mode == "tracker" and i["expect"]) else ""
+            note = i["expect"] if (task.mode == "tracker" and i["expect"]) else ""
             buf = io.StringIO()
             csv.writer(buf, lineterminator="").writerow(
                 v3.tracker_row(dict(i, logged_by=v3.STAFF[0][0], notes=note)))

@@ -143,10 +143,64 @@ def summarize_ladder(data: dict, attempts: list[dict]) -> int:
     return tries
 
 
+DRIFT_TYPES = [("cutoff", "Cutoff moved", "REVIEW cutoff went from $5k to $10k"),
+               ("stopped", "Habit stopped", "the team stopped marking REVIEW"),
+               ("approver", "Approver changed", "approvals moved from Mireille (MA) to Rosalind (RQ)"),
+               ("returned", "Habit came back", "REVIEW paused for six weeks, then came back")]
+DRIFT_DOSES = [1, 3, 7]
+SHARED = "shared agent"
+
+
+def summarize_drift(data: dict, attempts: list[dict]) -> int:
+    """Add a 'drift' level per model (main benchmark, shared agent). Returns tries per version."""
+    done = [a for a in attempts if a["status"] == "FINISHED" and a["reward"] is not None]
+    tries = 0
+    for model, (name, lab) in MODELS.items():
+        mine = [a for a in done if a["model"] == model]
+        if not mine:
+            continue
+        scores = [a["score"] for a in mine]
+        k, n = sum(int(a["reward"]) for a in mine), len(mine)
+        cells, dose, kind = {}, {}, {}
+        for t, _, _ in DRIFT_TYPES:
+            for d in DRIFT_DOSES:
+                xs = [a for a in mine if a["type"] == t and a["dose"] == d]
+                if xs:
+                    cells[f"{t}-{d}"] = {"score": sum(a["score"] for a in xs) / len(xs),
+                                         "k": sum(int(a["reward"]) for a in xs), "n": len(xs)}
+                    tries = max(tries, len(xs))
+        for d in DRIFT_DOSES:
+            xs = [a["score"] for a in mine if a["dose"] == d]
+            if xs:
+                dose[str(d)] = [sum(xs) / len(xs), *bootstrap(xs)]
+        for t, _, _ in DRIFT_TYPES:
+            xs = [a["score"] for a in mine if a["type"] == t]
+            if xs:
+                kind[t] = sum(xs) / len(xs)
+        fails = {}
+        for a in mine:
+            if a["reward"] != 1:
+                fails[a.get("kind_of_miss", "other")] = fails.get(a.get("kind_of_miss", "other"), 0) + 1
+        entry = data.setdefault(model, {"name": name, "lab": lab, "agent": AGENT[lab], "levels": {}})
+        entry["levels"]["drift"] = {
+            "n": n, "k": k, "agent": SHARED, "cells": cells, "dose": dose, "kind": kind,
+            "pass": [k / n, *wilson(k, n)], "rule": [sum(scores) / n, *bootstrap(scores)], "fails": fails,
+        }
+    return tries
+
+
 def page(data: dict) -> str:
     lad = [m for m in data.values() if "ladder" in m["levels"]]
-    levels = ([("ladder", "Ladder, 6 tasks")] if lad else []) + LEVELS
-    if lad:
+    dri = [m for m in data.values() if "drift" in m["levels"]]
+    levels = ([("drift", "Drift, shared agent")] if dri else []) + \
+             ([("ladder", "Ladder (vendor agents)")] if lad else []) + \
+             [(k, f"{l} (vendor agents)") for k, l in LEVELS]
+    if dri:
+        top = max((m["levels"]["drift"]["rule"][0], m["name"]) for m in dri)
+        tries = max(c["n"] for m in dri for c in m["levels"]["drift"]["cells"].values())
+        stats = [(str(len(dri)), "Frontier models"), (str(len(DRIFT_TYPES)), "Kinds of change"),
+                 (str(tries), "Tries per version"), (f"{top[0] * 100:.1f}%", "Top drift score")]
+    elif lad:
         top = max((m["levels"]["ladder"]["rule"][0], m["name"]) for m in lad)
         stats = [(str(len(lad)), "Frontier models"), (str(len(LADDER)), "Tasks, easy to hard"),
                  (str(max(t["n"] for m in lad for t in m["levels"]["ladder"]["tasks"].values())), "Tries per task"),
@@ -157,7 +211,9 @@ def page(data: dict) -> str:
                  (f"{top[0] * 100:.1f}%", "Top rule score, pointed")]
     stats_html = "".join(f'<div class="stat"><div class="v">{v}</div><div class="k">{k}</div></div>' for v, k in stats)
     blob = json.dumps({"models": data, "levels": levels, "quote": FABLE_QUOTE,
-                       "ladder": [[t, l, w] for t, l, w in LADDER]})
+                       "ladder": [[t, l, w] for t, l, w in LADDER],
+                       "drift": {"types": DRIFT_TYPES, "doses": DRIFT_DOSES},
+                       "order": list(MODELS)})
     icons = {lab: (HERE / "icons" / f).read_text().replace("<title>", "<title>").strip()
              for lab, f in [("Anthropic", "anthropic.svg"), ("OpenAI", "openai.svg")]}
     icons = {k: v.replace('role="img"', 'role="img" aria-hidden="true"') for k, v in icons.items()}
@@ -180,6 +236,7 @@ TEMPLATE = r"""<!doctype html>
   --anthropic-a: #f6a879; --anthropic-b: #e8672f; --anthropic-c: #b9471a;
   --openai-a: #7fd6b5; --openai-b: #16a06e; --openai-c: #0c7650;
   --whisker: #a3a39e; --cell-0: #f1f1f0; --cell-ink: #0b0b0b; --quote-bg: #0f0f0e; --quote-ink: #f5f5f4;
+  --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #eda100; --s5: #e87ba4; --grid: #e7e7e4;
 }
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])).viz-root {
@@ -189,6 +246,7 @@ TEMPLATE = r"""<!doctype html>
     --anthropic-a: #a8501f; --anthropic-b: #e0632b; --anthropic-c: #f39a6a;
     --openai-a: #0f6b4a; --openai-b: #1aa874; --openai-c: #5fd3a5;
     --whisker: #6f6e68; --cell-0: #262624; --cell-ink: #f0efec; --quote-bg: #f0efec; --quote-ink: #121211;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --grid: #2c2c29;
   }
 }
 :root[data-theme="dark"].viz-root {
@@ -198,7 +256,23 @@ TEMPLATE = r"""<!doctype html>
   --anthropic-a: #a8501f; --anthropic-b: #e0632b; --anthropic-c: #f39a6a;
   --openai-a: #0f6b4a; --openai-b: #1aa874; --openai-c: #5fd3a5;
   --whisker: #6f6e68; --cell-0: #262624; --cell-ink: #f0efec; --quote-bg: #f0efec; --quote-ink: #121211;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #c98500; --s5: #d55181; --grid: #2c2c29;
 }
+.dose-wrap { display: grid; grid-template-columns: 1fr 220px; gap: 28px; align-items: start; }
+.dose svg { width: 100%; height: auto; display: block; overflow: visible; }
+.dose .gl { stroke: var(--grid); stroke-width: 1; }
+.dose .ax { fill: var(--text-muted); font-size: 11px; }
+.dose .ln { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.dose .pt { stroke: var(--card); stroke-width: 2; cursor: default; }
+.dose .hit { fill: transparent; }
+.dose .lab { font-size: 12px; fill: var(--text-secondary); }
+.legend2 { list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--text-secondary); }
+.legend2 li { display: flex; align-items: center; gap: 8px; padding: 5px 0; }
+.legend2 i { width: 18px; height: 2px; border-radius: 1px; display: inline-block; position: relative; }
+.legend2 i::after { content: ""; position: absolute; left: 5px; top: -3px; width: 8px; height: 8px; border-radius: 50%; background: inherit; }
+.legend2 .v { margin-left: auto; color: var(--text-primary); font-variant-numeric: tabular-nums; }
+.note { color: var(--text-muted); font-size: 13px; margin: 6px 0 18px; }
+@media (max-width: 900px) { .dose-wrap { grid-template-columns: 1fr; } }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--surface-1); color: var(--text-primary);
   font: 15px/1.55 Inter, ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -336,12 +410,13 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
       <h2>The PrecedentBench leaderboard</h2>
       <p>The agent joins Redwood Inference's finance team. Five supplier invoices just came in, and three months of
       company email, Slack and tickets sit in its workspace. The request is one line: log the invoices.</p>
-      <p>The score is a ladder of six versions of that job. In the easy ones the habit shows in the spreadsheet the
-      agent edits: big invoices get a REVIEW note. In the hard ones it only shows in email: big invoices go to the
-      finance director for approval, the cutoff quietly moved in October, one supplier stopped needing approval after
-      signing a contract, and while the director is on leave approvals go to a deputy.</p>
-      <p>None of it is written down. No version tells the agent where to look or what the rule is.</p>
-      <div class="chips"><a href="#results">Results by task</a><a href="#takeaways">Takeaways</a><a href="#method">Methodology</a></div>
+      <p>The team marks some invoices in the tracker with a note, and at some point it quietly changed how. The
+      cutoff moved, the habit stopped, a new person took over approvals, or the habit paused and came back. Nobody
+      wrote any of it down. The only clue is how the last few months of rows look.</p>
+      <p>Each change comes in three versions: the tracker shows 1, 3 or 7 invoices handled the new way since the
+      change. A careful new hire would catch it. The score is how often the agent does it the team's current way.</p>
+      <p>Every model runs in the same plain agent: same instructions, one terminal tool, same limits.</p>
+      <div class="chips"><a href="#results">Dose curve</a><a href="#takeaways">Takeaways</a><a href="#method">Methodology</a></div>
     </div>
     <div class="card">
       <div class="card-head"><span>Model</span><span>Score</span></div>
@@ -373,14 +448,23 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
 
   <section class="sec" id="results">
     <h2>Results</h2>
-    <p class="sub">Explore scores by task and by how hidden the rule is. Hover a leaderboard row for details.</p>
+    <p class="sub">How much evidence each model needs before it notices the team changed its habit.</p>
     <div class="tabs" role="tablist">
-      <button role="tab" aria-selected="true" data-tab="t-ladder">Ladder by task</button>
-      <button role="tab" aria-selected="false" data-tab="t-levels">How hidden the rule is</button>
+      <button role="tab" aria-selected="true" data-tab="t-dose">Dose curve</button>
+      <button role="tab" aria-selected="false" data-tab="t-kind">By kind of change</button>
       <button role="tab" aria-selected="false" data-tab="t-table">Table</button>
+      <button role="tab" aria-selected="false" data-tab="t-ladder">Earlier: ladder</button>
+      <button role="tab" aria-selected="false" data-tab="t-levels">Earlier: levels</button>
     </div>
-    <div id="t-ladder"><table class="grid" id="lgrid"></table></div>
-    <div id="t-levels" hidden>
+    <div id="t-dose"><div class="dose-wrap"><div class="dose" id="dose"></div><ul class="legend2" id="dleg"></ul></div>
+      <p class="note">Score = share of the four test invoices (all but the tiny office bill) logged with the team's current
+      note, averaged over the four kinds of change and five tries. Hover a point for details.</p></div>
+    <div id="t-kind" hidden><table class="grid" id="kgrid"></table>
+      <p class="note">Each cell: score over the three versions (1, 3 and 7 examples) and five tries.</p></div>
+    <div id="t-ladder" hidden><p class="note">Earlier experiment. Each model ran in its own vendor's agent (Claude Code or
+      Codex), not the shared agent, so these numbers mix the model and the product around it.</p>
+      <table class="grid" id="lgrid"></table></div>
+    <div id="t-levels" hidden><p class="note">Earlier experiment, vendor agents (Claude Code or Codex), not the shared agent.</p>
       <p class="sub" style="margin-top:0">The approval task (task 5) run four ways. Same company, same invoices, same checks;
       only where the rule lives changes.</p>
       <table class="grid" id="grid"></table>
@@ -390,6 +474,23 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
 
   <section class="sec method" id="method">
     <h2>Methodology</h2>
+    <p><b>Drift benchmark.</b> Four kinds of unannounced change in how the team marks invoices in the tracker:
+    the REVIEW cutoff moved from $5,000 to $10,000; the team stopped marking REVIEW; approvals moved from Mireille Ashdown
+    (tag "REVIEW - MA") to Rosalind Quennell ("REVIEW - RQ"); REVIEW paused for six weeks and came back. Each kind comes at
+    three doses: the tracker shows 1, 3 or 7 invoices handled the new way since the latest change, where the new and old
+    habit disagree. Everything else in the company is identical across doses. All evidence is in the tracker the agent
+    edits, so no score depends on whether an agent opens email. For "came back", a model that ignores dates also passes;
+    that kind tests whether the pause makes a model drop the habit.</p>
+    <p><b>Score.</b> For each try, the share of the four non-trivial test invoices that are logged exactly once with
+    the team's current note (the tiny office-supply bill is left out: every version of the habit agrees on it). The
+    model score is the mean over 12 versions × 5 tries, with a 95% bootstrap interval over tries. Pass@1 is the share
+    of tries where every check holds, including bookkeeping.</p>
+    <p><b>Shared agent.</b> Every drift result comes from one plain agent loop, the same for all models: the same system
+    prompt, a single tool that runs a bash command, reasoning effort "high", at most 80 steps, and no fallback to another
+    model on refusal. Claude models are called through Anthropic's API, GPT models through OpenAI's. This keeps the
+    comparison about the model, not the vendor's agent product.</p>
+    <p><b>Earlier experiments</b> (ladder and levels tabs, and their options in the leaderboard dropdown) ran each model
+    inside its own vendor's agent, Claude Code or Codex. They are kept for reference; they mix model and product.</p>
     <p><b>Ladder.</b> Six tasks, same company and the same five new invoices, no pointer in the instruction:
     (1) big invoices get REVIEW in the tracker's Notes; (2) same, but the cutoff moved from $5,000 to $10,000 in October;
     (3) same, but one supplier stopped getting REVIEW after signing a contract; (4) big invoices are emailed to the
@@ -407,8 +508,7 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
     <p><b>Company.</b> Background is 2,100 emails, Slack threads and tickets from the Redwood Inference corpus
     (EnterpriseRAG-Bench by Onyx, MIT), filtered so nothing contradicts or hints at a rule. The grader is deterministic:
     no model grades another.</p>
-    <p><b>Agents.</b> Claude models run in Claude Code, GPT models in Codex, each attempt in a fresh sandbox, via
-    Valkyrie on Modal. Logos from Simple Icons (CC0).</p>
+    <p><b>Infrastructure.</b> Each attempt runs in a fresh sandbox via Valkyrie on Modal. Logos from Simple Icons (CC0).</p>
   </section>
 </div>
 <footer><div class="wrap">PrecedentBench · Vals Hacks 2026 · built on Valkyrie</div></footer>
@@ -437,12 +537,12 @@ function rows() {
   document.getElementById("rows").innerHTML = list.map(({m, s, d}) => {
     const [p, lo, hi] = s, c = LAB(m.lab);
     const why = Object.entries(d.fails || {}).map(([k, n]) => `${k} (${n})`).join(", ");
-    const tip = [m.name + " · " + m.agent,
+    const tip = [m.name + " · " + (d.agent || m.agent),
       `Mean Score ${fmt(d.rule[0])} (95%: ${fmt(d.rule[1])} to ${fmt(d.rule[2])})`,
       `Pass@1 ${d.k}/${d.n} = ${fmt(d.pass[0])} (95%: ${fmt(d.pass[1])} to ${fmt(d.pass[2])})`,
       why ? "Misses: " + why : ""].filter(Boolean).join("|");
     return `<div class="lrow" tabindex="0" data-tip="${tip.replace(/"/g, "&quot;")}">
-      <div class="ltop"><span class="mname">${ICON[m.lab] || ""}${m.name}<span class="mtag">${m.agent}</span></span>
+      <div class="ltop"><span class="mname">${ICON[m.lab] || ""}${m.name}<span class="mtag">${d.agent || m.agent}</span></span>
         <span class="mscore mono">${fmt(p)}<span class="pm">${pm(lo, hi)}</span></span></div>
       <div class="lbar">
         <div class="fill" style="width:${Math.max(p * 100, .8)}%;background:linear-gradient(90deg,var(--${c}-a),var(--${c}-b))"></div>
@@ -488,12 +588,66 @@ function grid() {
   }).join("") + "</tr>").join("");
 }
 
+const DRIFT = () => Object.values(D.models).filter(m => m.levels.drift)
+  .sort((a, b) => b.levels.drift.rule[0] - a.levels.drift.rule[0]);
+// series color follows the model (fixed order), never its rank
+const SERIES = m => "var(--s" + (D.order.filter(k => D.models[k] && D.models[k].levels.drift).indexOf(
+  Object.keys(D.models).find(k => D.models[k] === m)) + 1) + ")";
+
+function doseChart() {
+  const M = DRIFT();
+  if (!M.length) { document.getElementById("t-dose").innerHTML = "<p class='note'>Drift results not in yet.</p>"; return; }
+  const W = 640, H = 320, pl = 44, pr = 92, pt = 14, pb = 34;
+  const xs = D.drift.doses, X = i => pl + i * (W - pl - pr) / (xs.length - 1), Y = v => pt + (1 - v) * (H - pt - pb);
+  let g = "";
+  for (const v of [0, .25, .5, .75, 1]) g += `<line class="gl" x1="${pl}" x2="${W - pr}" y1="${Y(v)}" y2="${Y(v)}"/>` +
+    `<text class="ax" x="${pl - 8}" y="${Y(v) + 4}" text-anchor="end">${v * 100}%</text>`;
+  xs.forEach((d, i) => { g += `<text class="ax" x="${X(i)}" y="${H - 12}" text-anchor="middle">${d} example${d > 1 ? "s" : ""}</text>`; });
+  const ends = [];
+  for (const m of M) {
+    const c = SERIES(m), pts = xs.map((d, i) => [X(i), Y(m.levels.drift.dose[d][0]), d, m.levels.drift.dose[d]]);
+    g += `<polyline class="ln" stroke="${c}" points="${pts.map(p => p[0] + "," + p[1]).join(" ")}"/>`;
+    for (const [x, y, d, v] of pts) {
+      const tip = `${m.name}|${d} example${d > 1 ? "s" : ""} after the change|Score ${fmt(v[0])} (95%: ${fmt(v[1])} to ${fmt(v[2])})`;
+      g += `<circle class="pt" cx="${x}" cy="${y}" r="5" fill="${c}"/><circle class="hit dpt" cx="${x}" cy="${y}" r="12" data-tip="${tip}"/>`;
+    }
+    ends.push([pts[pts.length - 1][1], m]);
+  }
+  // direct end labels only where they don't collide; the legend always carries identity
+  ends.sort((a, b) => a[0] - b[0]);
+  let last = -99;
+  for (const [y, m] of ends) { if (y - last >= 15) { g += `<text class="lab" x="${W - pr + 10}" y="${y + 4}">${m.name}</text>`; last = y; } }
+  document.getElementById("dose").innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Score by number of examples after the change, one line per model">${g}</svg>`;
+  document.getElementById("dleg").innerHTML = M.map(m =>
+    `<li><i style="background:${SERIES(m)}"></i>${m.name}<span class="v">${fmt(m.levels.drift.rule[0])}</span></li>`).join("");
+  document.querySelectorAll(".dpt").forEach(el => {
+    el.onmousemove = e => { const [t1, ...ls] = el.dataset.tip.split("|"); tip.innerHTML = "<b>" + t1 + "</b>" + ls.join("<br>");
+      tip.hidden = false; tip.style.left = Math.min(e.clientX + 14, innerWidth - tip.offsetWidth - 8) + "px"; tip.style.top = (e.clientY + 14) + "px"; };
+    el.onmouseleave = () => tip.hidden = true;
+  });
+}
+
+function kgrid() {
+  const M = DRIFT();
+  if (!M.length) return;
+  const head = "<tr><th></th>" + D.drift.types.map(([k, l, w]) => `<th class="c">${l}<small>${w}</small></th>`).join("") +
+    "<th class='c'>Overall</th></tr>";
+  const body = M.map(m => { const d = m.levels.drift;
+    return "<tr>" + nameCell(m) + D.drift.types.map(([k]) => {
+      const cs = D.drift.doses.map(x => d.cells[k + "-" + x]).filter(Boolean);
+      if (!cs.length) return notRun;
+      const sub = D.drift.doses.map(x => { const c = d.cells[k + "-" + x]; return c ? Math.round(c.score * 100) : "–"; }).join(" · ");
+      return cellHtml(d.kind[k], "1 · 3 · 7 ex: " + sub);
+    }).join("") + cellHtml(d.rule[0], d.k + "/" + d.n + " passed") + "</tr>"; }).join("");
+  document.getElementById("kgrid").innerHTML = head + body;
+}
+
 function ptable() {
   const order = Object.values(D.models).sort((a, b) =>
-    ((b.levels.ladder || {rule: [-1]}).rule[0]) - ((a.levels.ladder || {rule: [-1]}).rule[0]));
+    ((b.levels.drift || b.levels.ladder || {rule: [-1]}).rule[0]) - ((a.levels.drift || a.levels.ladder || {rule: [-1]}).rule[0]));
   const cols = D.levels.map(([k, l]) => [k, l]);
   const head = "<tr><th>Model</th><th>Agent</th>" + cols.map(([, l]) => `<th>${l}</th>`).join("") + "</tr>";
-  document.getElementById("ptable").innerHTML = head + order.map(m => `<tr><td>${m.name}</td><td>${m.agent}</td>` +
+  document.getElementById("ptable").innerHTML = head + order.map(m => `<tr><td>${m.name}</td><td>${m.agent} / shared</td>` +
     cols.map(([k]) => { const d = m.levels[k]; return `<td class="mono">${d ? fmt(d.rule[0]) + " · " + d.k + "/" + d.n : "–"}</td>`; }).join("") +
     "</tr>").join("");
 }
@@ -501,6 +655,24 @@ function ptable() {
 function takeaways() {
   const M = Object.values(D.models);
   const items = [];
+  const Dm = DRIFT();
+  if (Dm.length) {
+    const top = Dm[0], bot = Dm[Dm.length - 1];
+    const zero = Dm.filter(m => m.levels.drift.rule[0] === 0).map(m => m.name);
+    items.push([`${top.name} leads at ${fmt(top.levels.drift.rule[0])}; ${bot.name} trails at ${fmt(bot.levels.drift.rule[0])}`,
+      (zero.length ? `${zero.join(", ")} score${zero.length > 1 ? "" : "s"} zero overall. ` : "Every model scores above zero. ") +
+      "Same agent, same instructions, same tool for every model: the gap is the model."]);
+    const d1 = Dm.reduce((s, m) => s + m.levels.drift.dose["1"][0], 0) / Dm.length;
+    const d7 = Dm.reduce((s, m) => s + m.levels.drift.dose["7"][0], 0) / Dm.length;
+    items.push(["Models need repeated evidence before they notice a change",
+      `Averaged over models, the score is ${fmt(d1)} when the tracker shows one invoice handled the new way and ${fmt(d7)} with seven. ` +
+      "A single sighting of the new habit is mostly ignored."]);
+    const kinds = D.drift.types.map(([k, l]) => [l, Dm.reduce((s, m) => s + (m.levels.drift.kind[k] || 0), 0) / Dm.length]).sort((a, b) => a[1] - b[1]);
+    items.push([`Hardest change: ${kinds[0][0].toLowerCase()}`,
+      `Average score by kind of change: ${kinds.map(([l, v]) => `${l.toLowerCase()} ${fmt(v)}`).join(", ")}.`]);
+    document.getElementById("tk").innerHTML = items.map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("");
+    return;   // earlier (vendor-agent) takeaways only show when there are no drift results
+  }
   const L = M.filter(m => m.levels.ladder).sort((a, b) => b.levels.ladder.rule[0] - a.levels.ladder.rule[0]);
   if (L.length) {
     const zero = L.filter(m => m.levels.ladder.rule[0] === 0).map(m => m.name);
@@ -551,10 +723,10 @@ function bindTips() {
 }
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
-  ["t-ladder", "t-levels", "t-table"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab);
+  ["t-dose", "t-kind", "t-ladder", "t-levels", "t-table"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab);
 });
 levelSel.onchange = rows; metricSel.onchange = rows;
-rows(); lgrid(); grid(); ptable(); takeaways();
+rows(); doseChart(); kgrid(); lgrid(); grid(); ptable(); takeaways();
 </script>
 </body>
 </html>
@@ -563,6 +735,8 @@ rows(); lgrid(); grid(); ptable(); takeaways();
 
 if __name__ == "__main__":
     data = summarize(json.loads((HERE / "v3_attempts.json").read_text()))
+    if (HERE / "drift_attempts.json").exists():
+        summarize_drift(data, json.loads((HERE / "drift_attempts.json").read_text()))
     if (HERE / "ladder_attempts.json").exists():
         summarize_ladder(data, json.loads((HERE / "ladder_attempts.json").read_text()))
     (HERE / "leaderboard.html").write_text(page(data))

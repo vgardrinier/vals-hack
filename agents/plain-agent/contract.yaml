@@ -1,0 +1,15 @@
+name: plain-agent
+
+install_cmd: "bash setup.sh"
+
+final_output: /logs
+
+defaults:
+  model:
+    type: str
+    required: true
+
+run_cmd: >-
+  bash -lc 'set -o pipefail && mkdir -p /logs &&
+  AGENT_OUTPUT_ROOT=/logs /opt/plain/bin/python /bundle/plain-agent/agent.py
+  {problem_statement_path} --task-id {task_id} --model {model}'
