@@ -1,6 +1,40 @@
-# Status: where PrecedentBench is (Sat Nov 14, evening)
+# Status: where PrecedentBench is (Sat Nov 14, ~8:30pm)
 
 Read this first. The README has the commands; this has the story and the numbers.
+
+## Latest: the drift benchmark (main result now)
+
+The question: when a company quietly changes how it does something, do agents notice?
+Same fake finance team at Redwood Inference. Its habit (a REVIEW note in the invoice tracker)
+changes in one of 4 ways, and the tracker shows 1, 3 or 7 invoices handled the new way since:
+
+- cutoff moved: REVIEW cutoff went from $5k to $10k
+- habit stopped: the team stopped writing REVIEW
+- approver changed: a new person's initials on big invoices
+- habit came back: REVIEW paused, then resumed
+
+12 versions x 5 tries x 5 models = 300 tries. **Every model runs in the same plain agent**
+(`agents/plain-agent`: same prompt, one bash tool, effort high, 80 steps, no fallbacks), so we
+compare models, not Claude Code vs Codex. That fixed a big bias: GPT looked broken inside Codex.
+
+| model | score | 1 example | 3 examples | 7 examples |
+|---|---|---|---|---|
+| Fable 5.2 | 71% | 62 | 75 | 75 |
+| GPT-6.1 Sol | 59% | 38 | 58 | 83 |
+| GPT-6 Astra | 53% | 38 | 40 | 80 |
+| Opus 5.5 | 41% | 28 | 43 | 53 |
+| Sonnet 5.5 | 28% | 13 | 28 | 43 |
+
+Known issues to fix next round: "came back" can be passed by ignoring dates; the approver tag is
+ambiguous; on "habit stopped" Fable notices the change but keeps REVIEW to be safe (graded as a miss,
+noted on the page). Next round aims for Fable under 50% and GPT under 30%, with harder but fair tasks
+(partial changes, stacked changes, quarterly archive files, a bit of human messiness, 1-3 examples).
+
+Data: `results/drift_attempts.json`. Generator: `gen/build_drift.py`. Page: `results/leaderboard.html`.
+Runs: one run per model holding all copies (`gen/replicate.py`), queue via `scripts/queue_runs.sh`
+(cap 10 runs org-wide). OpenAI key for the shared agent is the Valkyrie secret `openai-api-key-victor`.
+
+## Earlier experiments (vendor agents: Claude Code / Codex)
 
 ## The idea
 
@@ -73,7 +107,7 @@ Goal for the next round: Fable under ~60% overall without any frontier model at 
 
 ## Rules of the road
 
-- Never more than 5 Valkyrie runs in progress across the team. Start runs only with
+- Up to 10 Valkyrie runs in progress across the team (the Vals limit). Start runs only with
   `scripts/queue_runs.sh` (it counts everyone's runs, including yours).
 - Before any model run: generator self-checks pass, the grader test script passes, and the
   solution scores 1 / untouched scores 0 inside the Docker box.
