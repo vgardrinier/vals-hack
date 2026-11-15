@@ -216,7 +216,7 @@ def new_batch(rng: random.Random, ev: list[dict], l2: bool) -> list[dict]:
         src = sorted(last_dupable, key=lambda e: e["received"])[-1]
         plan = plan[:9] + [("Harrowgate Bank", 640, "overcharge"), ("Ellingham Retail", 880, "unused credits"),
                            ("Glenhaven Media", 2640, "billing error"), ("Juniperline Games", 1210, "billing error"),
-                           ("Kestrelmoor Insurance", 2960, "billing error")]
+                           ("Farrowdale Logistics", 2960, "billing error")]
         plan.append((src["customer"], src["amount"], src["reason"]))   # re-sent request
     else:
         plan += [("Farrowdale Logistics", 1290, "overcharge"), ("Islington Robotics", 1720, "overcharge"),
@@ -411,6 +411,12 @@ def self_check(ev: list[dict], new: list[dict], dose: int, l2: bool, blob: str) 
     assert sum(1 for e in ev if CUSTOMERS[e["customer"]] == "Dedicated") >= 8
     assert sum(1 for e in ev if e["reason"] == "outage") >= 8
     assert len(new) == 15 and len({q["ticket"] for q in new}) == 15
+    # only the planted re-sent request may repeat a (customer, amount, reason) seen in the batch or the history
+    seen = {(e["customer"], e["amount"], e["reason"]) for e in ev}
+    keys = [(q["customer"], q["amount"], q["reason"]) for q in new]
+    for q, k in zip(new, keys):
+        repeats = k in seen or keys.count(k) > 1
+        assert repeats == q["dup"], f"{q['ticket']}: accidental duplicate {k}" if repeats else f"{q['ticket']}: planted dup not a repeat"
     differ = [q for q in new if (q["decision"], q["approver"], q["note"]) != tuple(q["old"])]
     assert len(differ) >= 4, "the old habits give nearly the same answers; tests nothing"
     big = sum(q["amount"] > 1000 for q in new)

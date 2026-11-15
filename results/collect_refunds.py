@@ -1,6 +1,9 @@
 """Collect refunds-job attempts into results/refunds_v1.json (20 fetches at a time).
 
-    python3 results/collect_refunds.py /tmp/refunds_runs.txt
+    python3 results/collect_refunds.py /tmp/refunds_runs.txt [/tmp/refunds_runs2.txt]
+
+With a second runs file (the rerun after the accidental-duplicate fix in the 8-habit batch), the 8-habit
+and told versions come only from it; the 4-habit versions (unchanged, byte-identical) from the first.
 
 Runs file lines: "<model> <run_id>". Each run holds every task copy (refunds-<lvl>-k<dose>-r<n>,
 refunds-told-r<n>). reward = share of the 15 requests fully right; pass = all 15 right.
@@ -36,10 +39,13 @@ def fetch(job):
 
 
 jobs = []
-for line in Path(sys.argv[1]).read_text().split("\n"):
-    if line.strip():
-        model, run_id = line.split()
-        jobs += [(model.split("/")[-1], run_id, t) for t in IDS]
+for i, path in enumerate(sys.argv[1:]):
+    for line in Path(path).read_text().split("\n"):
+        if line.strip():
+            model, run_id = line.split()
+            keep = (lambda t: True) if len(sys.argv) == 2 else \
+                   ((lambda t: "-l1-" in t) if i == 0 else (lambda t: "-l1-" not in t))
+            jobs += [(model.split("/")[-1], run_id, t) for t in IDS if keep(t)]
 res = [r for r in ThreadPoolExecutor(20).map(fetch, jobs) if r]
 OUT.write_text(json.dumps(res, indent=1))
 done = [r for r in res if r["status"] == "FINISHED" and r["reward"] is not None]
