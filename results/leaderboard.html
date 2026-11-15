@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en" class="viz-root">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PrecedentBench leaderboard</title>
+<style>
+.viz-root {
+  color-scheme: light;
+  --surface-1: #fcfcfb; --surface-2: #f3f2ef; --grid: #e6e5e1;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #7a7974;
+  --series-1: #2a78d6; --series-1-wash: rgba(42,120,214,.28);
+  --series-2: #0b0b0b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])).viz-root {
+    color-scheme: dark;
+    --surface-1: #1a1a19; --surface-2: #232321; --grid: #33332f;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8e8d86;
+    --series-1: #3987e5; --series-1-wash: rgba(57,135,229,.38);
+    --series-2: #f0efec;
+  }
+}
+:root[data-theme="dark"].viz-root {
+  color-scheme: dark;
+  --surface-1: #1a1a19; --surface-2: #232321; --grid: #33332f;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #8e8d86;
+  --series-1: #3987e5; --series-1-wash: rgba(57,135,229,.38);
+  --series-2: #f0efec;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--surface-1); color: var(--text-primary);
+  font: 15px/1.45 ui-sans-serif, -apple-system, "Segoe UI", Inter, Helvetica, Arial, sans-serif; }
+.page { max-width: 1000px; margin: 0 auto; padding: 48px 28px 56px; }
+.eyebrow { color: var(--text-muted); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; margin: 0 0 8px; }
+h1 { font-size: 34px; line-height: 1.15; margin: 0 0 10px; font-weight: 650; letter-spacing: -.01em; }
+.lede { color: var(--text-secondary); margin: 0 0 28px; max-width: 720px; }
+.controls { display: flex; gap: 18px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  border-top: 1px solid var(--grid); padding: 14px 0 6px; }
+.legend { display: flex; gap: 20px; flex-wrap: wrap; color: var(--text-secondary); font-size: 13px; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.key-bar { width: 22px; height: 10px; border-radius: 0 3px 3px 0; background: var(--series-1); }
+.key-ci { width: 22px; height: 4px; border-radius: 2px; background: var(--series-1-wash); }
+.key-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--surface-1);
+  border: 2px solid var(--series-2); }
+.toggle button { font: inherit; font-size: 13px; color: var(--text-secondary); background: none;
+  border: 1px solid var(--grid); padding: 5px 12px; cursor: pointer; }
+.toggle button:first-child { border-radius: 6px 0 0 6px; }
+.toggle button:last-child { border-radius: 0 6px 6px 0; border-left: 0; }
+.toggle button[aria-pressed="true"] { background: var(--surface-2); color: var(--text-primary); }
+.head, .row { display: grid; grid-template-columns: 28px 250px 1fr 76px 76px; align-items: center; gap: 14px; }
+.head { color: var(--text-muted); font-size: 12px; padding: 14px 0 6px; }
+.head .axis { position: relative; height: 16px; }
+.head .axis span { position: absolute; transform: translateX(-50%); }
+.head .axis span:first-child { transform: none; }
+.head .axis span:last-child { transform: translateX(-100%); }
+.head .r { text-align: right; }
+.row { padding: 12px 0; border-top: 1px solid var(--grid); outline: none; }
+.row:hover, .row:focus-visible { background: var(--surface-2); }
+.rank { color: var(--text-muted); font-variant-numeric: tabular-nums; text-align: right; }
+.who { display: flex; flex-direction: column; }
+.name { font-weight: 600; }
+.lab { color: var(--text-muted); font-size: 12px; }
+.why { color: var(--text-secondary); font-size: 12px; margin-top: 2px; }
+.plot { position: relative; height: 28px; }
+.plot .gridlines i { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--grid); }
+.track { position: absolute; inset: 0; background-image: linear-gradient(var(--grid), var(--grid));
+  background-size: 1px 100%; background-repeat: no-repeat; }
+.ci { position: absolute; top: 12px; height: 4px; background: var(--series-1-wash); border-radius: 2px; }
+.bar { position: absolute; left: 0; top: 7px; height: 14px; background: var(--series-1); border-radius: 0 4px 4px 0; }
+.dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
+  background: var(--surface-1); border: 2px solid var(--series-2); box-shadow: 0 0 0 2px var(--surface-1); }
+.score { text-align: right; font-variant-numeric: tabular-nums; display: flex; flex-direction: column; }
+.score .big { font-size: 20px; font-weight: 650; }
+.score .pm { color: var(--text-muted); font-size: 12px; }
+.score.written { color: var(--text-secondary); font-size: 16px; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; margin-top: 10px; }
+th, td { text-align: left; padding: 10px 8px; border-top: 1px solid var(--grid); }
+th { color: var(--text-muted); font-weight: 500; font-size: 12px; }
+[hidden] { display: none !important; }
+.tip { position: fixed; pointer-events: none; background: var(--text-primary); color: var(--surface-1);
+  font-size: 13px; padding: 9px 11px; border-radius: 8px; max-width: 320px; line-height: 1.4; z-index: 9; }
+.tip b { display: block; margin-bottom: 3px; }
+.method { margin-top: 34px; color: var(--text-secondary); font-size: 13px; border-top: 1px solid var(--grid);
+  padding-top: 16px; display: grid; gap: 6px; }
+.method b { color: var(--text-primary); font-weight: 600; }
+@media (max-width: 720px) {
+  .head, .row { grid-template-columns: 22px 1fr 60px 60px; }
+  .plot, .head .axis { grid-column: 1 / -1; grid-row: 2; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <p class="eyebrow">PrecedentBench · Vals Hacks 2026</p>
+  <h1>Can AI agents follow the rules nobody wrote down?</h1>
+  <p class="lede">Each agent joins the finance team at a simulated AI company, gets five new supplier
+  invoices and three months of company email, Slack and tickets. Which invoices need the finance director's
+  approval was never written down: the cutoff moved from $5,000 to $10,000 in October, and one supplier stopped
+  needing approval after signing a contract. The only way to know is to read how the team actually worked.</p>
+
+  <div class="controls">
+    <div class="legend" aria-label="Legend">
+      <span><i class="key-bar"></i>Pass rate, rule only in past work</span>
+      <span><i class="key-ci"></i>95% range</span>
+      <span><i class="key-dot"></i>Pass rate, same rule written in an email</span>
+    </div>
+    <div class="toggle" role="group" aria-label="View">
+      <button aria-pressed="true" data-view="chart">Chart</button><button aria-pressed="false" data-view="table">Table</button>
+    </div>
+  </div>
+
+  <section id="chart">
+    <div class="head">
+      <div></div><div>Model</div>
+      <div class="axis"><span style="left:0%">0%</span><span style="left:20%">20%</span><span style="left:40%">40%</span><span style="left:60%">60%</span><span style="left:80%">80%</span><span style="left:100%">100%</span></div>
+      <div class="r">Unwritten</div><div class="r">Written</div>
+    </div>
+    
+      <div class="row" tabindex="0" data-tip="Claude Fable 5.2|Rule only in past work: 4/5 passed (80%, 95% range 38% to 96%)|Rule written in an email: 5/5 passed (100%)|Misses, rule only in past work: followed the old $5k rule (1)">
+        <div class="rank">1</div>
+        <div class="who"><span class="name">Claude Fable 5.2</span><span class="lab">Anthropic</span><span class="why">Misses: followed the old $5k rule (1)</span></div>
+        <div class="plot">
+          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
+          <div class="track"></div>
+          <div class="ci" style="left:37.55%;width:58.82%"></div>
+          <div class="bar" style="width:80.00%"></div>
+          <div class="dot" style="left:100.00%" aria-hidden="true"></div>
+        </div>
+        <div class="score"><span class="big">80%</span><span class="pm">4/5</span></div>
+        <div class="score written">100%<span class="pm">5/5</span></div>
+      </div>
+      <div class="row" tabindex="0" data-tip="Claude Opus 5.5|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 4/5 passed (80%)|Misses, rule only in past work: never asked anyone (2), followed the old $5k rule (3)">
+        <div class="rank">2</div>
+        <div class="who"><span class="name">Claude Opus 5.5</span><span class="lab">Anthropic</span><span class="why">Misses: never asked anyone (2), followed the old $5k rule (3)</span></div>
+        <div class="plot">
+          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
+          <div class="track"></div>
+          <div class="ci" style="left:0.00%;width:43.45%"></div>
+          <div class="bar" style="width:0.60%"></div>
+          <div class="dot" style="left:80.00%" aria-hidden="true"></div>
+        </div>
+        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
+        <div class="score written">80%<span class="pm">4/5</span></div>
+      </div>
+      <div class="row" tabindex="0" data-tip="Claude Haiku 5.5|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 0/5 passed (0%)|Misses, rule only in past work: never asked anyone (5)">
+        <div class="rank">3</div>
+        <div class="who"><span class="name">Claude Haiku 5.5</span><span class="lab">Anthropic</span><span class="why">Misses: never asked anyone (5)</span></div>
+        <div class="plot">
+          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
+          <div class="track"></div>
+          <div class="ci" style="left:0.00%;width:43.45%"></div>
+          <div class="bar" style="width:0.60%"></div>
+          <div class="dot" style="left:0.00%" aria-hidden="true"></div>
+        </div>
+        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
+        <div class="score written">0%<span class="pm">0/5</span></div>
+      </div>
+      <div class="row" tabindex="0" data-tip="Claude Sonnet 5.5|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 0/5 passed (0%)|Misses, rule only in past work: never asked anyone (5)">
+        <div class="rank">4</div>
+        <div class="who"><span class="name">Claude Sonnet 5.5</span><span class="lab">Anthropic</span><span class="why">Misses: never asked anyone (5)</span></div>
+        <div class="plot">
+          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
+          <div class="track"></div>
+          <div class="ci" style="left:0.00%;width:43.45%"></div>
+          <div class="bar" style="width:0.60%"></div>
+          <div class="dot" style="left:0.00%" aria-hidden="true"></div>
+        </div>
+        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
+        <div class="score written">0%<span class="pm">0/5</span></div>
+      </div>
+      <div class="row" tabindex="0" data-tip="GPT-6 Astra|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 0/5 passed (0%)|Misses, rule only in past work: never asked anyone (5)">
+        <div class="rank">5</div>
+        <div class="who"><span class="name">GPT-6 Astra</span><span class="lab">OpenAI</span><span class="why">Misses: never asked anyone (5)</span></div>
+        <div class="plot">
+          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
+          <div class="track"></div>
+          <div class="ci" style="left:0.00%;width:43.45%"></div>
+          <div class="bar" style="width:0.60%"></div>
+          <div class="dot" style="left:0.00%" aria-hidden="true"></div>
+        </div>
+        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
+        <div class="score written">0%<span class="pm">0/5</span></div>
+      </div>
+      <div class="row" tabindex="0" data-tip="GPT-6.1 Sol|Rule only in past work: 0/5 passed (0%, 95% range 0% to 43%)|Rule written in an email: 0/5 passed (0%)|Misses, rule only in past work: never asked anyone (5)">
+        <div class="rank">6</div>
+        <div class="who"><span class="name">GPT-6.1 Sol</span><span class="lab">OpenAI</span><span class="why">Misses: never asked anyone (5)</span></div>
+        <div class="plot">
+          <div class="gridlines"><i style="left:20%"></i><i style="left:40%"></i><i style="left:60%"></i><i style="left:80%"></i><i style="left:100%"></i></div>
+          <div class="track"></div>
+          <div class="ci" style="left:0.00%;width:43.45%"></div>
+          <div class="bar" style="width:0.60%"></div>
+          <div class="dot" style="left:0.00%" aria-hidden="true"></div>
+        </div>
+        <div class="score"><span class="big">0%</span><span class="pm">0/5</span></div>
+        <div class="score written">0%<span class="pm">0/5</span></div>
+      </div>
+  </section>
+
+  <section id="table" hidden>
+    <table>
+      <thead><tr><th>Model</th><th>Unwritten, passed</th><th>Unwritten, rate</th><th>95% range</th>
+      <th>Written, passed</th><th>Written, rate</th><th>How it missed (unwritten)</th></tr></thead>
+      <tbody><tr><td>Claude Fable 5.2</td><td>4/5</td><td>80%</td><td>38% to 96%</td><td>5/5</td><td>100%</td><td>followed the old $5k rule (1)</td></tr><tr><td>Claude Opus 5.5</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>4/5</td><td>80%</td><td>never asked anyone (2), followed the old $5k rule (3)</td></tr><tr><td>Claude Haiku 5.5</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>0/5</td><td>0%</td><td>never asked anyone (5)</td></tr><tr><td>Claude Sonnet 5.5</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>0/5</td><td>0%</td><td>never asked anyone (5)</td></tr><tr><td>GPT-6 Astra</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>0/5</td><td>0%</td><td>never asked anyone (5)</td></tr><tr><td>GPT-6.1 Sol</td><td>0/5</td><td>0%</td><td>0% to 43%</td><td>0/5</td><td>0%</td><td>never asked anyone (5)</td></tr></tbody>
+    </table>
+  </section>
+
+  <div class="method">
+    <div><b>Pass</b> means every check holds: the one invoice that needs approval goes to the director, the four
+    that don't are logged and she isn't bothered about them, and past records are left untouched.</div>
+    <div><b>Attempts:</b> 5 per model per version, each in a fresh sandbox. Range is a 95% Wilson
+    interval on the pass rate, wide because the number of attempts is small.</div>
+    <div><b>Written version</b> is the same company with three extra emails from the director stating the rules.
+    It checks the task is fair: a model that fails here is not failing because the rule is hidden.</div>
+    <div><b>Agents:</b> Claude models run in Claude Code, GPT models run in Codex, on Valkyrie with Modal sandboxes.
+    Company background: Redwood Inference corpus (EnterpriseRAG-Bench, Onyx, MIT).</div>
+  </div>
+</div>
+<div class="tip" hidden></div>
+<script>
+const t = new URLSearchParams(location.search).get("theme");
+if (t) document.documentElement.dataset.theme = t;
+const tip = document.querySelector('.tip');
+document.querySelectorAll('.row').forEach(row => {
+  const show = (x, y) => {
+    const [title, ...lines] = row.dataset.tip.split('|');
+    tip.innerHTML = '<b>' + title + '</b>' + lines.join('<br>');
+    tip.hidden = false;
+    const w = tip.offsetWidth;
+    tip.style.left = Math.min(x + 14, innerWidth - w - 8) + 'px';
+    tip.style.top = (y + 14) + 'px';
+  };
+  row.addEventListener('mousemove', e => show(e.clientX, e.clientY));
+  row.addEventListener('mouseleave', () => tip.hidden = true);
+  row.addEventListener('focus', () => { const r = row.getBoundingClientRect(); show(r.left + 240, r.top); });
+  row.addEventListener('blur', () => tip.hidden = true);
+});
+document.querySelectorAll('.toggle button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('.toggle button').forEach(x => x.setAttribute('aria-pressed', x === b));
+  document.getElementById('chart').hidden = b.dataset.view !== 'chart';
+  document.getElementById('table').hidden = b.dataset.view !== 'table';
+}));
+</script>
+</body>
+</html>
