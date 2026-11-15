@@ -368,7 +368,9 @@ we call the skill tacit knowledge recovery.">
 </section>
 
 <section class="slide mid" data-notes="so that's our question. can the best agents today actually do it?
-we built a benchmark to find out.">
+quick word on why this is new. benchmarks like tau-bench hand the agent the policy doc, so they measure explicit policy following. TheAgentCompany spells the task out in the instruction.
+we never state the policy. the agent has to recover it from precedent: about 300 past decisions in the tracker, with some rules that drifted in october and an outdated doc pointing the other way.
+that's tacit knowledge recovery: inferring the latent rules from how the team actually works. we built a benchmark to measure it.">
   <h1 class="xl center-t">so, can the best AI agents<br>actually pick it up?</h1>
   <div class="with center-t"><b>Implicit Action Bench</b><span>·</span>built on <b>Valkyrie</b></div>
 </section>
