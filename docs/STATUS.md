@@ -17,6 +17,15 @@ Score = share of the 15 invoices fully right (right REVIEW note naming the right
   easiest habit) contract/cutoff/cost center tied at 100% for Fable without the handbook; tie-break picked cutoff and
   made it partial: since Oct 5, Security invoices kept the $5k cutoff (REVIEW: Mireille). Tasks prefixed morning2-.
 
+- **round 2 (full run, 5 tries per version, 25 per model)**: mean score / Pass@1:
+  GPT-6 Astra 70% / 48%, GPT-6.1 Sol 51% / 20%, Fable 5.2 47% / 16%, Opus 5.5 29% / 8%, Sonnet 5.5 13% / 0%.
+  Without vs with the stale handbook (2 and 3 examples): Astra 94 -> 50, Sol 91 -> 0, Fable 80 -> 27, Opus 69 -> 0,
+  Sonnet 29 -> 0. In 40 of 50 handbook tries the agent followed the written policy over the tracker.
+  Curve without the handbook (1 / 2 / 3 examples, all models averaged): 33% / 69% / 80%.
+  Plan b after round 2: neither "too hard" nor "too easy" fired (no version at 0 for everyone, only Sonnet under 10%,
+  Fable under 50%), so no further change was allowed. Target (Fable and top GPT under 30%) NOT met: Fable 47%,
+  Astra 70%. Results: results/morning_round2.json. This is now the main benchmark on the page.
+
 ## Previous main: the drift benchmark
 
 The question: when a company quietly changes how it does something, do agents notice?

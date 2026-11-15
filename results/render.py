@@ -34,8 +34,8 @@ MODELS = {
     "gpt-6.1-sol": ("GPT-6.1 Sol", "OpenAI"),
 }
 AGENT = {"Anthropic": "Claude Code", "OpenAI": "Codex"}
-FABLE_QUOTE = ("I can't tell whether the practice was deliberately dropped or just lapsed. I flagged the new "
-               "ones because a stray flag is easy to remove, while a missed review on a large invoice is not.")
+FABLE_QUOTE = ("The three existing Q4 Wrenfield rows are under G&A, while the policy and the Q2/Q3 trackers "
+               "say Marketing. I left those rows alone, so the tracker is now inconsistent until someone confirms which is right.")
 
 
 def rule_parts(a: dict) -> list[bool]:
@@ -151,8 +151,8 @@ DRIFT_DOSES = [1, 3, 7]
 SHARED = "High"
 
 
-def summarize_drift(data: dict, attempts: list[dict]) -> int:
-    """Add a 'drift' level per model (main benchmark, shared agent). Returns tries per version."""
+def summarize_drift(data: dict, attempts: list[dict], key: str = "drift_old") -> int:
+    """Add the single-habit drift level per model (shared agent). Returns tries per version."""
     done = [a for a in attempts if a["status"] == "FINISHED" and a["reward"] is not None]
     tries = 0
     for model, (name, lab) in MODELS.items():
@@ -184,7 +184,7 @@ def summarize_drift(data: dict, attempts: list[dict]) -> int:
                 fails[kd] = fails.get(kd, 0) + 1
                 by_type.setdefault(a["type"], {})[kd] = by_type.setdefault(a["type"], {}).get(kd, 0) + 1
         entry = data.setdefault(model, {"name": name, "lab": lab, "agent": AGENT[lab], "levels": {}})
-        entry["levels"]["drift"] = {
+        entry["levels"][key] = {
             "n": n, "k": k, "agent": SHARED, "cells": cells, "dose": dose, "kind": kind,
             "pass": [k / n, *wilson(k, n)], "rule": [sum(scores) / n, *bootstrap(scores)], "fails": fails,
             "fails_by_type": by_type,
@@ -192,17 +192,97 @@ def summarize_drift(data: dict, attempts: list[dict]) -> int:
     return tries
 
 
+MORNING_HABITS = [("cutoff", "Cutoff", "$5k to $10k, Security kept $5k"),
+                  ("reviewer", "Reviewer", "Tomasz for Infra, Mireille otherwise"),
+                  ("contract", "Contract supplier", "Halverson stopped getting REVIEW"),
+                  ("costcenter", "Cost center", "Wrenfield moved to G&A")]
+MORNING_DOSES = [1, 2, 3]
+
+
+def morning_miss(a: dict) -> str:
+    """How a failed morning try went wrong, read from the grader lines."""
+    import re as _re
+    fails = [l for l in a["checks"] if l.startswith("FAIL")]
+    if any("logged" in l or "past rows" in l for l in fails):
+        return "bookkeeping"
+    def old(l):
+        m = _re.search(r"\(([^,]+), \$([\d,\.]+)\)", l)
+        vendor, amt = m.group(1), float(m.group(2).replace(",", ""))
+        ok = True
+        if "note " in l:
+            ok &= ("note 'REVIEW' " in l) if amt > 5000 else ("note 'none'" in l)
+        if "cost center" in l:
+            ok &= vendor == "Wrenfield" and "'Marketing'" in l
+        return ok
+    if all(old(l) for l in fails):
+        return "followed the handbook" if a.get("handbook") else "kept the old habits"
+    if all("note 'REVIEW' want 'REVIEW:" in l for l in fails):
+        return "missed the reviewer names"
+    return "caught some changes, not all"
+
+
+def summarize_morning(data: dict, attempts: list[dict]) -> int:
+    """Main benchmark: the messy monday morning. Dose curve and habit grid use the versions without
+    the handbook (all three doses exist there); the handbook tab compares 2 and 3 examples with vs without."""
+    done = [a for a in attempts if a["status"] == "FINISHED" and a["reward"] is not None]
+    tries = 0
+    for model, (name, lab) in MODELS.items():
+        mine = [a for a in done if a["model"] == model]
+        if not mine:
+            continue
+        scores = [a["reward"] for a in mine]
+        k, n = sum(1 for x in scores if x == 1), len(mine)
+        plain = [a for a in mine if not a["handbook"]]
+        cells, dose, kind = {}, {}, {}
+        for h, _, _ in MORNING_HABITS:
+            for d in MORNING_DOSES:
+                xs = [a["habits"][h] for a in plain if a["dose"] == d and h in a["habits"]]
+                if xs:
+                    cells[f"{h}-{d}"] = {"score": sum(xs) / len(xs), "n": len(xs),
+                                         "k": sum(1 for x in xs if x == 1)}
+            xs = [a["habits"][h] for a in plain if h in a["habits"]]
+            if xs:
+                kind[h] = sum(xs) / len(xs)
+        for d in MORNING_DOSES:
+            xs = [a["reward"] for a in plain if a["dose"] == d]
+            if xs:
+                dose[str(d)] = [sum(xs) / len(xs), *bootstrap(xs)]
+                tries = max(tries, len(xs))
+        pair = lambda hb: [a["reward"] for a in mine if a["handbook"] == hb and a["dose"] in (2, 3)]
+        hb = {}
+        for key_, flag in (("no", False), ("yes", True)):
+            xs = pair(flag)
+            if xs:
+                hb[key_] = [sum(xs) / len(xs), *bootstrap(xs)]
+        fails, by_hb = {}, {}
+        for a in mine:
+            if a["reward"] != 1:
+                kd = morning_miss(a)
+                fails[kd] = fails.get(kd, 0) + 1
+        hb["followed"] = fails.get("followed the handbook", 0)
+        hb["n"] = sum(1 for a in mine if a["handbook"])
+        entry = data.setdefault(model, {"name": name, "lab": lab, "agent": AGENT[lab], "levels": {}})
+        entry["levels"]["drift"] = {
+            "n": n, "k": k, "agent": SHARED, "cells": cells, "dose": dose, "kind": kind, "hb": hb,
+            "pass": [k / n, *wilson(k, n)], "rule": [sum(scores) / n, *bootstrap(scores)], "fails": fails,
+            "fails_by_type": {},
+        }
+    return tries
+
+
 def page(data: dict) -> str:
     lad = [m for m in data.values() if "ladder" in m["levels"]]
     dri = [m for m in data.values() if "drift" in m["levels"]]
+    old = [m for m in data.values() if "drift_old" in m["levels"]]
     levels = ([("drift", "Main benchmark")] if dri else []) + \
+             ([("drift_old", "Earlier: one habit changes")] if old else []) + \
              ([("ladder", "Earlier: 6-task ladder")] if lad else []) + \
              [(k, f"Earlier: {l[0].lower() + l[1:]}") for k, l in LEVELS]
     if dri:
         top = max((m["levels"]["drift"]["rule"][0], m["name"]) for m in dri)
         tries = max(c["n"] for m in dri for c in m["levels"]["drift"]["cells"].values())
-        stats = [(str(len(dri)), "Frontier models"), (str(len(DRIFT_TYPES)), "Kinds of change"),
-                 (str(tries), "Tries per version"), (f"{top[0] * 100:.1f}%", "Top score")]
+        stats = [(str(len(dri)), "Frontier models"), (str(len(MORNING_HABITS)), "Habits changing at once"),
+                 ("15", "Invoices per try"), (f"{top[0] * 100:.1f}%", "Top score")]
     elif lad:
         top = max((m["levels"]["ladder"]["rule"][0], m["name"]) for m in lad)
         stats = [(str(len(lad)), "Frontier models"), (str(len(LADDER)), "Tasks, easy to hard"),
@@ -215,7 +295,7 @@ def page(data: dict) -> str:
     stats_html = "".join(f'<div class="stat"><div class="v">{v}</div><div class="k">{k}</div></div>' for v, k in stats)
     blob = json.dumps({"models": data, "levels": levels, "quote": FABLE_QUOTE,
                        "ladder": [[t, l, w] for t, l, w in LADDER],
-                       "drift": {"types": DRIFT_TYPES, "doses": DRIFT_DOSES},
+                       "drift": {"types": MORNING_HABITS, "doses": MORNING_DOSES},
                        "order": list(MODELS)})
     icons = {lab: (HERE / "icons" / f).read_text().replace("<title>", "<title>").strip()
              for lab, f in [("Anthropic", "anthropic.svg"), ("OpenAI", "openai.svg")]}
@@ -402,7 +482,7 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
     <h1>Can AI agents follow the rules<br>nobody wrote down?</h1>
     <div class="with">Built on <b>Valkyrie</b> · run on <b>Modal</b></div>
     <p>PrecedentBench drops an agent into a company's finance team and checks whether it does the job the way this
-    team does it, using only what the team did before. No handbook, no hints.</p>
+    team does it, using only what the team did before. Nobody wrote the changes down.</p>
     <div class="btns"><a class="btn primary" href="#leaderboard">See the leaderboard</a><a class="btn" href="#method">Read methodology</a></div>
   </section>
 
@@ -411,13 +491,15 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
   <section class="lb" id="leaderboard">
     <div class="copy">
       <h2>The PrecedentBench leaderboard</h2>
-      <p>The agent joins Redwood Inference's finance team. Five supplier invoices just came in, and three months of
-      company email, Slack and tickets sit in its workspace. The request is one line: log the invoices.</p>
-      <p>The team marks some invoices in the tracker with a note, and at some point it quietly changed how. The
-      cutoff moved, the habit stopped, a new person took over approvals, or the habit paused and came back. Nobody
-      wrote any of it down. The only clue is how the last few months of rows look.</p>
-      <p>Each change comes in three versions: the tracker shows 1, 3 or 7 invoices handled the new way since the
-      change. A careful new hire would catch it. The score is how often the agent does it the team's current way.</p>
+      <p>It's Monday at Redwood Inference. Fifteen supplier invoices are in the finance inbox, and the request is one
+      line: log them in this quarter's tracker. Around them sit two archived quarters of trackers, about 300 invoices,
+      and 2,500 company emails, Slack threads and tickets.</p>
+      <p>This quarter the team quietly changed four habits at once. The review cutoff went from $5,000 to $10,000,
+      except for Security. Review notes started naming who reviews. One supplier stopped needing review after signing
+      a contract. Another moved to a different cost center. Nobody wrote any of it down; the only clue is how the last
+      few weeks of rows look. In some versions an old AP policy in the shared drive still states the old rules.</p>
+      <p>Each version shows 1, 2 or 3 invoices handled the new way per habit. A careful new hire would catch on. The
+      score is the share of the 15 invoices the agent logs the team's current way.</p>
       <p>Every model runs in the same plain agent: same instructions, one terminal tool, same limits.</p>
       <div class="chips"><a href="#results">Dose curve</a><a href="#takeaways">Takeaways</a><a href="#method">Methodology</a></div>
     </div>
@@ -445,31 +527,33 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
     </div>
     <div class="quote">
       <q id="quote"></q>
-      <div class="who">__ANTHROPIC__ Fable 5.2, on a team that had quietly stopped marking REVIEW (counted as a miss)</div>
+      <div class="who">__ANTHROPIC__ Fable 5.2, after following the old AP policy in the shared drive (counted as a miss)</div>
     </div>
   </section>
 
   <section class="sec" id="results">
     <h2>Results</h2>
-    <p class="sub">How much evidence each model needs before it notices the team changed its habit.</p>
+    <p class="sub">How much evidence each model needs before it notices the team changed its habits, and what an out of date handbook does to it.</p>
     <div class="tabs" role="tablist">
       <button role="tab" aria-selected="true" data-tab="t-dose">Dose curve</button>
-      <button role="tab" aria-selected="false" data-tab="t-kind">By kind of change</button>
+      <button role="tab" aria-selected="false" data-tab="t-kind">By habit</button>
+      <button role="tab" aria-selected="false" data-tab="t-hb">With vs without the handbook</button>
       <button role="tab" aria-selected="false" data-tab="t-table">Table</button>
       <button role="tab" aria-selected="false" data-tab="t-ladder">Earlier: ladder</button>
       <button role="tab" aria-selected="false" data-tab="t-levels">Earlier: levels</button>
     </div>
     <div id="t-dose"><div class="dose-wrap"><div class="dose" id="dose"></div><ul class="legend2" id="dleg"></ul></div>
-      <p class="note">Score = share of the four test invoices (all but the tiny office bill) logged with the team's current
-      note, averaged over the four kinds of change and five tries. Hover a point for details.</p></div>
+      <p class="note">Score = share of the 15 invoices logged the team's current way, versions without the handbook, five
+      tries each. Hover a point for details.</p></div>
     <div id="t-kind" hidden><table class="grid" id="kgrid"></table>
-      <p class="note">Each cell: score over the three versions (1, 3 and 7 examples) and five tries.</p>
-      <p class="note"><b>About "habit stopped".</b> It is the hardest kind for Fable 5.2, and not because it misses the change. In all 15 of its tries it pointed out the recent large invoices without REVIEW. With 3 or 7 examples (10 tries) it said outright that the practice may have been dropped, for example "Since 2026-10-28, none of the invoices over $5,000 logged by Keiko, Tomasz and Mireille carry it", but added that it could not tell "whether the practice was deliberately dropped or just lapsed", kept REVIEW on the new invoices to be safe, and in 2 of those tries emailed finance about it. With 1 example it read the single unmarked invoice as an earlier slip. Our answer key counts all 15 as misses (no REVIEW is the only correct answer); a more lenient key would give those 10 cautious tries credit.</p>
-      <p class="note" id="hes-note"></p>
-      <p class="note"><b>About "approver changed".</b> Most of Sonnet 5.5's misses wrote "REVIEW - pending approver" or a
-      bare REVIEW instead of the new approver's initials. It seems to read the initials as a sign-off the approver adds
-      herself, which an agent shouldn't fill in. That is a fair reading of an ambiguous tag; the answer key still counts it
-      as a miss.</p></div>
+      <p class="note">Each cell: share of that habit's invoices handled the team's current way, versions without the
+      handbook, small numbers per number of examples.</p>
+      <p class="note" id="hes-note"></p></div>
+    <div id="t-hb" hidden><table class="grid" id="hbgrid"></table>
+      <p class="note">The stale handbook is an AP policy dated January 2026 in the shared drive. It states the old rules
+      (REVIEW over $5,000, Wrenfield coded to Marketing) and says nothing about the changes. "Followed the handbook" counts
+      tries whose every mistake matches the written policy. The version with 1 example and the handbook is not scored:
+      one deviating row per habit against a written policy and 40 old rows is a defensible reading either way.</p></div>
     <div id="t-ladder" hidden><p class="note">Earlier experiment. Each model ran in its own vendor's agent (Claude Code or
       Codex), not the shared agent, so these numbers mix the model and the product around it.</p>
       <table class="grid" id="lgrid"></table></div>
@@ -483,19 +567,34 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
 
   <section class="sec method" id="method">
     <h2>Methodology</h2>
-    <p><b>Drift benchmark.</b> Four kinds of unannounced change in how the team marks invoices in the tracker:
+    <p><b>Main benchmark: a messy monday.</b> The agent logs 15 supplier invoices in the live quarterly tracker. History:
+    two archived quarterly trackers and the live one, about 300 invoices, plus 2,500 Redwood Inference emails, Slack threads
+    and tickets (including hundreds about invoices, billing and vendors, filtered so none contradicts the habits). Four
+    habits changed in Q4, none written down: (1) the REVIEW cutoff moved from $5,000 to $10,000 on Oct 5, except Security
+    invoices, which kept $5,000; (2) since Oct 5 the note names the reviewer, "REVIEW: Tomasz" for Infra and "REVIEW:
+    Mireille" otherwise; (3) Halverson Data Centers signed a contract on Nov 2 (the countersigned-contract email is in the
+    history, it says nothing about review) and its invoices get no REVIEW since; (4) Wrenfield Creative moved from
+    Marketing to G&A on Oct 12. Human mess: two big invoices before October where someone forgot REVIEW, and a few vendor
+    name typos. Versions: 1, 2 or 3 rows showing each new habit, and with or without a stale AP policy stating the old
+    rules (the 1-example version with the policy is not scored, see the handbook tab). Every one of the 15 invoices touches
+    a changed habit. <b>Score</b> per try: the share of the 15 invoices logged exactly once with the right note (no REVIEW,
+    or REVIEW naming the right reviewer) and the right cost center; zero if any past row was changed. Mean Score is the
+    mean over tries; Pass@1 the share of tries with all 15 right. The design and the rules for adjusting it overnight were
+    written before any results: docs/plans/next-iteration-messy-morning.md. Round 1 was a pilot; round 2 dropped the
+    ambiguous version, fixed round-number invoice amounts, and made the cutoff change partial (Security), as those rules
+    required. Each round's results are kept in results/morning_round*.json.</p>
+    <p><b>Earlier: one habit changes.</b> Four kinds of unannounced change in how the team marks invoices in the tracker:
     the REVIEW cutoff moved from $5,000 to $10,000; the team stopped marking REVIEW; approvals moved from Mireille Ashdown
     (tag "REVIEW - MA") to Rosalind Quennell ("REVIEW - RQ"); REVIEW paused for six weeks and came back. Each kind comes at
     three doses: the tracker shows 1, 3 or 7 invoices handled the new way since the latest change, where the new and old
     habit disagree. Everything else in the company is identical across doses. All evidence is in the tracker the agent
     edits, so no score depends on whether an agent opens email. For "came back", a model that ignores dates also passes;
     that kind tests whether the pause makes a model drop the habit.</p>
-    <p><b>About "habit stopped".</b> It is the hardest kind for Fable 5.2, and not because it misses the change. In all 15 of its tries it pointed out the recent large invoices without REVIEW. With 3 or 7 examples (10 tries) it said outright that the practice may have been dropped, for example "Since 2026-10-28, none of the invoices over $5,000 logged by Keiko, Tomasz and Mireille carry it", but added that it could not tell "whether the practice was deliberately dropped or just lapsed", kept REVIEW on the new invoices to be safe, and in 2 of those tries emailed finance about it. With 1 example it read the single unmarked invoice as an earlier slip. Our answer key counts all 15 as misses (no REVIEW is the only correct answer); a more lenient key would give those 10 cautious tries credit.</p>
-    <p><b>Score.</b> For each try, the share of the four non-trivial test invoices that are logged exactly once with
+    <p>In that earlier benchmark, on "habit stopped" Fable 5.2 noticed the change in all 15 tries but kept REVIEW to be safe; the answer key counted those as misses. <b>Score</b> there: for each try, the share of the four non-trivial test invoices that are logged exactly once with
     the team's current note (the tiny office-supply bill is left out: every version of the habit agrees on it). The
     model score is the mean over 12 versions × 5 tries, with a 95% bootstrap interval over tries. Pass@1 is the share
     of tries where every check holds, including bookkeeping.</p>
-    <p><b>Shared agent.</b> Every drift result comes from one plain agent loop, the same for all models: the same system
+    <p><b>Shared agent.</b> The main benchmark and the earlier one-habit benchmark come from one plain agent loop, the same for all models: the same system
     prompt, a single tool that runs a bash command, reasoning effort "high", at most 80 steps, and no fallback to another
     model on refusal. Claude models are called through Anthropic's API, GPT models through OpenAI's. This keeps the
     comparison about the model, not the vendor's agent product.</p>
@@ -647,7 +746,7 @@ function kgrid() {
       const cs = D.drift.doses.map(x => d.cells[k + "-" + x]).filter(Boolean);
       if (!cs.length) return notRun;
       const sub = D.drift.doses.map(x => { const c = d.cells[k + "-" + x]; return c ? Math.round(c.score * 100) : "–"; }).join(" · ");
-      return cellHtml(d.kind[k], "1 · 3 · 7 ex: " + sub);
+      return cellHtml(d.kind[k], D.drift.doses.join(" · ") + " ex: " + sub);
     }).join("") + cellHtml(d.rule[0], d.k + "/" + d.n) + "</tr>"; }).join("");
   document.getElementById("kgrid").innerHTML = head + body;
   const hes = M.map(m => [m.name, ((m.levels.drift.fails_by_type || {}).returned || {})["left blank, asked"] || 0,
@@ -655,6 +754,17 @@ function kgrid() {
   document.getElementById("hes-note").innerHTML = hes.length ? '<b>About "habit came back".</b> ' +
     hes.map(([n, c, t]) => `${n} left the notes blank and asked in ${c} of ${t} tries`).join("; ") +
     ". In those tries the agent read that REVIEW was back on recent invoices but would not apply it without being told, so the answer key counts a miss." : "";
+}
+
+function hbgrid() {
+  const M = DRIFT().filter(m => m.levels.drift.hb && m.levels.drift.hb.yes);
+  if (!M.length) return;
+  const head = "<tr><th></th><th class='c'>Without the handbook<small>2 and 3 examples</small></th>" +
+    "<th class='c'>With the stale handbook<small>2 and 3 examples</small></th><th class='c'>Followed the handbook<small>tries</small></th></tr>";
+  document.getElementById("hbgrid").innerHTML = head + M.map(m => { const h = m.levels.drift.hb;
+    return "<tr>" + nameCell(m) + cellHtml(h.no[0], "±" + ((h.no[2] - h.no[1]) * 50).toFixed(0) + "%") +
+      cellHtml(h.yes[0], "±" + ((h.yes[2] - h.yes[1]) * 50).toFixed(0) + "%") +
+      `<td><div class="cell mono" style="background:var(--cell-0);color:var(--cell-ink)">${h.followed} of ${h.n}</div></td></tr>`; }).join("");
 }
 
 function ptable() {
@@ -677,14 +787,22 @@ function takeaways() {
     items.push([`${top.name} leads at ${fmt(top.levels.drift.rule[0])}; ${bot.name} trails at ${fmt(bot.levels.drift.rule[0])}`,
       (zero.length ? `${zero.join(", ")} score${zero.length > 1 ? "" : "s"} zero overall. ` : "Every model scores above zero. ") +
       "Same agent, same instructions, same tool for every model: the gap is the model."]);
-    const d1 = Dm.reduce((s, m) => s + m.levels.drift.dose["1"][0], 0) / Dm.length;
-    const d7 = Dm.reduce((s, m) => s + m.levels.drift.dose["7"][0], 0) / Dm.length;
+    const lo = D.drift.doses[0], hiD = D.drift.doses[D.drift.doses.length - 1];
+    const d1 = Dm.reduce((s, m) => s + m.levels.drift.dose[lo][0], 0) / Dm.length;
+    const d7 = Dm.reduce((s, m) => s + m.levels.drift.dose[hiD][0], 0) / Dm.length;
+    const H = Dm.filter(m => m.levels.drift.hb && m.levels.drift.hb.yes);
+    if (H.length) {
+      const no = H.reduce((s, m) => s + m.levels.drift.hb.no[0], 0) / H.length, yes = H.reduce((s, m) => s + m.levels.drift.hb.yes[0], 0) / H.length;
+      const fol = H.reduce((s, m) => s + m.levels.drift.hb.followed, 0), tot = H.reduce((s, m) => s + m.levels.drift.hb.n, 0);
+      items.push(["A stale handbook makes every model worse",
+        `With 2 or 3 examples of the new habits, the average score is ${fmt(no)} without the old AP policy in the shared drive and ${fmt(yes)} with it. ` +
+        `In ${fol} of ${tot} tries with the handbook, the agent followed the written policy over what the team actually does.`]);
+    }
     items.push(["Models need repeated evidence before they notice a change",
-      `Averaged over models, the score is ${fmt(d1)} when the tracker shows one invoice handled the new way and ${fmt(d7)} with seven. ` +
-      "A single sighting of the new habit is mostly ignored."]);
+      `Without the handbook, the average score is ${fmt(d1)} when the tracker shows ${lo} invoice${lo > 1 ? "s" : ""} per new habit and ${fmt(d7)} with ${hiD}.`]);
     const kinds = D.drift.types.map(([k, l]) => [l, Dm.reduce((s, m) => s + (m.levels.drift.kind[k] || 0), 0) / Dm.length]).sort((a, b) => a[1] - b[1]);
-    items.push([`Hardest change: ${kinds[0][0].toLowerCase()}`,
-      `Average score by kind of change: ${kinds.map(([l, v]) => `${l.toLowerCase()} ${fmt(v)}`).join(", ")}.`]);
+    items.push([`Hardest habit: ${kinds[0][0].toLowerCase()}`,
+      `Share of each habit's invoices right, averaged over models (no handbook): ${kinds.map(([l, v]) => `${l.toLowerCase()} ${fmt(v)}`).join(", ")}.`]);
     document.getElementById("tk").innerHTML = items.map(([b, s]) => `<li><b>${b}</b><span>${s}</span></li>`).join("");
     return;   // earlier (vendor-agent) takeaways only show when there are no drift results
   }
@@ -738,10 +856,10 @@ function bindTips() {
 }
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
-  ["t-dose", "t-kind", "t-ladder", "t-levels", "t-table"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab);
+  ["t-dose", "t-kind", "t-hb", "t-ladder", "t-levels", "t-table"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab);
 });
 levelSel.onchange = rows; metricSel.onchange = rows;
-rows(); doseChart(); kgrid(); lgrid(); grid(); ptable(); takeaways();
+rows(); doseChart(); kgrid(); hbgrid(); lgrid(); grid(); ptable(); takeaways();
 </script>
 </body>
 </html>
@@ -752,6 +870,9 @@ if __name__ == "__main__":
     data = summarize(json.loads((HERE / "v3_attempts.json").read_text()))
     if (HERE / "drift_attempts.json").exists():
         summarize_drift(data, json.loads((HERE / "drift_attempts.json").read_text()))
+    rounds = sorted(HERE.glob("morning_round*.json"))
+    if rounds:    # the latest round is the main benchmark; earlier rounds stay in their own files
+        summarize_morning(data, json.loads(rounds[-1].read_text()))
     if (HERE / "ladder_attempts.json").exists():
         summarize_ladder(data, json.loads((HERE / "ladder_attempts.json").read_text()))
     (HERE / "leaderboard.html").write_text(page(data))
