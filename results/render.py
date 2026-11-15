@@ -137,6 +137,21 @@ def build_data() -> dict:
             "main5": stats(by("L1", 5) + by("L2", 5) + by("L3", 5)),
             "told": stats(by("TOLD")), "habits": {kk: sum(v) / len(v) for kk, v in hb.items() if v}, **extra,
         })
+    # second job: refunds at the support team (same levels, examples and told control)
+    ref = [a for a in load("refunds_v1.json") if scored(a)]
+    out["has_refunds"] = bool(ref)
+    for m in out["models"]:
+        inv = [dict(a, level=level(a)) for a in allv if a["model"] == m["id"]]
+        rx = [a for a in ref if a["model"] == m["id"]]
+        if not rx:
+            continue
+        def job(xs):
+            by = lambda lv, d=None: [a for a in xs if a["level"] == lv and (d is None or a.get("dose") == d)]
+            return {"main": stats(by("L1", 3) + by("L2", 3) + by("L3", 3)),
+                    "main5": stats(by("L1", 5) + by("L2", 5) + by("L3", 5)),
+                    "levels": {lv: {"all": stats(by(lv)), 3: stats(by(lv, 3)), 5: stats(by(lv, 5))} for lv, _ in LEVELS},
+                    "told": stats(by("TOLD"))}
+        m["jobs"] = {"refunds": job(rx), "both": job(inv + rx)}
     out["models"].sort(key=lambda m: (-m["main"]["pass"], -m["main"]["mean"]))
     out["baselines"] = load("baselines_v3.json")
     names = sorted({b["strategy"] for b in out["baselines"]})
@@ -156,7 +171,17 @@ def build_data() -> dict:
         if a and b:
             out["vendor"].append({"name": name, "shared": stats(a), "own": stats(b),
                                   "agent": "Claude Code" if lab == "anthropic" else "Codex"})
-    out["examples"] = load("examples_v3.json")
+    rb = load("baselines_refunds.json")
+    lv_of = lambda t: t.split("-")[1].upper()
+    out["baseline_refunds"] = []
+    for s_ in dict.fromkeys(b["strategy"] for b in rb):
+        rs = [b for b in rb if b["strategy"] == s_ and b["task"].endswith("-k3") and lv_of(b["task"]) in ("L1", "L2", "L3")]
+        if rs:
+            out["baseline_refunds"].append({"name": s_, "pass": sum(b["pass"] for b in rs) / len(rs),
+                                            "mean": sum(b["mean"] for b in rs) / len(rs),
+                                            "by": {lv: sum(b["pass"] for b in rs if lv_of(b["task"]) == lv) /
+                                                   max(1, len([b for b in rs if lv_of(b["task"]) == lv])) for lv, _ in LEVELS}})
+    out["examples"] = load("examples_v3.json") + load("examples_refunds.json")
     out["n_tries"] = max((m["main"]["n"] for m in out["models"]), default=0)
     return out
 
@@ -187,6 +212,12 @@ def page(d: dict) -> str:
     fair = (f"Yes. Every habit is shown by 3 or 5 recent examples in the history. Told the 8 habits in plain words, agents get "
             f"{told_k} of {told_n} tries fully right. Same plain agent for every model. Brainless scripts get {pct(dumb)} fully right; "
             f"a 'copy the latest invoice from the same supplier and size' lookup gets {pct(copy['pass']) if copy else 'n/a'}.")
+    rj = [m["jobs"]["refunds"] for m in ms if m.get("jobs")]
+    if rj:
+        rk, rn = sum(j["told"]["k"] for j in rj), sum(j["told"]["n"] for j in rj)
+        rb = max((b["pass"] for b in d["baseline_refunds"]), default=0)
+        fair += (f" Same on the refunds job: told the rules, {rk} of {rn} tries fully right; "
+                 f"brainless scripts {pct(rb)}.")
     blob = json.dumps({**d, "icons": ICON})
     return (TEMPLATE.replace("__DATA__", blob)
             .replace("__HARD__", escape(hard)).replace("__FAIR__", escape(fair))
@@ -399,11 +430,12 @@ footer { border-top:1px solid var(--line); color:var(--text-muted); font-size:12
 
     <div class="card ranking-card">
       <div class="control-bar">
-        <div class="control-group"><span>Score view</span><div class="segmented" id="score-toggle"><button data-mode="pass" aria-pressed="true">Whole job right</button><button data-mode="mean" aria-pressed="false">Invoices right</button></div></div>
+        <div class="control-group" id="job-group"><span>Job</span><div class="segmented" id="job-toggle"><button data-j="invoices" aria-pressed="true">Invoices</button><button data-j="refunds" aria-pressed="false">Refunds</button><button data-j="both" aria-pressed="false">Both</button></div></div>
+        <div class="control-group"><span>Score view</span><div class="segmented" id="score-toggle"><button data-mode="pass" aria-pressed="true">Whole job right</button><button data-mode="mean" aria-pressed="false">Items right</button></div></div>
         <div class="control-group"><span>Level</span><div class="segmented" id="doc-toggle"><button data-doc="main" aria-pressed="true">All levels</button><button data-doc="L1" aria-pressed="false">4 habits</button><button data-doc="L2" aria-pressed="false">8 habits</button><button data-doc="L3" aria-pressed="false">8 + old doc</button></div></div>
         <div class="control-group"><span>Examples per habit</span><div class="segmented" id="dose-toggle"><button data-d="3" aria-pressed="true">3</button><button data-d="5" aria-pressed="false">5</button></div></div>
       </div>
-      <div class="card-head leader-columns"><span>Model</span><span id="score-head">Whole job right</span><span>Invoices right</span></div>
+      <div class="card-head leader-columns"><span>Model</span><span id="score-head">Whole job right</span><span>Items right</span></div>
       <div id="rows"></div>
       <div class="axis" id="axis"></div>
       <div class="card-foot"><span>Shared plain agent, same prompt and tools for every model. Brainless scripts below the line, graded by the same checker.</span><span class="mono" id="foot-n"></span></div>
@@ -470,7 +502,8 @@ const P1 = x => (x * 100).toFixed(1) + "%";
 const ICON = l => D.icons[l] || "";
 const COLORS = ["--s1","--s2","--s3","--s4","--s5"];
 const LV = {L1: "4 habits", L2: "8 habits", L3: "8 habits + old doc"};
-let mode = "pass", lev = "main", dose = 3, ldose = 3;
+let mode = "pass", lev = "main", dose = 3, ldose = 3, job = "invoices";
+if (!D.has_refunds) document.getElementById("job-group").hidden = true;
 const tip = document.querySelector(".tip");
 function bindTips(root) {
   root.querySelectorAll("[data-tip]").forEach(el => {
@@ -479,26 +512,29 @@ function bindTips(root) {
     el.onmouseleave = () => tip.hidden = true;
   });
 }
-const pick = m => lev === "main" ? (ldose === 5 ? m.main5 : m.main) : m.levels[lev][ldose];
+const J = m => job === "invoices" ? m : (m.jobs && m.jobs[job]);
+const pick = m => { const x = J(m); return !x ? null : (lev === "main" ? (ldose === 5 ? x.main5 : x.main) : x.levels[lev][ldose]); };
 function rows() {
-  document.getElementById("score-head").textContent = mode === "pass" ? "Whole job right" : "Invoices right";
-  const list = D.models.map(m => ({m, s: pick(m)})).sort((a, b) => (mode === "pass" ? b.s.pass - a.s.pass : b.s.mean - a.s.mean) || b.s.mean - a.s.mean);
+  document.getElementById("score-head").textContent = mode === "pass" ? "Whole job right" : "Items right";
+  const list = D.models.map(m => ({m, s: pick(m)})).filter(x => x.s).sort((a, b) => (mode === "pass" ? b.s.pass - a.s.pass : b.s.mean - a.s.mean) || b.s.mean - a.s.mean);
   let html = list.map(({m, s}) => {
     const v = mode === "pass" ? s.pass : s.mean, lo = mode === "pass" ? s.pass_lo : s.mean_lo, hi = mode === "pass" ? s.pass_hi : s.mean_hi;
-    const tipx = `${m.name}|Whole job right: ${s.k}/${s.n} tries (${P1(s.pass)}, 95%: ${P(s.pass_lo)}-${P(s.pass_hi)})|Invoices right: ${P1(s.mean)}|4 habits ${P(m.levels.L1[5].pass)} · 8 habits ${P(m.levels.L2[5].pass)} · 8 + old doc ${P(m.levels.L3[5].pass)}`;
+    const tipx = `${m.name}|Whole job right: ${s.k}/${s.n} tries (${P1(s.pass)}, 95%: ${P(s.pass_lo)}-${P(s.pass_hi)})|Items right: ${P1(s.mean)}|${ldose} examples: 4 habits ${P(J(m).levels.L1[ldose].pass)} · 8 habits ${P(J(m).levels.L2[ldose].pass)} · 8 + old doc ${P(J(m).levels.L3[ldose].pass)}`;
     return `<div class="leader-row" tabindex="0" data-tip="${tipx}"><div class="leader-top">
       <span class="model-name">${ICON(m.lab)}${m.name}<span class="model-tag">${m.lab === "anthropic" ? "Anthropic" : "OpenAI"} · effort high</span></span>
       <span class="model-score mono">${P1(v)}<small>${P(lo)}-${P(hi)}</small></span>
       <span class="model-metric mono">${P1(s.mean)}<small>${s.k}/${s.n}</small></span></div>
       <div class="leader-bar"><div class="leader-fill" style="width:${Math.max(v * 100, .6)}%;background:linear-gradient(90deg,var(--${m.lab}-a),var(--${m.lab}-b))"></div></div></div>`;
   }).join("");
-  html += `<div class="base-divider">Brainless scripts, same checker</div>` + D.baseline_summary.map(b => {
+  const BS = job === "invoices" ? D.baseline_summary : (job === "refunds" ? D.baseline_refunds : []);
+  html += (BS.length ? `<div class="base-divider">Brainless scripts, same checker</div>` : "") + BS.map(b => {
     const v = mode === "pass" ? (lev === "main" ? b.pass : b.by[lev]) : b.mean;
     return `<div class="leader-row baseline"><div class="leader-top"><span class="model-name">${b.name}</span><span class="model-score mono">${P1(v)}</span><span class="model-metric mono">${P1(b.mean)}</span></div>
       <div class="leader-bar"><div class="leader-fill" style="width:${Math.max(v * 100, .6)}%;background:var(--base)"></div></div></div>`;
   }).join("");
   document.getElementById("rows").innerHTML = html;
-  document.getElementById("foot-n").textContent = `${D.models[0] ? pick(D.models[0]).n : 0} tries / model · ${ldose} examples per habit`;
+  const first = list[0] ? list[0].s.n : 0;
+  document.getElementById("foot-n").textContent = `${first} tries / model · ${ldose} examples per habit · ${job === "both" ? "invoices + refunds" : job}`;
   bindTips(document.getElementById("rows"));
 }
 document.getElementById("axis").innerHTML = [0,20,40,60,80,100].map(v => `<span style="left:${v}%">${v}%</span>`).join("");
@@ -537,7 +573,10 @@ function tables() {
   document.getElementById("versions").innerHTML = `<thead><tr><th>Version</th>${H}</tr></thead><tbody>${vers.map(([k, d]) =>
     `<tr><td>${LV[k]}<small>${d} examples per habit</small></td>${D.models.map(m => `<td class="score">${pill(m.levels[k][d].pass, `${m.name}|${m.levels[k][d].k}/${m.levels[k][d].n} whole job right, ${P1(m.levels[k][d].mean)} invoices right`)}</td>`).join("")}</tr>`).join("")}
     <tr><td>Told control<small>8 habits + old doc, all habits stated, 3 examples</small></td>${D.models.map(m => `<td class="score">${pill(m.told.pass)}</td>`).join("")}</tr>
-    <tr><td>4 habits + dated old doc<small>side version, 2/3/5 examples pooled</small></td>${D.models.map(m => `<td class="score">${pill(m.l1_doc.pass)}</td>`).join("")}</tr></tbody>`;
+    <tr><td>4 habits + dated old doc<small>side version, 2/3/5 examples pooled</small></td>${D.models.map(m => `<td class="score">${pill(m.l1_doc.pass)}</td>`).join("")}</tr>
+    ${D.has_refunds ? [["L1", 3], ["L2", 3], ["L3", 3], ["L1", 5], ["L2", 5], ["L3", 5]].map(([k, d]) =>
+      `<tr><td>Refunds: ${LV[k]}<small>support team job, ${d} examples per habit</small></td>${D.models.map(m => m.jobs ? `<td class="score">${pill(m.jobs.refunds.levels[k][d].pass, `${m.name}|refunds ${m.jobs.refunds.levels[k][d].k}/${m.jobs.refunds.levels[k][d].n} whole job right`)}</td>` : "<td></td>").join("")}</tr>`).join("") +
+      `<tr><td>Refunds: told control<small>8 habits + old doc, all habits stated</small></td>${D.models.map(m => m.jobs ? `<td class="score">${pill(m.jobs.refunds.told.pass)}</td>` : "<td></td>").join("")}</tr>` : ""}</tbody>`;
   document.getElementById("base").innerHTML = `<thead><tr><th>Brainless script (no AI), 5 examples</th><th class="score">4 habits</th><th class="score">8 habits</th><th class="score">8 + old doc</th><th class="score">Invoices right</th></tr></thead><tbody>${D.baseline_summary.map(b =>
     `<tr><td>${b.name}</td><td class="score mono">${P(b.by.L1)}</td><td class="score mono">${P(b.by.L2)}</td><td class="score mono">${P(b.by.L3)}</td><td class="score mono">${P1(b.mean)}</td></tr>`).join("")}</tbody>`;
   document.getElementById("vendor").innerHTML = `<thead><tr><th>Model</th><th class="score">Shared plain agent</th><th class="score">Own agent</th></tr></thead><tbody>${D.vendor.map(v =>
@@ -582,6 +621,7 @@ document.querySelectorAll("#doc-toggle button").forEach(b => b.onclick = () => {
 document.querySelectorAll("#curve-toggle button").forEach(b => b.onclick = () => { dose = +b.dataset.c; document.querySelectorAll("#curve-toggle button").forEach(x => x.setAttribute("aria-pressed", x === b)); curve(); });
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => { document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
   ["t-breaks","t-versions","t-base","t-vendor"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab); });
+document.querySelectorAll("#job-toggle button").forEach(b => b.onclick = () => { job = b.dataset.j; document.querySelectorAll("#job-toggle button").forEach(x => x.setAttribute("aria-pressed", x === b)); rows(); });
 document.querySelectorAll("#dose-toggle button").forEach(b => b.onclick = () => { ldose = +b.dataset.d; document.querySelectorAll("#dose-toggle button").forEach(x => x.setAttribute("aria-pressed", x === b)); rows(); });
 rows(); curve(); tables(); insights(); examples(); fair();
 </script>
