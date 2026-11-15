@@ -12,6 +12,21 @@ from January. Each rule is shown by 3 or 5 recent examples. A told control state
 Story and numbers: `docs/findings.md` and `docs/STATUS.md`. Numbers on the live page come from
 `results/morning_v3.json`, exported by `scripts/export_precedentbench.py` in Yacine's repo.
 
+## what's where
+
+    gen/          task generator (build_morning.py, imports the rule engine in build_approval_v3.py),
+                  grader tests (test_*_grader.py), Redwood download, replicate.py for numbered copies
+    agents/       plain-agent: the one agent every model runs in (same prompt, one shell tool, 80 steps)
+                  codex-gpt6: Codex with GPT-6 models, only used for the own-agent check
+    scripts/      queue_runs.sh: starts Valkyrie runs, never more than 10 in flight team-wide
+    results/      collect_*.py turn Valkyrie runs into per-attempt JSON; baselines.py scores the
+                  no-AI strategies with the same checker; *.json are the raw results
+    docs/         findings.md (what we found, how we checked it's fair), leak_check.md, STATUS.md (lab notebook)
+    demo/         deck.html, the demo
+    archive/      every earlier round and parked experiment, kept so nothing is cherry-picked
+
+Python standard library only. The only install is `valkyrie-cli`.
+
 ## setup (once each)
 
     uv tool install valkyrie-cli
