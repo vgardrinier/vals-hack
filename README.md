@@ -1,90 +1,52 @@
-# vals-hack
+# PrecedentBench (vals-hack)
 
-our eval for vals hacks (track 1, build your own eval on valkyrie).
-submissions close sun nov 15, 2pm pt.
+Our eval for Vals Hacks (track 1, build your own eval on Valkyrie). Submissions close Sun Nov 15, 2pm PT.
+
+Can AI agents follow the habits nobody wrote down? The agent joins a fake finance team (Redwood
+Inference), gets 15 new supplier invoices and three quarters of history, and has to log them the way
+the team works now. Level 1 has 4 habits, level 2 has 8 at once, level 3 adds last year's policy doc.
+Each habit is shown by 3 or 5 recent examples. A told control states the habits in the instruction.
+
+Results page: `results/leaderboard.html`. Story and numbers: `docs/STATUS.md`.
 
 ## setup (once each)
 
     uv tool install valkyrie-cli
-    valkyrie login          # pick the hackathon-yaya-vivi org
+    valkyrie login                       # pick the hackathon-yaya-vivi org
+    gen/fetch_redwood.sh ../ext/redwood  # Redwood corpus slices (EnterpriseRAG-Bench, MIT)
 
-## a task
+## build the tasks (generated, not committed: the company docs are big)
 
-each folder in `tasks/` is one task:
+    python3 gen/build_morning.py ../ext/redwood tasks --v3 --doses 3,5 --prefix morning3    # level 1 (+ side versions)
+    python3 gen/build_morning.py ../ext/redwood tasks --l2 --doses 3,5 --prefix morningL2   # levels 2, 3 and told
+    python3 gen/test_morning_grader.py tasks/morning3-k* tasks/morningL2-k*                 # grader vs wrong answers
 
-    tasks/<task-id>/
-      task.toml           settings (timeouts, docker image)
-      instruction.md      what the model is asked to do
-      environment/        Dockerfile + files the model gets
-      tests/test.sh       grades it, writes 1 or 0 to /logs/verifier/reward.txt
-      solution/solve.sh   our reference answer (proves the task is solvable)
+Every build runs self-checks (evidence counts per habit, no rule stated in any doc, name collisions with
+the corpus). Before any model run, also check the right answer scores 1 and an empty tracker 0 inside
+each Docker box (see docs/leak_check.md for the box listing).
 
-`examples/hello` is the smallest working task.
+## run a model (one plain agent for every model)
 
-## build the tasks
+`agents/plain-agent/agent.py`: same instructions, one shell tool, effort high, 80 steps, no fallback model.
 
-tasks are generated, not committed (the company docs are big):
-
-    gen/fetch_redwood.sh ../ext/redwood
-    python3 gen/build_invoice_task.py ../ext/redwood tasks    # v1: REVIEW in the tracker (too easy, opus 3/3)
-    python3 gen/build_approval_task.py ../ext/redwood tasks   # v2: approval habit only in email history (opus 3/3)
-    python3 gen/build_approval_v3.py ../ext/redwood tasks     # v3: threshold change + vendor exception
-    python3 gen/test_approval_v3_grader.py tasks/invoice-approval-v3   # grader vs answer shapes
-    python3 gen/build_ladder.py ../ext/redwood tasks          # ladder tasks 1-4 and 6 (task 5 is v3)
-    python3 gen/test_ladder_grader.py tasks/ladder-*            # grader vs answer shapes, every ladder task
-
-## results
-
-    python3 results/collect_ladder.py /tmp/ladder_runs.txt     # -> results/ladder_attempts.json
-    python3 results/render.py                                   # -> results/leaderboard.html
-
-`bridge/` is a command-line bridge to Zapier's simulated company apps (AutomationBench), parked for later.
-
-## push + run
-
-    valkyrie dataset push yaya/precedent ./tasks
-    valkyrie run start --agent claude_code-v1.0.0 --dataset yaya/precedent \
-      --model anthropic/claude-sonnet-4-6 --provider modal \
-      -s ANTHROPIC_API_KEY anthropic-api-key --concurrency 4
-
-## drift benchmark (main result)
-
-    python3 gen/build_drift.py ../ext/redwood tasks                  # 4 kinds of change x 1/3/7 examples
-    python3 gen/test_drift_grader.py tasks/drift-*-k[137]            # grader vs wrong answers
-    python3 gen/replicate.py tasks tasks 5 <task names>              # -r1..-r5 copies, one run per model
-    # runs: agent plain-agent (agents/plain-agent), same loop for every model, via scripts/queue_runs.sh
-    python3 results/collect_drift.py runs.txt [reruns.txt]           # -> results/drift_attempts.json
-    python3 results/classify_drift.py && python3 results/tag_hesitation.py   # how each miss happened
-    python3 results/render.py                                        # -> results/leaderboard.html
-
-## Run the drift benchmark on a model (the harness)
-
-Every model runs in the same plain agent (`agents/plain-agent/agent.py`): same system prompt,
-one `run` (bash) tool, reasoning effort "high", 80 steps max, no fallback models. Only the model changes.
-
-    # 0. once: tools + login
-    uv tool install valkyrie-cli && valkyrie login
-    valkyrie agent push agents/plain-agent                 # only if you changed the agent
-
-    # 1. build the tasks (company docs are big, so they're generated, not committed)
-    gen/fetch_redwood.sh ../ext/redwood
-    python3 gen/build_drift.py ../ext/redwood tasks
-    python3 gen/test_drift_grader.py tasks/drift-*-k[137]    # grader vs the obvious wrong answers
-
-    # 2. 5 numbered copies of each task so ONE run holds all tries for a model
-    IDS=$(python3 gen/replicate.py tasks tasks 5 drift-cutoff-k1 drift-cutoff-k3 drift-cutoff-k7 \
-          drift-stopped-k1 drift-stopped-k3 drift-stopped-k7 drift-approver-k1 drift-approver-k3 \
-          drift-approver-k7 drift-returned-k1 drift-returned-k3 drift-returned-k7)
-    valkyrie dataset push yaya/precedent ./tasks --tag my-run
-
-    # 3. one run per model, through the queue (never more than 10 runs org-wide)
-    DATASET=yaya/precedent TASKS=$IDS CONCURRENCY=30 scripts/queue_runs.sh /tmp/my_runs.txt \
+    IDS=$(python3 gen/replicate.py tasks /tmp/stage 5 morningL2-k3-nohandbook morningL2-k5-nohandbook ...)
+    valkyrie dataset push yaya/precedent /tmp/stage --tag my-run
+    DATASET=yaya/precedent@<version> TASKS=$IDS CONCURRENCY=25 scripts/queue_runs.sh /tmp/runs.txt \
       "plain-agent|anthropic/claude-fable-5-2|ANTHROPIC_API_KEY anthropic-api-key" \
       "plain-agent|openai/gpt-6.1-sol|OPENAI_API_KEY openai-api-key-victor"
 
-    # 4. collect, label failures, render the page
-    python3 results/collect_drift.py /tmp/my_runs.txt
-    python3 results/classify_drift.py && python3 results/tag_hesitation.py
+Never more than 10 runs in flight team-wide (the Vals limit); `scripts/queue_runs.sh` enforces it.
+
+## collect and render
+
+    python3 results/collect_morning.py <round> /tmp/runs.txt   # -> results/morning_<round>.json
+    python3 results/baselines.py --v3                          # brainless scripts, same checker
     python3 results/render.py && open results/leaderboard.html
 
-Model names: `anthropic/<id>` uses ANTHROPIC_API_KEY, `openai/<id>` uses OPENAI_API_KEY (see agent.py).
+`results/morning_v3.json` holds the final run (levels 1-3, told, side versions). `morning_round2.json` and
+`morning_vendor.json` are the earlier round the page cites for the own-agent check.
+
+## archive
+
+Earlier experiments (single-habit tasks, the ladder, drift, earlier morning rounds, the Zapier bridge, the
+old page) live in `archive/`, with their data, so nothing is lost.

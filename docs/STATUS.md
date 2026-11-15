@@ -1,6 +1,37 @@
-# Status: where PrecedentBench is (Sat Nov 14, ~8:30pm)
+# Status: where PrecedentBench is (Sun Nov 15, ~10:45am)
 
 Read this first. The README has the commands; this has the story and the numbers.
+
+## FINAL: messy monday v3, levels (what the page shows)
+
+Same company, 15 new invoices, one plain agent for every model, 5 tries per version.
+Level 1 = 4 habits. Level 2 = 8 habits at once (adds PO matched on unreviewed Infra, Selbourne over $5k
+coded Recruiting, card notes on small office invoices since Oct 19, re-sent invoices marked duplicate).
+Level 3 = level 2 + last year's AP policy doc (dated Jan 2026). Every habit shown by 3 or 5 recent examples.
+
+Whole job right (all 15 invoices), tries out of 5:
+
+| model | L1 k3 | L1 k5 | L2 k3 | L2 k5 | L3 k3 | L3 k5 | told (8 habits) |
+|---|---|---|---|---|---|---|---|
+| Fable 5.2 | 5 | 4 | 1 | 5 | 1 | 5 | 5 |
+| GPT-6 Astra | 4 | 4 | 0 | 3 | 2 | 5 | 5 |
+| GPT-6.1 Sol | 5 | 4 | 1 | 2 | 3 | 4 | 5 |
+| Opus 5.5 | 2 | 1 | 0 | 1 | 0 | 1 | 5 |
+| Sonnet 5.5 | 0 | 0 | 0 | 0 | 0 | 0 | 5 |
+
+- the honest story: with 8 habits each shown 3 times, the top three get 2 of 15 mornings right; with 5 times
+  each they get 10 of 15. Opus and Sonnet stay low at every level but pass every told try (25/25 overall).
+- target "top models under 30%" is met only at 8 habits + 3 examples, not on the 5-example main leaderboard
+  (Fable 93%, Astra 80%, Sol 67%, Opus 20%, Sonnet 0% pooled over L1-L3 at 5 examples).
+- a clearly dated old policy doc no longer fools the top models (4-habit side version: Fable 13/15,
+  Astra 15/15, Sol 14/15 with the doc).
+- caveat: Opus and Sonnet often refuse to write "PO matched" because they can't verify a purchase order;
+  graded as a miss, written when told. On the page's limits.
+- brainless scripts: 0% whole-job right except "copy the latest invoice of the same supplier and size",
+  which solves level 1 (100%) but not level 2 (0%).
+- grader fix: notes like "no review needed" now count as no flag. Leak check clean (docs/leak_check.md).
+- data: results/morning_v3.json (morning_v3a = L1 + side versions, morning_v3b = L2/L3/told), baselines_v3.json,
+  examples_v3.json. Earlier experiments moved to archive/.
 
 ## Messy monday morning (in progress, overnight Nov 14-15)
 
