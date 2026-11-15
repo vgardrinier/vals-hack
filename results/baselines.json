@@ -1,0 +1,182 @@
+[
+ {
+  "version": "morning2-k1-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier",
+  "score": 0.7333
+ },
+ {
+  "version": "morning2-k1-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier, same size",
+  "score": 0.4667
+ },
+ {
+  "version": "morning2-k1-nohandbook",
+  "handbook": false,
+  "strategy": "follow the handbook",
+  "score": 0.0
+ },
+ {
+  "version": "morning2-k1-nohandbook",
+  "handbook": false,
+  "strategy": "majority for this supplier",
+  "score": 0.2667
+ },
+ {
+  "version": "morning2-k1-nohandbook",
+  "handbook": false,
+  "strategy": "log everything, no notes",
+  "score": 0.5333
+ },
+ {
+  "version": "morning2-k1-nohandbook",
+  "handbook": false,
+  "strategy": "flag everything over $5k",
+  "score": 0.0667
+ },
+ {
+  "version": "morning2-k2-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier",
+  "score": 0.7333
+ },
+ {
+  "version": "morning2-k2-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier, same size",
+  "score": 0.6667
+ },
+ {
+  "version": "morning2-k2-nohandbook",
+  "handbook": false,
+  "strategy": "follow the handbook",
+  "score": 0.0
+ },
+ {
+  "version": "morning2-k2-nohandbook",
+  "handbook": false,
+  "strategy": "majority for this supplier",
+  "score": 0.2667
+ },
+ {
+  "version": "morning2-k2-nohandbook",
+  "handbook": false,
+  "strategy": "log everything, no notes",
+  "score": 0.5333
+ },
+ {
+  "version": "morning2-k2-nohandbook",
+  "handbook": false,
+  "strategy": "flag everything over $5k",
+  "score": 0.0667
+ },
+ {
+  "version": "morning2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier",
+  "score": 0.6667
+ },
+ {
+  "version": "morning2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "copy last time for this supplier, same size",
+  "score": 0.8
+ },
+ {
+  "version": "morning2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "follow the handbook",
+  "score": 0.0
+ },
+ {
+  "version": "morning2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "majority for this supplier",
+  "score": 0.2667
+ },
+ {
+  "version": "morning2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "log everything, no notes",
+  "score": 0.5333
+ },
+ {
+  "version": "morning2-k3-nohandbook",
+  "handbook": false,
+  "strategy": "flag everything over $5k",
+  "score": 0.0667
+ },
+ {
+  "version": "morning2-k2-handbook",
+  "handbook": true,
+  "strategy": "copy last time for this supplier",
+  "score": 0.7333
+ },
+ {
+  "version": "morning2-k2-handbook",
+  "handbook": true,
+  "strategy": "copy last time for this supplier, same size",
+  "score": 0.6667
+ },
+ {
+  "version": "morning2-k2-handbook",
+  "handbook": true,
+  "strategy": "follow the handbook",
+  "score": 0.0
+ },
+ {
+  "version": "morning2-k2-handbook",
+  "handbook": true,
+  "strategy": "majority for this supplier",
+  "score": 0.2667
+ },
+ {
+  "version": "morning2-k2-handbook",
+  "handbook": true,
+  "strategy": "log everything, no notes",
+  "score": 0.5333
+ },
+ {
+  "version": "morning2-k2-handbook",
+  "handbook": true,
+  "strategy": "flag everything over $5k",
+  "score": 0.0667
+ },
+ {
+  "version": "morning2-k3-handbook",
+  "handbook": true,
+  "strategy": "copy last time for this supplier",
+  "score": 0.6667
+ },
+ {
+  "version": "morning2-k3-handbook",
+  "handbook": true,
+  "strategy": "copy last time for this supplier, same size",
+  "score": 0.8
+ },
+ {
+  "version": "morning2-k3-handbook",
+  "handbook": true,
+  "strategy": "follow the handbook",
+  "score": 0.0
+ },
+ {
+  "version": "morning2-k3-handbook",
+  "handbook": true,
+  "strategy": "majority for this supplier",
+  "score": 0.2667
+ },
+ {
+  "version": "morning2-k3-handbook",
+  "handbook": true,
+  "strategy": "log everything, no notes",
+  "score": 0.5333
+ },
+ {
+  "version": "morning2-k3-handbook",
+  "handbook": true,
+  "strategy": "flag everything over $5k",
+  "score": 0.0667
+ }
+]

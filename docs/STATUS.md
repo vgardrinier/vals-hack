@@ -58,6 +58,35 @@ Data: `results/drift_attempts.json`. Generator: `gen/build_drift.py`. Page: `res
 Runs: one run per model holding all copies (`gen/replicate.py`), queue via `scripts/queue_runs.sh`
 (cap 10 runs org-wide). OpenAI key for the shared agent is the Valkyrie secret `openai-api-key-victor`.
 
+## dumb baselines on the messy monday (round 2), no AI
+
+scripted strategies, graded by the tasks' own grader (`results/baselines.py`, `results/baselines.json`).
+mean score = share of the 15 invoices with the right note and cost center. one deterministic try each.
+
+| strategy | no handbook | handbook | all |
+|---|---|---|---|
+| copy last time for this supplier | 71% | 70% | 71% |
+| copy last time for this supplier, same size | 64% | 73% | 68% |
+| log everything, no notes | 53% | 53% | 53% |
+| majority for this supplier | 27% | 27% | 27% |
+| flag everything over $5k | 7% | 7% | 7% |
+| follow the handbook | 0% | 0% | 0% |
+
+none of them ever gets all 15 right (pass@1 = 0% for every strategy).
+
+**two shortcuts in the mean score:**
+- **copying each supplier's most recent row scores 71%**, above every model except GPT-6 Astra. the latest
+  row for a supplier usually already carries its new reviewer, new cost center or contract exemption, so
+  recency comes for free without understanding the rule. it fails where the size of the invoice matters
+  (the moved cutoff)
+- **writing no notes at all scores 53%**: many of the 15 invoices correctly need no note (exempt supplier,
+  invoices under the new cutoff). models that follow the stale handbook score below doing nothing
+
+what that means: pass@1 is the cleaner metric here (no dumb strategy ever passes). for the mean score,
+quote it next to these baselines. a fix for the next version: pick new invoices where the supplier's
+latest row is NOT the right answer (e.g. a mid-size invoice from a supplier whose last one was big),
+and balance invoices that need a note vs not.
+
 ## Earlier experiments (vendor agents: Claude Code / Codex)
 
 ## The idea
