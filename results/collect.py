@@ -13,7 +13,7 @@ import sys
 from pathlib import Path
 
 TASKS = {"invoice-approval-v3": "hidden", "invoice-approval-v3-written": "written",
-         "invoice-approval-v3-told": "told"}
+         "invoice-approval-v3-told": "told", "invoice-approval-v3-nudged": "nudged"}
 OUT = Path(__file__).parent / "v3_attempts.json"
 
 
@@ -53,7 +53,7 @@ OUT.write_text(json.dumps(attempts, indent=1))
 done = [a for a in attempts if a["status"] == "FINISHED" and a["reward"] is not None]
 print(f"{len(attempts)} attempts, {len(done)} scored -> {OUT}")
 for m in sorted({a["model"] for a in attempts}):
-    for v in ("hidden", "written", "told"):
+    for v in ("hidden", "nudged", "written", "told"):
         rs = [a["reward"] for a in done if a["model"] == m and a["version"] == v]
         other = [a["status"] for a in attempts if a["model"] == m and a["version"] == v and a not in done]
         print(f"  {m:20s} {v:8s} {sum(rs):.0f}/{len(rs)} passed" + (f"  (not scored: {other})" if other else ""))

@@ -22,8 +22,8 @@ from html import escape
 from pathlib import Path
 
 HERE = Path(__file__).parent
-LEVELS = [("hidden", "Rule only in past work"), ("written", "Rule in an email somewhere"),
-          ("told", "Rule told in the instruction")]
+LEVELS = [("nudged", "Pointed at past work, rule unstated"), ("hidden", "Rule only in past work, no pointer"),
+          ("written", "Rule in an email somewhere"), ("told", "Rule told in the instruction")]
 MODELS = {
     "claude-fable-5-2": ("Fable 5.2", "Anthropic"),
     "claude-opus-5-5": ("Opus 5.5", "Anthropic"),
@@ -105,7 +105,7 @@ def summarize(attempts: list[dict]) -> dict:
 
 def page(data: dict) -> str:
     attempts = sorted({lv["n"] for m in data.values() for lv in m["levels"].values()})
-    top = max((m["levels"]["hidden"]["rule"][0], m["name"]) for m in data.values() if "hidden" in m["levels"])
+    top = max((m["levels"]["nudged"]["rule"][0], m["name"]) for m in data.values() if "nudged" in m["levels"])
     att_txt = str(attempts[-1]) if len(attempts) == 1 else f"{attempts[0]}–{attempts[-1]}"
     blob = json.dumps({"models": data, "levels": LEVELS, "quote": FABLE_QUOTE})
     return (TEMPLATE.replace("__DATA__", blob).replace("__N_MODELS__", str(len(data)))
@@ -238,9 +238,9 @@ select { font: inherit; font-size: 13px; color: var(--text-primary); background:
 
   <section class="stats">
     <div class="stat"><div class="v">__N_MODELS__</div><div class="k">Frontier models</div></div>
-    <div class="stat"><div class="v">3</div><div class="k">Levels of hidden</div></div>
+    <div class="stat"><div class="v">4</div><div class="k">Levels of hidden</div></div>
     <div class="stat"><div class="v">__ATTEMPTS__</div><div class="k">Attempts per level</div></div>
-    <div class="stat"><div class="v">__TOP__</div><div class="k">Top rule score</div></div>
+    <div class="stat"><div class="v">__TOP__</div><div class="k">Top rule score, pointed</div></div>
   </section>
 
   <section class="lb" id="leaderboard">
@@ -251,8 +251,10 @@ select { font: inherit; font-size: 13px; color: var(--text-primary); background:
       <p>The catch: big invoices need the finance director's approval first, the cutoff quietly moved from $5,000
       to $10,000 in October, and one supplier stopped needing approval after signing a contract. None of it is
       written down. It only shows in how the team handled the last 90 invoices.</p>
-      <p>Each model runs the same task three ways: with the rule only in past work, with the rule also written in
-      an email, and with the rule told in the instruction. The last one is the fairness check.</p>
+      <p>Each model runs the same task four ways. The headline level points the agent at the team's history
+      ("handle these the way the team usually does") without stating any rule, so it measures whether the agent can
+      work the rule out. The others remove that pointer, write the rule in an email, or state it outright. That last
+      one is the fairness check.</p>
       <div class="chips"><a href="#ladder">Where it breaks</a><a href="#takeaways">Takeaways</a><a href="#method">Methodology</a></div>
     </div>
     <div class="card">
@@ -291,6 +293,10 @@ select { font: inherit; font-size: 13px; color: var(--text-primary); background:
     one invoice that needs it, (2) left the two invoices under $10,000 alone, (3) left the exempt supplier alone.
     Parts 2 and 3 only count when part 1 holds, so asking nobody earns nothing. <b>Pass rate</b> is the share of
     attempts where every check holds, including bookkeeping (each invoice logged once, past records untouched).</p>
+    <p><b>Levels.</b> Pointed: the instruction adds "The team's email, Slack and tickets are in /app/company/. Handle
+    these the way the team usually does." No pointer: the same task without that line. In an email: three emails from
+    the director state the rules among ~800 others. Told: the rules are in the instruction. The company, invoices and
+    checks are identical across levels. The pointed level has 3 attempts per model so far; the others have 8.</p>
     <p><b>Intervals.</b> Rule score: 95% bootstrap over attempts, 10,000 resamples. Pass rate: 95% Wilson interval.
     Attempt counts are small, so intervals are wide. When every attempt scores zero the bootstrap range collapses to
     zero; the pass-rate interval (0 to 32% for 0 of 8) is the honest bound there.</p>
@@ -348,11 +354,11 @@ document.getElementById("axis").innerHTML = [0, 20, 40, 60, 80, 100].map(v => `<
 function grid() {
   const hid = m => (m.levels.hidden ? m.levels.hidden.rule[0] : 0);
   const order = Object.values(D.models).sort((a, b) => hid(b) - hid(a) || a.name.localeCompare(b.name));
-  const lv = [...D.levels].reverse();
+  const lv = ["told", "written", "nudged", "hidden"].map(k => D.levels.find(l => l[0] === k));
   const head = "<tr><th></th>" + lv.map(([, l]) => `<th class="c">${l}</th>`).join("") + "</tr>";
   const body = order.map(m => "<tr><td class='nm'>" + m.name + "</td>" + lv.map(([k]) => {
     const d = m.levels[k];
-    if (!d) return "<td><div class='cell' style='background:var(--cell-0);color:var(--text-muted)'>running</div></td>";
+    if (!d) return "<td><div class='cell' style='background:var(--cell-0);color:var(--text-muted)'>not run</div></td>";
     const v = d.rule[0];
     const bg = `color-mix(in oklab, #2a78d6 ${Math.round(v * 85)}%, var(--cell-0))`;
     const ink = v > .55 ? "#fff" : "var(--cell-ink)";
@@ -366,9 +372,19 @@ function takeaways() {
   const H = M.filter(m => m.levels.hidden);
   const best = H.reduce((a, b) => (b.levels.hidden.rule[0] > a.levels.hidden.rule[0] ? b : a));
   const never = H.filter(m => (m.levels.hidden.fails["never asked for approval"] || 0) === m.levels.hidden.n).length;
-  const items = [[`Only ${best.name} reliably works out the unwritten rule`,
+  const N = M.filter(m => m.levels.nudged).sort((a, b) => b.levels.nudged.rule[0] - a.levels.nudged.rule[0]);
+  const items = [];
+  if (N.length) {
+    const old = N.reduce((s, m) => s + (m.levels.nudged.fails["used the old $5k rule"] || 0), 0);
+    const miss = N.reduce((s, m) => s + (m.levels.nudged.n - m.levels.nudged.k), 0);
+    items.push(["Pointed at the history, every model finds the habit, few get it right",
+      `With one line telling it to handle invoices the way the team usually does, every attempt by every model asks the director for approval. ` +
+      `${N[0].name} leads at ${fmt(N[0].levels.nudged.rule[0])}. Of ${miss} failed attempts, ${old} applied the old $5,000 cutoff: ` +
+      "they learned the habit but not that it changed."]);
+  }
+  items.push([`Without the pointer, only ${best.name} reliably works out the unwritten rule`,
     `It reaches a ${fmt(best.levels.hidden.rule[0])} rule score when the rule lives only in past work. ` +
-    `In its own words: "${D.quote}"`]];
+    `In its own words: "${D.quote}"`]);
   items.push([`${never} of ${H.length} models never ask for approval at all`,
     "Asked to log five invoices, they log all five and stop. In the runs we read, Sonnet and Haiku never open the " +
     "company history. The GPT models do search it, but for a written procedure (\"invoice tracker\", \"log invoices\"); " +
