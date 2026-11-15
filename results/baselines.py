@@ -1,6 +1,7 @@
 """Dumb baselines: scripted, no-AI strategies on the round-2 messy monday tasks.
 
-    python3 results/baselines.py
+    python3 results/baselines.py          # round 2
+    python3 results/baselines.py --v3     # messy monday v3
 
 Each strategy reads only what an agent could read in the box (trackers, inbox, handbook),
 writes the 15 new rows into a copy of the Q4 tracker, and is graded by the task's own
@@ -19,9 +20,12 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-VERSIONS = ["morning2-k1-nohandbook", "morning2-k2-nohandbook", "morning2-k3-nohandbook",
-            "morning2-k2-handbook", "morning2-k3-handbook"]
-OUT = ROOT / "results" / "baselines.json"
+V3 = "--v3" in sys.argv
+VERSIONS = (["morning3-k2-nohandbook", "morning3-k3-nohandbook", "morning3-k5-nohandbook",
+             "morning3-k2-handbook", "morning3-k3-handbook", "morning3-k5-handbook"] if V3 else
+            ["morning2-k1-nohandbook", "morning2-k2-nohandbook", "morning2-k3-nohandbook",
+             "morning2-k2-handbook", "morning2-k3-handbook"])
+OUT = ROOT / "results" / ("baselines_v3.json" if V3 else "baselines.json")
 
 
 def money(s: str) -> float:
@@ -59,7 +63,7 @@ def read_inbox(env: Path) -> list[dict]:
 
 def handbook_cc() -> dict:
     # the stale policy's table (same in every version; read from the handbook build)
-    hb = ROOT / "tasks" / "morning2-k2-handbook" / "environment" / "company" / "drive" / "AP_Policy_2026.md"
+    hb = ROOT / "tasks" / ("morning3-k2-handbook" if V3 else "morning2-k2-handbook") / "environment" / "company" / "drive" / "AP_Policy_2026.md"
     return {m.group(1).strip(): m.group(2).strip()
             for m in re.finditer(r"^\| ([^|]+?) \| ([^|]+?) \|$", hb.read_text(), re.M)
             if m.group(1).strip() not in ("Supplier", "---")}

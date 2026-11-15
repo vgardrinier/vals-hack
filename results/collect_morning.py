@@ -50,11 +50,12 @@ def one(model: str, run_id: str, task: str) -> dict:
     ev = d.get("evaluation_result") or {}
     out = (ev.get("metadata") or {}).get("verifier_output", "")
     base = task.rsplit("-r", 1)[0]
-    m = re.match(r"(.+)-k(\d)-(handbook|nohandbook)", base)
+    m = re.match(r"(.+)-k(\d)-(handbook|nohandbook|told)", base)
     return {
         "model": model, "run_id": run_id, "task": task, "version": base,
         "prefix": m.group(1) if m else base, "dose": int(m.group(2)) if m else None,
         "handbook": (m.group(3) == "handbook") if m else None,
+        "told": (m.group(3) == "told") if m else False,
         "status": d.get("status"), "error": d.get("error_message"),
         "reward": (ev.get("rewards") or {}).get("reward"),
         "checks": [l for l in out.splitlines() if l.startswith(("PASS", "FAIL", "score", "extra"))],

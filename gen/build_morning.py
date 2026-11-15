@@ -88,6 +88,25 @@ NEW_V3 = [
 ]
 V3 = False   # set by --v3
 
+# L2: 15 invoices exercising all 8 habits ("DUP" = re-sent copy of the latest Q4 Vantor invoice)
+NEW_L2 = [
+    ("HDC", 11340.50, date(2026, 11, 9)),    # contract: no review, Infra: PO matched
+    ("IHS", 13912.48, date(2026, 11, 11)),   # Infra over $10k: REVIEW: Tomasz
+    ("STP", 11862.20, date(2026, 11, 9)),    # over $10k: REVIEW: Mireille, cost center Recruiting
+    ("MFL", 6924.18, date(2026, 11, 10)),    # $5k-$10k: no note any more
+    ("CSA", 7281.35, date(2026, 11, 10)),    # Security kept $5k: REVIEW: Mireille
+    ("WCS", 2479.90, date(2026, 11, 12)),    # reclassified: G&A
+    ("QFN", 3904.62, date(2026, 11, 10)),    # Infra, small: PO matched
+    ("IHS", 3377.18, date(2026, 11, 12)),    # Infra, small: PO matched
+    ("STP", 4106.90, date(2026, 11, 11)),    # Selbourne under $5k: People
+    ("STP", 7640.00, date(2026, 11, 12)),    # Selbourne $5k-$10k: Recruiting, no note
+    ("COS", 612.40, date(2026, 11, 12)),     # card
+    ("LBA", 834.15, date(2026, 11, 10)),     # card
+    ("OCC", 1422.80, date(2026, 11, 11)),    # routine
+    ("SPS", 1318.55, date(2026, 11, 9)),     # routine
+    ("VUM", "DUP", None),                    # re-sent: DUPLICATE - do not pay
+]
+
 TOLD = (
     "\nHow the team logs invoices right now (current practice, it changed this autumn):\n"
     "- Invoices over $10,000 get a note: \"REVIEW: Tomasz\" for Infra suppliers, \"REVIEW: Mireille\" for everyone else.\n"
@@ -98,12 +117,31 @@ TOLD = (
 )
 
 
-def cost_center(v: str, d: date) -> str:
+L2 = False   # set by --l2: 8 habits at once
+CARD_DATE = date(2026, 10, 19)   # L2: small office-supply invoices paid by card from here
+CARD_VENDORS = ("COS", "LBA")
+DUP_NOTE = "DUPLICATE - do not pay"
+
+
+def cost_center(v: str, d: date, a: float | None = None) -> str:
+    if L2 and v == "STP" and a is not None and a > 5000:
+        return "Recruiting"                                  # L2: Selbourne over $5k is recruiting spend
     return "G&A" if (v == "WCS" and d >= RECLASS) else VENDORS[v][1]
 
 
 def note(v: str, a: float, d: date) -> str:
     """The team's real habit. Every past row and the answer key come from this."""
+    base = _review_note(v, a, d)
+    if not L2 or base:
+        return base
+    if VENDORS[v][1] == "Infra":
+        return "PO matched"                                  # L2: Infra invoices that skip review are PO-matched
+    if v in CARD_VENDORS and d >= CARD_DATE:
+        return "card"                                        # L2: small office invoices go on the card
+    return ""
+
+
+def _review_note(v: str, a: float, d: date) -> str:
     if d < CHANGE:
         return "REVIEW" if a > 5000 else ""
     if v == "HDC" and d >= CONTRACT:
@@ -154,12 +192,12 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
     q4 = weekdays(date(2026, 10, 6), date(2026, 11, 12))
     for d in q4:
         for _ in range(rng.choice([1, 1, 2, 2])):
-            v = rng.choice(small)
+            v = rng.choice([x for x in small if not (L2 and x in CARD_VENDORS)])
             lo, hi = VENDORS[v][3]
             add(d, v, rng.uniform(lo, min(hi, 4800)))
     # Q4 evidence: exactly `dose` rows per new habit, spread over Q4 (own random stream per dose)
     rng = rng_dose
-    n_spots = dose * (6 if PARTIAL_SECURITY else 5)
+    n_spots = dose * ((6 if PARTIAL_SECURITY else 5) + (1 if L2 else 0))
     pool = q4[6:]
     spots = sorted(rng.sample(pool, n_spots) if n_spots <= len(pool) else
                    rng.sample(pool, len(pool)) + rng.choices(pool, k=n_spots - len(pool)))
@@ -169,7 +207,8 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
     other = ["STP", "MFL", "CSA"]
     for i in range(dose):
         plan += [("mid", mids[i % len(mids)]), ("infra", infra[i % 3]), ("other", other[i % 3]),
-                 ("hdc", "HDC"), ("wcs", "WCS")] + ([("sec", "CSA")] if PARTIAL_SECURITY else [])
+                 ("hdc", "HDC"), ("wcs", "WCS")] + ([("sec", "CSA")] if PARTIAL_SECURITY else []) + \
+                ([("card", CARD_VENDORS[i % 2])] if L2 else [])
     rng.shuffle(plan)
     for (kind, v), d in zip(plan, spots):
         if kind == "hdc":
@@ -178,9 +217,13 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
                 d += timedelta(days=1)
         if kind == "wcs" and d < RECLASS:
             d = RECLASS + timedelta(days=1)
+        if kind == "card" and d < CARD_DATE:
+            d = CARD_DATE + timedelta(days=1 + 2 * len([e for e in ev if e.get("evidence") == "card"]))
+            while d.weekday() >= 5:
+                d += timedelta(days=1)
         amount = {"mid": rng.uniform(5600, 9600), "sec": rng.uniform(5600, 9400), "infra": rng.uniform(10800, 16400),
                   "other": rng.uniform(10600, 12900), "hdc": rng.uniform(10600, 14800),
-                  "wcs": rng.uniform(1200, 4300)}[kind]
+                  "wcs": rng.uniform(1200, 4300), "card": rng.uniform(240, 940)}[kind]
         add(d, v, amount, evidence=kind)
     rng = random.Random(SEED + 1)   # decorations (numbers, notes, typos) also fixed across doses
     ev.sort(key=lambda e: (e["received"], e["vendor"], e["amount"]))
@@ -191,11 +234,26 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
         e["number"] = f"{e['vendor']}-2026-{counters[e['vendor']]:04d}"
         e["inv_date"] = e["received"] - timedelta(days=rng.randint(1, 6))
         e["notes"] = note(e["vendor"], e["amount"], e["received"])
-        e["cc"] = cost_center(e["vendor"], e["received"])
+        e["cc"] = cost_center(e["vendor"], e["received"], e["amount"])
         e["logged_by"] = rng.choice([STAFF[0][0], STAFF[1][0], STAFF[1][0], DIRECTOR[0]])
         e["name"] = VENDORS[e["vendor"]][0]
         if not e["notes"] and rng.random() < 0.25:
-            e["notes"] = rng.choice(["PO matched", "ACH", "credit memo applied", "dup check ok", "paid early, 2% disc"])
+            e["notes"] = rng.choice(["ACH", "credit memo applied", "paid early, 2% disc"] if L2 else
+                                    ["PO matched", "ACH", "credit memo applied", "dup check ok", "paid early, 2% disc"])
+    if L2:
+        cands = [e for e in ev if e["vendor"] in ("OCC", "SPS", "VUM", "MFL") and e["amount"] < 4800
+                 and "evidence" not in e and e["received"] >= date(2026, 5, 1)]
+        q4c = [e for e in cands if e["received"] >= CHANGE]
+        picks = rng.sample([e for e in cands if e["received"] < CHANGE], max(dose, 3)) + rng.sample(q4c, 2)
+        for e in picks:
+            d = e["received"] + timedelta(days=rng.randint(3, 12))
+            while d.weekday() >= 5:
+                d += timedelta(days=1)
+            if d > date(2026, 11, 12):
+                continue
+            ev.append(dict(e, received=d, notes=DUP_NOTE, dup=True,            # same invoice number, re-sent
+                           logged_by=rng.choice([STAFF[0][0], STAFF[1][0]])))
+        ev.sort(key=lambda e: (e["received"], e["vendor"], e["amount"]))
     # human mess
     if lapses:
         bigs = [e for e in ev if e["received"] < CHANGE and e["notes"] == "REVIEW" and e["received"].month in (6, 8)]
@@ -205,12 +263,21 @@ def build_history(rng_dose: random.Random, dose: int, lapses: bool) -> list[dict
         cands = [e for e in ev if e["vendor"] == v and e["received"] < date(2026, 10, 1) and "evidence" not in e]
         rng.choice(cands)["name"] = typo
     new = []
-    for v, a, inv_date in (NEW_V3 if V3 else NEW):
+    batch = NEW_L2 if L2 else (NEW_V3 if V3 else NEW)
+    if L2:   # the re-sent invoice copies the latest Q4 Vantor invoice's amount and invoice date
+        last_vum = max((e for e in ev if e["vendor"] == "VUM" and e["received"] >= CHANGE and not e.get("dup")),
+                       key=lambda e: e["received"])
+        batch = [(v, (last_vum["amount"] if a == "DUP" else a), (last_vum["inv_date"] if a == "DUP" else d))
+                 for v, a, d in batch]
+    for v, a, inv_date in batch:
         counters[v] += rng.randint(2, 7)
         new.append(dict(vendor=v, amount=a, inv_date=inv_date, received=ARRIVED,
                         number=f"{v}-2026-{counters[v]:04d}", name=VENDORS[v][0],
-                        note=note(v, a, ARRIVED), cc=cost_center(v, ARRIVED),
+                        note=note(v, a, ARRIVED), cc=cost_center(v, ARRIVED, a),
                         old_note=old_note(v, a, ARRIVED), old_cc=old_cc(v, ARRIVED)))
+        if L2 and v == "VUM" and a == last_vum["amount"]:
+            counters[v] -= 0
+            new[-1].update(note=DUP_NOTE, number=last_vum["number"], dup_of=last_vum["number"])
     return ev, new
 
 
@@ -372,6 +439,40 @@ print(f"extra rows: {max(0, len(body) - n - len(exp['new']))}")
 print(f"score={right / len(exp['new']):.4f}")
 '''
 
+# L2 grader: same rules, plus the three extra note conventions. One meaning per note:
+# duplicate > review (with reviewer) > PO matched > card > none. Wording around it is free.
+_KIND_L2 = r'''def kind(text):
+    if re.search(r"\bduplicate\b|\bdupe?\b", text, re.I) and not re.search(r"\b(?:no|not)\b[^.;,]{0,12}\bdup", text, re.I):
+        return "DUPLICATE - do not pay"
+    if re.search(r"\breview\b", text, re.I) and not NEGATED.search(text):
+        if re.search(r"tomasz", text, re.I):
+            return "REVIEW: Tomasz"
+        if re.search(r"mireille", text, re.I):
+            return "REVIEW: Mireille"
+        return "REVIEW"
+    if re.search(r"\bpo\b", text, re.I):
+        return "PO matched"
+    if re.search(r"\bcard\b", text, re.I):
+        return "card"
+    return ""
+
+'''
+_a, _b = CHECK_PY.index("def kind(text):"), CHECK_PY.index("right = 0")
+CHECK_PY_L2 = CHECK_PY[:_a] + _KIND_L2 + CHECK_PY[_b:]
+assert CHECK_PY_L2 != CHECK_PY
+
+TOLD_L2 = (
+    "\nHow the team logs invoices right now (current practice, it changed this autumn):\n"
+    "- Invoices over $10,000 get a note: \"REVIEW: Tomasz\" for Infra suppliers, \"REVIEW: Mireille\" for everyone else.\n"
+    "- Security invoices over $5,000 also get \"REVIEW: Mireille\".\n"
+    "- Halverson Data Centers invoices are not reviewed since their contract was signed on November 2.\n"
+    "- Infra supplier invoices that are not reviewed get the note \"PO matched\".\n"
+    "- Kellerby Office Supply and Pellham Badge & Access invoices get the note \"card\" since October 19.\n"
+    "- An invoice re-sent with the same number and amount as one already logged gets \"DUPLICATE - do not pay\".\n"
+    "- Wrenfield Creative Studio is coded to G&A since October 12; Selbourne Talent Partners invoices over $5,000 are coded Recruiting, smaller ones People.\n"
+    "- Everything else: no note, and the supplier's usual cost center.\n"
+)
+
 TASK_TOML = v3.TASK_TOML
 
 NOT_STATED = re.compile(r"10,000|\$10k|10k|tomasz will|reclass|now (?:goes|go) to|going forward|"
@@ -416,7 +517,38 @@ def self_check(redwood_blob: str, ev: list[dict], new: list[dict], dose: int, la
     assert sum(1 for e in ev if e.get("lapse")) == (2 if lapses else 0)
     pre = [e for e in ev if e["received"] < CHANGE]
     assert sum(1 for e in pre if e["notes"] == "REVIEW") >= 30 and sum(1 for e in pre if e["vendor"] == "WCS") >= 8
-    if not V3:
+    if L2:
+        ev_q4 = [e for e in ev if e["received"] >= CHANGE]
+        evidence = {
+            "po": sum(e["notes"] == "PO matched" for e in ev),
+            "card": sum(e["notes"] == "card" for e in ev),
+            "card_before": sum(e["vendor"] in CARD_VENDORS and e["received"] < CARD_DATE and e["notes"] == "card" for e in ev),
+            "recruit": sum(e["cc"] == "Recruiting" for e in ev),
+            "people_small_stp": sum(e["vendor"] == "STP" and e["amount"] <= 5000 and e["cc"] == "People" for e in ev),
+            "dup": sum(bool(e.get("dup")) for e in ev),
+            "hdc_po_after_contract": sum(e["vendor"] == "HDC" and e["received"] >= CONTRACT and e["notes"] == "PO matched" for e in ev),
+        }
+        assert evidence["card"] == dose and evidence["card_before"] == 0, evidence
+        assert evidence["po"] >= dose and evidence["recruit"] >= dose and evidence["dup"] >= dose, evidence
+        assert evidence["people_small_stp"] >= dose and evidence["hdc_po_after_contract"] == dose, evidence
+        want = {"HDC": "PO matched"}
+        exercised = {
+            "contract+po": any(i["vendor"] == "HDC" and i["note"] == "PO matched" for i in new),
+            "infra review": any(i["note"] == "REVIEW: Tomasz" for i in new),
+            "other review": any(i["note"] == "REVIEW: Mireille" and i["amount"] > 10000 for i in new),
+            "cutoff": any(5000 < i["amount"] <= 10000 and i["note"] == "" for i in new),
+            "security": any(i["vendor"] == "CSA" and i["note"] == "REVIEW: Mireille" and i["amount"] <= 10000 for i in new),
+            "reclass": any(i["vendor"] == "WCS" and i["cc"] == "G&A" for i in new),
+            "po small": any(i["note"] == "PO matched" and i["vendor"] != "HDC" for i in new),
+            "recruiting": any(i["cc"] == "Recruiting" for i in new) and any(i["vendor"] == "STP" and i["cc"] == "People" for i in new),
+            "card": any(i["note"] == "card" for i in new),
+            "duplicate": any(i["note"] == DUP_NOTE for i in new),
+        }
+        assert all(exercised.values()), exercised
+        diff = sum((i["old_note"], i["old_cc"]) != (i["note"], i["cc"]) for i in new)
+        assert diff >= 10, diff
+        print(f"  L2 evidence {evidence}, simpler answer wrong on {diff}/15")
+    elif not V3:
         for i in new:   # every new invoice touches a changed habit: the old answer is wrong on each one
             assert (i["old_note"], i["old_cc"]) != (i["note"], i["cc"]), i
     else:
@@ -438,7 +570,7 @@ def self_check(redwood_blob: str, ev: list[dict], new: list[dict], dose: int, la
     last = {}
     for e in ev:
         last[e["vendor"]] = max(last.get(e["vendor"], 0), int(e["number"].split("-")[-1]))
-    assert all(int(i["number"].split("-")[-1]) > last[i["vendor"]] for i in new), "invoice numbers go up"
+    assert all(int(i["number"].split("-")[-1]) > last[i["vendor"]] or i.get("dup_of") for i in new), "invoice numbers go up"
 
 
 # round 2 (plan b, too hard step 1): one deviating row per habit against a written policy and ~40 old
@@ -512,7 +644,7 @@ def build(redwood: Path, out: Path, doses: list[int], lapses: bool, prefix: str)
             (t / "tests").mkdir()
             (t / "tests" / "test.sh").write_text(TEST_SH)
             (t / "tests" / "test.sh").chmod(0o755)
-            (t / "tests" / "check.py").write_text(CHECK_PY)
+            (t / "tests" / "check.py").write_text(CHECK_PY_L2 if L2 else CHECK_PY)
             (t / "tests" / "expected.json").write_text(json.dumps(expected, indent=1))
             buf = io.StringIO()
             csv.writer(buf, lineterminator="\n").writerows(
@@ -521,7 +653,7 @@ def build(redwood: Path, out: Path, doses: list[int], lapses: bool, prefix: str)
             (t / "solution" / "solve.sh").write_text(
                 f"#!/bin/bash\ncat >> /app/company/finance/{LIVE} <<'EOF'\n{buf.getvalue()}EOF\n")
             (t / "solution" / "solve.sh").chmod(0o755)
-            (t / "instruction.md").write_text(INSTRUCTION + (TOLD if told else ""))
+            (t / "instruction.md").write_text(INSTRUCTION + ((TOLD_L2 if L2 else TOLD) if told else ""))
             desc = (f"messy monday{' v3' if V3 else ''}: 4 quiet habit changes, {dose} example(s) each, "
                     f"{'with' if handbook else 'without'} an old AP policy" + (", rules told" if told else ""))
             (t / "task.toml").write_text(TASK_TOML.format(name=name, description=desc))
@@ -538,7 +670,9 @@ if __name__ == "__main__":
     ap.add_argument("--no-lapses", action="store_true")
     ap.add_argument("--prefix", default="morning")
     ap.add_argument("--v3", action="store_true", help="realistic batch, dated old policy, told version, doses 2/3/5")
+    ap.add_argument("--l2", action="store_true", help="8 habits at once (implies --v3)")
     a = ap.parse_args()
-    V3 = a.v3
+    V3 = a.v3 or a.l2
+    L2 = a.l2
     print(",".join(build(Path(a.redwood), Path(a.out), [int(x) for x in a.doses.split(",")],
                          not a.no_lapses, a.prefix)))

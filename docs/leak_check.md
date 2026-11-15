@@ -20,3 +20,11 @@ Docker image and listing every file outside system folders, then searching their
   checklists), unrelated to grading
 
 **verdict:** no leak. The agent can't read the answer. The only way to score is to work it out.
+
+## v3 (messy monday v3), checked Nov 15 morning
+
+Box: `morning3-k3-handbook` built locally. `/app` holds only `company/` (gmail, slack, jira, drive with the
+dated Jan 2026 AP policy, finance with the Q4 tracker and the Q2/Q3 archive) and `inbox/`.
+No `tests/`, `expected.json`, `check.py`, `solution/` or `solve.sh` anywhere in the image.
+No doc contains "REVIEW: Tomasz" / "REVIEW: Mireille" (they only appear as tracker notes), and no email or
+drive doc mentions $10,000. The old policy states only the January rule. Clean.

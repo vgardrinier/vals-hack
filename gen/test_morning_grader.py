@@ -84,9 +84,24 @@ for arg in sys.argv[1:]:
          (len(new) - 1) / len(new), False),
         ("reference plus an edited past row", shape_rows(exp, lambda i: i["note"], right_cc), 0.0, True),
         ("reference, 'no review needed' notes instead of blanks", shape_rows(exp, negated, right_cc), 1.0, False),
+        ("reference, but no PO / card / duplicate notes (L2 habits ignored)",
+         shape_rows(exp, lambda i: "" if i["note"] in ("PO matched", "card", "DUPLICATE - do not pay") else i["note"], right_cc),
+         want(lambda i: "" if i["note"] in ("PO matched", "card", "DUPLICATE - do not pay") else i["note"], right_cc), False),
+        ("reference, but Selbourne always People (two-condition cost center ignored)",
+         shape_rows(exp, lambda i: i["note"], lambda i: "People" if i["cc"] == "Recruiting" else i["cc"]),
+         want(lambda i: i["note"], lambda i: "People" if i["cc"] == "Recruiting" else i["cc"]), False),
+        ("reference, PO note on every Infra invoice even reviewed ones",
+         shape_rows(exp, lambda i: "PO matched" if i["old_cc"] == "Infra" else i["note"], right_cc),
+         want(lambda i: "PO matched" if i["old_cc"] == "Infra" else i["note"], right_cc), False),
+        ("reference, notes in other words ('dup, do not pay' / 'PO match ok' / 'paid by card')",
+         shape_rows(exp, lambda i: {"DUPLICATE - do not pay": "dup, do not pay", "PO matched": "PO match ok",
+                                    "card": "paid by card"}.get(i["note"], i["note"]), right_cc), 1.0, False),
         ("reference, reviewer in other words ('review - tomasz')",
          shape_rows(exp, lambda i: i["note"].replace("REVIEW: ", "review - ").lower(), right_cc), 1.0, False),
     ]
+    l2 = any(i["note"] in ("PO matched", "card", "DUPLICATE - do not pay") for i in new)
+    if not l2:   # the L2-only habit shapes mean nothing on the 4-habit tasks
+        cases = [c for c in cases if not any(k in c[0] for k in ("PO", "Selbourne", "dup, do not pay"))]
     for name, rows, w, edit in cases:
         got = score(task, rows, edit)
         ok = abs(got - w) < 1e-3
