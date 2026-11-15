@@ -148,7 +148,7 @@ DRIFT_TYPES = [("cutoff", "Cutoff moved", "REVIEW cutoff went from $5k to $10k")
                ("approver", "Approver changed", "approvals moved from Mireille (MA) to Rosalind (RQ)"),
                ("returned", "Habit came back", "REVIEW paused for six weeks, then came back")]
 DRIFT_DOSES = [1, 3, 7]
-SHARED = "shared agent"
+SHARED = "High"
 
 
 def summarize_drift(data: dict, attempts: list[dict]) -> int:
@@ -195,14 +195,14 @@ def summarize_drift(data: dict, attempts: list[dict]) -> int:
 def page(data: dict) -> str:
     lad = [m for m in data.values() if "ladder" in m["levels"]]
     dri = [m for m in data.values() if "drift" in m["levels"]]
-    levels = ([("drift", "Drift, shared agent")] if dri else []) + \
-             ([("ladder", "Ladder (vendor agents)")] if lad else []) + \
-             [(k, f"{l} (vendor agents)") for k, l in LEVELS]
+    levels = ([("drift", "Habit changes")] if dri else []) + \
+             ([("ladder", "Earlier: 6-task ladder")] if lad else []) + \
+             [(k, f"Earlier: {l[0].lower() + l[1:]}") for k, l in LEVELS]
     if dri:
         top = max((m["levels"]["drift"]["rule"][0], m["name"]) for m in dri)
         tries = max(c["n"] for m in dri for c in m["levels"]["drift"]["cells"].values())
         stats = [(str(len(dri)), "Frontier models"), (str(len(DRIFT_TYPES)), "Kinds of change"),
-                 (str(tries), "Tries per version"), (f"{top[0] * 100:.1f}%", "Top drift score")]
+                 (str(tries), "Tries per version"), (f"{top[0] * 100:.1f}%", "Top score")]
     elif lad:
         top = max((m["levels"]["ladder"]["rule"][0], m["name"]) for m in lad)
         stats = [(str(len(lad)), "Frontier models"), (str(len(LADDER)), "Tasks, easy to hard"),
