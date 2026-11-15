@@ -50,6 +50,10 @@ CASES = [
      [mail(D, "Approval please", f"Can you approve {IHS} from Ironwood?")], [HDC, CSA, KOS, MFL], 1),
     ("vendor name only, shouting, director in cc",
      [mail("tomasz_brennan@redwood.com", "IRONWOOD invoice for approval", cc=D)], [HDC, CSA, KOS, MFL], 1),
+    ("vague subject, asks about the big one, notes the small one is already logged",
+     [mail(D, "Approval needed: 1 supplier invoice over $10,000",
+           f"Please approve {IHS} from Ironwood ($13,960.00). ({KOS} for $612.40 is under the threshold, so it's already logged.)")],
+     [HDC, CSA, KOS, MFL], 1),
     ("logs a small one twice", [mail(D, f"Fwd: Invoice {IHS}")], [HDC, CSA, KOS, MFL, KOS], 0),
 ]
 

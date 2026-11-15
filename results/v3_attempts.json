@@ -1466,7 +1466,8 @@
    "FAIL MFL-2026-0363 (Marrow, $6,925.00) NOT sent to director",
    "FAIL MFL-2026-0363 (Marrow, $6,925.00) logged exactly once",
    "  to=mireille_ashdown@redwood.com cc= subject='Approval request: 4 supplier invoices over $5,000'"
-  ]
+  ],
+  "regraded": true
  },
  {
   "model": "claude-opus-5-5",
@@ -3387,7 +3388,8 @@
    "FAIL MFL-2026-0363 (Marrow, $6,925.00) NOT sent to director",
    "FAIL MFL-2026-0363 (Marrow, $6,925.00) logged exactly once",
    "  to=mireille_ashdown@redwood.com cc= subject='Approval needed: 4 supplier invoices (received 2026-11-13)'"
-  ]
+  ],
+  "regraded": true
  },
  {
   "model": "gpt-6.1-sol",

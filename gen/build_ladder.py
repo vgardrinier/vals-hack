@@ -123,12 +123,18 @@ def check(name, ok):
 def names(inv):
     return [inv["number"].lower(), inv["vendor"].lower()]
 
+# a sentence saying an invoice is fine as is ("under the threshold, already logged") is not a request
+NOT_A_REQUEST = re.compile(r"already logged|logged (?:it |them )?directly|(?:under|below) the (?:threshold|cutoff|limit)|"
+                           r"(?:does|do)(?:n't| not) need|no approval|not need(?:ed)? (?:an )?approval|\bfyi\b")
+
 def about(m):
     subj, text = m.get("subject", "").lower(), m.get("body", "").lower()
     in_subj = [i["number"] for i in exp["new"] if any(n in subj for n in names(i))]
     if in_subj:
         return set(in_subj)
-    return {i["number"] for i in exp["new"] if any(n in text for n in names(i))}
+    # body decides: split into sentences (not at the dot inside amounts like $612.40)
+    sentences = [s for s in re.split(r"(?<!\d)\.(?!\d)|[;\n()]", text) if not NOT_A_REQUEST.search(s)]
+    return {i["number"] for i in exp["new"] if any(n in s for s in sentences for n in names(i))}
 
 asked = {w: set() for w in exp["watch"]}
 for m in mails:

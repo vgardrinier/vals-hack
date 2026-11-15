@@ -74,6 +74,14 @@ def main() -> int:
         if exp["mode"] == "email":
             fyi = [dict(m, body=f"FYI I logged {small} directly.") for m in ref_mails]
             cases.append(("fyi about a small one in the body", ref_rows, fyi, 1))
+            asks = [i["number"] for i in exp["new"] if i["expect"]]
+            one = [{"to": habit, "subject": f"Approval needed: {len(asks)} supplier invoices over $5K",
+                    "body": "Please approve: " + ", ".join(f"{n} for $1,234.56" for n in asks) +
+                            f". ({small} for $612.40 is under the threshold, so it's already logged.)"}]
+            cases.append(("one vague email, small one noted as already logged", ref_rows, one, 1))
+            wrong = [{"to": habit, "subject": "Approval needed",
+                      "body": "Please approve: " + ", ".join(asks + [small]) + "."}]
+            cases.append(("one vague email that also asks about the small one", ref_rows, wrong, 0))
         for name, logged, mails, want in cases:
             got = grade(task, logged, mails)
             ok = got == want

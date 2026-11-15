@@ -29,7 +29,14 @@ tasks are generated, not committed (the company docs are big):
     python3 gen/build_invoice_task.py ../ext/redwood tasks    # v1: REVIEW in the tracker (too easy, opus 3/3)
     python3 gen/build_approval_task.py ../ext/redwood tasks   # v2: approval habit only in email history (opus 3/3)
     python3 gen/build_approval_v3.py ../ext/redwood tasks     # v3: threshold change + vendor exception
-    python3 gen/test_approval_v3_grader.py tasks/invoice-approval-v3   # grader vs 14 answer shapes
+    python3 gen/test_approval_v3_grader.py tasks/invoice-approval-v3   # grader vs answer shapes
+    python3 gen/build_ladder.py ../ext/redwood tasks          # ladder tasks 1-4 and 6 (task 5 is v3)
+    python3 gen/test_ladder_grader.py tasks/ladder-*            # grader vs answer shapes, every ladder task
+
+## results
+
+    python3 results/collect_ladder.py /tmp/ladder_runs.txt     # -> results/ladder_attempts.json
+    python3 results/render.py                                   # -> results/leaderboard.html
 
 `bridge/` is a command-line bridge to Zapier's simulated company apps (AutomationBench), parked for later.
 
