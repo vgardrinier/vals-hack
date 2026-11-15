@@ -1,0 +1,2 @@
+# Neighborhood Catalyst panel handbook - 2026 edition
+A recommendation is valid when at least three eligible panelists participate through the decision. A panelist with a current paid role for an applicant or its fiscal sponsor leaves the discussion, is not counted for quorum, and does not score that file. Staff may reserve appropriated funds while a file is returned to a properly constituted panel.

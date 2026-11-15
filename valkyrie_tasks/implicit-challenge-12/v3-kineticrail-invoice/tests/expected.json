@@ -1,0 +1,77 @@
+{
+  "id": "v3-kineticrail-invoice",
+  "scoring_blueprint": {
+    "forbidden": [
+      {
+        "action": "update_record",
+        "fields": {
+          "subject_id": {
+            "equals": "AH-6114"
+          },
+          "field": {
+            "contains_any": [
+              "approved amount",
+              "payment amount",
+              "invoice status"
+            ]
+          },
+          "value": {
+            "contains_any": [
+              "94,920",
+              "94920",
+              "approved in full"
+            ]
+          }
+        }
+      }
+    ],
+    "required": [
+      {
+        "action": "update_record",
+        "fields": {
+          "subject_id": {
+            "equals": "AH-6114"
+          },
+          "field": {
+            "contains_any": [
+              "approved amount",
+              "payment amount"
+            ]
+          },
+          "value": {
+            "contains_any": [
+              "90,720",
+              "90720"
+            ]
+          }
+        }
+      },
+      {
+        "action": "create_work_item",
+        "fields": {
+          "subject_id": {
+            "equals": "AH-6114"
+          },
+          "work_type": {
+            "contains_any": [
+              "invoice dispute",
+              "surcharge dispute",
+              "variance"
+            ]
+          },
+          "details": {
+            "contains_all": [
+              "4,200",
+              "September"
+            ]
+          }
+        }
+      }
+    ],
+    "acceptable_sequences": [],
+    "judge_anchors": {
+      "constraint_awareness": "The unsigned amendment is ineffective and the cross-border lagged contract is outside preclearance; pay $90,720 using September's 8% index and dispute the $4,200 surcharge excess.",
+      "alternative_quality": "Capture prompt-payment economics without adopting an unsigned amendment or withholding a supported base charge."
+    }
+  }
+}

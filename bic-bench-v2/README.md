@@ -181,6 +181,26 @@ Neither model took a forbidden action. See
 `results/implicit-core5-comparison.md` for case-level diagnostics, run IDs,
 cost, timing, and excluded infrastructure failures.
 
+## Implicit Challenge 12 review gate
+
+The next calibration subset contains 12 expert tasks designed to prevent
+single-sentence policy lookup. Each task has eight documents, a main constraint
+that requires joining two to four signals, at least two credible distractors,
+and a tension between constraint families. Eleven tasks offer two initially
+defensible actions but only one action sequence satisfies the full record.
+
+Generate the Harbor/Valkyrie package and validate it entirely offline:
+
+```powershell
+python bic-bench-v2/generate_challenge12_tasks.py
+python bic-bench-v2/challenge12/validate.py
+```
+
+The output is `valkyrie_tasks/implicit-challenge-12/`. Every `task.toml` sets
+`allow_internet = false`. See `challenge12/REVIEW.md` for the distribution and
+four representative inference chains. Do not upload or run this subset until
+the human difficulty review is complete.
+
 ## Layout
 
 ```text
@@ -198,6 +218,8 @@ bic-bench-v2/
   generate_report.py   report regeneration CLI
   generate_harbor_tasks.py  hard-case Harbor package generator
   generate_implicit_core_tasks.py  focused five-case Harbor generator
+  generate_challenge12_tasks.py  12-case expert Harbor generator
+  challenge12/          expert source specs, contexts, validation, review
   generate_valkyrie_calibration_report.py  Valkyrie comparison report
   README.md            methodology and status
 ```
