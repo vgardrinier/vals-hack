@@ -1,13 +1,16 @@
-# PrecedentBench (vals-hack)
+# vals-hack: the invoice benchmark behind Implicit Action Bench
 
-Our eval for Vals Hacks (track 1, build your own eval on Valkyrie). Submissions close Sun Nov 15, 2pm PT.
+**Live page: https://implicit-action-bench.vercel.app/** (built with Yacine, repo yacine-baghli/implicit-action-bench).
+This repo holds the finance invoices benchmark (Track 2 on the page, "unwritten team habits"): the task
+generator, the grader and its tests, the shared agent, every run's results, and the demo deck (`demo/deck.html`).
 
-Can AI agents follow the habits nobody wrote down? The agent joins a fake finance team (Redwood
+Can AI agents pick up the rules nobody wrote down? The agent joins a fake finance team (Redwood
 Inference), gets 15 new supplier invoices and three quarters of history, and has to log them the way
-the team works now. Level 1 has 4 habits, level 2 has 8 at once, level 3 adds last year's policy doc.
-Each habit is shown by 3 or 5 recent examples. A told control states the habits in the instruction.
+the team works now. Level 1 has 4 unwritten rules, level 2 has 8 at once, level 3 adds an old policy doc
+from January. Each rule is shown by 3 or 5 recent examples. A told control states the rules in the instruction.
 
-Results page: `results/leaderboard.html`. Story and numbers: `docs/STATUS.md`.
+Story and numbers: `docs/findings.md` and `docs/STATUS.md`. Numbers on the live page come from
+`results/morning_v3.json`, exported by `scripts/export_precedentbench.py` in Yacine's repo.
 
 ## setup (once each)
 
@@ -41,12 +44,11 @@ Never more than 10 runs in flight team-wide (the Vals limit); `scripts/queue_run
 
     python3 results/collect_morning.py <round> /tmp/runs.txt   # -> results/morning_<round>.json
     python3 results/baselines.py --v3                          # brainless scripts, same checker
-    python3 results/render.py && open results/leaderboard.html
 
 `results/morning_v3.json` holds the final run (levels 1-3, told, side versions). `morning_round2.json` and
-`morning_vendor.json` are the earlier round the page cites for the own-agent check.
+`morning_vendor.json` are the earlier round used for the own-agent check (Claude Code and Codex).
 
 ## archive
 
 Earlier experiments (single-habit tasks, the ladder, drift, earlier morning rounds, the Zapier bridge, the
-old page) live in `archive/`, with their data, so nothing is lost.
+old standalone page) live in `archive/`, with their data, so nothing is lost.
