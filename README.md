@@ -1,13 +1,10 @@
 # vals-hack: the invoice benchmark behind Implicit Action Bench
 
+we got into tacit knowledge because i used to run a company with 100 employees, my first startup, and saw how hard it was to get reliable AI agents into production. a lot of our internal knowledge lived in people's heads, even though we tried to structure and write everything down, and we were still what i'd call a tech company. assume the rest of the economy isn't, and there's a real gap where AI could do reliable work. so we took Redwood Inference, a fake company from Onyx's EnterpriseRAG-Bench with more than half a million emails, slack threads and tickets, and added our own synthetic finance history on top: invoices handled with unwritten rules, like a different cutoff for which invoices get flagged for review. the agent gets 15 new invoices and three quarters of that past work, and has to log them the way an employee would, by picking up the rules nobody wrote down. it's really hard for them. even top frontier models on high reasoning only get the whole morning right some of the time. GPT-6.1 Sol does best because it writes a little script that goes through the whole history and counts what the team did, so it catches the new rules. Fable and Astra cost a lot more and don't do that, and Fable especially plays it safe and keeps doing things the way they always were, which isn't how the company works anymore. we think there's a lot of room to improve here.
+
 **Live page: https://implicit-action-bench.vercel.app/** (built with Yacine, repo yacine-baghli/implicit-action-bench).
 This repo holds the finance invoices benchmark (Track 2 on the page, "unwritten team habits"): the task
 generator, the grader and its tests, the shared agent, every run's results, and the demo deck (`demo/deck.html`).
-
-Can AI agents pick up the rules nobody wrote down? The agent joins a fake finance team (Redwood
-Inference), gets 15 new supplier invoices and three quarters of history, and has to log them the way
-the team works now. Level 1 has 4 unwritten rules, level 2 has 8 at once, level 3 adds an old policy doc
-from January. Each rule is shown by 3 or 5 recent examples. A told control states the rules in the instruction.
 
 Story and numbers: `docs/findings.md` and `docs/STATUS.md`. Numbers on the live page come from
 `results/morning_v3.json`, exported by `scripts/export_precedentbench.py` in Yacine's repo.
