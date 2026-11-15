@@ -58,6 +58,29 @@ Data: `results/drift_attempts.json`. Generator: `gen/build_drift.py`. Page: `res
 Runs: one run per model holding all copies (`gen/replicate.py`), queue via `scripts/queue_runs.sh`
 (cap 10 runs org-wide). OpenAI key for the shared agent is the Valkyrie secret `openai-api-key-victor`.
 
+## shared minimal agent vs each brand's own agent (same messy monday tasks)
+
+question from Yacine: does our minimal agent test the harness instead of the model? we ran the exact same
+25 task copies (dataset `yaya/precedent@12`, 5 versions x 5 tries) with Claude models in Claude Code and
+GPT models in Codex. results in `results/morning_vendor.json`, page tab "Shared agent vs own agent".
+
+| model | shared, mean | own agent, mean | shared, pass@1 | own agent, pass@1 |
+|---|---|---|---|---|
+| GPT-6 Astra | 70% | 50% (Codex) | 48% | 20% |
+| GPT-6.1 Sol | 51% | 39% (Codex) | 20% | 12% |
+| Fable 5.2 | 47% | 42% (Claude Code) | 16% | 4% |
+| Opus 5.5 | 29% | 22% (Claude Code) | 8% | 0% |
+| Sonnet 5.5 | 13% | 34% (Claude Code) | 0% | 0% |
+
+the full vendor agents do not do better: 4 of 5 models score lower, and pass@1 drops for everyone who
+had any. so the minimal agent isn't what holds them back.
+
+the one exception, Sonnet, goes up for the wrong reason: in Claude Code it saw the "REVIEW: name" notes,
+couldn't pin down the rule, left every note blank and asked to be told the rule. blank happens to be right
+for about half the invoices (see the "log everything, no notes" baseline at 53%). it understood no more.
+Astra drops because in Codex it followed the stale handbook ("marked 14 for review under the AP policy"),
+where in the shared agent it often trusted the tracker instead.
+
 ## dumb baselines on the messy monday (round 2), no AI
 
 scripted strategies, graded by the tasks' own grader (`results/baselines.py`, `results/baselines.json`).

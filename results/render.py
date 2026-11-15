@@ -270,11 +270,38 @@ def summarize_morning(data: dict, attempts: list[dict]) -> int:
     return tries
 
 
+def summarize_vendor(data: dict, attempts: list[dict]) -> None:
+    """Same round-2 tasks, each model in its own brand's agent (Claude Code / Codex). New level key
+    "vendor"; the main benchmark (level "drift", shared agent) is not touched."""
+    done = [a for a in attempts if a["status"] == "FINISHED" and a["reward"] is not None]
+    for model, (name, lab) in MODELS.items():
+        mine = [a for a in done if a["model"] == model]
+        if not mine:
+            continue
+        scores = [a["reward"] for a in mine]
+        k, n = sum(1 for x in scores if x == 1), len(mine)
+        fails = {}
+        for a in mine:
+            if a["reward"] != 1:
+                kd = morning_miss(a)
+                fails[kd] = fails.get(kd, 0) + 1
+        hb = {}
+        for key_, flag in (("no", False), ("yes", True)):
+            xs = [a["reward"] for a in mine if a["handbook"] == flag]
+            if xs:
+                hb[key_] = sum(xs) / len(xs)
+        entry = data.setdefault(model, {"name": name, "lab": lab, "agent": AGENT[lab], "levels": {}})
+        entry["levels"]["vendor"] = {"n": n, "k": k, "agent": AGENT[lab], "fails": fails, "hb": hb,
+                                     "pass": [k / n, *wilson(k, n)], "rule": [sum(scores) / n, *bootstrap(scores)]}
+
+
 def page(data: dict) -> str:
     lad = [m for m in data.values() if "ladder" in m["levels"]]
     dri = [m for m in data.values() if "drift" in m["levels"]]
     old = [m for m in data.values() if "drift_old" in m["levels"]]
+    ven = [m for m in data.values() if "vendor" in m["levels"]]
     levels = ([("drift", "Main benchmark")] if dri else []) + \
+             ([("vendor", "Same tasks, each brand's own agent")] if ven else []) + \
              ([("drift_old", "Earlier: one habit changes")] if old else []) + \
              ([("ladder", "Earlier: 6-task ladder")] if lad else []) + \
              [(k, f"Earlier: {l[0].lower() + l[1:]}") for k, l in LEVELS]
@@ -538,6 +565,7 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
       <button role="tab" aria-selected="true" data-tab="t-dose">Dose curve</button>
       <button role="tab" aria-selected="false" data-tab="t-kind">By habit</button>
       <button role="tab" aria-selected="false" data-tab="t-hb">With vs without the handbook</button>
+      <button role="tab" aria-selected="false" data-tab="t-vendor">Shared agent vs own agent</button>
       <button role="tab" aria-selected="false" data-tab="t-table">Table</button>
       <button role="tab" aria-selected="false" data-tab="t-ladder">Earlier: ladder</button>
       <button role="tab" aria-selected="false" data-tab="t-levels">Earlier: levels</button>
@@ -561,6 +589,13 @@ footer { border-top: 1px solid var(--line); color: var(--text-muted); font-size:
       <p class="sub" style="margin-top:0">The approval task (task 5) run four ways. Same company, same invoices, same checks;
       only where the rule lives changes.</p>
       <table class="grid" id="grid"></table>
+    </div>
+    <div id="t-vendor" hidden>
+      <p class="note">Same 25 task copies as the main benchmark (5 versions, 5 tries each), run two ways. Shared agent:
+      one minimal loop for every model (same prompt, one terminal tool, effort high). Own agent: Claude models in
+      Claude Code, GPT models in Codex, each with its vendor's built-in prompt and tools. If the minimal agent were
+      holding models back, the own-agent scores would be much higher.</p>
+      <table class="grid" id="vgrid"></table>
     </div>
     <div id="t-table" hidden><table class="plain" id="ptable"></table></div>
   </section>
@@ -767,6 +802,17 @@ function hbgrid() {
       `<td><div class="cell mono" style="background:var(--cell-0);color:var(--cell-ink)">${h.followed} of ${h.n}</div></td></tr>`; }).join("");
 }
 
+function vgrid() {
+  const M = Object.values(D.models).filter(m => m.levels.vendor && m.levels.drift)
+    .sort((a, b) => b.levels.drift.rule[0] - a.levels.drift.rule[0]);
+  if (!M.length) return;
+  const head = "<tr><th></th><th class='c'>Shared agent<small>mean score</small></th><th class='c'>Own agent<small>mean score</small></th>" +
+    "<th class='c'>Shared agent<small>pass@1</small></th><th class='c'>Own agent<small>pass@1</small></th></tr>";
+  document.getElementById("vgrid").innerHTML = head + M.map(m => { const s = m.levels.drift, v = m.levels.vendor;
+    return "<tr>" + nameCell(m) + cellHtml(s.rule[0], s.agent || "shared") + cellHtml(v.rule[0], v.agent) +
+      cellHtml(s.pass[0], `${s.k}/${s.n}`) + cellHtml(v.pass[0], `${v.k}/${v.n}`) + "</tr>"; }).join("");
+}
+
 function ptable() {
   const order = Object.values(D.models).sort((a, b) =>
     ((b.levels.drift || b.levels.ladder || {rule: [-1]}).rule[0]) - ((a.levels.drift || a.levels.ladder || {rule: [-1]}).rule[0]));
@@ -856,10 +902,10 @@ function bindTips() {
 }
 document.querySelectorAll(".tabs button").forEach(b => b.onclick = () => {
   document.querySelectorAll(".tabs button").forEach(x => x.setAttribute("aria-selected", x === b));
-  ["t-dose", "t-kind", "t-hb", "t-ladder", "t-levels", "t-table"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab);
+  ["t-dose", "t-kind", "t-hb", "t-vendor", "t-ladder", "t-levels", "t-table"].forEach(id => document.getElementById(id).hidden = id !== b.dataset.tab);
 });
 levelSel.onchange = rows; metricSel.onchange = rows;
-rows(); doseChart(); kgrid(); hbgrid(); lgrid(); grid(); ptable(); takeaways();
+rows(); doseChart(); kgrid(); hbgrid(); vgrid(); lgrid(); grid(); ptable(); takeaways();
 </script>
 </body>
 </html>
@@ -873,6 +919,8 @@ if __name__ == "__main__":
     rounds = sorted(HERE.glob("morning_round*.json"))
     if rounds:    # the latest round is the main benchmark; earlier rounds stay in their own files
         summarize_morning(data, json.loads(rounds[-1].read_text()))
+    if (HERE / "morning_vendor.json").exists():   # own-agent arm, separate file, separate level
+        summarize_vendor(data, json.loads((HERE / "morning_vendor.json").read_text()))
     if (HERE / "ladder_attempts.json").exists():
         summarize_ladder(data, json.loads((HERE / "ladder_attempts.json").read_text()))
     (HERE / "leaderboard.html").write_text(page(data))
