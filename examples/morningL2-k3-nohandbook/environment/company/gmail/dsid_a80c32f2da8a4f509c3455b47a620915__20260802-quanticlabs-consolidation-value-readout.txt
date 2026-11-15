@@ -1,0 +1,118 @@
+QuanticLabs consolidation & renewal value readout
+
+From: Morgan Lee <morgan.lee@quanticlabs.com>
+To: Karthik Iyer <karthik.iyer@redwood.ai>, Lauren Bishop <lauren.bishop@redwood.ai>
+Cc: procurement@quanticlabs.com
+Date: Tue, 28 Jul 2026 09:13:00 -0700
+Subject: Consolidation idea + July usage export
+
+Hi Karthik / Lauren,
+
+Thanks again for the walkthrough last week. We ran the February–July usage export and attached a cleaned workbook (QANT_usage_report_Jul2026.xlsx). A couple quick context points:
+
+- Our core inference workload is split across three teams (search, summarization, routing) with different latency profiles.
+- July was an outlier (spike from 3rd-party feature test) but the 90-day trend shows steady ~15–18M tokens / month.
+
+We are exploring whether consolidating to a single dedicated pool (and moving a subset of background jobs to a lower-cost quantized variant) would simplify ops and reduce unit costs. Procurement is asking for:
+
+1) A concise readout of July token mix and per-token cost at current plan.
+2) A forecast for blended per-token cost after the proposed consolidation (with a 6–12 month ramp).
+3) Any SLA/throughput caveats if we shift scheduled batch work to cheaper nodes.
+
+Can Redwood produce a short readout + a 30-minute value review this week? We can make time on Mon/Tue afternoon PT.
+
+Thanks,
+
+Morgan
+Director, Platform Engineering
+QuanticLabs
+
+Attachments: QANT_usage_report_Jul2026.xlsx (spreadsheet, 132KB)
+From: Karthik Iyer <karthik.iyer@redwood.ai>
+To: Morgan Lee <morgan.lee@quanticlabs.com>
+Cc: Lauren Bishop <lauren.bishop@redwood.ai>, Priyom Das <priyom.das@redwood.ai>
+Date: Wed, 29 Jul 2026 11:02:00 -0700
+Subject: RE: Consolidation idea + July usage export
+
+On Tue, Jul 28, 2026 at 09:13 Morgan Lee <morgan.lee@quanticlabs.com> wrote:
+> Thanks again for the walkthrough last week. We ran the February–July usage export and attached a cleaned workbook...
+
+Hi Morgan — thanks for sharing the export. We reviewed the workbook and put together a short pricing/impact summary (attached: redwood_pricing_summary_QANT_v3.pdf). High-level notes up front:
+
+- Current effective blended unit (hosted + bursts) for July: ~$0.0019/token (includes burst premium and post-processing).
+- Consolidation into a dedicated pool with a quantized background tier is forecast to reduce blended token cost to ~$0.00125–$0.0014/token over a 6-month ramp (estimated 25–35% cost reduction, depending on batch size assumptions).
+- Latency-sensitive routes (search) should remain on the low-latency instance class; summarization and routing can tolerate slightly higher p99 with autoscaling settings.
+
+For the readout: we propose a 30-minute value review where we walk the July mix, show the blended forecast, and outline a proposed change to the statement of work (term extension + capacity reallocation). Availability: Thu, 30 Jul 14:00–16:00 PT or Mon, 2 Aug 13:00–15:00 PT.
+
+Next steps I suggest we cover during the call:
+- Confirm which routes are tagged 'latency-critical' vs 'batch' in your export.
+- Agree on a 6-month ramp plan and initial commit.
+- Procurement checklist (contract amendment template + estimated savings table).
+
+Karthik Iyer
+Head of Sales Engineering
+Redwood Inference
+
+Attachments: redwood_pricing_summary_QANT_v3.pdf (PDF, 78KB)
+
+
+From: Tina Shah <tina.shah@quanticlabs.com>
+To: Karthik Iyer <karthik.iyer@redwood.ai>, Lauren Bishop <lauren.bishop@redwood.ai>
+Cc: Morgan Lee <morgan.lee@quanticlabs.com>, Priyom Das <priyom.das@redwood.ai>
+Date: Sat, 01 Aug 2026 09:30:00 -0700
+Subject: Re: Consolidation idea + July usage export
+
+Thanks Karthik — the summary looks helpful. Procurement side: a couple items we need before our legal/corp finance can OK an amendment:
+
+- Line-item pricing table with (a) current charges, (b) proposed dedicated rates, and (c) expected monthly invoice delta for months 1–6 (we prefer month-by-month).
+- A draft amendment (docx or DocuSign link) we can review internally; callouts for SLA changes and data handling notes are helpful.
+- Confirmation that the quantized tier will not access customer KV caches used by latency-critical routes (we want isolation documented).
+
+We can do the 30-minute review on Mon, 2 Aug 13:30 PT. If you can circulate the pricing table ahead of that call, procurement will have targeted questions.
+
+—Tina
+Head of Procurement
+QuanticLabs
+
+
+From: Karthik Iyer <karthik.iyer@redwood.ai>
+To: Morgan Lee <morgan.lee@quanticlabs.com>, Tina Shah <tina.shah@quanticlabs.com>
+Cc: Lauren Bishop <lauren.bishop@redwood.ai>, Priyom Das <priyom.das@redwood.ai>
+Date: Mon, 02 Aug 2026 16:45:00 -0700
+Subject: RE: Consolidation idea + July usage export — Readout notes + next steps
+
+Morgan / Tina — great to lock the call for 13:30 PT. Attaching a one-page prep (see bullets below) so the meeting stays scoped and procurement has what it needs. I also uploaded the month-by-month delta workbook to the HubSpot deal linked below.
+
+One-page readout (attached):
+- July trend snapshot: 16.8M tokens (90-day avg 15.9M). Spikes attributable to feature test (see tab 'spike_breakdown').
+- Current blended unit cost (observed invoice): $0.0019/token. July invoice: ~$32,000.
+- Proposed consolidation: Dedicated pool + quantized background tier. Pricing scenarios modeled: conservative (10% shift to background), mid (25%), aggressive (40%).
+- Forecasted blended unit cost (mid scenario): $0.00132/token => estimated savings of $12.8K/month (40% on July spend) by month 6.
+- Throughput/latency caveats: search route will remain on low-latency instances; we recommend a 15% headroom buffer in initial commit to absorb tail spikes.
+- Isolation note: quantized tier will be deployed in separate node pools with KV cache partitioning; we will document the separation in the amendment.
+
+Requested deliverables for the Aug 2 call (we will share these in the first 10 minutes):
+1) Line-item pricing table (current vs proposed) — attached as tab 'delta' in the Drive workbook.
+2) Draft amendment (DocuSign-ready) — link below.
+3) Runbook excerpt for cache isolation and ramp steps.
+
+Links / attachments:
+- HubSpot deal: https://hubspot.example.com/deal/QANT-2026-045
+- Drive folder: https://drive.google.com/drive/folders/1a2b3cQANT-usage
+- Attachments: redwood_pricing_summary_QANT_v3.pdf; QANT_usage_report_Jul2026.xlsx
+
+Next steps after the call:
+- Procurement reviews draft amendment; legal sign-off target = 10 business days.
+- We will provision the dedicated pool once amendment is countersigned and start a two-week validation window.
+- Post-validation: begin 6-month ramp per agreed schedule; Redwood will provide weekly token and latency dashboards.
+
+If you'd like, Priyom can prepare a short test plan for the validation window (I copied him).
+
+Thanks — see you on the call.
+
+Karthik Iyer
+Head of Sales Engineering
+Redwood Inference
+
+Attachments referenced: redwood_pricing_summary_QANT_v3.pdf; QANT_usage_report_Jul2026.xlsx

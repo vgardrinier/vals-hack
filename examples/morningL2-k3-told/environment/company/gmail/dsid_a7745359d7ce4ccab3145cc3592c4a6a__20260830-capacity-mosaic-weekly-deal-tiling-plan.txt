@@ -1,0 +1,153 @@
+Capacity mosaic: weekly deal-tiling plan for upcoming closes
+
+From: Kimberly Park <kimberly_park@redwood.ai>
+To: Ben Carter <ben_carter@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>, Logan Wright <logan_wright@redwood.ai>, Rishi Malhotra <rishi_malhotra@redwood.ai>, Mina Haddad <mina_haddad@redwood.ai>
+Date: 2026-08-30T08:15:00-07:00
+Subject: Capacity mosaic: weekly deal-tiling plan for upcoming closes
+
+Team —
+
+Putting together the weekly "capacity mosaic" to lock in GPU windows for the next 8 weeks. Primary objectives: protect committed slots for pending deals, identify where we can offer burst or alternate options, and surface any infra constraints before we push closes into a calendar week.
+
+Attached: capacity_mosaic_v1.xlsx (tabbed by week, deal, committed %). Please do the following by EOD Tuesday:
+
+- Sales (Ben / Laura): confirm per-deal committed slot counts and likely close week (column C-E). Mark high-confidence deals with ✅.
+- Infra (Logan / Rishi): flag weeks with maintenance, A/B hardware mismatches, and suggest immediate mitigations (burst credits, pre-warm, quantized variants).
+- Finance (Mina): call out billing cadence constraints or invoicing preferences that affect whether we ask for upfront reserved commits.
+
+Specifically call out Acme Health (DEAL-7821) — they indicated a tentatively committed pilot the week of Sep 13. If that stays, we need to reserve 12 A100 slots + 4 burst H100 windows for load testing.
+
+Quick ask: add your rows directly in the sheet and leave a one-line summary in reply so I can circulate an updated plan to the customer on Thursday.
+
+Thanks —
+Kimberly Park
+Sr. Sales Operations
+Redwood Inference
+
+Attachment: capacity_mosaic_v1.xlsx
+
+From: Ben Carter <ben_carter@redwood.ai>
+To: Kimberly Park <kimberly_park@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>
+Cc: Logan Wright <logan_wright@redwood.ai>, Mina Haddad <mina_haddad@redwood.ai>, Rishi Malhotra <rishi_malhotra@redwood.ai>
+Date: 2026-08-30T10:02:00-07:00
+Subject: Re: Capacity mosaic: weekly deal-tiling plan for upcoming closes
+
+Kimberly — adding pipeline confirmations into the sheet now. Highlights:
+
+- Acme Health (DEAL-7821): estimate 12 committed A100 slots w/ 4 H100 burst windows. Close probability 75%, targeting week of 2026-09-13.
+- Nimbus Health (pilot): keeping as low-confidence through Sept, may move to Oct depending on SSO timing.
+- BrightKey (mid-market): 6 slots, likely Sep 6 close window.
+
+One note: Acme asked about a short-term burst discount (first month) — want to propose a 20% promotional burst credit if they commit to a 6-month reserved ladder. Laura, can you draft two price options (reserved ladder vs payg + burst) and put in the sheet?
+
+On Mon, Aug 30, 2026 at 8:15 AM Kimberly Park <kimberly_park@redwood.ai> wrote:
+> Team —
+> 
+> Putting together the weekly "capacity mosaic" to lock in GPU windows for the next 8 weeks....
+
+—Ben
+Senior AE
+Redwood Inference
+
+From: Mina Haddad <mina_haddad@redwood.ai>
+To: Kimberly Park <kimberly_park@redwood.ai>, Ben Carter <ben_carter@redwood.ai>
+Cc: Laura Bennett <laura_bennett@redwood.ai>, Logan Wright <logan_wright@redwood.ai>
+Date: 2026-08-30T13:20:00-07:00
+Subject: Re: Capacity mosaic: weekly deal-tiling plan for upcoming closes
+
+Thanks for the ask. Two quick finance points:
+
+1) Billing cadence: if a customer wants reserved capacity with a discount ladder, we should be explicit about when the invoice hits (upfront vs monthly amortization). For ACME, if they want promotional burst credits, we prefer the reserved ladder with 50% upfront and monthly amortization.
+2) Credit exposure: Acme's procurement has a standard net-45; given this is a pilot with burst, ask for a P.O. to lock the commitment. I'll attach a small modeling doc that shows cash flow impact for a 6-month ladder vs payg + burst.
+
+Attaching: nimble_burst_modeling.pdf
+
+Please note: finance needs the final committed slot counts before Thursday to finalize invoice timing.
+
+—Mina
+Head of Finance Ops
+Redwood Inference
+
+From: Logan Wright <logan_wright@redwood.ai>
+To: Kimberly Park <kimberly_park@redwood.ai>, Ben Carter <ben_carter@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>
+Cc: Rishi Malhotra <rishi_malhotra@redwood.ai>, Mina Haddad <mina_haddad@redwood.ai>
+Date: 2026-08-31T09:05:00-07:00
+Subject: Re: Capacity mosaic: weekly deal-tiling plan for upcoming closes
+
+Looping infra constraints and mitigations:
+
+- Week of Sep 13 (Acme tentative): We have scheduled firmware maintenance on ~30% of the A100 pool on Sep 10-12 for host kernel upgrades. That reduces usable A100 slots that week.
+- Immediate mitigations:
+  • Offer Acme a hybrid: 8 A100 reserved + 4 burst H100 windows (H100 available but needs extra quota request).
+  • Pre-warm plan: we can bring up ephemeral burst nodes 48 hours before test window — incurs 15% higher cost but keeps latency stable.
+  • Quantized model variant: recommend the <model>-q4 variant for load tests — reduces token cost and allows more sessions per GPU. Redwood Optimize suggests ~1.6x throughput on A100 for that variant.
+
+Action items for infra: I'll add a column in the sheet marking weeks with maintenance risk and proposed mitigation. If sales want hard guarantees, we need an explicit reserved commit (we can offer a short-term SLA for reserved slots on a paid ladder).
+
+—Logan
+Head of Platform Reliability
+Redwood Inference
+
+From: Rishi Malhotra <rishi_malhotra@redwood.ai>
+To: Logan Wright <logan_wright@redwood.ai>, Kimberly Park <kimberly_park@redwood.ai>
+Cc: Ben Carter <ben_carter@redwood.ai>, Mina Haddad <mina_haddad@redwood.ai>
+Date: 2026-08-31T11:18:00-07:00
+Subject: Re: Capacity mosaic: weekly deal-tiling plan for upcoming closes
+
+Quick technical notes to add:
+
+- If Acme will accept a quantized variant for load tests, we should compile and validate the q4f16 path on H100 before the test week; compile time ~6 hrs per model, can run in parallel.
+- Alternative: spin up smaller A100 instances with continuous batching to soak traffic during peak test hours. That reduces per-token cost and smooths KV cache pressure.
+- I'll put together a short runbook (build + warm + failover) and link it in the drive folder. Expect a draft by EOD tomorrow.
+
+On Tue, Aug 31, 2026 at 09:05 Logan Wright <logan_wright@redwood.ai> wrote:
+> Looping infra constraints and mitigations:
+> 
+> - Week of Sep 13 (Acme tentative): We have scheduled firmware maintenance on ~30% of the A100 pool on Sep 10-12...
+
+—Rishi
+Principal Engineer, Serving Runtime
+Redwood Inference
+
+From: Kimberly Park <kimberly_park@redwood.ai>
+To: Ben Carter <ben_carter@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>, Logan Wright <logan_wright@redwood.ai>, Rishi Malhotra <rishi_malhotra@redwood.ai>, Mina Haddad <mina_haddad@redwood.ai>
+Cc: Sarah Connors <sarah.connors@acme-health.com>
+Date: 2026-09-01T09:30:00-07:00
+Subject: Capacity mosaic — updated plan and ask (Acme pilot confirmation)
+
+Thanks all for the quick turn. I pulled the inputs and created an updated plan (attached: capacity_mosaic_v2.xlsx). Summary for Acme Health (DEAL-7821):
+
+- Proposed commitment: 8 reserved A100 slots (week of Sep 13) + 4 H100 burst windows for load testing on Sep 14-15.
+- Commercial ask: 6-month reserved ladder with 50% upfront (finance prefers), promotional 15% first-month burst credit (negotiable).
+- Infra mitigations: pre-warm 48 hrs and compile q4f16 variant ahead of test; Rishi will own the runbook.
+
+Action items (owners & due dates):
+- Ben: send two pricing options (reserved ladder vs payg + burst) to Acme by 9/2.
+- Mina: prepare invoice timing options and confirm impact on cash flow by 9/2.
+- Logan/Rishi: complete runbook + quota request for H100 by 9/3.
+- Kimberly: schedule customer confirmation call for 9/3 10:00am PT (tentative).
+
+Sarah — looping you in so you have the proposed windows and the ask. Please reply with the preferred billing option and whether the proposed test days (14-15 Sep) work.
+
+Thanks —
+Kimberly Park
+Sr. Sales Operations
+Redwood Inference
+
+Attachment: capacity_mosaic_v2.xlsx
+
+From: Sarah Connors <sarah.connors@acme-health.com>
+To: Kimberly Park <kimberly_park@redwood.ai>
+Cc: Ben Carter <ben_carter@redwood.ai>, Mina Haddad <mina_haddad@redwood.ai>
+Date: 2026-09-01T16:42:00-07:00
+Subject: Re: Capacity mosaic — updated plan and ask (Acme pilot confirmation)
+
+Kimberly / team — thanks for the clear plan. Acme is comfortable with the proposed windows: Sep 14-15 for load testing works. Regarding billing, procurement prefers monthly amortization if possible, but we can do 50% upfront if required for the reserved ladder — I will try to push for monthly amortization and confirm by EOD Friday.
+
+Two quick asks from our side:
+- Can Redwood confirm the anticipated RPS and p99 latency for the q4f16 variant during the load test? That will help our SRE set client-side timeouts.
+- If there is any temporary quota request for H100s, please share the lead time — we may need the nodes live earlier to run an internal smoke test.
+
+Appreciate the coordination — Sarah
+Head of Platform, Acme Health
+Sarah.Connors@acme-health.com

@@ -1,0 +1,53 @@
+Multipart-upload flows triggering opaque 429s due to ephemeral-worker token leakage and signed-callback replay
+
+Issue summary:
+Customer reports repeated 429 responses during large multipart upload jobs (chunked file ingestion) after switching to short-lived ephemeral worker pools. Failures are intermittent but repeatable and appear as opaque 429s (no explicit quota header) on chunk POSTs and signed-callback endpoints.
+
+Impact:
+- Stately Analytics data pipeline has ~30% of nightly ingest chunks failing with 429 between 02:00-03:30 UTC for the last 3 nights.
+- Affects batch workloads only; interactive small requests unaffected.
+- Customer on Dedicated pool; requests fail before hitting model execution.
+
+Environment:
+- Dedicated pool: dp-nyc-large (customer-dedicated-07)
+- Region: us-west (edge fronted)
+- Client: in-house uploader (Go), uses pre-signed callbacks to confirm chunk completion
+- Upload pattern: 1024k chunk size, 200 concurrent chunk workers, ephemeral credentials rotated per-file
+
+Steps to reproduce (from customer):
+1) Obtain pre-signed multipart upload URL + callback URL
+2) Spawn 200 ephemeral workers with short-lived credentials to upload chunks concurrently
+3) Each worker POSTs chunk and then POSTs callback to callback endpoint upon success
+4) Occasionally the callback times out; client retries the callback once
+5) Observe some chunk POSTs or callback POSTs return 429 with no detailed headers
+
+Observed behavior:
+- 429s clustered during credential rotation and when callbacks are retried quickly after timeouts.
+- Console shows "Opaque 429" with no per-key quota headers in several traces.
+- Customer sees upload coordinator mark chunks as failed and retries entire file later, delaying pipelines.
+
+Expected behavior:
+- Multipart uploads should succeed under provisioned dedicated capacity; callbacks should not contribute to tenant-level rate exhaustion in unexpected ways.
+
+Relevant logs / traces (samples provided by customer):
+- edge-gw logs show repeated POSTs from same NAT IP within 200ms windows (chunk and retry callback).
+- token-accounting logs (partial) show short-lived tokens counted twice when callback retry occurs within refill epoch.
+- Grafana trace: https://grafana.redwood/c/ingest/trace/trace-2891 (customer provided)
+2026-03-10 09:12 - Asha Rao (Support): ACKed issue and asked for full request IDs, sample curl of failing chunk and callback, and customer Uploader config.
+2026-03-10 10:03 - Jordan Kim (Customer): Provided samples, 10 requestIDs, and uploader config. Notes: we rotate ephemeral creds per file and often reuse same NAT egress IP from our k8s nodes.
+2026-03-11 14:22 - Tom Bennett (SRE): Reproduced high concurrency locally with a simulated signed-callback; saw similar 429 pattern. Opening investigation and attaching rate-limiter counters.
+2026-03-12 08:40 - Tom Bennett (SRE): Preliminary finding - duplicate accounting when signed-callbacks retry within refill window; edge NAT reuse sticky to same tenant exacerbates token bursts. Raised issue to platform-engineering for kernel-level token selection review.
+2026-03-14 11:05 - Priya Desai (Platform Eng): Added notes about planned PR to adjust ephemeral-token dedupe and to emit clearer throttle headers on callback endpoints. Linked PR: https://github.com/redwood-inference/platform/pull/1122
+Hypothesis 1: Callback retry and chunk POST counted as separate token events; short refill epoch causes transient depletion when many retries coincide.
+Hypothesis 2: Edge proxy NAT IP pooling causes many distinct ephemeral credentials to appear from same IP, triggering per-IP heuristics and early hard-429s before per-key headers are added.
+Reproduction: Ran synthetic uploader with 200 workers, 1s rotate credential TTL, and triggered intentional callback timeout then retry. Observed ~25% of runs produce opaque 429s within 90s of start.
+Telemetry: rate-limiter counters show 'preflight' and 'callback' counted under same route key in edge layer; refill interval 500ms; tenant burst budget consumed quickly.
+Trace snippets: requestIDs [r-3a4b, r-3a4c, r-3a5f] show callback retries occurring 120ms after initial POST; server-side token accounting incremented twice due to lack of dedupe on ephemeral tokens.
+Cross-references: Related historical tickets about ephemeral key fanout and refill window sensitivity (SUP-76121, SUP-3141596).
+Workaround provided to customer (2026-03-12): Reduce uploader concurrency to 40 workers and increase chunk size to 4MB; add randomized callback retry backoff (200-800ms) and avoid immediate single retry. This eliminated opaque 429s in their nightly run.
+Short-term fix (in flight): Platform change to emit explicit X-RateLimit headers on signed-callback endpoints and add server-side dedupe for ephemeral-token accounting within 1s window. PR: https://github.com/redwood-inference/platform/pull/1122 (reviewing).
+Long-term: Engineering to evaluate split-burst-pools for callback vs chunking traffic on Dedicated customers and exposing a console setting to classify routes as 'callback' exempt from small-burst accounting. Design doc: https://redwood.atlassian.net/wiki/spaces/SUP/pages/Multipart+Upload+Refill+Explainer
+Follow-ups:
+- Monitor customer nightly runs for 7 days after PR rollout (assigned to Tom Bennett).
+- Instrument edge NAT heuristic to log IP-stickiness cases where >50 ephemeral creds seen per minute (ticket INT-431200 created).
+- Update docs: add best-practice guide for multipart uploader concurrency and callback retry backoff.

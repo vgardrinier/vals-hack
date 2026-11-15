@@ -1,0 +1,60 @@
+Intermittent 429s attributed to per-connection window exhaustion after large numbers of short streaming reconnects
+
+Issue summary:
+Customer StreamScale reports intermittent 429s during sustained ingestion of streaming sessions. The bursts appear correlated with a large fanout of short-lived streaming connections from their uploader fleet (many clients open ~50–200 short streams per minute). The customer says they did not change API keys or concurrency configuration.
+
+Impact:
+- ~10% of streaming starts get 429s over a 2–3 minute window during high-fanout events.
+- Affects dedicated pool workloads for StreamScale's tenant only.
+- Leads to backoff/retry loops in their uploader causing throughput drop and elevated end-to-end latency.
+
+Environment:
+- Redwood Dedicated pool (dedicated-nyc-2) backing StreamScale account
+- prod | us-east; serving model rwd-chat-13b-v1 for most sessions
+- Client fleet: short-lived streaming sessions with keep-alive reconnects and per-session init metadata
+
+Steps to reproduce (as reported by customer):
+1) Start 400 worker processes each opening 30 streaming sessions (total ~12k concurrent recent streams) over 3–5 minutes.
+2) Workers create short sessions (avg. 7–12s) then reconnect for next upload chunk.
+3) Observe 429s at ~10% of session start requests in the API responses and spikes in console rate-limit charts at the same time.
+
+Logs / evidence provided:
+- Sample request IDs and timestamps (attached to ticket)
+- Console chart: per-tenant token usage and per-route connection counts (spike during event)
+- tcpdump snippet from customer's side showing rapid TCP teardown/reconnects
+
+Customer expectations:
+- Clarify why 429s are occurring despite their internal concurrency tracking being below documented per-tenant limits
+- Guidance on configuration changes, recommended client backoff windows, and whether Dedicated pool tuning is needed
+
+Initial triage by Support (2026-03-10):
+- Replayed provided request IDs through logging layer. Hits mapped to edge-proxy hosts A/B/C during timeframe.
+- Console showed a sharp rise in per-route connection opens; token-bucket counters on the rate-limiter increased non-linearly.
+- No policy changes or rollout happened on Redwood side during window.
+
+SRE hypothesis (2026-03-11):
+- Short-lived streaming sessions combined with edge-proxy reconnects are triggering double-counting in a short burst accounting window (per-connection concurrency window + per-tenant token bucket).
+- Load balancer connection churn (sticky session TTL mismatch) means new connections are evaluated as new 'starts' for quota accounting before previous tokens have been fully expired from the short-window meter. This creates a transient token-usage spike even though sustained concurrency measured over a longer window is within limits.
+- Health-check probes and internal warmups from the dedicated pool may also be incrementing per-route counters during high churn, amplifying the burst.
+
+Evidence supporting hypothesis:
+- Token-bucket logs show many tokens consumed in <500ms intervals for a single tenant beyond expected per-second average.
+- Edge-proxy logs indicate connection tear-downs with FIN followed by SYN almost immediately from same client IPs.
+- No 5xx at serving-runtime; 429s originate at rate-limiter stage documented by gateway headers (x-rate-limit-reason: token_window_exhausted).
+
+03-11: Scoped to rate-limiter and edge-proxy. Reproduced similar behavior in a private staging harness by simulating large numbers of short-live streaming starts; confirmed transient token spikes and 429s.
+03-11: Added temporary per-tenant soft-burst allowance (10% immediate burst) on dedicated-nyc-2 to reduce customer impact while engineering investigates.
+03-12: Engineering rollback of soft-burst after telemetry collection; switched targeted edge-proxy hosts to new accounting mode (short-window de-duplication) for StreamScale in canary.
+
+Aisha Patel (Support): Customer says their uploader pattern is unchanged and requests guidance — they are concerned it's a quota bug.
+Maya Chen (SRE): We saw token spikes at the gateway; initial guess is accounting window interaction with many short-lived streams. Will attempt to reproduce in staging.
+Evan Torres (Platform): Reproduced in a stress harness with 12k ephemeral streams. Confirmed per-connection accounting is incrementing before short-window counters expire. Filing an engineering fix to de-duplicate near-immediate reconnects (edge-proxy change).
+Customer (StreamScale SRE): Appreciates temporary bursting but asks for configuration guidance and whether we can recommend client-side changes to avoid long-term impact.
+Maya Chen (SRE): Recommended client-side mitigations in interim: increase stream session duration to amortize start overhead, add jittered backoff between reconnects, reuse long-lived sessions where possible. We also suggested using our SDK multiplexing to reduce connection churn.
+Workaround provided (2026-03-11): recommended client changes and enabled temporary soft-burst for their tenant.
+Engineering fix (in progress): implement edge-proxy near-reconnect de-duplication to avoid double-counting connection starts within a 1s window, and tune the rate-limiter short-window decay to account for dedicated pool health-checks.
+Follow-up: postmortem runbook update to include guidance for high-churn streaming clients and a new console metric for per-connection churn.
+
+- Engineering PR opened: github.com/redwood-inference/edge-proxy/pull/876 (de-dup logic).
+- Owner: Evan Torres (Platform). ETA for rollout to all dedicated pools: 2026-03-20 (canary on dedicated-nyc-2 already scheduled).
+- Support follow-up scheduled: 2026-03-13 to confirm reduction in 429 rate with customer after canary changes.

@@ -1,0 +1,47 @@
+Randomized retry seed causes duplicate function/tool invocations across SDKs
+
+Issue summary:
+Customers report that after transient network failures and client retries, downstream tool/function webhooks are executed twice despite using the SDK idempotency helpers. The duplicates are intermittent and appear only when clients reconnect through an edge proxy that performs connection pooling and occasional header re-ordering.
+
+Impact:
+- A subset of customers on Dedicated tier observe duplicated external side effects (webhook POSTs, downstream RPCs) leading to user-facing duplication and billing discrepancies.
+- Incident frequency: approximately 1-3% of retry paths for affected clients during connection resets.
+
+Steps to reproduce (observed in lab):
+1) Configure client with SDK idempotency enabled (examples tested: python 1.9.2, go 0.23.1, ts 2.4.0).
+2) Start a streaming session that triggers a function/tool call during output generation.
+3) Simulate transient connection reset at edge-proxy (SYN-RST / keepalive drop) and allow client SDK to apply an exponential backoff and retry.
+4) Observe downstream webhook deliveries — sometimes two POSTs are delivered for a single logical request.
+
+Observed behavior:
+- Idempotency keys on the wire differ between the original attempt and the retry in ~70% of reproductions in our lab when the proxy performs header rewrite or when the SDK regenerates a per-attempt nonce.
+- The router shows the retry mapped to a separate request ID; our serving runtime treats it as a distinct invocation and forwards the funcall to the configured webhook.
+
+Expected behavior:
+- Retries from the SDK should carry normalized idempotency metadata so server-side dedup can detect replays and avoid duplicate funcall invocation, or SDKs should provide deterministic per-request idempotency tokens that survive transient reconnects.
+
+Temporary workaround:
+- Customer applied a server-side dedup layer (idempotency store keyed by conversation_id + function_name + user_token) for now.
+- Recommend customers pinning client SDK versions that have retry metadata migration disabled (internal flag) to reduce regeneration of attempt-specific nonces.
+Summary of investigation so far:
+- Reproduced in-proxy header reorder scenario using HAProxy and an environment that toggles HTTP/2 MULTIPLEXING. Duplicate POSTs correlate with idempotency header mismatch.
+- Captured request traces: original request had X-Redwood-Idempotency: seed=0x7a3b,attempt=0; retry had seed=0x8f1c,attempt=1. Both were for the same client session id.
+- Hypothesis: SDKs generate a randomized seed per connection/session which is not persisted across ephemeral reconnects; when proxy forces a new connection, the SDK treats retry as a fresh logical attempt and emits a new seed. Server-side dedup currently keys on full idempotency header string rather than normalized request fingerprint.
+- Tests performed: patched python sdk to persist seed in session object => dedupification worked in lab. Patched router to normalize idempotency header by hashing canonical fields => reduced duplicates in test runs by ~95%.
+- Related logs and traces attached to internal thread: link to tracing span set: https://observability.redwood.ai/trace/TRACE-98432 (redacted for customer).
+
+Next steps proposed:
+1) Short term (mitigation): implement normalization on router to extract canonical idempotency fingerprint (conversation_id + request_seq + function_name) and use that for dedup decisions; backfill for in-flight requests where possible.
+2) SDK changes: add optional deterministic seed persistence across reconnect attempts; add opt-in flag and document behavior changes.
+3) Longer term: standardize idempotency header format across SDKs with migration plan and versioned header field.
+
+Investigation owners: Diego Morales (serving), Priya Singh (sdk), SRE on-call for edge-proxy: Mark Huang.
+2026-03-10 09:14 — Aisha Patel: Initial report from NoteFriend: two webhook posts observed after a single user message. Customer included timestamps and webhook payloads. Escalated to P1 due to duplicated billing calls.
+2026-03-10 12:03 — Diego Morales: Reproduced in lab with HAProxy; attaching pcap and request/response headers. Noticed idempotency seed mismatch across reconnects.
+2026-03-11 08:22 — Priya Singh: Ran quick fix locally by persisting a random seed in Session object for python sdk. No duplicates in 1000 simulated resets. Preparing PR to add opt-in session persistence for other SDKs.
+2026-03-12 16:47 — Mark Huang: Edge proxy config changed to preserve connection affinity for affected customers; reduced error surface for NoteFriend but not a full fix. Need router-side normalization as fallback.
+2026-03-13 10:05 — Support Engineer (Riya Verma): Notified customer of ongoing work and provided temporary dedup pattern. Customer acknowledged and requested ETA for SDK patching.
+Implement router-side idempotency header normalization and enable as a safe rollout (canary in us-east) — owner: Diego Morales — ETA 2026-03-18
+Merge SDK opt-in seed persistence flag to python/go/ts SDKs and publish patch releases — owner: Priya Singh — ETA 2026-03-20
+Draft migration guide and update idempotency header spec in Confluence — owner: Developer Docs — ETA 2026-03-22
+Work in progress. Temporary mitigations: customer-side dedup store and edge-proxy affinity for NoteFriend; router canary for normalization planned. No final resolution yet; tracking as P1 with Sev1 impact.

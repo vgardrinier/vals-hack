@@ -1,0 +1,107 @@
+Security exhibit: MFA-gated pen test access window and evidence handoff plan
+
+From: Ben Harris <ben.harris@healthtech.io>
+To: Evelyn Hart <evelyn.hart@redwood.com>, Laura Bennett <laura.bennett@redwood.com>
+Cc: security@healthtech.io
+Date: 2026-04-28T09:12:00-07:00
+Subject: Pen test window & evidence cadence (HealthTech)
+
+Thanks Evelyn — following up from our call. We want to finalize the MSA security exhibit and lock in the pen test window. A few asks on our side:
+- Can Redwood require MFA for any accounts used by our testers when accessing staging?
+- We need an evidence cadence (weekly snapshots + final report) that aligns with our compliance calendar.
+- Please confirm what sort of access (service accounts, ephemeral creds) you can provision and how long those tokens last.
+
+Attached is the filled questionnaire from our InfoSec team. We hope to run the pen test in mid-May, target 5/11–5/14, but can be flexible if you need a different staging cutover window.
+
+Ben Harris
+Security Program Manager | HealthTech Inc.
+[Attachment: healthtech_questionnaire_filled.pdf]
+From: Evelyn Hart <evelyn.hart@redwood.com>
+To: Ben Harris <ben.harris@healthtech.io>
+Cc: Laura Bennett <laura.bennett@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>, Marissa Cole <marissa.cole@redwood.com>
+Date: 2026-04-28T11:04:00-07:00
+Subject: Re: Pen test window & evidence cadence (HealthTech)
+
+Ben — thanks for the questionnaire and the proposed window. Summarizing Redwood's proposal and open items below so legal and ops can review:
+
+Planned approach (ops):
+- Staging access window: 2026-05-11 08:00 PT through 2026-05-14 20:00 PT (we can expand to a 48-hour buffer either side on request).
+- MFA gating: we can require MFA for all test logins that use human accounts. For tester tooling that requires machine/service access we will enforce ephemeral tokens via our vault (tokens expire in 4 hours by default).
+- Access provisioning: Ops will provide a named service account plus ephemeral session tokens; service account will be scoped to read-only application telemetry and staging data (no production data).
+- Evidence cadence: ops will produce weekly evidence snapshots during the test and a consolidated artifacts bundle within 5 business days of test completion (logs, KV cache snapshots, access logs, and pen test report).
+
+Open items for Legal (Karthik):
+- Confirm acceptable audit rights redline language around scope (SOC 2 + scoped penetration test only; no broad inspection rights).
+- Add standard safeguards for data exfil restrictions and non-destructive testing language.
+- Confirm whether HealthTech requires perpetual retention of the pen test report within contract or a timebound retention (we typically recommend 12 months on the vendor side).
+
+Attachments I'm sending to ops & legal: evidence matrix draft and our access runbook for staging. Karthik — can you propose a short redline and I will circulate to Ben?
+
+Thanks,
+Evelyn Hart
+Head of Security Operations | Redwood Inference
+[Attachment: evidence_matrix_v1.xlsx]
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Evelyn Hart <evelyn.hart@redwood.com>, Laura Bennett <laura.bennett@redwood.com>
+Cc: Marissa Cole <marissa.cole@redwood.com>, Ben Harris <ben.harris@healthtech.io>
+Date: 2026-04-29T08:23:00-07:00
+Subject: Re: Pen test window & evidence cadence (HealthTech)
+
+Evelyn / team — reviewed. Draft guidance for the security exhibit redline below (high level). I'll attach a tracked-changes file with suggested language.
+
+Suggested redline highlights (summary):
+- Scope: Limit audit/inspection rights to Redwood's SOC 2 reports (current and prior 12 months) and a single, scoped penetration test of staging systems as mutually agreed in writing. No unfettered access to production customer data or underlying infrastructure beyond what is scoped.
+- Pen test constraints: Testers must work with Redwood's designated on-call engineer; testing to be non-destructive, without automated data exfiltration or DDoS-level load. Any destructive techniques require prior written approval.
+- Evidence cadence & retention: Redwood will provide weekly evidence snapshots during the testing window and a consolidated report and artifacts within five business days of test completion. Redwood to retain the consolidated pen test report for 12 months; customer may request a copy for their records.
+- Confidentiality & handling: All pen test reports and artifacts will be delivered over an encrypted link (DocuSign / secure share) and marked Confidential; requests for longer retention or distribution to third parties will require separate agreement.
+
+I'm attaching a doc with tracked changes to the Security Exhibit and a redlined Order Form paragraph for audit rights. One note: HealthTech's request for open-ended inspection rights is a no-go; propose we offer an inspection matrix + SOC 2 review + scoped pen test instead.
+
+Attachment: redlines_security_exhibit_karthik_20260429.docx
+
+—Karthik
+Karthik Iyer
+Senior Counsel, Contracts | Redwood Inference
+From: Ben Harris <ben.harris@healthtech.io>
+To: Evelyn Hart <evelyn.hart@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Cc: security@healthtech.io
+Date: 2026-04-29T16:38:00-07:00
+Subject: Re: Pen test window & evidence cadence (HealthTech)
+
+Appreciate the quick turnaround. MFA gating and ephemeral tokens sound reasonable. A couple clarifications from our side:
+- The testers (third-party firm) require ephemeral access and a named point of contact at Redwood for the duration — can you confirm the on-call engineer?
+- For the evidence snapshots, can you include the specific list of log types and retention windows (app logs, audit logs, KV cache dumps) so we can map to our compliance checklist?
+- We reviewed the high-level redline — we'll take the tracked-changes and discuss internally, but the scoped approach is what we expected.
+
+Attaching our questionnaire for reference (filled). Looking forward to the redline doc.
+
+Ben
+Security Program Manager | HealthTech Inc.
+[Attachment: healthtech_questionnaire_filled.pdf]
+From: Evelyn Hart <evelyn.hart@redwood.com>
+To: Ben Harris <ben.harris@healthtech.io>
+Cc: Karthik Iyer <karthik.iyer@redwood.com>, Laura Bennett <laura.bennett@redwood.com>, Marissa Cole <marissa.cole@redwood.com>
+Date: 2026-04-30T15:24:00-07:00
+Subject: Re: Pen test window & evidence cadence (HealthTech)
+
+Ben — finalizing next steps and owners: 
+
+Owners & short timeline:
+- Ops owner (access & evidence): Laura Bennett — will provision named service account, generate ephemeral tokens, and produce the evidence matrix entries requested.
+- Legal owner (redlines & contract language): Karthik Iyer — will circulate the tracked-changes Security Exhibit by end of day 2026-04-30.
+- On-call engineer during test: Marissa Cole — on-call for coordination and immediate triage.
+
+Deliverables:
+- Access runbook & token instructions (ops) — will send by 2026-05-04. [Attachment: access_runbook_v2.pdf]
+- Evidence matrix (detailed list of log types and retention windows) — will update evidence_matrix_v1.xlsx and share by 2026-05-04.
+- Contract redline (legal) — Karthik to send the doc with tracked changes (today).
+
+We can keep the proposed pen test dates (2026-05-11 to 5/14) pending your confirmation. Once Ben confirms, Laura will open a short maintenance window and we will provision the tester accounts. Also adding the DocuSign link for final Order Form/Exhibit flow and the HubSpot deal for reference.
+
+Meeting: I've scheduled a 30-minute kickoff on 2026-05-05 to walk through access, evidence expectations, and go/no-go criteria. Invite sent.
+
+Thanks everyone — we'll loop back after the kickoff.
+
+Evelyn Hart
+Head of Security Operations | Redwood Inference
+[Attachment: access_runbook_v2.pdf, evidence_matrix_v1.xlsx]

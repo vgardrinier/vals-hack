@@ -1,0 +1,144 @@
+MAP & SLA tradeoffs — close timeline and commercial concessions
+
+From: Marissa Cole <marissa_cole@redwood.ai>
+To: Daniel Park <daniel.park@astrahealth.com>
+Cc: Rishi Malhotra <rishi_malhotra@redwood.ai>
+Date: Sat, 1 Aug 2026 09:12:00 -0700
+Subject: Draft MAP and evaluation plan + SLA asks
+
+Hi Daniel —
+
+Thanks again for the time yesterday. Attached is our first-pass Mutual Action Plan (Astra_MAP_v1.3.pdf) and a short SLO Annex that shows the latency targets we typically tie to commercial concessions. High level asks:
+
+- Please review the MAP milestones (evaluation window, pilot close, production ramp) and confirm the target go-live date you want to lock (we flagged Sept 15).
+- Call out any procurement or legal blockers we should know about now (DocuSign, PO cadence, redlines).
+- On SLA: we propose a p99 latency SLO of 180–200ms for dedicated capacity, and a financial-credit scheme for breaches. We tied a modest discount to an upfront 12-month commit in the attached pricing table.
+
+Key milestones in the attached MAP:
+1) Evaluation kickoff: Aug 9 — access + test corpus
+2) 2-week perf/quality eval: Aug 16 — success criteria: p95 < 120ms for sample workload, quality pass-rate > 90% on your test prompts
+3) Pilot close & PO: Aug 30 — if criteria met, PO issued and 30% prepay
+4) Production ramp to 2k qps equivalent baseline by Sept 15
+
+Can you review and send back any changes by Aug 6? Also copying Rishi for pricing perspective.
+
+Attachments: Astra_MAP_v1.3.pdf, SLO_Annex_vFinal.docx
+
+Thanks,
+Marissa Cole
+Account Executive, Redwood Inference
+marissa_cole@redwood.ai
++1 (415) 555-0132
+
+---
+Redwood Inference | Developer-first inference platform
+
+From: Daniel Park <daniel.park@astrahealth.com>
+To: Marissa Cole <marissa_cole@redwood.ai>
+Cc: Sally Nguyen <sally.nguyen@astrahealth.com>, Astra Health Procurement <procure@astrahealth.com>
+Date: Sun, 2 Aug 2026 11:05:00 -0700
+Subject: Re: Draft MAP and evaluation plan + SLA asks
+
+Marissa — thanks for the MAP and clear milestones. A few items from procurement and product:
+
+- Timeline: Sept 15 go-live looks aggressive for our internal change freeze; can we set a committed ramp window (target go-live Sept 30) if evaluation completes by Aug 16? That would give us two weeks for integration testing.
+- Discounts/commits: procurement insists on a discount tied to committed spend. They asked if Redwood will offer a stepped discount: 10% for 12-month commitment, 15% for 24 months. Is that on the table?
+- SLA / credits: we need clearer credit mechanics. Procurement prefers a minute-by-minute credit for latency breaches (e.g., 2% of monthly invoice per minute breach beyond a p99 target) instead of the per-incident buckets.
+- Evaluation success metrics: we need a written throughput target for the evaluation environment — 10k requests/day with p95 <= 120ms.
+
+Also attaching our procurement checklist (procurement_timeline.pdf) — procurement will require the final SLA annex before issuing a PO.
+
+Can your team confirm whether the 10k/day throughput is achievable on a dedicated pool during the eval and whether we can lock the 12-month discount tier today?
+
+Thanks,
+Daniel Park
+Director, Platform Integrations | Astra Health
+Daniel.Park@astrahealth.com
+
+From: Rishi Malhotra <rishi_malhotra@redwood.ai>
+To: Marissa Cole <marissa_cole@redwood.ai>, Priyom Das <priyom_das@redwood.ai>
+Cc: Lauren Bishop <lauren_bishop@redwood.ai>
+Date: Sun, 2 Aug 2026 14:30:00 -0700
+Subject: INTERNAL: Pricing / SLA options to respond to Astra
+
+Quick internal note on concessions we can offer and the tradeoffs we should call out to Astra:
+
+1) Discount tiers (commercial):
+   - 12-month commit: 10% off list pricing (standard)
+   - 24-month commit: 14% off list pricing (negotiable to 15% with higher commit)
+
+2) SLA/latency SLOs and credit model (recommended):
+   - p95 target: 120ms (evaluation baseline)
+   - p99 target: 180ms for dedicated pool (we can run optimized kernels / reserved instances)
+   - Credit model: 5% monthly credit per 30-minute SLO breach window, capped at 50% per month. Rationale: simpler to audit and avoids unbounded minute-by-minute exposure.
+   - For enterprise customers willing to pay extra for an SLA Addendum (premium support + redundancy), we can tighten p99 to 150ms and reduce credit cap.
+
+3) Ramp / evaluation accommodations:
+   - Offer a 2-week performance pilot on a dedicated pool sized to their 10k/day target. Include 1 week of cost-free burst (up to $X credit) if they sign 12-month commit within 7 days of pilot close.
+
+4) Legal / procurement: Priyom — we can accept doc-level MSA redlines except around liability caps. Recommend preparing an SLO Annex that is explicit about measurement windows and the telemetry we will use (Redwood Console traces + token-level latency measurements).
+
+Let's aim to counter with the 12-month 10% discount, p99 180ms, and the 5% per-30-minute credit cap. If Astra pushes for minute-level credits, push back — that creates unbounded financial exposure.
+
+Rishi
+Head of Deals, Redwood Inference
+
+From: Daniel Park <daniel.park@astrahealth.com>
+To: Marissa Cole <marissa_cole@redwood.ai>
+Cc: Astra Health Procurement <procure@astrahealth.com>, Sally Nguyen <sally.nguyen@astrahealth.com>
+Date: Tue, 4 Aug 2026 09:20:00 -0700
+Subject: Re: Draft MAP and evaluation plan + SLA asks
+
+Thanks Rishi and Marissa — I discussed this internally. A few counterpoints:
+
+On discounts: procurement is firm that a 12-month commit should get 12% minimum; they will accept 14% for 24 months. Can Redwood do 12% now?
+
+On credits: minute-by-minute is preferred because the operational impact to us can be severe for even short spikes. We proposed 2% per minute because it aligns to our internal risk model. We understand the exposure concern; we would accept a monthly cap (we proposed up to 200% cap) if Redwood insists.
+
+On SLOs: the 10k/day evaluation target is non-negotiable for our platform testing. Please confirm the dedicated evaluation pool will be configured to hit that throughput while staying within the evaluation p95 target.
+
+Procurement timeline: if we can agree commercial terms this week (by Fri Aug 6), procurement can cut a PO the following week. Otherwise, their next window is late August.
+
+Quoted for context:
+> On Sun, Aug 1, 2026 at 09:12 AM Marissa Cole <marissa_cole@redwood.ai> wrote:
+> > Key milestones in the attached MAP:
+> > 1) Evaluation kickoff: Aug 9 — access + test corpus
+> > 2) 2-week perf/quality eval: Aug 16 — success criteria: p95 < 120ms for sample workload
+
+Best,
+Daniel
+
+From: Marissa Cole <marissa_cole@redwood.ai>
+To: Daniel Park <daniel.park@astrahealth.com>
+Cc: Rishi Malhotra <rishi_malhotra@redwood.ai>, Priyom Das <priyom_das@redwood.ai>, Lauren Bishop <lauren_bishop@redwood.ai>
+Date: Wed, 5 Aug 2026 16:03:00 -0700
+Subject: RE: Draft MAP and evaluation plan + SLA asks — consolidated proposal and requested sign-off
+
+Daniel — thanks for the direct feedback and timeline. Below is a consolidated counter-proposal designed to bridge procurement and engineering constraints while keeping the close timeline in reach. If Astra can sign the MAP and commit to the 12-month PO by Aug 12, we will prioritize the dedicated eval pool and the ramp schedule to meet the Sept target.
+
+Consolidated commercial / SLO proposal (Redwood counter):
+- Discount: 10% off list pricing for a 12-month committed spend (we can move to 13% with a formal usage commit schedule; 14% for 24 months after legal sign-off).
+- Evaluation: Dedicated evaluation pool sized to validate 10k requests/day. We will provide an internal runbook and telemetry access in Redwood Console so Astra can validate p95 <= 120ms during the 2-week eval.
+- SLOs: p95 120ms (evaluation); p99 180ms (dedicated production pool).
+- Credits: 5% monthly invoice credit per 30-minute window of cumulative SLO breach, capped at 100% of the monthly invoice for severe outages. We will add a more stringent SLO Addendum option (p99 150ms) available for customers that elect a Premium SLA with higher commit/pricing.
+- Ramp / payment cadence: 30% prepay on PO, remainder monthly. If Astra signs within the Aug 12 window, we will provide one week of complimentary burst credits during the pilot and waive the standard onboarding fee.
+
+Rationale: minute-by-minute credits create outsized exposure and are operationally hard to audit; the 30-minute bucket is a standard compromise that aligns accountability and measurability. The 100% cap protects both parties in catastrophic events while giving Astra meaningful recourse.
+
+Next steps:
+1) If this looks acceptable, sign the attached updated MAP and SLO_Annex (attached).
+2) Priyom will prepare final MSA redline responses and circulate the DocuSign link.
+3) We target PO issuance by Aug 16 for a Sept ramp.
+
+Attachments: Astra_MAP_v1.3.pdf (updated), SLO_Annex_vFinal.docx, MSA_redlines_20260804.pdf
+
+Please review and confirm by EOD Aug 12 so we can hit procurement's cut. Happy to hop on a quick 20-min call to walk through the SLO measurement mechanics.
+
+Thanks,
+Marissa Cole
+Account Executive, Redwood Inference
+marissa_cole@redwood.ai
++1 (415) 555-0132
+
+---
+Redwood Inference — Production-first inference runtime

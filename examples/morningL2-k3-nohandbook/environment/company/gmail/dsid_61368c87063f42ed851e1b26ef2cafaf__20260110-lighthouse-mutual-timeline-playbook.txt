@@ -1,0 +1,121 @@
+Mutual Action Plan & timeline for Lighthouse Analytics onboarding
+
+From: Alex Rivera <alex@lighthouse.io>
+To: Neha Kapoor <neha_kapoor@redwood.com>
+Cc: Lighthouse Procurement <procurement@lighthouse.io>
+Date: Fri, 10 Jan 2026 09:12:00 -0800
+Subject: Re: Mutual action plan / timeline?
+
+Hi Neha,
+
+Thanks again for the demo this week — Lighthouse is excited about Redwood's latency and routing options. Procurement and engineering asked me to get a concrete MAP and timeline so we can align internal stakeholders. High level asks we have now:
+
+- Pilot window (integration with 1 product line) and success criteria
+- Security/compliance evidence (SOC2 report, encryption/KMS flow)
+- Procurement & SOW milestones (contract review, PO issuance)
+- Go-live target: mid-Feb if possible, but flexible based on procurement
+
+I've attached a short requirements doc that outlines our integration touchpoints (attachment: lighthouse-requirements.docx). Can your team propose milestone dates and owners?
+
+Quick Q: do you have a standard MAP template you prefer we use?
+
+Thanks,
+Alex Rivera\Head of Integrations\Lighthouse Analytics
+
+---
+
+From: Neha Kapoor <neha_kapoor@redwood.com>
+To: Alex Rivera <alex@lighthouse.io>
+Cc: Priyom Das <priyom_das@redwood.com>, Monica Patel <monica_patel@redwood.com>, Ben Carter <ben_carter@redwood.com>
+Date: Sun, 11 Jan 2026 11:03:00 -0800
+Subject: RE: Mutual action plan / timeline?
+
+Alex — appreciate the clear asks. Attaching a working MAP (MAP_v1.xlsx) and an initial SOW stub (SOW-draft-20260112.pdf). Below is a proposed milestone timeline and owner roster — please review and flag any changes by EOD Wed Jan 14 so we can lock dates into the SOW. Link to the shared MAP folder: https://drive.google.com/drive/folders/1aBcMAP-example
+
+Proposed MAP (high level):
+- Discovery sign-off (acceptance of requirements doc) — target: 2026-01-14 — owner: Lighthouse (Alex) — acceptance: requirements sign-off email
+- Security & legal review (SOC2 evidence, KMS design) — target: 2026-01-21 — owner: Lighthouse procurement & Redwood security (Priyom) — acceptance: completed questionnaire + evidence upload
+- SOW finalization & signature — target: 2026-01-26 — owner: Redwood sales (Neha) / Lighthouse procurement — acceptance: countersigned SOW
+- Integration sprint (pilot build + test) — target window: 2026-01-27 to 2026-02-09 — owner: Redwood solutions (Monica) / Lighthouse eng — acceptance: pilot demo + performance checklist
+- Canary go-live (limited traffic) — target: 2026-02-10 — owner: Redwood ops (Ben) / Lighthouse eng — acceptance: canary metrics within SLA targets
+- Full production go-live — target: 2026-02-18 — owner: Redwood & Lighthouse ops — acceptance: production cutover checklist completed
+
+Notes & risks:
+- Procurement stated budget approval may add 2 weeks; if PO is delayed, can run integration in parallel but go-live will shift.
+- Security artifacts requested by Lighthouse: latest SOC2 Type II, encryption flow diagram, and KMS/HSM integration notes. Priyom will provide Redwood's artifacts and a short security questionnaire response by Jan 15.
+
+Attachments (stubs): MAP_v1.xlsx (spreadsheet with milestone rows), SOW-draft-20260112.pdf (redlines welcome).
+
+Next steps:
+1) Alex to confirm ownership + any date conflicts by 2026-01-14.
+2) Priyom will post security artifacts and confirm Redwood's time estimate for integration tasks by 2026-01-15.
+3) Schedule kickoff call (30m) for Jan 19 — propose 10:00 AM PT; I'll send an invite once dates confirmed.
+
+Thanks — looking forward to getting this scheduled.
+
+—
+Neha Kapoor\Senior Account Executive\Redwood Inference
+
+---
+
+From: Alex Rivera <alex@lighthouse.io>
+To: Neha Kapoor <neha_kapoor@redwood.com>
+Cc: Lighthouse Procurement <procurement@lighthouse.io>
+Date: Wed, 14 Jan 2026 08:27:00 -0800
+Subject: RE: Mutual action plan / timeline?
+
+Neha,
+
+Thanks for the draft MAP. Procurement reviewed the SOW briefly and asked for the following small changes:
+- Clarify data residency and retention language (Lighthouse requires logs to be retained 90 days in us-west).
+- Add a 2-week procurement review buffer before SOW execution (they'll try to move faster but want it noted).
+
+For the timeline: engineering prefers the integration sprint begin on 2026-01-25 instead of 01-27 (they have a maintenance window on the 26th). If procurement insists on the 2-week buffer, that pushes SOW signature to 2026-02-09 and go-live to late Feb.
+
+Security: procurement also requested a short call with Priyom to walk through the KMS plan. Can Priyom do Jan 15 at 11:00 AM PT?
+
+I'll confirm ownership from Lighthouse eng by EOD.
+
+Best,
+Alex
+
+On Sun, Jan 11, 2026 at 11:03 AM Neha Kapoor <neha_kapoor@redwood.com> wrote:
+> Alex — appreciate the clear asks. Attaching a working MAP (MAP_v1.xlsx) and an initial SOW stub (SOW-draft-20260112.pdf). Below is a proposed milestone timeline and owner roster — please review and flag any changes by EOD Wed Jan 14 so we can lock dates into the SOW. Link to the shared MAP folder: https://drive.google.com/drive/folders/1aBcMAP-example
+>
+> [Message truncated for thread]
+
+---
+
+From: Priyom Das <priyom_das@redwood.com>
+To: Neha Kapoor <neha_kapoor@redwood.com>, Monica Patel <monica_patel@redwood.com>, Ben Carter <ben_carter@redwood.com>
+Cc: Alex Rivera <alex@lighthouse.io>, Lighthouse Procurement <procurement@lighthouse.io>
+Date: Fri, 16 Jan 2026 15:45:00 -0800
+Subject: RE: Mutual action plan / timeline? — MAP acceptance & next steps
+
+Team & Alex,
+
+Thanks for the responses. Per the procurement request, we've added explicit data residency and retention language to the SOW draft (see SOW-draft-20260112.pdf, page 3 stub). I can take the security/Q&A call on Jan 15 at 11:00 AM PT — invite sent.
+
+I've updated the MAP_v1.xlsx with the following agreed adjustments:
+- Discovery sign-off: 2026-01-14 — owner: Lighthouse (Alex) — confirmed.
+- Security review & KMS call: 2026-01-15 — owner: Redwood security (Priyom) + Lighthouse procurement — deliverables: SOC2, encryption diagram, questionnaire answers.
+- Integration sprint: 2026-01-25 to 2026-02-07 — owner: Monica Patel (Redwood) & Lighthouse eng — acceptance: pilot demo + perf checklist.
+- SOW sign: 2026-02-09 (procurement buffer included) — owner: Lighthouse procurement + Neha; acceptance: countersigned SOW and PO number in HubSpot.
+- Canary: 2026-02-10 (limited traffic) — owner: Ben Carter + Lighthouse ops — acceptance: canary metrics green for 48 hours.
+- Full go-live: 2026-02-23 — owner: Redwood + Lighthouse ops — acceptance: production traffic redirected, stakeholder note.
+
+We will keep the integration sprint earlier if procurement accelerates the PO; MAP contains fallback dates in the final column.
+
+Immediate next steps (short checklist):
+1) Alex: confirm engineering owner & respond to SOW redline by EOD 2026-01-18.
+2) Lighthouse procurement: provide PO target date or formal buffer confirmation.
+3) Priyom: deliver security artifacts to shared Drive by 2026-01-15 and host the KMS call.
+4) Neha: circulate updated SOW for signature after procurement confirmation.
+5) Monica & Ben: prepare pilot acceptance checklist and performance thresholds (will attach to MAP by 2026-01-20).
+
+Attachments referenced: MAP_v1.xlsx (updated), SOW-draft-20260112.pdf (with insertion on data residency).
+
+Thanks all — I'll maintain the MAP as the single source of truth in the Drive.
+
+—
+Priyom Das\Security & Compliance — Redwood Inference

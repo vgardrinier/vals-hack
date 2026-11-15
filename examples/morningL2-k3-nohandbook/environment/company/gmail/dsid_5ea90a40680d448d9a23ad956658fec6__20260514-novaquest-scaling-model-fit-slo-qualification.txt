@@ -1,0 +1,133 @@
+NovaQuest: scaling, model-fit & SLO qualification
+
+From: Kimberly Park <kimberly.park@redwood.ai>
+To: Luis Martinez <luis.m@novaquest.com>, Sarah Koenig <sarah.koenig@novaquest.com>
+Cc: Marissa Cole <marissa.cole@redwood.ai>
+Date: Thu, 14 May 2026 15:20:00 -0700
+Subject: NovaQuest discovery — scaling, model-fit & SLOs (recap + next steps)
+
+Hi Luis / Sarah — thanks again for the call today. Fast recap and the concrete next steps we discussed so we’re aligned:
+
+Pain points / goals we heard
+- Primary workload: clinical-document summarization + semantic search across patient notes (real-time assist for clinicians).
+- Target 95th pctl latency: <= 200ms for single-turn summarization requests at peak (90–120 concurrent clinicians).
+- Sustained throughput target: ~180–220 requests/sec during peak windows; spiky bursts up to ~400 req/s.
+- Model quality: trustworthy summaries with hallucination controls and redaction of PHI. HIPAA compliance required.
+
+Technical constraints called out
+- Average prompt size: 1.2k tokens (long notes), typical response length 150–300 tokens.
+- Payloads include structured patient metadata (small JSON) + free text.
+- On-prem audit/logging and customer-managed keys preferred.
+
+Redwood recommendation (high level)
+- Private deployment in your AWS VPC using Redwood Private (dedicated capacity). Helps meet HIPAA and audit requirements while giving predictable throughput.
+- Two-model strategy: smaller distilled model for summaries (low latency) + larger model for fallback/edge cases. Route by confidence & latency SLOs.
+- Enable KV prefix caching for repeated context chunks (we’ll quantify savings after we see traces).
+
+Attachments I’ll share: topology sketch + KV-cache microbenchmark (attached).
+
+Immediate next steps
+1) Technical deep-dive with our infra/ops (Marissa + Sean) to map SLOs to topology — can we do Tue/Wed next week? (proposed slots below)
+2) You to share 48–72 hours of anonymized traffic samples (redact PHI) and a couple of example long notes for token distribution analysis.
+3) Procurement: we’ll get a draft SOW/estimate once we size the committed capacity (procurement contact copied on next thread).
+
+Proposed deep-dive times (PDT):
+- Tue 19 May 10:00–11:00
+- Wed 20 May 14:00–15:00
+
+Thanks — I’ll book once you confirm availability.
+
+Best,
+Kimberly Park
+Account Executive | Redwood Inference
+kimberly.park@redwood.ai | +1 415-555-0192
+
+Attachments: topology_sketch_v1.pdf (sketch), kv_cache_benchmark.csv (sample results)
+From: Luis Martinez <luis.m@novaquest.com>
+To: Kimberly Park <kimberly.park@redwood.ai>
+Cc: Sarah Koenig <sarah.koenig@novaquest.com>
+Date: Thu, 14 May 2026 18:04:00 -04:00
+Subject: Re: NovaQuest discovery — scaling, model-fit & SLOs (recap + next steps)
+
+Kimberly — thanks for the clear summary. A few clarifications from our infra side before the deep-dive so Marissa can size things appropriately:
+
+1) Concurrency / request shape: the 180–220 req/s is what our app emits after batching at the API level; per-user flows are mostly sequential but the UI does background prefetching. The 400 burst is observed during shift handovers.
+2) Sequence lengths: 1.2k tokens average is correct, but ~10% of notes push 3–4k tokens. Those are the tricky edge-cases.
+3) Data residency: all PHI must stay in our VPC; we can run Private with customer-managed keys.
+
+Questions:
+- Can Redwood guarantee p95 <= 200ms for the 1.2k token average on a distilled 7B model, or would that require quantized 8-bit on A100/HPU?
+- For the long 3–4k notes, do you recommend server-side summarization pipeline (pre-chunk + merge) or a single long-context model variant?
+
+We’re available Tue 19 May 10:00–11:00 PDT — that slot works for Marissa or Sean. I’ll send anonymized traces by EOD Monday.
+
+Thanks,
+Luis Martinez
+CTO (Acting) — NovaQuest Health
+luis.m@novaquest.com
+
+On Thu, May 14, 2026 at 15:20, Kimberly Park <kimberly.park@redwood.ai> wrote:
+> Hi Luis / Sarah — thanks again for the call today. Fast recap and the concrete next steps we discussed so we’re aligned:...
+From: Marissa Cole <marissa.cole@redwood.ai>
+To: Luis Martinez <luis.m@novaquest.com>, Kimberly Park <kimberly.park@redwood.ai>
+Cc: Sean Gallagher <sean.gallagher@redwood.ai>
+Date: Fri, 15 May 2026 09:37:00 -0700
+Subject: NovaQuest — suggested topology and SLO mapping (pre-deep-dive notes)
+
+Hi Luis / Kimberly — I pulled together a short tech-first sketch ahead of Tuesday’s deep-dive. High-level recommendations below; we’ll walk through details in the call.
+
+1) Topology (recommended)- Private Redwood control plane + dedicated GPU fleet in your AWS account (VPC peering / transit gateway).
+- Two-tier serving:
+  * Tier A (low-latency): distilled 7B model quantized to 8-bit on A100s for p95 <= 200ms on ~1.2k token requests. Continuous batching (target batch 8–16, dynamic) and low token-slicing.
+  * Tier B (high-fidelity): full 34B (or hosted LLM of your choice) for fallback when confidence below threshold — routed asynchronously or with graceful degrade.
+
+2) Long-document handling- For 3–4k token notes: recommend pre-chunk+merge on ingest (server-side pipeline) + KV cache for repeating sections (e.g., SOAP headers). This keeps per-request latency bounded and allows you to hit SLOs without an expensive long-context model for every request.
+
+3) SLO mapping (quick table)
+- p50: 40–60ms (inference-only, distilled model)
+- p95: <= 200ms (inference-only, with dynamic batching tuned to request patterns)
+- availability: 99.9% monthly (with Dedicated commit + autoscale buffer)
+
+4) Resource sizing notes (back-of-envelope)
+- Sustained 200 req/s at ~1.2k tokens and batch=12 => ~16 A100 GPUs (dedicated pool) with autoscale to handle 400 burst with short warm-up capacity or fallback routing. We’ll refine with your traces.
+
+5) Observability & safety- Suggest shipping a small eval set + hallucination checks so we can tune model thresholds. Include audit logs and request-level token accounting for billing/SOC2 evidence.
+
+Attachments: kv_cache_benchmark.csv (sample cache hit savings), topology_sketch_v1.pdf
+
+Ask before Tuesday’s deep-dive
+- Please share 48–72h anonymized traffic and a handful of long-note examples (no PHI).
+- Confirm whether procurement needs an estimated committed GPU count for SOW drafting.
+
+I’ll be on the Tue 19 May 10:00–11:00 PDT slot.
+
+Thanks,
+Marissa Cole
+Director, Inference Ops | Redwood Inference
+marissa.cole@redwood.ai
+
+> On Thu, May 14, 2026 at 18:04, Luis Martinez <luis.m@novaquest.com> wrote:
+> > Kimberly — thanks for the clear summary. A few clarifications from our infra side before the deep-dive so Marissa can size things appropriately:...
+From: Kimberly Park <kimberly.park@redwood.ai>
+To: Luis Martinez <luis.m@novaquest.com>
+Cc: Marissa Cole <marissa.cole@redwood.ai>, Sean Gallagher <sean.gallagher@redwood.ai>, procurement <procurement@novaquest.com>
+Date: Mon, 18 May 2026 09:12:00 -0700
+Subject: Re: NovaQuest discovery — scaling, model-fit & SLOs (recap + next steps)
+
+Perfect — thanks Luis, and thanks Marissa for the notes. Confirming items and next steps: 
+
+- Deep-dive confirmed: Tue, 19 May 2026, 10:00–11:00 PDT (calendar invite sent): https://calendar.redwood.com/meet/kimberly/novaquest-tech-deepdive
+- NovaQuest will share anonymized traces by EOD Mon 18 May.
+- We’ll produce an initial capacity estimate + SOW draft within 4 business days after the deep-dive (HubSpot deal: https://app.hubspot.com/deals/7892).
+- Procurement: we’ll include a committed capacity option (monthly) + burst pricing for on-demand increases; procurement contact on this thread.
+
+I attached the topology sketch and a small microbenchmark of KV cache savings for the call prep. If there are specific SLAs you want included in the SOW doc, please flag them in reply and I’ll loop in our contracts lead.
+
+Thanks — see you Tuesday.
+
+Best,
+Kimberly Park
+Account Executive | Redwood Inference
+kimberly.park@redwood.ai
+
+Attachments: topology_sketch_v1.pdf, kv_cache_benchmark.csv

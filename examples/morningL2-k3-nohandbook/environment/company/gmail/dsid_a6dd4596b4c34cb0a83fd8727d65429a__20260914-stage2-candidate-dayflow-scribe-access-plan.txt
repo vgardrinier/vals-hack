@@ -1,0 +1,132 @@
+Stage 2: Candidate Dayflow, Scribe + Accessibility Plan (Jordan Miles)
+
+From: Laura Bennett <laura.bennett@redwood.ai>
+To: Jordan Miles <jordan.miles@gmail.com>
+Cc: Sergio Alvarez <sergio_alvarez@redwood.ai>
+Date: 2026-09-14T09:12:00-07:00
+Subject: Stage 2 interview — availability and accessibility needs
+
+Hi Jordan,
+
+Thanks again for interviewing with Redwood — excited to move you to Stage 2 (cross-functional panel + technical design). We’re proposing Tuesday, Sep 16. Below are two windows we can offer:
+
+- 10:00–12:30 PDT (panel + 1:1)
+- 14:00–16:30 PDT (panel + 1:1, later panelists)
+
+Can you confirm which window works and whether you need any accessibility accommodations (real-time captions, extra breaks, extended time for coding exercises, screen-reader friendly materials)? If you have a preferred pronoun or a short accessibility note we should pass to interviewers, share that too.
+
+I’ve CC’d Sergio from the hiring team to coordinate interview flow and the day-of scribe. I’ll send a calendar invite once we lock time. Please also attach the resume you’d like interviewers to see if different from the version in your application.
+
+Best,
+Laura Bennett
+Senior Recruiter, Candidate Experience
+Redwood Inference
+
+Attachment: none yet
+
+From: Jordan Miles <jordan.miles@gmail.com>
+To: Laura Bennett <laura.bennett@redwood.ai>
+Cc: Sergio Alvarez <sergio_alvarez@redwood.ai>, acme-recruiting@acme.com
+Date: 2026-09-14T10:05:00-07:00
+Subject: Re: Stage 2 interview — availability and accessibility needs
+
+Laura,
+
+Thanks — 10:00–12:30 PDT on Sep 16 works best. I’d appreciate live captions during the panel and one 10-minute break midway. Also, I’ve attached an updated resume with a small note on a neurodiversity accommodation (short, private note to interviewers is fine).
+
+I use he/they pronouns.
+
+Attached: jordan-miles-resume-redacted.pdf
+
+— Jordan Miles
+Software Engineer (contract)
+Portland, OR
+
+From: Sergio Alvarez <sergio_alvarez@redwood.ai>
+To: Mina Haddad <mina_haddad@redwood.ai>, Marcus Lin <marcus_lin@redwood.ai>, Karthik Iyer <karthik_iyer@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Date: 2026-09-14T11:00:00-07:00
+Subject: Stage2 run-of-show + scribe + accessibility routing (Jordan Miles)
+
+Team — locking 10:00–12:30 PDT on Sep 16 per Jordan. High-level plan and asks:
+
+1) Run-of-show (attached pdf):
+  - 10:00–10:10 Check-in / intro (Laura & Sergio)
+  - 10:10–10:55 Cross-functional panel (Marcus, Karthik, + PM)
+  - 10:55–11:10 Break / buffer (10m break requested by candidate)
+  - 11:10–12:00 Design deep-dive + system design (Karthik lead)
+  - 12:00–12:20 Recruiter wrap & next steps (Laura)
+
+2) Accessibility: Jordan requested live captions. Mina, can you confirm captioning + scribe (notes capture) on the Zoom session? We should also provide the candidate with the meeting transcript after the session.
+
+3) Interviewer prep: short cribsheet attached (what to assess, example prompts, time cues). Marcus/Karthik — please skim and flag anything you want to change.
+
+4) Logistics: provide a single Zoom link for the full block and a separate breakout link for the design exercise if needed. Use passcode flow for security.
+
+5) Quiet arrival: recommend we have a brief intro window (10 mins) to let Jordan join early and settle microphone/caption settings.
+
+Thanks — assigning Mina as ops lead and Marcus as panel lead.
+
+Sergio Alvarez
+Hiring Lead, Platform
+Redwood Inference
+
+Attachment: 20260914-stage2-agenda.pdf, interviewer-cribsheet.docx
+
+From: Mina Haddad <mina_haddad@redwood.ai>
+To: Sergio Alvarez <sergio_alvarez@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>, Marcus Lin <marcus_lin@redwood.ai>, Karthik Iyer <karthik_iyer@redwood.ai>
+Date: 2026-09-14T15:42:00-07:00
+Subject: Re: Stage2 run-of-show + scribe + accessibility routing (Jordan Miles)
+
+All — confirmed. Ops notes below and day-of artifacts.
+
+• Zoom meeting (single link for 10:00–12:30 PDT): https://zoom.us/j/9876543210?pwd=Stage2Pass
+  - Passcode: RedwoodStage2
+  - Waiting room: OFF (we’ll let candidate in early as requested)
+• Live captions: vendor captions will be enabled and recorded transcript turned on (automated captions + human QA).
+• Scribe: we will capture a typed scribe in the shared Drive doc during the session. Link will be pasted into the calendar event and the chat at start.
+• Break handling: we’ll create a 10-min timer in the calendar and enable a breakout room for interviewers if they want to discuss privately during break.
+• Attachments uploaded to the calendar invite: 20260914-stage2-agenda.pdf, interviewer-cribsheet.docx
+
+I’ll also add a short ops checklist for the interviewers: mic check at 9:50, captions test at 9:55, join as panel at 9:58, mute except when speaking.
+
+—Mina
+Interview Operations Specialist
+Redwood Inference
+
+Attachment: none (agenda uploaded to calendar)
+From: Karthik Iyer <karthik_iyer@redwood.ai>
+To: Sergio Alvarez <sergio_alvarez@redwood.ai>, Marcus Lin <marcus_lin@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Date: 2026-09-15T08:20:00-07:00
+Subject: Quick interviewer prep ask — system design prompt
+
+Sergio / Marcus — thanks for the cribsheet. Quick ask: for the design deep-dive, can we use the "edge caching" prompt I linked in the cribsheet and give Jordan 5 minutes to sketch followed by 30 minutes of discussion? I want to ensure we assess architecture choices and tradeoffs (latency, cost, correctness) rather than low-level implementation details.
+
+Also: reminder to the panel to avoid asking leading product-spec questions — we want to see the candidate structure the problem. I’ll paste a short rubric into the docs by EOD.
+
+Karthik
+Director, Platform Engineering
+Redwood Inference
+
+> On Sep 14, 2026, at 11:00 AM, Sergio Alvarez wrote:
+> Team — locking 10:00–12:30 PDT on Sep 16 per Jordan. High-level plan and asks:
+> ...
+
+From: Sergio Alvarez <sergio_alvarez@redwood.ai>
+To: Marcus Lin <marcus_lin@redwood.ai>, Karthik Iyer <karthik_iyer@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>, Mina Haddad <mina_haddad@redwood.ai>
+Date: 2026-09-15T11:03:00-07:00
+Subject: Day-of: please fill quick debrief + async notes post-interview
+
+Team — final reminder for Sep 16 (10:00–12:30 PDT). Quick asks for day-of and post-interview: 
+
+1) Marcus/Karthik (panel): please add 2–3 bullet notes in the shared scribe doc during the session and drop a 5-liner debrief in the candidate scorecard within 2 hours of the end.
+2) Laura: will send the candidate next-step timeline after we confirm internal alignment.
+3) Mina: please share the transcript and Drive scribe to the panel within 6 hours.
+
+If anything changes (panelist running late, Zoom hiccup), text me and I’ll triage. Thanks all — looking forward to a smooth session.
+
+Sergio Alvarez
+Hiring Lead, Platform
+Redwood Inference
+
+---
+Note: Post-interview debrief link: https://docs.google.com/document/d/1xScribeRunOfShow

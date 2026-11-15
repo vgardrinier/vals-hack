@@ -1,0 +1,145 @@
+Packaging & pricing: long-term retention, tracing and dashboards
+
+From: Sasha Patel <sasha.patel@acme.com>
+To: Marcus Lin <marcus.lin@redwood.com>
+Cc: Eric Lowe <eric@finx.io>
+Date: Wed, 28 Oct 2026 09:12:00 -0700
+Subject: Observability add-ons: retention + tracing + dashboards — high level ask
+
+Hi Marcus,
+
+Thanks for the quick intro last week. We're putting together an internal ask for long-term observability at Acme Analytics and I wanted to surface the key requirements so your team can propose packaging and pricing that aligns with our procurement window (targeting a Dec contract).
+
+Top-level needs:
+- Logs + spans retention: cold archive for long-term compliance, ~2 years for logs, 90 days for traces.
+- Advanced dashboards: live traces + drilldowns for SRE and product analytics teams (approx 10 power users).
+- Ingest profile: steady 30 TB/month, periodic spikes during product launches.
+
+Questions for Redwood:
+1) How do you structure a SKU for archive vs hot retention? Do you have blended discounts for combined retention + tracing + dashboard bundles?
+2) What crediting or pilot credits can you offer for a POC?
+3) Are there fixed fees (seats/licenses) for advanced dashboards in addition to ingest/retention?
+
+If you could send a short options matrix (pilot -> mid -> committed) and a sample SOW format, that would help us accelerate procurement. I've looped in Eric from our platform team for technical clarifications.
+
+Cheers,
+
+Sasha Patel
+Head of Platform
+Acme Analytics
+
+Attachment: acme-observability-requirements-10-26.pdf (application/pdf)
+From: Marcus Lin <marcus.lin@redwood.com>
+To: Sasha Patel <sasha.patel@acme.com>
+Cc: Eric Lowe <eric@finx.io>
+Date: Wed, 28 Oct 2026 10:45:00 -07:00
+Subject: Re: Observability add-ons: retention + tracing + dashboards — high level ask
+
+Hi Sasha,
+
+Thanks — this is great detail and exactly what we need to scope a few packaged options. I'll put together a short matrix and SOW sketch. Quick answers inline:
+
+- SKU structure: We separate hot (30-90d) and cold (6-24mo) retention. Hot retention is metered on ingest/ingress with per-GB active storage; cold archival is a lower $/GB/month rate with retrieval fees. Bundles reduce the per-GB archival rate by up to 35% depending on commit.
+- Bundles & discounts: Yes — combined bundles (tracing + dashboards + retention) receive an additional additive discount that grows with committed annual spend. We can model pilot credits for POCs.
+- Dashboards: There is a seat-based component (power users) plus a per-query execution cost for heavy live trace joins. For your 10 power users we usually propose an annual seat fee plus an ingestion/retention allowance.
+
+I'll share a draft matrix and a sample SOW by EOD. Attaching a pricing workbook with placeholders for your numbers — please replace the ingest spikes to let us re-calc.
+
+Best,
+
+Marcus Lin
+Senior Solutions Architect, Redwood Inference
+
+Attachments: retention-pricing-workbook.xlsx (spreadsheet)
+From: Marcus Lin <marcus.lin@redwood.com>
+To: Kimberly Park <kimberly.park@redwood.com>, Jordan Blake <jordan.blake@redwood.com>
+Date: Thu, 29 Oct 2026 09:07:00 -07:00
+Subject: Fwd: Acme observability pricing request — discount recommendation
+
+Kimberly / Jordan,
+
+Forwarding Sasha's ask. Acme is looking at a Dec procurement; they want a matrix that shows pilot -> mid -> committed. They are steady 30 TB/month with spikes, 2y cold retention, 90d traces, 10 power users.
+
+My draft thoughts:
+- Pilot: 3-month POC with $15k in usage credits (covering ~10 TB ingest + 90d retention), standard metered rates otherwise; no seat fees.
+- Mid (12mo): 20% off list for combined bundle, 12mo commit, 1.25x overage cushion. No archival discount.
+- Committed (24mo): 32% off list on combined bundle, archival rate reduced by 30%, waived retrieval fees for first 5TB/month. Seat fees discounted 40% first year.
+
+Question: Do we have flexibility to offer an incremental concession on the committed tier (extra 3-5% off) if they commit to a two-year 300k minimum? Also want to include a clause for usage re-evaluation at 12 months.
+
+Jordan — can you run quick margin impact on the 32% committed scenario with archival cutouts? Kimberly — any guardrails from legal on the 2y minimum + retrieval waiver?
+
+Thanks,
+Marcus
+From: Jordan Blake <jordan.blake@redwood.com>
+To: Marcus Lin <marcus.lin@redwood.com>, Kimberly Park <kimberly.park@redwood.com>
+Date: Thu, 29 Oct 2026 15:03:00 -07:00
+Subject: Re: Fwd: Acme observability pricing request — discount recommendation
+
+On Thu, Oct 29, 2026 at 09:07 AM Marcus Lin <marcus.lin@redwood.com> wrote:
+> Kimberly / Jordan,
+>
+> Forwarding Sasha's ask. Acme is looking at a Dec procurement; they want a matrix that shows pilot -> mid -> committed. They are steady 30 TB/month with spikes, 2y cold retention, 90d traces, 10 power users.
+>
+> My draft thoughts:
+> - Pilot: 3-month POC with $15k in usage credits (covering ~10 TB ingest + 90d retention), standard metered rates otherwise; no seat fees.
+> - Mid (12mo): 20% off list for combined bundle, 12mo commit, 1.25x overage cushion. No archival discount.
+> - Committed (24mo): 32% off list on combined bundle, archival rate reduced by 30%, waived retrieval fees for first 5TB/month. Seat fees discounted 40% first year.
+>
+> Question: Do we have flexibility to offer an incremental concession on the committed tier (extra 3-5% off) if they commit to a two-year 300k minimum? Also want to include a clause for usage re-evaluation at 12 months.
+
+Marcus / Kimberly — quick notes after a fast pass on margin modeling:
+- Committed 32% across-the-board is aggressive but doable if we constrain waived retrievals and make excess retrievals billable post 5TB. If they guarantee $300k ARR minimum over 2 years, we can do an incremental 4% off list (so effectively 36% off list) but that requires a signed SOW and payment terms: net30 + 50% upfront.
+- Recommend we add a CPI-linked price review at month 12 (or usage reforecast clause) to protect economics.
+- Seat fee concessions fine, but cap seat count reductions to avoid indefinite unlimited users.
+
+Kimberly — legal/finance signoffs needed on the upfront 50% and on the retrieval waiver language. If they push for net60 we should tighten the upfront commitment.
+
+I'll draft a short commercial term snippet to include with the matrix.
+
+Thanks,
+Jordan Blake
+Senior Director, Commercial
+
+--
+
+From: Marcus Lin <marcus.lin@redwood.com>
+To: Sasha Patel <sasha.patel@acme.com>, Eric Lowe <eric@finx.io>
+Cc: Kimberly Park <kimberly.park@redwood.com>, Jordan Blake <jordan.blake@redwood.com>
+Date: Thu, 29 Oct 2026 15:03:00 -07:00
+Subject: Acme options: pilot, standard annual, committed 24mo — pricing snapshot and next steps
+
+Sasha / Eric,
+
+Appreciate the details — we pulled together three options for Acme (attached workbook + SOW sketch). High level:
+
+1) Pilot (3 months)
+- $15k usage credit to cover initial ingest and 90d retention for the trial cluster.
+- No seat fees during pilot.
+- Standard metered rates apply for overage.
+
+2) Standard annual (12 months)
+- 20% off list for combined bundle (tracing + dashboards + retention).
+- 1.25x overage cushion for the first 6 months.
+- Archival billed at list archival rate.
+
+3) Committed (24 months) — preferred economics
+- 32% off list on the combined bundle.
+- Archival rate reduced by 30% and retrieval waived for first 5TB/month.
+- Seat fees: 40% discount first year for up to 12 seats, then revert to standard.
+- If Acme commits to a $300k minimum over 24 months and 50% upfront payment on signature, we can extend an incremental 4% additional discount (effective 36% off list).
+
+Commercial guardrails we propose:
+- 12-month usage reforecast (price review) to re-align economics if ingest deviates >30% from baseline.
+- Retrieval waiver limited to 5TB/month and subject to fair-use clause.
+- Overages revert to list rates post cushion.
+
+Next steps: review the attached workbook (retention-pricing-workbook.xlsx) with your ingest spike assumptions and we can run a granular model. If this looks directionally right, propose a 30-minute call next week to walk the SOW draft and get procurement alignment.
+
+Thanks — happy to adjust.
+
+Best,
+Marcus Lin
+Senior Solutions Architect, Redwood Inference
+
+Attachments: acme-observability-sow-v2.pdf (application/pdf); retention-pricing-workbook.xlsx (spreadsheet)

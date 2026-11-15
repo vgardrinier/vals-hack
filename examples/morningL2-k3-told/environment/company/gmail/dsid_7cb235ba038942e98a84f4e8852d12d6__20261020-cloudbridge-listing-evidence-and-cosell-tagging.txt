@@ -1,0 +1,136 @@
+CloudBridge connector listing: evidence, SKU mapping, and co-sell tagging
+
+From: Evan Turner <evan.turner@cloudbridge.com>
+To: Olga Petrov <olga.petrov@redwood.com>
+Cc: Priya Shah <priya.shah@cloudbridge.com>
+Date: Tue, 20 Oct 2026 09:15:00 -0700
+Subject: Intro + CloudBridge Redwood connector listing & co-sell prep
+
+Hi Olga,
+
+Thanks again for the intro call earlier — really excited about the Connector we built for Redwood that lets customers route inference jobs into their dedicated Redwood pools and leverage prefix caching. CloudBridge would like to get listed on GCP Marketplace and enable co-sell with Redwood (we see a clear GTM overlap for enterprise AI customers).
+
+Can you share a short checklist for the listing (technical evidence, billing SKU mapping, co-sell tagging requirements) and any recommended timing for joint enablement? Attaching a simple integration diagram to start.
+
+High level asks from our side:
+- Target listing date: mid-November (flexible)
+- Need to confirm Redwood’s required evidence for co-sell (security matrix, SOC-2 excerpt, test account)
+- Billing: do we need a separate SKU per region or a single global SKU?
+
+Appreciate any pointers and who on your side will own the marketplace submission and co-sell ops.
+
+Thanks,
+Evan Turner
+VP Partnerships, CloudBridge Solutions
+E: evan.turner@cloudbridge.com
+A: cb-integration-diagram.svg (attachment)
+
+From: Olga Petrov <olga.petrov@redwood.com>
+To: Evan Turner <evan.turner@cloudbridge.com>
+Cc: Ben Carter <ben.carter@redwood.com>, Laura Bennett <laura.bennett@redwood.com>
+Date: Tue, 20 Oct 2026 11:02:00 -0700
+Subject: Re: Intro + CloudBridge Redwood connector listing & co-sell prep
+
+Hi Evan — great to meet you (and thanks for the diagram). I've pulled together a concise checklist below to get a listing + co-sell enabled on GCP. I copied Ben (Marketplace GTM) and Laura (Partner Ops / Legal intake) so we can triage ownership.
+
+Redwood -> Marketplace + Co-sell checklist (starter):
+1) Technical integration evidence
+   - Integration diagram (you already provided)
+   - Test account with a sample workload configured to call Redwood Dedicated (read-only creds for our test team)
+   - Latency/cost perf snapshot for a 1k/5k token workload (CSV)
+2) Security & compliance artifacts
+   - SOC 2 summary + statement of application boundary
+   - Data flow diagram, retention & deletion policy
+   - If you have certs for data at rest encryption (KMS) attach them
+3) Billing & SKUs
+   - Proposed SKU names and pricing tiers (dev / prod / enterprise)
+   - Indicate whether you plan regional SKUs or a single global SKU (GCP accepts either but we recommend regional for visibility)
+4) Co-sell enablement
+   - GTM point of contact + logo + short partner blurb (100 words)
+   - Revenue share / referral model draft (if already discussed, attach)
+   - Required co-sell tagging fields for GCP (we will map after we confirm SKUs)
+5) Docs & marketing assets
+   - One-pager, customer references (names + contact ok to share),<br/>   - Whitepaper or solution brief (PDF)
+6) Legal / procurement
+   - Proposed MOU for joint promotion (a short draft helps speed DocuSign)
+
+Deliverables I can own from Redwood:
+- Marketplace listing submission (Ben will shepherd the listing workflow)
+- Co-sell tagging + GCP form fill (Ben)
+- Partner legal routing (Laura)
+
+Next steps and timing:
+- Evan/CloudBridge: share the evidence bundle and SKU proposal by Friday 10/23 if possible.
+- Ben: can we target an internal review 10/26 and submission to GCP by 10/28?
+- Laura: once we have the MOU draft, I can route to Legal for a quick review (estimating 3-5 business days).
+
+I've attached a marketplace-evidence-template.xlsx to help structure the artifacts. Let me know if you want a quick 30-min sync later this week.
+
+Cheers,
+Olga Petrov
+Director, Alliances — Redwood Inference
+A: marketplace-evidence-template.xlsx (attachment)
+
+From: Olga Petrov <olga.petrov@redwood.com>
+To: Ben Carter <ben.carter@redwood.com>, Laura Bennett <laura.bennett@redwood.com>
+Date: Wed, 21 Oct 2026 09:33:00 -0700
+Subject: Fwd: CloudBridge connector listing — ownership + quick triage (internal)
+
+Ben/Laura — forwarding Evan's note and my reply. Quick asks: can Ben own the listing submission and mapping to GCP co-sell tags? Laura, please confirm Legal intake bandwidth for a short MOU review; CloudBridge wants to aim for ~mid-November listing.
+
+My readouts from the call:
+- Tech is pretty straightforward but we need a test account and perf snapshots from CB.
+- Security: they claim SOC2 in-scope for the connector; we should ask for the exact trust criteria and any subprocessor list.
+- Billing: they seem to favor a single global SKU but are open to regional tiering. Recommend we push for region-tagged SKUs for better marketplace placement.
+
+Risks/asks:
+- Make sure we confirm data residency language if they want EU/APAC SKUs (they sent US-first timeline).
+- Need Ben to confirm who will fill the GCP co-sell form fields / link to our internal listing tracker.
+
+Proposed micro-plan:
+- Ben: claim listing submission + co-sell form (ETA: 10/26)
+- Laura: confirm Legal review window for a lightweight MOU (ETA: 10/29)
+- Olga: coordinate evidence triage with CloudBridge and validate security artifacts once received
+
+--Olga
+
+On Tue, Oct 20, 2026 at 11:02 AM Olga Petrov <olga.petrov@redwood.com> wrote:
+> Hi Evan — great to meet you (and thanks for the diagram). I've pulled together a concise checklist below to get a listing + co-sell enabled on GCP. I copied Ben (Marketplace GTM) and Laura (Partner Ops / Legal intake) so we can triage ownership.
+
+From: Ben Carter <ben.carter@redwood.com>
+To: Evan Turner <evan.turner@cloudbridge.com>, Priya Shah <priya.shah@cloudbridge.com>, GCP Marketplace <listing-team@gcpmarketplace.google.com>
+Cc: Olga Petrov <olga.petrov@redwood.com>, Laura Bennett <laura.bennett@redwood.com>
+Date: Thu, 22 Oct 2026 16:04:00 -0700
+Subject: Re: CloudBridge connector listing & co-sell — next steps and timeline
+
+Hi Evan / Priya / GCP listing team — thanks for the intro and for starting the thread. Quick summary from Redwood and ask-list so we can progress to submission: 
+
+1) Evidence bundle (requested items):
+   - Test account creds (read-only) + demo script for Redwood integration
+   - SOC 2 summary and subprocessor list (we need to confirm if SOC scope includes the connector)
+   - Performance snapshot (CSV) for 1k & 5k token scenarios
+   - Data flow + retention doc (PDF)
+
+2) Billing & SKU mapping:
+   - CloudBridge to provide SKU names; Redwood recommends region-tagged SKUs (US / EU / APAC) to improve visibility.
+   - If CloudBridge prefers a single global SKU we can accept that but will request a mapping table for internal metering.
+
+3) Co-sell tagging + marketplace fields:
+   - GCP: we will need the partner blurb, public logo (.png), and the fields highlighted in the GCP co-sell checklist. Olga will share an internal tracker link for mapping.
+
+4) Legal / MOU:
+   - CloudBridge: please upload the draft MOU to DocuSign (or share to our legal intake Drive link). Laura will perform a targeted review.
+
+Timeline proposal:
+- 10/23: CloudBridge uploads evidence bundle + SKU proposal
+- 10/26: Redwood internal review (listing + legal triage)
+- 10/28: Submission to GCP marketplace for initial ingest
+- Mid-November: Target listing & co-sell enablement (pending GCP review)
+
+I attached a short MOU template (mou-draft-20261020.pdf) and a zipped folder with certification evidence (gcp-cert-evidence.zip) as examples of the documents we normally collect.
+
+Evan — can you confirm the upload time for the evidence bundle? If you want, we can do a 30-minute triage tomorrow (10/23) at 10am PT.
+
+Thanks all — Ben Carter
+Head of Marketplace GTM, Redwood Inference
+A: mou-draft-20261020.pdf, gcp-cert-evidence.zip (attachments)

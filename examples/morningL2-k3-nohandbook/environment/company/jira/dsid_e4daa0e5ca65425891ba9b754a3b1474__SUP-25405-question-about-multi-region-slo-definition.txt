@@ -1,0 +1,61 @@
+Question: How is Redwood multi-region availability SLO calculated (failover vs per-region uptime)?
+
+Customer (Atlas Payments) asked for a precise definition of Redwood’s “multi-region availability” SLO as referenced in recent reliability updates and procurement materials. They specifically want to know:
+
+1) Is the SLO measured per-region or from the customer’s perspective after routing/failover?
+2) During a regional impairment, if requests are automatically routed to another region, do those requests count as “available” under the SLO?
+3) What errors are excluded (4xx, 429), and how are timeouts/streaming disconnects treated?
+4) How does this apply to Hosted API vs Dedicated capacity?
+
+Context:
+- Customer flagged confusion after seeing references to “multi-region availability” and “region-level events vs partial degradation.”
+- They also asked whether planned failover tests (game days) affect SLO reporting.
+
+Requested outcome:
+- Provide a consistent, support-approved explanation with a short definition + bullets we can reuse across Support/CS, and point to the authoritative internal SLO doc (Confluence) for alignment.
+
+No immediate outage/customer-impact reported. This is a definition/contracting-readiness question and may be used in their internal risk review.
+2026-01-21 (Owen Phillips, Support) - Intake from Atlas Payments:
+“Can you clarify how your multi-region availability SLO is calculated? Is it per-region uptime or end-to-end availability with failover? If us-east has a regional event but traffic successfully fails over to eu-west, is that counted as downtime? Also do 429s count against availability?”
+
+I told them we’d confirm with SRE and provide a written definition we can stand behind.
+2026-01-21 (Dev Patel, Support - Assignee) - Acknowledged. Pulling in SRE for an approved blurb. Looping in Aisha Bello (SLO dashboards owner) and Miles Thornton (failover architecture).
+2026-01-22 (Aisha Bello, SRE) - Proposed support-facing definition (aligned to multi-region SLO doc):
+
+Multi-region availability SLO is measured from the client’s perspective at the Redwood edge/API gateway, after routing policies are applied (including automated failover when enabled). If a request is successfully served (2xx) within the SLO latency envelope via any healthy region, it counts as available.
+
+Key points:
+- Measurement point: gateway/edge metrics for the route (not raw per-region instance health).
+- Included failures: 5xx, gateway timeouts, and requests failing due to regional impairment that are not successfully served by an alternate region.
+- Exclusions: customer-caused 4xx (e.g., invalid request), and auth failures due to invalid credentials.
+- 429 handling: rate-limit responses are not considered “available” for the specific route SLO when they result from platform protective load shedding during an impairment; they are tracked separately as a degradation signal. (If 429 is due to customer quota/rate limit, it’s excluded as customer-induced.)
+- Streaming: disconnects initiated by a server-side error/timeout count as unavailable; client-initiated disconnects do not.
+
+Hosted vs Dedicated:
+- Hosted API: multi-region availability reflects Redwood-managed routing/failover policies for the endpoint.
+- Dedicated: SLO is calculated for the Dedicated service endpoint and includes Redwood’s failover actions only where multi-region routing is configured for that tenant (some Dedicated deployments are single-region by design).
+
+Planned tests (game days): if conducted in production, they are executed with a limited blast radius and tracked/annotated. If any customer-impacting errors occur, they count as availability-impacting like any other production event (no “free pass”), but we aim to keep impact below agreed thresholds.
+2026-01-22 (Miles Thornton, SRE) - +1. Important nuance to include: we also distinguish “region-level event” vs “partial degradation” for operational classification and trigger logic (ADR-042), but the customer-facing availability number is still computed at the route level. If failover succeeds quickly enough that the customer request succeeds, that’s availability preserved.
+
+Suggested wording for question (2):
+“If failover routes your request to another region and the request succeeds, it is counted as available; multi-region is intended to preserve availability by design.”
+2026-01-23 (Dev Patel, Support) - Drafted response to customer using the SRE-approved text. Also asked for a single sentence we can reuse in other tickets/FAQs. Awaiting final sign-off from Aisha.
+2026-01-23 (Aisha Bello, SRE) - Sign-off on the wording below.
+
+One-liner:
+“Multi-region availability is measured at the API edge after routing/failover; successful requests served by any healthy region are counted as available.”
+
+Please avoid quoting specific internal thresholds (burn-rate windows, trigger timers) externally.
+2026-01-24 (Dev Patel, Support) - Sent to Atlas Payments (sanitized, customer-facing):
+
+- Our multi-region availability SLO is measured from the client’s perspective at the Redwood API edge, after routing is applied.
+- If a regional impairment occurs but your request is successfully served by another region via failover, that request counts as available.
+- We count platform/server-side failures such as 5xx and gateway timeouts against availability. We exclude customer-caused 4xx (invalid requests, invalid auth).
+- Rate limiting: if a 429 is due to your configured quota/rate limit, it’s excluded as customer-induced. If protective load shedding returns 429 during an impairment, that’s tracked as degradation and may count against availability for the impacted route.
+- For Dedicated, the same principles apply where multi-region routing is configured; some Dedicated environments are intentionally single-region.
+
+Customer replied “Thanks, this is what we needed for our vendor risk write-up.” Marking resolved.
+2026-01-24 (Dev Patel, Support) - Follow-up internal note: we should consider a public-facing FAQ / docs snippet for multi-region SLO definition to reduce repeat questions (related: SUP-25444 audit log request, PM-513 SLO reporting alignment).
+Provided SRE-approved, customer-facing definition of multi-region availability SLO (measured at edge after routing/failover) and clarified treatment of failover success, 4xx exclusions, 429 nuance, and Hosted vs Dedicated applicability. Customer confirmed answer sufficient for risk review.
+Optional: create a reusable docs/FAQ snippet for multi-region SLO definition and align with PM-513; avoid exposing internal trigger thresholds/timers in customer communications.

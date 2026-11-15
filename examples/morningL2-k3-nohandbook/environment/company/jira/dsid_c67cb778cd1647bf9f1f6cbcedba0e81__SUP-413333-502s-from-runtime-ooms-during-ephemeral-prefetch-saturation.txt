@@ -1,0 +1,42 @@
+502 responses from runtime due to OOMs during ephemeral prefetch saturation
+
+Issue summary: Starting ~2026-03-13T21:05 UTC we observed a rapid elevation of 5xx (502) responses for requests from customer Orchid Health. The API gateway returned 502s correlated with a cluster of upstream runtime exits (OOM kills) on ephemeral workers. The likely trigger is a high-volume embedding batch from the tenant that saturated prefetch worker queues and caused memory pressure during concurrent model prefetch + small-chat traffic.
+
+Impact: ~12% request error rate for Orchid Health routing path (chat + embeddings) for ~28 minutes. Several production requests retried by the customer. No data exposure reported. Major customer impact (enterprise SLA at risk).
+
+Environment: Production, us-east, dedicated route for Orchid Health but on shared ephemeral pool for embeddings/prefetch.
+
+Observed behavior: 1) API gateway returns 502 with upstream connection reset logs. 2) Upstream runtime pods show OOMKilled events, kernel OOM messages visible in pod logs. 3) Prefetch queue length peaked and then drained as workers crashed. 4) Autoscaler attempted to spin up replacement nodes but experienced cold cache prefetch spikes and more OOMs (amplification loop).
+2026-03-13T20:58Z - first alert: apigw error-rate > 5%% threshold
+2026-03-13T21:02Z - Orchid Health CS ticket opened, we routed to support
+2026-03-13T21:05Z - spikes in Runtime OOMKilled events begin
+2026-03-13T21:07Z - 502 rate reaches peak (12%% for the tenant path)
+2026-03-13T21:12Z - temporary mitigation: lowered prefetch concurrency for the tenant route
+2026-03-13T21:20Z - observed error rate decline but intermittent OOMs continue during autoscaler ramp
+2026-03-13T21:33Z - full mitigation deployed: tenant-prefetch cap + autoscaler backoff; runtime OOMs stop
+2026-03-13T21:38Z - monitoring shows errors returned to baseline
+1) On prod route similar to Orchid Health, issue a large parallel embedding upload (hundreds of small vectors) while concurrently running chat sessions pinned to a small model variant.
+2) Ensure prefetcher concurrency is at default (no tenant cap).
+3) Observe prefetch queue growth, runtime memory allocation spikes, and eventual OOM kills when ephemeral workers attempt to prefetch large model shards under memory pressure.
+Sample runtime pod log snippet (sanitized):
+[2026-03-13T21:06:14Z] runtime: allocation failed: process killed (OOM)
+[2026-03-13T21:06:15Z] kernel: Out of memory: Kill process 22455 (runtime) score 987 or sacrifice child
+[2026-03-13T21:06:15Z] kubelet: Back-off restarting failed container
+API Gateway logs: 502 upstream reset -> upstream response timeout after 30s when runtime did not accept connection.
+Cloud metrics snapshot: prefetch_queue_length tenant=orchid=peak 142; runtime_mem_utilization node=gpux-12 avg 96%%; 5xx_rate tenant=orchid 0.12 (12%%) at peak.
+Initial hypothesis: tenant-generated embedding burst combined with prefetcher default concurrency caused eviction/fragmentation of GPU memory on ephemeral runtime, triggering OOM. Additional amplification as autoscaler created cold workers which attempted to handle queued prefetch tasks leading to repeated OOM cycle.
+Evidence: OOMKilled entries across 6 ephemeral pods within 3 minutes; prefetch queue length spike aligns with first OOM. No network flakiness observed. No kernel driver panics (NVML logs normal).
+Alternate hypotheses considered and deprioritized: corrupted model binary causing runaway allocations (not observed across other tenants), host-level disk pressure (not present).
+Root cause (conjecture): lack of tenant-level prefetch concurrency caps combined with autoscaler warmup behavior and current prefetch memory accounting causing memory oversubscription on ephemeral runtimes.
+Support (Meera): Engaging runtime on-call and SRE. Notified Orchid Health CS team and recommended immediate retries disabled in client for 5 minutes to avoid retry storm.
+SRE (Diego): Captured pod core dumps to GCS: gs://redwood-incident-dumps/SUP-413333/. Investigating prefetch memory accounting. Temporary rule applied: cap tenant prefetch concurrency to 8.
+Runtime on-call (Zhen Li): Observed leaking allocations from prefetch worker when handling mixed embed+chat workloads; opened runtime PR to short-circuit redundant prefetch paths (PR #4210).
+Customer (Orchid Health CS): Reported reduced error rate post-mitigation and requested postmortem and permanent safeguard.
+1) Applied tenant prefetch concurrency cap of 8 for Orchid Health route.
+2) Adjusted autoscaler backoff to delay ramp during high prefetch queue lengths to avoid cold worker amplification.
+3) Throttle large embedding uploads at API gateway for tenant when prefetch queue > 50.
+1) Add tenant-level prefetch memory accounting and hard caps in serving-runtime.
+2) Improve autoscaler warmup policy to avoid immediate prefetching on cold workers (stagger prefetch + dry-run warmup).
+3) Create telemetry alert for prefetch_queue_length per-tenant crossing 50 that triggers automatic prefetch cap.
+4) Postmortem scheduled and change request to adjust default prefetch concurrency and autoscaler cooldowns.
+Mitigation resulted in error-rate returning to baseline within ~30 minutes. Root cause tracking assigned to runtime team; follow-up ticket INT-900001 created to implement accounting changes. Orchid Health notified and offered one hour of incident RCA with engineering. Case status: awaiting runtime PR verification and postmortem (In Progress).

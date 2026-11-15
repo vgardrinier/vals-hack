@@ -1,0 +1,47 @@
+eng-releases
+
+deploy-bot: Preflight eval finished for release v2026.3.2 (target window 2026-03-20 16:00 UTC). Summary: 117/120 prompts pass, 3 prompts have regressions beyond configured delta -> recommending HOLD. Full report: https://ci.internal/reports/1851234567
+maria: Holding here. Those 3 prompts are in the 'billing-invoice' promptset and affect short-form extraction. Can someone grab the diff and triage? :eyes:
+sam: Pasted the failing rows from the eval run:
+```
+prompt_id | metric        | baseline | candidate | delta
+billing-023 | extract_f1    | 0.92     | 0.78      | -0.14
+billing-059 | date_parse_acc| 0.99     | 0.85      | -0.14
+billing-102 | amount_fmt    | 0.95     | 0.82      | -0.13
+```
+These are beyond the alert threshold of -0.08. Looks consistent across seeds.
+maria: Not great. Those prompts are high-importance for a top-5 customer in EU. @tess any product tolerance here?
+tess: Customer-facing extraction regressions are a blocker for this release. We need either a targeted fix or pining to previous model on the affected routes. Not comfortable shipping. :no_entry_sign:
+jay: From infra side, we can hold the rollout and patch routing to pin affected endpoints to model v2026.2.9 for the next 24h. That would be a config change, no infra deploy. Plan B is rollback the candidate everywhere.
+lee: Pinning seems safest short-term. How many routes? I count 2 production routes using that promptset (invoice-extract, invoice-webhook).
+maria: Agree pin + hotfix. Sam, can you run a bisect to see which commit introduced the delta? If it's a model variant change we can revert.
+sam: Starting bisect now. Quick note: candidate is `redwood/model-x-quant-v2`. Baseline is `redwood/model-x-quant-v1`. There was a kernel tweak in runtime in the same window (PR #4892) but eval infra pinned runtime to prod at the time. Bisect will check model variant first.
+olivia: FYI QA observed similar fuzziness on anonymized chat->invoice samples yesterday in staging, flagged to eng-ml.
+maria: OK. Decision call: hold release, pin routes to v2026.2.9 for invoice-extract and invoice-webhook, open a hotfix ticket to update model or rollback variant. Who owns the hotfix?
+jay: I'll own the routing pin (ENG-SRE). Will push the config change and monitor. ETA 15m.
+lee: Sam + Eng-ML own the bisect and hotfix patch. Sam, add me to the bisect thread.
+sam: Will do. Early bisect result: bad candidate reproduces locally with the smaller promptset when using `model-x-quant-v2`. Reproduced with commit range c7a1..d2f4. Suspect quantization profile change.
+maria: Good find. Can we back out variant while we patch quant profile?
+sam: Yes. Workaround: route those endpoints to `model-x-quant-v1` and let the rest of traffic use v2. Config shown below:
+```yaml
+routes:
+  invoice-extract:
+    model: redwood/model-x-quant-v1
+  invoice-webhook:
+    model: redwood/model-x-quant-v1
+  default:
+    model: redwood/model-x-quant-v2
+```
+tess: That approach is acceptable to product. Please also update the release notes with the hold and the customer risk.
+maria: I'll draft the release note blurb. Also creating a follow-up eval to verify patch candidates before unblocking: `evalset/billing-invoice/regen-185123` with extra seeds.
+jay: Pin applied, config commit `cfg-1091` rolled out to prod. Monitoring. :white_check_mark:
+deploy-bot: Deployment event: cfg-1091 applied to namespace `prod` (routes pinned). Rollout status: SUCCESS.
+lee: Thumbs up from ops. Monitoring the top-5 customer traces for errors.
+sam: Bisect narrowed to PR d0e3 (quant profile update). I'll open PR to revert quant table for model-x and run a targeted eval.
+maria: Moving to HOLD state for the release. Next steps: sam to open hotfix PR + target eval, eng-sre to keep pin until eval green, product to sign off before unblocking. Created ticket: https://issues.internal/RED-3251 (hold + triage).
+tess: Adding customer comms draft to ticket.
+olivia: QA will run regression smoke once the hotfix lands.
+lee: If hotfix fails or takes >4h, we should plan a full rollback schedule (notify support + customers).
+maria: Acknowledged. For the release calendar: change window closes at 20:00 UTC; we should aim to have resolution or a rollback decision by 19:00 UTC to allow comms.
+jay: Will update status in #incidents if anything changes.
+maria: Thanks all. Holding promotion for v2026.3.2 until signoff. :hand:

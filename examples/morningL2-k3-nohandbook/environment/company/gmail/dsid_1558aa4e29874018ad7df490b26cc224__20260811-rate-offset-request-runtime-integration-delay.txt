@@ -1,0 +1,102 @@
+Request: temporary rate offset due to runtime integration delay (Boxly)
+
+From: Alex Chen <alex.chen@boxly.com>
+To: Soojin Lee <soojin.lee@redwood.com>
+Cc: platform-ops@boxly.com
+Date: Tue, 11 Aug 2026 09:12:00 -0700
+Subject: Delay in runtime integration — ask for temporary rate offset
+
+Hi Soojin,
+
+Quick context: our engineering team hit an unexpected blocker with the VPC auth flow that pushes our internal go-live out by ~6 weeks. The new runtime path Redwood needs to ship a small auth shim to Boxly's infra (your team signaled mid-July) — we've been blocked waiting on that change and can't finish performance validation.
+
+Because of the delay, our launch window is slipping and the business impact is material. We need a short-term commercial accommodation so our CFO and procurement can sign the SOW this week. Specifically Boxly is asking for either: 1) a one-time onboarding credit ($40k) applied at signing, or 2) a 3-month 20% rate reduction on hosted inference consumption while we complete the integration.
+
+Attached: latest SOW (v2) and a small spreadsheet summarizing spend profile.
+
+Can Redwood provide guidance / approvals so we can close? We prefer the one-time credit if possible.
+
+Thanks,
+Alex
+Alex Chen
+Head of Platform Engineering, Boxly Inc
+---
+Attachments: Boxly_Implementation_SOW_v2.pdf, pricing-offset-proposal.csv
+From: Soojin Lee <soojin.lee@redwood.com>
+To: Alex Chen <alex.chen@boxly.com>
+Cc: Laura Bennett <laura.bennett@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Date: Tue, 11 Aug 2026 10:00:00 -07:00
+Subject: Re: Delay in runtime integration — ask for temporary rate offset
+
+Alex — thanks for the clear summary and the attachments. I'm sorry you've been blocked. I looped in Laura (product) to confirm the ETA on the shim and Karthik (commercial) for approval flow.
+
+Quick answers: we can evaluate both options but will likely need an exec sign-off for a $40k one-off credit. To move fast, can you confirm: 1) expected go-live date with the shim landed, 2) estimated monthly Redwood spend once live, and 3) whether Boxly wants the credit applied to the initial invoice or spread across the first two invoices?
+
+If Boxly confirms the numbers today I can route a provisional approval to our sales leadership and finance for an expedited decision.
+
+— Soojin
+Soojin Lee
+Account Lead, Redwood Inference
+Tel: +1 415-555-0192
+Redwood Inference
+From: Laura Bennett <laura.bennett@redwood.com>
+To: Soojin Lee <soojin.lee@redwood.com>, Alex Chen <alex.chen@boxly.com>
+Cc: Karthik Iyer <karthik.iyer@redwood.com>
+Date: Wed, 12 Aug 2026 08:27:00 -07:00
+Subject: Re: Delay in runtime integration — ask for temporary rate offset
+
+On Tue, Aug 11, 2026 at 10:00 AM Soojin Lee <soojin.lee@redwood.com> wrote:
+> Alex — thanks for the clear summary and the attachments. I'm sorry you've been blocked...
+
+Alex — product update: the auth shim we flagged is scheduled for upstream rollout this Friday (2026-08-14). Once merged, Boxly should be able to run the same validation path with the shim in ~3 business days. That aligns with a ~6-week slip based on your previous estimate.
+
+Mitigations we can offer immediately:
+- Provide a pre-built shim binary and install instructions today so your infra team can try a staged validation (this may reduce your remaining validation time).
+- A short-term increase in priority from our integration engineers for the first 2 weeks after shim delivery.
+
+Commercially: I appreciate why Boxly is asking for an onboarding credit. From a product perspective, this is a slip rather than a long-term regression — so I'd recommend a limited, one-time accommodation tied to proof of delay (e.g., signed acceptance that go-live moved due to the shim timing).
+
+Proposed internal ask (Soojin / Karthik): allow a one-time credit up to $30k applied to the initial invoice, or alternatively a 2-month 15% consumption discount. If Boxly pushes for $40k, we'll need an exec exception (Marissa / revenue ops).
+
+I'll attach a quick pricing-offset csv with the number assumptions.
+
+— Laura
+Laura Bennett
+Director, Product — Deployments
+Redwood Inference
+---
+Attachments: pricing-offset-proposal.csv
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Soojin Lee <soojin.lee@redwood.com>, Laura Bennett <laura.bennett@redwood.com>, Alex Chen <alex.chen@boxly.com>
+Cc: Marissa Cole <marissa.cole@redwood.com>
+Date: Thu, 13 Aug 2026 10:14:00 -07:00
+Subject: Re: Delay in runtime integration — ask for temporary rate offset
+
+Team / Alex — thanks, this is reasonable.
+
+Operational constraints: under our delegated commercial authority the Sales organization can approve one-time credits up to $30k for strategic mid-market deals. For BOX-4079 (expected ARR profile attached), $30k captures immediate risk and preserves the SOW economics.
+
+If Boxly confirms the go-live slip in writing and accepts the pre-built shim option, I'm prepared to provisionally approve a $30k one-time credit applied to the first invoice. If Boxly insists on $40k we will need explicit approval from Revenue Leadership (Marissa) and Finance — I've CC'd Marissa to speed that review.
+
+Alex — please reply in-thread with an acceptance of the $30k option (or state preference). If accepted I'll coordinate the credit memo and ask finance to prepare DocuSign for execution.
+
+Thanks,
+Karthik Iyer
+Head of Sales — Midmarket, Redwood Inference
+From: Marissa Cole <marissa.cole@redwood.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>, Soojin Lee <soojin.lee@redwood.com>, Laura Bennett <laura.bennett@redwood.com>, Alex Chen <alex.chen@boxly.com>
+Date: Thu, 13 Aug 2026 15:38:00 -07:00
+Subject: Re: Delay in runtime integration — ask for temporary rate offset
+
+Karthik / team / Alex — reviewed. Given the integration is a short-term blocker and Boxly is a strategic target in Q3, I approve the one-time credit of $40,000 on condition of: 1) Boxly signs the SOW v2 by end of day Monday 2026-08-16, and 2) Boxly provides a one-paragraph acknowledgement that the delay was due to the auth shim timing (we need this for audit).
+
+Finance: please prepare a credit memo and a DocuSign addendum referencing the SOW id BOX-4079. I've attached a template credit approval PDF for Ops to use. Once signed and SOW executed, apply the credit to the initial invoice.
+
+Alex — if those conditions work for you, reply here and we'll circle back with the DocuSign link.
+
+— Marissa
+Marissa Cole
+VP, Revenue Operations
+Redwood Inference
+---
+Attachments: docusign-credit-approval.pdf, internal-approval-memo.pdf

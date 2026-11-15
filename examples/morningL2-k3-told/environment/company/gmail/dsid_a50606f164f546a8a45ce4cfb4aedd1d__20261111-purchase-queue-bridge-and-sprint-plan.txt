@@ -1,0 +1,108 @@
+MAP cadence overhaul: procurement gate + contingency sprint
+
+From: Lydia Chen <lydia.chen@acmeco.com>
+To: Jonas Weber <jonas.weber@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>, Karthik Iyer <karthik_iyer@redwood.ai>
+Date: Mon, 9 Nov 2026 09:12:00 -0800
+Subject: MAP health check - procurement hold is pushing our close out ~3w
+
+Hi Jonas / Marissa / Karthik,
+
+Quick note - procurement just told us the security appendix will need legal review and vendor accreditation validation before purchase order issuance. That adds an immediate 2-3 week delay on our side unless we can provide the audit artifact they request (they referenced a specific control checklist).
+
+We want to avoid the current close slipping beyond Nov 30. Can you share an updated MAP that shows:
+- what can be decoupled from procurement (early access to sandbox, pilot data ingestion)
+- a short remediation checklist we can hand to procurement to accelerate accreditation
+- a contingency plan if PO timing slides 2+ weeks (what services will be available and any credit/fallthrough?)
+
+Appreciate a prioritized, actionable sheet we can use in the procurement call at 4pm PT.
+
+Thanks,
+Lydia
+Lydia Chen
+Senior Program Manager, AcmeHealth
+lydia.chen@acmeco.com
++1 415-555-1287
+
+Attachment: procurement-issue-summary.txt (stub)
+From: Jonas Weber <jonas.weber@redwood.ai>
+To: Lydia Chen <lydia.chen@acmeco.com>
+Cc: Marissa Cole <marissa.cole@redwood.ai>, Karthik Iyer <karthik_iyer@redwood.ai>
+Date: Tue, 10 Nov 2026 11:05:00 -0800
+Subject: Re: MAP health check - procurement hold is pushing our close out ~3w
+
+On Mon, Nov 9, 2026 at 9:12 AM Lydia Chen <lydia.chen@acmeco.com> wrote:
+> Quick note - procurement just told us the security appendix will need legal review and vendor accreditation validation before purchase order issuance. That adds an immediate 2-3 week delay on our side unless we can provide the audit artifact they request (they referenced a specific control checklist).
+>
+> We want to avoid the current close slipping beyond Nov 30. Can you share an updated MAP that shows: ...
+
+Hi Lydia - thanks for the heads up and call earlier. We've sketched a rapid reprofile and a contingency sprint that should keep your acceptance window on track. High level:
+
+1) Procurement gate mitigation (deliverables to unblock PO):
+   - Provide a control-matrix export (SOC scoping + encryption-at-rest attest) - we can assemble this by EOD tomorrow.
+   - Temporary evidence bundle (logs + config screenshots) for accreditation team - target: 48h.
+   - Legal: proposed one-page appendix with carve-outs for pilot data retention - draft attached.
+
+2) Contingency sprint (if PO delays >7 business days):
+   - Early pilot (non-production sandbox) provisioned under MSA with limited token cap and explicit security SOP; expected timeline: 3 business days to stand up.
+   - Acceptance criteria split: pilot-level success (data ingestion + latency SLAs) by week 1; full-prod cutover gating on PO finish.
+   - Billing fallback: deferred invoicing until PO issued; we can accept electronic acceptance and invoice on issuance date.
+
+Action items for this thread (owner / target):
+- Jonas: control-matrix export & evidence bundle (Nov 11, 17:00 PT) [Attachment: acme-map-v2.xlsx]
+- Marissa: draft one-page procurement appendix / legal talking points (Nov 11, 12:00 PT)
+- Lydia: confirm which accreditation checklist procurement needs (today, availability 4pm PT)
+
+If procurement pushes beyond 14 business days, we'll engage our Escalation Charter (exec credit review + interim surge to keep trial running). I'll include an explicit contingency ledger and risk scoring in the MAP.
+
+I attached a working MAP (acme-map-v2.xlsx) with lanes for procurement, legal, and engineering deliverables. Please review before your 4pm call and call out any missing owners.
+
+-Jonas
+Jonas Weber
+Account Exec, Redwood Inference
+jonas.weber@redwood.ai
+
+Attachments: acme-map-v2.xlsx (MAP draft), procurement-issue-log.pdf (issue notes)
+From: Marissa Cole <marissa.cole@redwood.ai>
+To: Jonas Weber <jonas.weber@redwood.ai>, Lydia Chen <lydia.chen@acmeco.com>
+Date: Wed, 11 Nov 2026 08:30:00 -0800
+Subject: Re: MAP health check - procurement hold is pushing our close out ~3w
+
+Jonas - I reviewed the MAP and the procurement appendix draft. Quick comments inline in the sheet (rows 12-18) about who from legal needs to sign off and an ask to procurement for exact accreditation form name/ID.
+
+Lydia - I'll be available on the procurement call at 4pm PT to walk through the temporary evidence bundle and proposed intake form. If procurement will accept a limited pilot agreement in lieu of the PO, we should make the decision on the call and capture it as a binding action in the MAP.
+
+Short note for the MAP: if procurement requires 2+ weeks, we recommend a prioritized minimal-scope pilot (ingest, query latency, privacy redaction flow) - everything else deferred to post-PO. That keeps project momentum and reduces perceived risk for exec stakeholders.
+
+Marissa
+Marissa Cole
+Director, Customer Success - Redwood Inference
+marissa.cole@redwood.ai
+
+From: Karthik Iyer <karthik_iyer@redwood.ai>
+To: Lydia Chen <lydia.chen@acmeco.com>, Jonas Weber <jonas.weber@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>
+Date: Wed, 11 Nov 2026 14:20:00 -0800
+Subject: Escalation: MAP contingency ledger & exec ask
+
+Lydia / team - following up after the procurement call. Procurement confirmed they need the vendor accreditation checklist ID #AC-2026-S2 and a legal stamp for the security appendix. They estimated 10 business days for the accreditation queue unless we provide the temporary evidence bundle and the one-page appendix that Marissa will present.
+
+Given that risk profile, I'm formally escalating this to our Escalation Charter. If the PO does not arrive by Nov 24, Redwood will: 
+- Open an executive remediation path (credit review + partial billing deferral),
+- Stand up the sandbox pilot as a bridge (limited token cap, 30-day window), and
+- Assign a named escalation owner to the procurement queue (Karthik) to interface daily with Acme procurement.
+
+Please confirm acceptance of the contingency plan and whether Acme procurement will accept the temporary evidence bundle and one-page appendix by end of day so we can proceed. I'm also adding the HubSpot deal link (below) to ensure cross-team alignment.
+
+HubSpot: https://app.hubspot.com/deals/ACM-2026-1984
+
+Regards,
+Karthik Iyer
+Sr. Director, Sales Operations - Redwood Inference
+karthik_iyer@redwood.ai
+
+Quoted:
+> On Tue, Nov 10, 2026 at 11:05 AM Jonas Weber <jonas.weber@redwood.ai> wrote:
+> > I attached a working MAP (acme-map-v2.xlsx) with lanes for procurement, legal, and engineering deliverables.
+> >
+> > Attachments: acme-map-v2.xlsx (MAP draft), procurement-issue-log.pdf (issue notes)
+
+Attachments: procurement-issue-log.pdf (annotated)

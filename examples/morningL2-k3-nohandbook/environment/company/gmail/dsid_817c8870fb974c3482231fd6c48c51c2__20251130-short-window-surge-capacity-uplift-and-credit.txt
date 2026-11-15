@@ -1,0 +1,114 @@
+Short-window surge: capacity uplift & one-time credit request
+
+From: Ryan Lim <ryan@brightcart.com>
+To: Naomi Feldman <naomi_feldman@redwood.ai>
+Date: Sun, 30 Nov 2025 08:13:00 -0800
+Subject: Urgent: short-window headroom for holiday push
+
+Hi Naomi,
+
+Quick one — our marketing team just confirmed a concentrated promotional push that will run Dec 4–6. We expect an ephemeral ~6x spike in requests to the /generate endpoint for the campaign window (roughly 48 hours). Our baseline for the month is ~3M tokens; this event will add an estimated ~1.8M extra tokens concentrated over two days.
+
+Given procurement timing, we need a pragmatic way to avoid throttles and protect our launch. Two asks: 1) can Redwood enable a temporary throughput uplift (short-window headroom) for Dec 4–6? 2) would you consider a one-off credit or reduced overage rate for that window — finance will need a clear number to justify the PO addendum.
+
+I attached our projected usage export and the campaign runbook. If there’s a faster path (pre-signed amendment or a credit memo) that would be ideal — we can get a PO to you post-event if needed.
+
+Appreciate quick confirmation — we’re trying to avoid any degraded UX for users.
+
+—Ryan
+Director of Engineering, BrightCart
+Attachments: proj_brightcart_usage_report.pdf (pdf)
+From: Naomi Feldman <naomi_feldman@redwood.ai>
+To: Ryan Lim <ryan@brightcart.com>
+Cc: Ben Carter <ben_carter@redwood.ai>
+Date: Sun, 30 Nov 2025 09:06:00 -0800
+Subject: Re: Urgent: short-window headroom for holiday push
+
+Hi Ryan — thanks for the heads up and the export. I copied Ben (pricing) so we can move quickly. High level thoughts: we can absolutely enable a short-window uplift and set an explicit rollback at the end of Dec 6 to avoid sustained commit changes.
+
+To make this concrete, can you confirm:
+- expected peak concurrent QPS during the window (approx)
+- whether you need sustained KV cache persistence across requests (yes/no)
+- billing owner (will BrightCart accept an overage invoice or do you require a credit-first approach)
+
+Proposed short path from Redwood:
+1) Temporary throughput bump: enable a 72-hour uplift scoped to your account (Dec 3 00:00 UTC to Dec 6 23:59 UTC).
+2) One-time credit: Redwood can offer a capped credit to offset overage charges during the uplift window, subject to finance approval.
+3) Billing: we run a post-event true-up and can either issue a credit against the Dec invoice or accept a PO & net terms per your procurement process.
+
+Ben — can you sketch out an offer we can present to BrightCart? Ryan, if you can send a quick line from finance confirming how they prefer credits/invoices that will speed approvals.
+
+Next steps: I’ll hold the uplift configuration pending Ben’s pricing suggestion and Marissa’s sign-off.
+
+Thanks,
+Naomi Feldman
+Account Executive, Redwood Inference
+Mobile: +1 (415) 555-0198
+
+From: Ben Carter <ben_carter@redwood.ai>
+To: Naomi Feldman <naomi_feldman@redwood.ai>, Ryan Lim <ryan@brightcart.com>
+Date: Mon, 1 Dec 2025 11:24:00 -0800
+Subject: Re: Urgent: short-window headroom for holiday push
+
+Looping in the numbers from pricing & finance perspective. Thanks for the usage export, Ryan — that was helpful.
+
+Summary proposal (pricing team):
+- Temporary uplift: 3x baseline throughput for a 72-hour window as Naomi suggested.
+- Overage handling: overage during the window billed at the standard overage rate, then a one-time credit applied post-event to cover up to $12,000 of overage charges (this credit is a one-off concession tied to the Dec 4–6 window only).
+- Alternative: if BrightCart prefers, we can instead apply a 60% discount to overage charges during the window (finance usually prefers a simple credit amount for reconciliation).
+- Rollback & guardrails: uplift auto-reverts after window; we’ll cap per-minute QPS to a safety ceiling and enable a soft-limit alarm to prevent uncontrolled consumption.
+
+Operational notes:
+- We’ll need a signed MOP addendum or a PO referencing deal HC-8921 before we finalize the credit paperwork. The uplift can be toggled live once procurement confirms the route (credit vs invoice).
+- I attached a projected cost breakdown to show how the credit vs discount impacts your expected spend.
+
+If Naomi & Marissa approve, I’ll prepare the amendment and the credit memo.
+
+—Ben Carter
+Director, Commercial Operations, Redwood Inference
+Attachments: projected-costs-breakdown.xlsx (xlsx)
+
+On Sun, Nov 30, 2025 at 9:06 AM Naomi Feldman <naomi_feldman@redwood.ai> wrote:
+> Hi Ryan — thanks for the heads up and the export. I copied Ben (pricing) so we can move quickly. High level thoughts: we can absolutely enable a short-window uplift and set an explicit rollback at the end of Dec 6 to avoid sustained commit changes.
+> 
+> To make this concrete, can you confirm:
+> - expected peak concurrent QPS during the window (approx)
+> - whether you need sustained KV cache persistence across requests (yes/no)
+> - billing owner (will BrightCart accept an overage invoice or do you require a credit-first approach)
+> 
+> Proposed short path from Redwood:
+> 1) Temporary throughput bump: enable a 72-hour uplift scoped to your account (Dec 3 00:00 UTC to Dec 6 23:59 UTC).
+> 2) One-time credit: Redwood can offer a capped credit to offset overage charges during the uplift window, subject to finance approval.
+> 3) Billing: we run a post-event true-up and can either issue a credit against the Dec invoice or accept a PO & net terms per your procurement process.
+> 
+> Ben — can you sketch out an offer we can present to BrightCart? Ryan, if you can send a quick line from finance confirming how they prefer credits/invoices that will speed approvals.
+> 
+> Next steps: I’ll hold the uplift configuration pending Ben’s pricing suggestion and Marissa’s sign-off.
+> 
+> Thanks,
+> Naomi
+
+From: Marissa Cole <marissa_cole@redwood.ai>
+To: Naomi Feldman <naomi_feldman@redwood.ai>, Ben Carter <ben_carter@redwood.ai>, Ryan Lim <ryan@brightcart.com>
+Date: Tue, 2 Dec 2025 16:42:00 -0800
+Subject: Re: Urgent: short-window headroom for holiday push
+
+Thanks for drafting this, Ben — I approve the one-time credit path. Conditionals:
+- Credit cap: $12,000 for Dec 3–6 uplift window.
+- Procurement: BrightCart must either: a) provide a PO referencing HC-8921 within three business days of uplift activation or b) sign the attached MOP addendum (signed-mop-term-sheet.pdf) before uplifts are enabled.
+- Rollback: uplift auto-reverts at 23:59 UTC on Dec 6. Any change requests outside of the agreed window will be considered a separate exception.
+
+Ben — please prepare the credit memo and amended invoice template. Naomi — you can toggle the uplift once we have either the PO or the signed addendum. Ryan — appreciate the quick turnaround; let me know if your finance team prefers the credit applied to December invoice or a standalone credit note (we usually issue a credit note, but we can do invoice offset if that helps reconciliation).
+
+Forwarded message:
+> From: Ben Carter <ben_carter@redwood.ai>
+> Date: Mon, 1 Dec 2025 11:24:00 -0800
+> Subject: Re: Urgent: short-window headroom for holiday push
+> 
+> Summary proposal (pricing team):
+> - Temporary uplift: 3x baseline throughput for a 72-hour window as Naomi suggested.
+> - Overage handling: overage during the window billed at the standard overage rate, then a one-time credit applied post-event to cover up to $12,000 of overage charges (this credit is a one-off concession tied to the Dec 4–6 window only).
+
+Marissa Cole
+VP, Revenue Operations, Redwood Inference
+Attachments: signed-mop-term-sheet.pdf (pdf)

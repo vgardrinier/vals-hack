@@ -1,0 +1,36 @@
+Geo sticky session affinity mismatch causing p95 latency spikes after edge DNS reshuffling
+
+Issue summary: NimbusApps reports intermittent p95 latency spikes (up to 1.8s from baseline ~300ms) for requests pinned to eu-west that suddenly route through us-east. Impact: Production traffic for NimbusApps (dedicated) shows user-facing model response degradation and elevated error budget consumption. Environment: Production, observed primarily from eu-west edge; trace samples show backend processing in us-east after a DNS reshuffling event at the edge.
+
+Observed behavior: During a DNS rebind/reshard of the edge pool (automatic edge topology adjustment), some long-lived sessions lose logical session affinity and are routed to a different region. This causes an extra network hop and tokenization retry behavior in our serving runtime, producing p95 latency spikes and occasional 504s.
+
+Expected behavior: With region pinning/residency configured, requests should remain routed to the pinned region or fail closed (if strict) rather than silently failover across regions. Session affinity TTLs should be honored consistently between edge routers and control plane routing decisions.
+1) Customer has region pinning to eu-west with session-affinity enabled (default TTL 300s).
+2) Send a steady stream of chat completion requests from eu-west client for ~10 minutes to populate affinity state.
+3) Trigger an edge pool reshuffle (via canary config rollout or wait for automatic scaling event).
+4) Observe traces where affinity is dropped, request is routed to us-east, and p95 increases.
+5) Collect traces with trace IDs from around the reshuffle window.
+Trace excerpt: trace_id=abc123, timestamp=2026-03-10T14:12:07Z, edge_node=eu-edge-7, resolved_backend=us-east-srv-21, latency=1834ms, resp_status=200
+Edge log: 'session_affinity_miss: cookie=expiring, policy=geo-prefer, fallback=nearest-available'
+Control plane: 'route_rebalancer: reshuffle triggered by autoscale, moved 12% of sessions off eu-edge-7'
+Initial hypothesis: mismatch between the edge session-affinity cookie TTL and control-plane rebalancer window caused existing cookies to be considered stale while the control plane had already moved backends. SRE ran correlation between edge reshuffle events and customer traces; 74% of p95 spikes align with reshuffle windows.
+Findings: 
+- Edge router reconcilers apply new bucket assignments immediately but do not actively invalidate cookies; this can produce transient misrouting if cookies reference node IDs removed from the new assignment.
+- DNS TTL for the eu-edge pool is 30s; control-plane rebalances frequently during burst autoscale which can create a narrow window of inconsistency.
+- When a request hits a backend in a different region, KV-cache warming causes extra round trips increasing tail latency.
+- No evidence of model-specific regressions; CPU/GPU utilization on backends within normal bounds.
+Actions taken so far:
+- Captured full trace set and increased sampling for NimbusApps for next 48 hours.
+- Applied temporary recommendation to customer to set 'pin_strict=true' to force fail-closed behavior while we investigate.
+- Opened internal ticket with edge-router team to examine cookie invalidation behavior (INT-5542).
+Workaround applied: Recommended and assisted NimbusApps to enable strict pinning for eu-west (pin_strict=true) and increase session_affinity_ttl to 600s; after change, p95 returned closer to baseline within 60 minutes.
+Planned fix: Engineering to implement coordinated rollouts where control-plane reassignment signals the edge to gracefully drain and either preserve affinity tokens or mark them invalid so new requests fail closed to the pinned region. A follow-up change will add telemetry that emits 'affinity-invalidated' events to help detect these windows.
+Follow-up tasks: 
+- Edge-router PR to harmonize cookie lifecycle with rebalancer (github PR: https://github.com/redwood-inference/edge-router/pull/482).
+- Postmortem doc planned on Confluence with timeline and mitigation steps.
+Current status: Workaround in place for customer; engineering has a targeted fix in review.
+2026-03-10 15:02 - Aisha Kapoor (Support): Initial ticket created after sync with NimbusApps CS rep. Customer provided 7 trace IDs and asked for urgent help — p95 affecting production UX.
+2026-03-10 16:10 - Marcus Chen (SRE): Correlated customer traces with auto-scaler events; reshuffle at 14:11:58Z aligns with spike. Requested permission to enable wider sampling — customer approved.
+2026-03-11 09:22 - Edge Router Eng (Sofia Martinez): Noted we don't currently emit an 'affinity-invalidated' metric. Will draft PR to add event and to treat cookies that reference removed buckets as 'invalid' rather than best-effort routing.
+2026-03-11 11:40 - Support (Aisha Kapoor): Applied recommended temporary settings with customer (pin_strict=true, affinity_ttl=600). Customer reports immediate improvement; monitoring continues.
+2026-03-12 10:05 - Marcus Chen (SRE): Edge-router PR opened for review (see related_github_prs). Scheduling a coordinated rollout plan with gradual ramp and observability hooks.

@@ -1,0 +1,123 @@
+Pipeline clarity: mid-week ownership & commit sync
+
+From: Jordan Blake <jordan.blake@redwoodinference.com>
+To: Marissa Cole <marissa.cole@redwoodinference.com>, Ben Carter <ben.carter@redwoodinference.com>, Lauren Bishop <lauren.bishop@redwoodinference.com>
+Date: Tue, 28 Sep 2026 09:12:00 -0700
+Subject: Pipeline clarity: mid-week ownership & commit sync
+
+Team —
+
+Quick mid-week note to tighten coverage numbers before tomorrow's finance check: we need accurate stage assignments for any deal > $50k ARR and confirmation on which opportunities are confident commit for this quarter. Finance asked for a reconciled coverage number by end of day tomorrow.
+
+What I need from each of you today:
+- Update stages in HubSpot for every open opportunity you own (focus: Qualified, Proposal, Commit).
+- Mark the top 6 deals with a single-line reason if you moved them (e.g., PO pending, legal review, budget hold).
+- For any partial commits (split ARR), add an inline comment with the counted amount.
+
+I've attached a snapshot (Coverage_Snapshot_20260928.xlsx) with my current rollup. Numbers will change quickly; please make HubSpot updates first so finance pulls the live report. If you're waiting on procurement/PO, add the external contact + expected date in the note.
+
+I'll run a 30-minute quick sync at 3:30pm PT if we need it; otherwise I'll send a short rollup at 4pm.
+
+Jordan
+Jordan Blake
+Senior Sales Manager, Redwood Inference
+jordan.blake@redwoodinference.com
+
+Attachment: Coverage_Snapshot_20260928.xlsx (spreadsheet)
+
+From: Marissa Cole <marissa.cole@redwoodinference.com>
+To: Jordan Blake <jordan.blake@redwoodinference.com>, Ben Carter <ben.carter@redwoodinference.com>, Lauren Bishop <lauren.bishop@redwoodinference.com>
+Date: Tue, 28 Sep 2026 10:05:00 -0700
+Subject: Re: Pipeline clarity: mid-week ownership & commit sync
+
+Thanks Jordan — I'm on it. Quick updates:
+- ACME (Owner: Marissa) — moved from Proposal -> Commit. Waiting on signed SOW from Alex Ward (alex.ward@acmecorp.com); they said EOD Thursday. Counting full ARR in the rollup but added a note with the expected sign date.
+- Nimbus Health — moved from Qualified -> Proposal; asking for pricing alignment call today. Not counting as commit.
+- Meridian Data — updated stage to Proposal and set next step: technical review (expected 10/5).
+
+I'll update HubSpot now and add short comments in the coverage snapshot tab. If anyone wants me to ping Alex at ACME, I can do that — I have a direct line.
+
+On Tue, Sep 28, 2026 at 9:12 AM Jordan Blake <jordan.blake@redwoodinference.com> wrote:
+> Team —
+> 
+> Quick mid-week note to tighten coverage numbers before tomorrow's finance check: we need accurate stage assignments for any deal > $50k ARR and confirmation on which opportunities are confident commit for this quarter. Finance asked for a reconciled coverage number by end of day tomorrow.
+> 
+> What I need from each of you today:
+> - Update stages in HubSpot for every open opportunity you own (focus: Qualified, Proposal, Commit).
+> - Mark the top 6 deals with a single-line reason if you moved them (e.g., PO pending, legal review, budget hold).
+> - For any partial commits (split ARR), add an inline comment with the counted amount.
+> 
+> I've attached a snapshot (Coverage_Snapshot_20260928.xlsx) with my current rollup. Numbers will change quickly; please make HubSpot updates first so finance pulls the live report. If you're waiting on procurement/PO, add the external contact + expected date in the note.
+> 
+> I'll run a 30-minute quick sync at 3:30pm PT if we need it; otherwise I'll send a short rollup at 4pm.
+> 
+> Jordan
+
+From: Ben Carter <ben.carter@redwoodinference.com>
+To: Jordan Blake <jordan.blake@redwoodinference.com>, Marissa Cole <marissa.cole@redwoodinference.com>, Lauren Bishop <lauren.bishop@redwoodinference.com>
+Date: Tue, 28 Sep 2026 11:20:00 -0700
+Subject: Re: Pipeline clarity: mid-week ownership & commit sync
+
+Short update from me:
+- Summit Analytics (Owner: Ben) — moved to Commit. Received signed PO via procurement@summit-analytics.com this morning. Uploaded a PO stub to the deal record and set Close Date = 2026-09-30.
+- Note: Legal requested a minor change to the T&Cs; CS is looping in for implementation timing. I flagged risk in HubSpot but counting the ARR as commit per finance guidance.
+
+Attaching the PO stub for reference.
+
+Ben
+Ben Carter
+Enterprise Account Executive, Redwood Inference
+ben.carter@redwoodinference.com
+
+Attachment: Summit_PO_stub.pdf (PDF)
+
+On Tue, Sep 28, 2026 at 10:05 AM Marissa Cole <marissa.cole@redwoodinference.com> wrote:
+> Thanks Jordan — I'm on it. Quick updates:
+> - ACME (Owner: Marissa) — moved from Proposal -> Commit. Waiting on signed SOW from Alex Ward (alex.ward@acmecorp.com); they said EOD Thursday. Counting full ARR in the rollup but added a note with the expected sign date.
+> - Nimbus Health — moved from Qualified -> Proposal; asking for pricing alignment call today. Not counting as commit.
+> - Meridian Data — updated stage to Proposal and set next step: technical review (expected 10/5).
+
+From: Lauren Bishop <lauren.bishop@redwoodinference.com>
+To: Jordan Blake <jordan.blake@redwoodinference.com>, Marissa Cole <marissa.cole@redwoodinference.com>, Ben Carter <ben.carter@redwoodinference.com>
+Date: Tue, 28 Sep 2026 13:00:00 -0700
+Subject: Re: Pipeline clarity: mid-week ownership & commit sync
+
+Quick note from me:
+- Luma Retail — moved to Proposal; awaiting architecture sign-off. Not a commit yet.
+- Orion Systems (Owner: Lauren) — this is a partial commit: they will commit to 60% of the requested ARR this quarter, with the balance slated for Q1 next year. I've added a comment in HubSpot specifying the $ amount to count for coverage (60% = $36,000 ARR).
+
+If finance prefers a stricter definition (only full PO = commit), tell me and I'll move Orion back to Proposal.
+
+On Tue, Sep 28, 2026 at 11:20 AM Ben Carter <ben.carter@redwoodinference.com> wrote:
+> Short update from me:
+> - Summit Analytics (Owner: Ben) — moved to Commit. Received signed PO via procurement@summit-analytics.com this morning. Uploaded a PO stub to the deal record and set Close Date = 2026-09-30.
+> - Note: Legal requested a minor change to the T&Cs; CS is looping in for implementation timing. I flagged risk in HubSpot but counting the ARR as commit per finance guidance.
+
+From: Jordan Blake <jordan.blake@redwoodinference.com>
+To: Marissa Cole <marissa.cole@redwoodinference.com>, Ben Carter <ben.carter@redwoodinference.com>, Lauren Bishop <lauren.bishop@redwoodinference.com>
+Date: Tue, 28 Sep 2026 15:04:00 -0700
+Subject: Re: Pipeline clarity: mid-week ownership & commit sync
+
+Thanks all — solid progress. Summary / next steps: 
+- I pulled the live report at 3:55pm PT: coverage moved from 1.8x -> 2.05x against target after the updates (includes Summit PO, ACME SOW counted pending signature per Marissa's note, and Orion counted at 60%).
+- Owners/confirmations:
+  - Summit Analytics (Ben) — counted as commit, attach saved. Legal risk noted; CS will confirm implementation window.
+  - ACME (Marissa) — counted as commit based on explicit EOD sign from Alex; Marissa to confirm once SOW is in hand.
+  - Orion (Lauren) — partial commit counted per note; we will reconcile in the closebook if we receive full ARR earlier.
+
+I'll send the reconciled number to finance and ops now and flag any changes before EOD tomorrow. If anything materializes (signed SOW/updated PO), reply-all with the doc and I'll adjust the rollup.
+
+If anyone wants the 3:30pm quick sync we can still run it tomorrow morning — otherwise I think we have enough to close the book for today's rollup.
+
+Thanks — great work getting these updated quickly.
+
+Jordan
+Jordan Blake
+Senior Sales Manager, Redwood Inference
+
+On Tue, Sep 28, 2026 at 1:00 PM Lauren Bishop <lauren.bishop@redwoodinference.com> wrote:
+> Quick note from me:
+> - Luma Retail — moved to Proposal; awaiting architecture sign-off. Not a commit yet.
+> - Orion Systems (Owner: Lauren) — this is a partial commit: they will commit to 60% of the requested ARR this quarter, with the balance slated for Q1 next year. I've added a comment in HubSpot specifying the $ amount to count for coverage (60% = $36,000 ARR).
+
+Attachment: Coverage_Snapshot_20260928.xlsx (updated)

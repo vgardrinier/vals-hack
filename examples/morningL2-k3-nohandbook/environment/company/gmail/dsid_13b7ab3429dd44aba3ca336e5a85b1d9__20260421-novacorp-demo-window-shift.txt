@@ -1,0 +1,114 @@
+Novacorp evaluation: demo timing & procurement window
+
+From: Tessa Morgan <tessa.morgan@redwood.ai>
+To: Lindsey Park <lindsey.park@novacorp.com>
+Cc: Marissa Cole <marissa.cole@redwood.ai>
+Date: Sat, 18 Apr 2026 09:12:00 -0700
+Subject: Novacorp evaluation: demo timing & procurement window
+
+Hi Lindsey —
+
+Great to connect last week. We'd love to get a short demo in front of your evaluation committee so we can show the cost/latency tradeoffs that matter for Novacorp's workload. Proposed agenda (30–45m): quick architecture, live gen demo (10m), cost model & pacing options, next steps / procurement Q&A.
+
+Are you available for either of these times?
+- Tue Apr 27, 10:00–10:45 PT
+- Thu Apr 29, 09:00–09:45 PT
+
+I've attached a one-page mutual action plan (MAP_Novacorp_v1.pdf) and a pricing snapshot that outlines expected token/unit economics for a small pilot (redwood-pricing-sheet.xlsx). If neither time works, tell me windows that fit your execs and procurement.
+
+HubSpot record: https://app.hubspot.com/contacts/123456/deal/1147
+
+Thanks — looking forward to it.
+
+Best,
+Tessa Morgan
+Senior Account Executive | Redwood Inference
+T: (415) 555-0124
+attachments: MAP_Novacorp_v1.pdf (application/pdf), redwood-pricing-sheet.xlsx (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+
+
+From: Lindsey Park <lindsey.park@novacorp.com>
+To: Tessa Morgan <tessa.morgan@redwood.ai>
+Cc: Tom Castillo <t.castillo@novacorp.com>
+Date: Sun, 19 Apr 2026 11:03:00 -0700
+Subject: Re: Novacorp evaluation: demo timing & procurement window
+
+Hi Tessa —
+
+Thanks for the materials and proposed times. Heads-up: our execs are traveling the last week of April and we have a Q2 spend hold until our FY reset on May 1. Procurement (cc'd) asked that we avoid scheduling any vendor buys or full evals until after the budget refresh so we can properly slot POC spend.
+
+Can we please move the demo to early June? Week of June 8 looks best from my side, but if you have availability the week of June 1 that could work too. Also — procurement would like a high-level estimate for a 3-month POC (approx. 50k–100k tokens/day profile) so they can model it into the refresh. If you can send a one-page cost estimate that would help speed PO creation after the demo.
+
+Thanks,
+Lindsey Park
+Director, Platform Product Management | Novacorp
+lindsey.park@novacorp.com
+
+On Sat, Apr 18, 2026 at 09:12 AM Tessa Morgan <tessa.morgan@redwood.ai> wrote:
+> [original message with MAP_Novacorp_v1.pdf and redwood-pricing-sheet.xlsx]
+
+
+From: Tessa Morgan <tessa.morgan@redwood.ai>
+To: Marissa Cole <marissa.cole@redwood.ai>, Vivek Kulkarni <vivek.kulkarni@redwood.ai>
+Date: Sun, 19 Apr 2026 11:20:00 -0700
+Subject: Fwd: Novacorp demo timing — budget reset / procurement window
+
+Team —
+
+Forwarding Lindsey's note. Novacorp is asking we push the demo until after their FY reset (May 1); they're targeting early June. Action items:
+1) Vivek — can you prepare a concise 30-min demo plan emphasizing cost controls (batching, quantization, routing) and a one-page 3-month POC estimate for the 50k–100k tokens/day profile Lindsey requested?
+2) Marissa — can you build a short MAP with milestones and an expected timeline to PO (target PO by end of June)? I'll include procurement's Tom on the invite when dates are firm.
+
+We should offer two windows (week of Jun 1 and week of Jun 8). Prefer to keep the demo to 30–40 minutes to match exec availability and include a single ask at the end (agree next steps / PO timeline).
+
+I attached the MAP and pricing sheet I already sent. Vivek, I'm also attaching the internal demo playbook template (redwood-demo-playbook.md) so we can align content.
+
+Thanks —
+Tessa
+
+attachments: redwood-demo-playbook.md (text/markdown)
+
+
+From: Vivek Kulkarni <vivek.kulkarni@redwood.ai>
+To: Tessa Morgan <tessa.morgan@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>
+Date: Tue, 05 May 2026 09:45:00 -0700
+Subject: Re: Novacorp demo timing — budget reset / procurement window
+
+Thanks Tessa —
+
+I reviewed the MAP and pricing assumptions. I can tighten the demo to a 30-minute executive-focused session: 10m architecture & single user story, 10m live gen/cost demo with a simple throughput/cost slider, 10m procurement Q&A. I'll prepare a one-page cost estimate and an appendix of quantization/instance options.
+
+Available demo windows (all PT):
+- Tue Jun 2, 09:00–09:40
+- Wed Jun 3, 11:00–11:40
+- Tue Jun 9, 10:00–10:40
+
+I'll attach the draft playbook and cost worksheet for your review. If Tom/procurement want the worksheet in a different format, I can convert it to their template.
+
+-Vivek
+Solutions Engineering | Redwood Inference
+attachments: redwood-demo-playbook.md (application/markdown)
+
+
+From: Lindsey Park <lindsey.park@novacorp.com>
+To: Tessa Morgan <tessa.morgan@redwood.ai>, Vivek Kulkarni <vivek.kulkarni@redwood.ai>
+Cc: Tom Castillo <t.castillo@novacorp.com>
+Date: Sun, 06 Jun 2026 15:05:00 -0700
+Subject: Re: Novacorp demo timing — budget reset / procurement window
+
+Tessa/Vivek —
+
+Thanks for the flexibility. We can do Tue Jun 9 at 10:00am PT. Please keep it to 30–40m and include the one-page cost estimate in the meeting invite so procurement has something to model from. Procurement (Tom) will follow up with PO timeline — we're targeting to have PO issued by Jun 30 if the demo and SOW align.
+
+Attached our internal timeline doc to help you frame Milestone 1 (PO) and Milestone 2 (PO-based kickoff).
+
+See you Jun 9 at 10:00 PT.
+
+Best,
+Lindsey Park
+Director, Platform Product Management | Novacorp
+attachments: novacorp-sow-timeline.pdf (application/pdf)
+
+On Tue, May 05, 2026 at 09:45 AM Vivek Kulkarni <vivek.kulkarni@redwood.ai> wrote:
+> Proposed windows and draft playbook attached.
+

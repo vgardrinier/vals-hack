@@ -1,0 +1,138 @@
+Billing & PO workflow for Dedicated GPU pool — options and next steps
+
+From: Marissa Cole <marissa.cole@redwood.com>
+To: Jordan Rivera <jordan.rivera@nimbus.ai>
+Date: 2026-07-26T09:15:00-07:00
+Subject: Billing & PO workflow for Dedicated GPU pool — options and next steps
+
+Hi Jordan —
+
+Thanks again for the call this morning. Per our discussion, here are two pragmatic billing paths we typically offer for Dedicated GPU pools and the practical implications for procurement:
+
+1) Annual prepay (committed)
+   - Commitment: 12-month reserved commit for the agreed GPU-equivalent capacity (e.g., 8x A100-80GB equivalents).
+   - Pricing: ~20% discount off list unit-rate; effective monthly equivalent billed once up front or split per your accounting preference.
+   - True-up: Quarterly true-up to reconcile usage beyond the committed baseline; overages billed at post-discount overage rate.
+   - Benefits: lower unit cost, priority capacity, access to burst credits.
+
+2) Monthly reserved (rolling)
+   - Commitment: Month-to-month reserved pool with 30-day notice to scale down.
+   - Pricing: ~list unit-rate (no multi-month prepay discount).
+   - True-up: Monthly reconciliation; more flexibility but higher unit cost.
+
+Operational items to confirm:
+- PO workflows: we can accept a single annual PO referencing the committed SKU and a separate PO for recurring invoices, or a monthly PO cadence if required by your AP.
+- Net terms: standard is Net 30 for most commercial customers; Net 45/60 can be discussed with procurement approval.
+- SLA and throughput guarantees: we can attach throughput/latency targets per model family and provide credits for sustained SLO misses.
+
+I attached a lightweight pre-proforma comparing annual vs monthly economics and a draft PO template for your finance team to review.
+
+If you want, I can loop in Rishi and Connor to confirm the true-up cadence and the standard language we include in SOW/POs. Proposed next step: share the draft PO with Procurement and set a quick 30-minute call early next week to lock terms.
+
+Best,
+Marissa
+Marissa Cole | Enterprise Sales, Redwood Inference
+marissa.cole@redwood.com | +1 (415) 555-0123
+
+Attachment: Redwood_Preproforma_annual_vs_monthly.xlsx (spreadsheet)
+Attachment: Nimbus_PO_Draft_2026-07-26.pdf (pdf)
+From: Jordan Rivera <jordan.rivera@nimbus.ai>
+To: Marissa Cole <marissa.cole@redwood.com>
+Cc: Procurement Team <procurement@nimbus.ai>
+Date: 2026-07-26T12:40:00-07:00
+Subject: Re: Billing & PO workflow for Dedicated GPU pool — options and next steps
+
+Hi Marissa —
+
+Appreciate the clear options. A few procurement clarifications before we escalate internally:
+
+- If we do annual prepay, do you invoice the full amount up front or allow split invoicing (e.g., 50/50 at start + 30 days)?
+- How do true-ups interact with our accounting — are overage invoices issued quarterly or immediately after threshold is hit?
+- We have an internal requirement to reference our PO number on each invoice and get 45-day net terms. Is Redwood able to accommodate Net 45?
+- Also need a short example line-item description for the PO (SKU + unit, e.g., "Dedicated GPU pool — 8x A100-equivalent — monthly committed units").
+
+I attached the PO template procurement prefers. If you can confirm these points we’ll get Procurement to sign off and return a PO.
+
+Thanks,
+Jordan Rivera
+Director of Platform Ops | Nimbus Analytics
+jordan.rivera@nimbus.ai
+
+Attachment: Nimbus_PO_Template_Procurement.pdf (pdf)
+From: Marissa Cole <marissa.cole@redwood.com>
+To: Rishi Malhotra <rishi.malhotra@redwood.com>, Connor O'Brien <connor.obrien@redwood.com>, Aditya Rao <aditya.rao@redwood.com>
+Date: 2026-07-27T08:03:00-07:00
+Subject: Fwd: Billing & PO workflow for Dedicated GPU pool — options and next steps
+
+Team — forwarding Nimbus procurement questions. Key asks: up-front invoicing vs split, quarterly vs immediate true-up billing, Net 45 request, PO line-item wording.
+
+Notes / what I think we can offer:
+- Invoicing: we can support either full up-front invoice or two-split invoice for annual prepay (operations OK with split if there is a signed PO referencing the deal id).
+- True-ups: standard is quarterly true-up invoices; for customers that require real-time reconciliation we can provide monthly reconciliation but it increases operational friction and typically we only expose that for enterprise agreements.
+- Net terms: we offer Net 30 by default; Net 45 is possible but requires finance approval and a minor pricing adjustment (we typically apply a 1.5% fee to offset cashflow impact).
+- PO wording: provide a canned line-item we can ask them to use.
+
+Please confirm the wording for SLA credits and recommend a pricing delta (if any) for Net 45. Rishi, can you confirm finance flexibility on split-invoice for annual prepay? Connor/Aditya, can you confirm throughput SLO language we should include for Nimbus's target workload?
+
+Thanks —
+Marissa
+From: Rishi Malhotra <rishi.malhotra@redwood.com>
+To: Marissa Cole <marissa.cole@redwood.com>, Connor O'Brien <connor.obrien@redwood.com>, Aditya Rao <aditya.rao@redwood.com>
+Date: 2026-07-27T14:22:00-07:00
+Subject: Re: Fwd: Billing & PO workflow for Dedicated GPU pool — options and next steps
+
+Marissa / team —
+
+Confirmed from finance ops:
+- Split prepay invoicing: we can issue 2 invoices (50% at signature, 50% 30 days later) if the PO explicitly references the deal id and the signed SOW. No price change needed for split invoice.
+- True-ups: quarterly true-up is our standard and preferred path (provides clear billing windows). We can do monthly reconciliation if they insist, but we will charge an admin fee of $500/month to cover operational cost.
+- Net terms: Net 30 is default. Net 45 available with a 1% effective uplift applied to committed unit rates to offset working capital; requires approval and a billing addendum.
+
+Suggested PO line item (short):
+"Redwood Dedicated GPU Pool — committed capacity equivalent to 8 x A100-80GB — monthly equivalent billing; see SOW for commit term and true-up policy."
+
+SLA / throughput language suggestion (short):
+"Redwood will maintain throughput sufficient to meet 99th percentile latency of <150ms for text-generation endpoints using pinned model families under the committed capacity. Sustained breaches over a 7-day window will trigger service credits per SOW."
+
+If these terms are acceptable I’ll ask Finance to prepare the billing addendum template with the Net 45 uplift noted.
+
+-Rishi
+From: Marissa Cole <marissa.cole@redwood.com>
+To: Jordan Rivera <jordan.rivera@nimbus.ai>
+Cc: Procurement Team <procurement@nimbus.ai>, Rishi Malhotra <rishi.malhotra@redwood.com>
+Date: 2026-07-28T10:30:00-07:00
+Subject: Re: Billing & PO workflow for Dedicated GPU pool — options and next steps
+
+Jordan —
+
+Thanks for the quick turnaround and the PO template. Per internal confirmation below, here’s a concrete, signable path so Procurement can finalize: 
+
+Option A — Annual prepay (recommended for cost predictability)
+- Commit: 12-month reserved for 8x A100-80GB equivalent.
+- Payment: two invoices (50% at signature, 50% 30 days after) — Redwood will accept a single Annual PO that references both invoice events.
+- Discount: 20% off list unit price (annual commit).
+- True-up: quarterly reconciliation; overages billed at discounted overage rate.
+- Net terms: Net 30 standard. If Nimbus requires Net 45, we can do Net 45 with a 1% uplift on committed unit rates (Finance addendum required).
+
+Option B — Monthly reserved (flexible)
+- Commit: month-to-month reserved pool sized to 8x A100-equivalents.
+- Pricing: list unit-rate (no prepay discount).
+- True-up: monthly reconciliation.
+
+PO line item (copyable for your PO):
+Redwood Dedicated GPU Pool — committed capacity equivalent to 8 x A100-80GB — monthly equivalent billing; see SOW (Deal ND-2026-311) for commit term and quarterly true-up policy.
+
+Next steps:
+1) If Option A works, please return a signed PO referencing Deal ND-2026-311 and indicate whether you want split invoicing.
+2) I’ll have Finance prepare the billing addendum if you request Net 45.
+3) I’ve attached the pre-proforma and a draft PO for your team. Once we receive the PO we’ll generate the two proforma invoices and send the DocuSign envelope for the SOW.
+
+If helpful, let’s lock a 20-minute call tomorrow to walk Procurement through the invoice flow.
+
+Best,
+Marissa
+Marissa Cole | Enterprise Sales, Redwood Inference
+marissa.cole@redwood.com | +1 (415) 555-0123
+
+Attachment: Redwood_Preproforma_annual_vs_monthly.xlsx (spreadsheet)
+Attachment: Nimbus_PO_Draft_2026-07-26.pdf (pdf)

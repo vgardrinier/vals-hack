@@ -1,0 +1,106 @@
+Demo request: GitHub integration + OSS workflow
+
+From: Natalie Brooks <natalie@codecommons.org>
+To: Karthik Iyer <karthik_iyer@redwood.com>
+Date: 2026-10-12T09:14:00-07:00
+Subject: Demo request: GitHub integration + OSS workflow
+
+Hi Karthik,
+
+I signed up for a trial on the Redwood site this morning and poked around the dashboard — nice work! We're an engineering team at CodeCommons (open-source infra for civic projects) and we're evaluating options for running inference on PR checks and as part of a GitHub Actions workflow. A few quick things I want to confirm before we block a demo:
+
+- Can Redwood be used with self-hosted runners and still keep repo/code artifacts private (we're sensitive to leaking code to a hosted model)?
+- What GitHub permissions/tokens do you need for the integration? We try to follow the least-privilege principle.
+- Do you have examples of automating comment-based checks and reruns (e.g., rerun on a new commit)?
+
+I can do a quick demo next week — my timezone is PDT. If possible I'd like a technical person on the call (we'll likely bring two engineers).
+
+Repo link: https://github.com/codecommons/example-repo
+
+Thanks,
+Natalie Brooks
+Director of Engineering, CodeCommons
+-----
+Attachment: none (will attach sample repo if helpful)
+
+From: Karthik Iyer <karthik_iyer@redwood.com>
+To: Natalie Brooks <natalie@codecommons.org>
+Date: 2026-10-12T10:02:00-07:00
+Subject: Re: Demo request: GitHub integration + OSS workflow
+
+Hi Natalie — great to meet you and thanks for signing up. Glad you found the dashboard useful.
+
+Short answers up front: yes, you can keep inference in a private environment (Private/VPC) and integrate with self-hosted runners; token scopes are customizable and we have patterns for least-privilege installs. I can walk through the tech flow in the demo.
+
+Would any of these times work for a 30-minute session (all PDT)?
+- Tue 2026-10-13 10:00 — 10:30
+- Wed 2026-10-14 09:00 — 09:30
+- Wed 2026-10-14 11:00 — 11:30
+
+If you prefer, grab a slot: https://calendly.com/redwood-sdr/30min
+
+If it helps, I can include Marissa Cole (AE) to cover billing/entitlements and a short rollout plan. Also attaching a one-pager that summarizes our GitHub integration options.
+
+Agenda suggestion (we can edit):
+1) Quick intros & what you're trying to accomplish (5m)
+2) Integration flow: runners, webhooks, and token scopes (10m)
+3) Demo of a PR check + comment-triggered rerun (10m)
+4) Next steps: security, pricing, and trial extension (5m)
+
+Attachment: redwood-github-integration-one-pager.pdf
+
+Best,
+Karthik Iyer
+SDR, Redwood Inference
+karthik_iyer@redwood.com | +1 (415) 555-0196
+
+From: Natalie Brooks <natalie@codecommons.org>
+To: Karthik Iyer <karthik_iyer@redwood.com>
+Date: 2026-10-12T11:48:00-07:00
+Subject: Re: Demo request: GitHub integration + OSS workflow
+
+Thanks, Karthik — appreciate the quick reply. Wed 2026-10-14 11:00 PDT works for us (we'll have two engineers: me and Raj Patel). Please include Marissa if she has bandwidth.
+
+A couple of specific items we'd like covered so we can make the most of 30 minutes:
+- How webhook delivery is retried/observed (we often run into flaky webhook delivery from internal runners)
+- Whether Redwood ever stores repository blobs or if everything stays on customer infra (compliance question)
+- Example least-privilege token scopes for read-only checks vs. write/commenting
+
+I've uploaded a trimmed sample of our test repo to an archive (attached) — it's not private-sensitive but mirrors our CI layout. Also: can you confirm if you support GitHub App installation vs. PAT? We prefer the App model if available.
+
+Attached: example-codecommons-repo.zip
+
+Thanks — see you Wed 11:00 PDT.
+
+—Natalie
+
+On Tue, Oct 12, 2026 at 10:02 AM Karthik Iyer <karthik_iyer@redwood.com> wrote:
+> Hi Natalie — great to meet you and thanks for signing up. Glad you found the dashboard useful.
+> 
+> Short answers up front: yes, you can keep inference in a private environment (Private/VPC) and integrate with self-hosted runners; token scopes are customizable and we have patterns for least-privilege installs. I can walk through the tech flow in the demo.
+
+From: Karthik Iyer <karthik_iyer@redwood.com>
+To: Natalie Brooks <natalie@codecommons.org>, Marissa Cole <marissa_cole@redwood.com>
+Date: 2026-10-13T11:05:00-07:00
+Subject: Confirmed: Redwood demo (GitHub integration) — Wed 2026-10-14 11:00 PDT
+
+Natalie / Raj (cc Marissa),
+
+Confirmed: Wed, Oct 14, 2026 — 11:00 AM PDT / 2:00 PM EDT. I've added Marissa so she can cover entitlements and next-step packaging. Calendar invite attached (redwood-demo-calendar-invite.ics).
+
+Quick pre-demo notes: please expect a short walkthrough of the repo flow (we'll use your attached sample) and I'll show a live PR check that triggers a retrain/rerun with careful attention to token scope. We'll explicitly show:
+- GitHub App vs Personal Access Token tradeoffs (we recommend App for most orgs)
+- How we keep artifact handling inside a VPC/private deployment (no repo blobs stored in hosted mode unless you opt in)
+- Webhook retry metrics and where to look in the Redwood Console (tracing + dead-letter queue)
+
+If you want to add a short runbook or a couple of prompts for the PR check, send them over and I'll load them into the session so we can test end-to-end.
+
+Attachments: redwood-demo-calendar-invite.ics
+
+Looking forward — I'll send the Zoom link ~10 minutes before the call.
+
+Best,
+Karthik
+SDR, Redwood Inference
+-----
+Redwood Inference | Developer-first inference runtime

@@ -1,0 +1,144 @@
+Azure marketplace — annual prepay SKU bundling & term structure
+
+From: Sara Hsu <sara@lumendata.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>
+Date: 2026-05-10T09:12:00-07:00
+Subject: Azure private offer: annual prepay and SKU bundling questions
+
+Hi Karthik,
+
+Thanks again for the demo last week. We're evaluating Redwood to replace our inference endpoint for a subset of Horizon workloads and are interested in an Azure marketplace private offer with an annual prepay. A few items we need clarity on before procurement can move fast: 
+
+- Can you support a SKU-bundled private offer (compute + inference units) with one invoice?
+- LumenData's finance prefers annual prepay (rather than monthly) with a 12-month co-term. Do you have a standard term-discount schedule for 1yr vs 3yr?
+- We expect ramp: year1 = 300k tokens/month average, year2 = 900k, year3 = 1.8M. We prefer smoothing credits across the year rather than monthly reconciliations — is that supported?
+- Any marketplace fees or platform surcharges we should budget for? (we're on Azure EU region)
+
+If helpful, procurement can share target ARR and preferred payment cadence. Can you loop in marketplace & finance folks? Hoping to close by end of May.
+
+Best,
+Sara
+Procurement, LumenData
+
+--
+LumenData Corp
+procurement@lumendata.com
+
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Sara Hsu <sara@lumendata.com>
+Cc: Vanessa Ortiz <vanessa.ortiz@redwood.com>
+Date: 2026-05-10T11:03:00-07:00
+Subject: Re: Azure private offer: annual prepay and SKU bundling questions
+
+Hi Sara — really appreciate the clear list. Short answers up front, and I'll follow with details after I sync with finance/marketplace: 
+
+- Yes, we can bundle compute + inference SKUs into a single private offer line items set on Azure Marketplace with one invoice via our finance integration.
+- Term discounts: typical policy is 0% for 1yr prepaid baseline, 12% for 2yr, 18% for 3yr on list unit prices; however, for larger commits we can reprice (examples below).
+- Ramp smoothing: we support annualized credits for prepay (you draw down credits from the committed pool). We can also do agreed monthly allocations to match expected usage with reconciliation at renewal.
+- Marketplace fees: Azure takes its standard marketplace fee (varies by offer type) — we typically build that into the private offer gross margin, but we will surface the fee and the net unit pricing.
+
+I'll loop in Vanessa from Marketplace and Diego from Sales Ops to prepare a proposed XLS with a couple of term/discount scenarios (1yr annual prepay, 3yr stepped ramp with front-loaded credits, and a smoothing option). Can we set a 30-min call tomorrow?
+
+Thanks,
+Karthik
+Director, Strategic Accounts
+Redwood Inference
+
+From: Sara Hsu <sara@lumendata.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>
+Date: 2026-05-10T11:28:00-07:00
+Subject: Re: Azure private offer: annual prepay and SKU bundling questions
+
+Thanks Karthik — tomorrow 10:00am CET works for our team (I'm in Amsterdam). I'll include Tom Alvarez from Azure Marketplace and our legal lead on the call. For context, target first-year committed spend is EUR 150k (annual prepay), ramping to ~EUR 420k in year2 and ~EUR 780k year3 if performance holds. Our preferred outcome is a 1yr annual prepay with an option to extend to 3yr if we hit ramp triggers.
+
+Sara
+
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Vanessa Ortiz <vanessa.ortiz@redwood.com>, Diego Fernandez <diego.fernandez@redwood.com>, Laura Bennett <laura.bennett@redwood.com>
+Date: 2026-05-11T02:45:00-07:00
+Subject: Fwd: Azure private offer: annual prepay and SKU bundling questions (LumenData) — prep for tomorrow
+
+Team — prepping materials for the call with LumenData (tomorrow 10:00 CET). Key asks below and proposed approach. Please reply with comments before I jump on.
+
+Customer asks:
+- Single invoice SKU bundle (compute + inference) on Azure private offer
+- Annual prepay preferred; they may accept 1yr now and extend to 3yr with triggers
+- Ramp smoothing (annual credits drawdown)
+- Visibility into marketplace fee impact on net price
+
+Our proposed approach:
+1) Create a single private-offer line item that represents the "LumenData Annual Commitment" with internal mapping to multiple SKUs for redemption (compute throughput hours + token units). That keeps the invoice simple.
+2) Pricing scenarios to present: 
+   a) 1yr annual prepay: price = list - 7% (intro offer) with annualized credits and rolling monthly consumption reporting.
+   b) 3yr commit: year1 discount 12%, year2 15%, year3 18% (tiered step-up) with option to re-evaluate if usage >150% of forecast.
+   c) 1yr convertible: 1yr prepay at 9% discount with an exercise window to convert to a 3yr commit at day 270 with a retroactive credit for year1 difference.
+3) Absorb Azure marketplace fee into our listed price and show both gross and net unit economics (line showing Azure fee ~3-5% depending on offer type).
+4) Give an option for annualized credit smoothing vs strict monthly reconciliation. For smoothing, credits applied monthly based on forecast; final reconciliation at renewal.
+
+Open questions: approvals needed from finance for a convertible 1yr -> 3yr policy and legal for conversion mechanics. Diego/Laura: can you confirm margin floor and whether we can offer the convertible structure? Also attaching a mock XLS for numbers (I'll iterate).
+
+Attachments: RDW_LumenData_Azure_PrivateOffer_v1.xlsx (draft scenarios)
+
+Thanks,
+Karthik
+
+From: Diego Fernandez <diego.fernandez@redwood.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>, Vanessa Ortiz <vanessa.ortiz@redwood.com>, Laura Bennett <laura.bennett@redwood.com>
+Date: 2026-05-11T08:10:00-07:00
+Subject: Re: Fwd: Azure private offer: annual prepay and SKU bundling questions (LumenData) — prep for tomorrow
+
+Quick internal reply — finance ok with the 1yr intro 7% and 3yr step-up 12/15/18 as long as we: 
+- Keep margin floor at 23% net after marketplace fees and expected Azure Marketplace commission.
+- Require a minimum EUR 100k first-year ARR to qualify for the convertible clause.
+- For the convertible option, legal needs a clear cut-off and an automated credit adjustment (no manual reconciliations).
+
+Vanessa: marketplace ops will need to confirm whether a single invoice mapping to multiple redemption SKUs is supported for this private-offer type (I believe yes). If not, we fall back to two line items (compute / inference).
+
+I'll be on the call and can present the finance guardrails.
+
+-Diego
+
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Sara Hsu <sara@lumendata.com>
+Cc: Vanessa Ortiz <vanessa.ortiz@redwood.com>, Diego Fernandez <diego.fernandez@redwood.com>, Tom Alvarez <tom.alvarez@azuremarketplace.com>, Laura Bennett <laura.bennett@redwood.com>
+Date: 2026-05-18T17:03:00-07:00
+Subject: Proposed annual prepay private offer & next steps — LumenData
+
+Hi Sara / team — great call earlier. Per our discussion, attached is the proposed private-offer package and a short explainer. Highlights: 
+
+- Offer structure: Annual prepay (12 months) representing a bundled line item (compute + inference credits). Single invoice via Azure private offers.
+- Pricing scenarios attached: (Sheet 1: 1yr annual prepay — 7% intro discount; Sheet 2: 1yr convertible to 3yr — 9% with conversion mechanics; Sheet 3: 3yr step-up commit 12/15/18).
+- Ramp smoothing: we will apply annualized credits with monthly allocations based on agreed forecast and do a reconciliation at renewal. If usage exceeds forecast by >150% in any rolling 90-day window, additional consumption will be billed at on-demand unit rates.
+- Marketplace fees: shown explicitly on sheet — assumed 4% for this offer; gross -> net bridges included.
+- Conditions: minimum first-year commit EUR 100k; convertible option requires signed amendment by day 270 and is only available if payments are made on schedule.
+
+Next steps: 
+1) Please confirm preferred pricing scenario and whether you want the convertible path.
+2) If confirmed, we'll generate the Azure private-offer link and share a NOPA stub for signature.
+3) Legal to exchange redlines (we flagged conversion mechanics and termination for convenience).
+
+Attachments included: RDW_LumenData_Azure_PrivateOffer_v1.xlsx, Azure_PrivateOffer_Link.txt, NOPA_signed_stub.pdf
+
+Happy to hop back on if you want to walk through the XLS.
+
+Best,
+Karthik
+Director, Strategic Accounts
+Redwood Inference
+
+From: Sara Hsu <sara@lumendata.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>
+Cc: procurement@lumendata.com, Tom Alvarez <tom.alvarez@azuremarketplace.com>
+Date: 2026-05-18T18:16:00-07:00
+Subject: Re: Proposed annual prepay private offer & next steps — LumenData
+
+Karthik — thanks for the crisp summary and attachments. We're leaning to the 1yr convertible to 3yr (Sheet 2) provided: 
+- The convertible mechanics are automatic with a credit adjustment (no manual invoices).
+- Minimum first-year paid EUR 100k is acceptable.
+- Legal will redline the amendment for the conversion window and termination/clawback language.
+
+I'll get procurement and legal engaged today; expect initial redlines by May 21. If everything aligns, we'll accept the private-offer link and wire the prepay. Appreciate the team's quick turnaround.
+
+Regards,
+Sara
+Procurement — LumenData

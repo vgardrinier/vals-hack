@@ -1,0 +1,133 @@
+Intro + cost sanity check: AtlasAI integration
+
+From: Jonas Weber <jonas@redwood.com>
+To: Sana Patel <sana@atlasai.com>, Roberto Diaz <roberto@atlasai.com>
+Cc: Ben Carter <ben@redwood.com>, Marissa Cole <marissa@redwood.com>
+Date: Wed, 21 Oct 2026 15:12:00 -0700
+Subject: Intro + cost sanity check: AtlasAI integration
+
+Hi Sana + Roberto — great to meet today. Quick recap from our 30-minute call and a couple of asks so we can size an accurate quote:  
+
+- Goal: integrate Redwood Inference for live assistant + batch embeddings for knowledge graph sync.
+- Rough monthly token expectation you mentioned on the call: please confirm ballpark of both inference (generation) and embedding tokens.
+- Target unit economics: you said you were aiming for a target $/1M tokens; can you share the target range you’re budgeting for (ballpark is fine).
+- Timeline: pilot in Nov, production H1 next year.
+- Discounts: you asked about startup credits and committed-use pricing — please confirm which of those you want us to prioritize in a proposal (startup credit + 6/12/24mo commit).
+
+If you can reply with: 1) monthly token range, 2) target $/1M tokens, 3) procurement lead/contact, I’ll put together a simple quote and an example committed-use schedule. Attaching a one-sheet you can fill for estimated per-feature token splits.
+
+Thanks — I’ll loop in Pricing/Programs once we have your numbers.
+
+Best,
+Jonas Weber
+Senior Account Executive | Redwood Inference
+jonas@redwood.com | +1 415-555-0192
+
+Attachment: Atlas_Usage_Estimate.xlsx (xlsx)
+
+From: Sana Patel <sana@atlasai.com>
+To: Jonas Weber <jonas@redwood.com>, Ben Carter <ben@redwood.com>
+Cc: Roberto Diaz <roberto@atlasai.com>
+Date: Wed, 21 Oct 2026 17:04:00 -07:00
+Subject: Re: Intro + cost sanity check: AtlasAI integration
+
+Thanks Jonas — quick answers below:  
+
+1) Estimated tokens (monthly): generation 10M–25M tokens, embeddings 1M–3M tokens. We expect a spike during onboarding (x2) for the first two weeks.
+2) Target $/1M tokens: our CFO has penciled $4,800–$5,200 per 1M tokens for the initial contract; we are startup-stage (Series A, raised in ’25) so also evaluating vendor startup programs.
+3) Procurement/contact: procurement@atlasai.com (procurement form attached).
+
+We are definitely interested in:  
+- Any founder/startup credits to reduce the pilot cost for first 90 days.
+- Committed-use pricing for predictable unit pricing; prefer 12–24 month horizon if the math works.
+
+Can you share an example committed-use table with effective $/1M at each tier and any founder credit you can provide? Also want to confirm data residency controls in the SOW.
+
+—Sana
+Sana Patel
+Head of Product | AtlasAI
+sana@atlasai.com
+
+Attachment: Atlas_Procurement_Form.pdf (pdf)
+
+From: Jonas Weber <jonas@redwood.com>
+To: Sana Patel <sana@atlasai.com>, Roberto Diaz <roberto@atlasai.com>
+Cc: Ben Carter <ben@redwood.com>, Marissa Cole <marissa@redwood.com>
+Date: Thu, 22 Oct 2026 09:18:00 -07:00
+Subject: Re: Intro + cost sanity check: AtlasAI integration
+
+Thanks — very helpful details. I pulled together two concrete options so you have apples-to-apples numbers to share with Procurement/CFO:  
+
+Option A — Startup + short commit (pilot friendly)
+- Startup founder credit: $30,000 in credits applied over first 90 days (applies to compute token charges only).
+- No minimum commit required.
+- Effective pilot pricing example at 12M gen tokens/month (after credits): ~ $3,900/$1M for months 1–3, then list rates apply.
+
+Option B — Committed-use (12 months)
+- 12mo committed spend banding: 0–0.5B tokens: 10% off list; 0.5B–1.5B: 18% off; >1.5B: 25% off (discounts apply to token unit price).
+- Example: at 15M gen tokens/mo => annualized ~180M tokens -> falls in 0.5B–1.5B band -> ~18% off list -> effective ~$4,000/$1M (illustrative).
+
+Option C — Multi-year (2-year match)
+- 24mo commit with staged rebate: additional 5% rebate in year 2 if volume growth >20% YoY.
+- Reserved slot priority and SLA uplift for Dedicated capacity available as an add-on.
+
+Next steps I recommend: 1) confirm whether you want us to price against Option A (pilot-first) or Option B/C (commit), and 2) confirm whether the startup credit authorization should be fast-tracked (I can request Sales Ops pre-approval).
+
+I’m copying Marissa (Programs) to confirm the founder credit eligibility checklist and Ben (solution engineer) to make sure the SOW covers data residency. If you’re good, I’ll produce a short quote + SOW draft for signature.
+
+Thanks,
+Jonas
+Senior Account Executive | Redwood Inference
+jonas@redwood.com
+
+Attachment: Redwood-SOW-AtlasAI-v0.1.pdf (draft)
+
+From: Marissa Cole <marissa@redwood.com>
+To: Jonas Weber <jonas@redwood.com>, Ben Carter <ben@redwood.com>
+Date: Fri, 23 Oct 2026 10:05:00 -07:00
+Subject: Fwd: Intro + cost sanity check: AtlasAI integration — startup credit approval
+
+Jonas / Ben — quick internal note: I reviewed AtlasAI (Series A, YC alum founder) and am willing to approve up to $30k in founder credits for pilot. Requirements: 1) proof of incorporation and cap table snapshot; 2) signed MSA + SOW for pilot with 90-day term; 3) HubSpot deal record and Sales Ops ticket for credit allocation.
+
+If you confirm they’ll sign the SOW and provide the legal docs, I’ll route the credit. Approving now to keep momentum.
+
+—Marissa
+Director, Startup Programs | Redwood Inference
+marissa@redwood.com
+
+From: Sana Patel <sana@atlasai.com>
+To: Jonas Weber <jonas@redwood.com>, Marissa Cole <marissa@redwood.com>
+Cc: procurement@atlasai.com, Roberto Diaz <roberto@atlasai.com>
+Date: Mon, 26 Oct 2026 08:24:00 -07:00
+Subject: Re: Intro + cost sanity check: AtlasAI integration
+
+Appreciate the clear options — we’d like to proceed with Option A for the pilot (apply the founder credit) and get a firm quote for Option B (12mo) to present to Finance.  
+
+Procurement asked that the SOW explicitly state US data residency and include the redlineable MSA clause for data retention. Procurement also wants a formal quote that calls out the effective $/1M under the 12mo band so the CFO can model burn.
+
+I’ll send proof of incorporation and cap table snapshot to procurement@atlasai.com this morning. Can you provide the two items by Wednesday so we can present to Finance on Thu?
+
+—Sana
+
+From: Jonas Weber <jonas@redwood.com>
+To: Sana Patel <sana@atlasai.com>, procurement@atlasai.com
+Cc: Marissa Cole <marissa@redwood.com>, Ben Carter <ben@redwood.com>
+Date: Tue, 27 Oct 2026 10:03:00 -07:00
+Subject: Re: Intro + cost sanity check: AtlasAI integration
+
+Perfect — we’ll do that. Next actions from our side:  
+1) I’ll upload an official three-line quote showing both the Option A pilot pricing (after $30k founder credit) and the Option B 12mo committed band effective $/1M.
+2) Ben will send an SOW draft that includes US data residency and the retention/data-handling clause for your legal team to redline.
+3) Marissa will route the credit once procurement confirms incorporation docs.
+
+I’ve created the HubSpot deal and included the DocuSign sentence for a simple SOW signature flow: https://app.hubspot.com/deal/8372  — I will also open a Sales Ops ticket to allocate the founder credit. Expect the quote + SOW draft by end of day Wednesday.
+
+If that timeline works, I’ll schedule a 30-min review with your CFO and procurement for Thu.
+
+Thanks — looking forward to getting you started.
+
+Jonas Weber
+Senior Account Executive | Redwood Inference
+jonas@redwood.com
+
+Related DocuSign: https://www.docusign.com/sign/ABCDEF123456

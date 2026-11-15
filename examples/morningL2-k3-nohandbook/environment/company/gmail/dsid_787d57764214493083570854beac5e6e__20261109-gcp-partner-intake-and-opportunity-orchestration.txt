@@ -1,0 +1,132 @@
+GCP marketplace intake & opportunity orchestration — QuantumHealth (proposed MAP)
+
+From: Maya Srinivasan <maya.srinivasan@redwood.com>
+To: Sara Li <sara.li@gcp-partners.google.com>, Jordan Price <jordan@quantumhealth.com>
+Cc: Vanessa Ortiz <vanessa.ortiz@redwood.com>, Ben Carter <ben.carter@redwood.com>
+Date: Mon, 09 Nov 2026 09:12:00 -0800
+Subject: GCP marketplace intake & opportunity orchestration — QuantumHealth (proposed MAP)
+
+Hi Sara, Jordan —
+
+Quick note to bring you both up to speed and kick off a co-sell intake for QuantumHealth. Jordan and I chatted last week; they are targeting a GCP marketplace listing and would like GCP co-sell support during procurement. Attached: a draft Mutual Action Plan (MAP) and a short marketplace listing checklist.
+
+High level:
+- Expected incremental ARR: $450k ARR annualized (first 12 months)
+- Procurement window: aiming for a signed PO by end of Q1 2027
+- Primary integration: listing + billing through GCP Marketplace, public listing required
+
+Sara — can you confirm the right GCP sales contact to loop in and whether a canary listing is recommended given QuantumHealth's compliance needs?
+
+Proposed next steps:
+1) Quick intake call this week to align on GCP sales rep, handoff, and disclosure needs (30 min)
+2) We finalize MAP and attach it to the HubSpot deal
+3) Action owners and timelines in the checklist — see attachment
+
+Proposed times (PT): Tue 11/10 10:00 or Wed 11/11 14:00 — happy to adjust.
+
+Thanks,
+
+Maya Srinivasan
+Account Executive, Redwood Inference
+maya.srinivasan@redwood.com
++1 (415) 555-0192
+
+Attachments: QH_MutualActionPlan_v1.pdf, listings-checklist.xlsx
+From: Sara Li <sara.li@gcp-partners.google.com>
+To: Maya Srinivasan <maya.srinivasan@redwood.com>, Jordan Price <jordan@quantumhealth.com>
+Cc: Laura Bennett <laura.bennett@redwood.com>
+Date: Mon, 09 Nov 2026 11:03:00 -0800
+Subject: Re: GCP marketplace intake & opportunity orchestration — QuantumHealth (proposed MAP)
+
+Thanks Maya — and hi Jordan.
+
+I can take point on the GCP partner side. Quick notes:
+- I'll add the resourcing (GCP Sales rep and Partner Sales Engineer) once Jordan confirms ARR and whether QuantumHealth needs SaaS or third-party billing.
+- From a marketplace standpoint, a reviewed canary is usually a good first step when there are compliance considerations; we can fast-track that.
+- Please complete the marketplace intake form (I pasted the link below) — it helps us validate billing profiles and entitlement metadata.
+
+Marketplace intake: https://partnerdash.google.com/intake-form/abc123
+
+If Jordan can confirm ARR and expected launch date I will loop in the regional rep. I can do Tue 11/10 at 10:00 PT — sending a calendar invite now.
+
+Best,
+Sara Li
+GCP Partner Manager — Strategic Partners
+Google Cloud
+Sara.Li@gcp-partners.google.com
+
+On Mon, Nov 9, 2026 at 9:12 AM Maya Srinivasan <maya.srinivasan@redwood.com> wrote:
+> [original message quoted]
+
+From: Jordan Price <jordan@quantumhealth.com>
+To: Sara Li <sara.li@gcp-partners.google.com>, Maya Srinivasan <maya.srinivasan@redwood.com>
+Date: Tue, 10 Nov 2026 08:45:00 -0800
+Subject: Re: GCP marketplace intake & opportunity orchestration — QuantumHealth (proposed MAP)
+
+Thanks Maya, Sara —
+
+Confirming details from our side:
+- Target ARR: $450k (first year, subscription SaaS)
+- Procurement timeline: P.O. expected by 2027-03-25; vendor onboarding in April
+- Compliance: HIPAA-adjacent workload, we will need SOC2 + restricted data handling documented (hence the canary ask)
+
+I attached a short procurement summary with timelines and the primary procurement contact. We are eager to get the MAP agreed and the co-sell handoff to GCP.
+
+Looking forward to Tues 10/10 at 10:00 PT.
+
+Jordan Price
+Head of Platform, QuantumHealth
+jordan@quantumhealth.com
+Attachments: QuantumHealth-procurement-summary.pdf
+
+On Mon, Nov 9, 2026 at 11:03 AM Sara Li <sara.li@gcp-partners.google.com> wrote:
+> [quoted reply]
+
+From: Maya Srinivasan <maya.srinivasan@redwood.com>
+To: Vanessa Ortiz <vanessa.ortiz@redwood.com>, Ben Carter <ben.carter@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>, Laura Bennett <laura.bennett@redwood.com>
+Date: Tue, 10 Nov 2026 12:10:00 -0800
+Subject: Fwd: GCP marketplace intake & opportunity orchestration — QuantumHealth (internal prep)
+
+Team —
+
+Forwarding the intake thread after Jordan confirmed ARR and timeline. Quick asks before Tue call:
+- Vanessa: can you prep a one-pager for the marketplace listing differences (public vs private SAAS listing + billing implications)?
+- Ben: please pull the SOC2 evidence bundle and a short note on our data handling posture so Sara/GCP can assess canary needs.
+- Karthik: own the deployment story — are there any runtime constraints that would affect GCP product selection?
+- Laura: I put you on cc for legal visibility; can you flag any contract items we should pre-empt (SLA, data residency)?
+
+I'll own the MAP updates and HubSpot deal. Agenda for Tue: roles, GCP sales contact, preliminary timeline, and checklist review.
+
+Thanks —
+Maya
+
+On Tue, Nov 10, 2026 at 08:45 AM Jordan Price <jordan@quantumhealth.com> wrote:
+> [quoted reply]
+
+From: Vanessa Ortiz <vanessa.ortiz@redwood.com>
+To: Maya Srinivasan <maya.srinivasan@redwood.com>, Ben Carter <ben.carter@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>, Laura Bennett <laura.bennett@redwood.com>, Sara Li <sara.li@gcp-partners.google.com>, Jordan Price <jordan@quantumhealth.com>
+Date: Wed, 11 Nov 2026 15:04:00 -0800
+Subject: Re: GCP marketplace intake & opportunity orchestration — QuantumHealth (notes & owners)
+
+Thanks all — good sync. Quick recap and owners (per MAP checklist):
+
+1) Marketplace listing option: public SaaS listing preferred (owner: Maya) — add canary step for compliance testing (owner: Sara + Ben for evidence)
+2) Billing: SaaS via Marketplace with third-party billing configured (owner: Laura to confirm contract language)
+3) Technical validation: runtime benchmark and KV cache expectations (owner: Karthik)
+4) Procurement timeline & GCP rep: Sara to loop in regional rep and create the Partner Sales Engineer intro (owner: Sara)
+5) HubSpot & Docs: Maya will attach final MAP and checklist; Vanessa will publish the one-pager to Drive and link it from the HubSpot deal (owners: Maya, Vanessa)
+
+Next steps:
+- Sara to add GCP rep to the thread and confirm canary timeline by 11/16
+- Ben to upload SOC2 evidence summary to the Drive folder by 11/12
+- Karthik to deliver a short tech note on runtime and recommended GCP SKU by 11/15
+
+Thanks — will update the HubSpot deal with these owners and timelines.
+
+Vanessa Ortiz
+Partner Ops, Redwood Inference
+vanessa.ortiz@redwood.com
+Phone: +1 (650) 555-0147
+
+On Tue, Nov 10, 2026 at 12:10 PM Maya Srinivasan <maya.srinivasan@redwood.com> wrote:
+> [internal prep message quoted]

@@ -1,0 +1,110 @@
+Flowly POC — liquidity credits vs. short extension
+
+From: Lydia Park <lydia.park@flowly.ai>
+To: Markus Klein <markus.klein@redwood.com>
+Date: Mon, 22 Jun 2026 09:15:00 -0700
+Subject: Quick question on POC runway — can we add 3 weeks?
+
+Hey Markus,
+
+Thanks again for the support during the POC — the infra team has been able to ramp our ingestion tests and we want to run an additional set of latency experiments against full user traces. We're about 70% through the validation plan but need another 3 weeks to finish the remaining scenarios.
+
+Two procurement options on our side:
+- We can buy a short 3-week addendum (invoice up front).
+- Or we can take a smaller, discounted credit bucket to cover the extra usage (apply against the hosted tokens).
+
+Can Redwood provide a pricing option for both? Our finance person (procurement@flowly.ai) needs a ballpark today so we can decide quickly. Also let me know if there are any constraints on preserving the same model/throughput during the extension.
+
+Appreciate it —
+Lydia
+Lydia Park
+Head of ML Platforms, Flowly
+lydia.park@flowly.ai
+
+From: Markus Klein <markus.klein@redwood.com>
+To: Lydia Park <lydia.park@flowly.ai>
+Cc: David Kim <david_kim@redwood.com>
+Date: Tue, 23 Jun 2026 10:02:00 -0700
+Subject: Re: Quick question on POC runway — can we add 3 weeks?
+
+Hi Lydia,
+
+Appreciate the heads-up — glad the tests are moving forward. I sketched two concrete options below so procurement can choose what fits Flowly's approval path. Attaching a short amendment and a pricing matrix for reference.
+
+Option A — Short-term addendum (standard invoice)
+- 3 weeks of the same capacity as your current pool
+- Fixed fee: $18,000 (covers peak concurrency + engineering support during the window)
+- Invoiced net 30; can be a separate PO line item
+
+Option B — Liquidity credits (applied to hosted tokens)
+- Purchase a credit bucket equivalent to expected token burn for 3 weeks
+- One-time purchase with 20% volume discount off published pay-as-you-go rates
+- Credits redeemable against the current Flowly account, valid for 90 days
+
+Notes/constraints:
+- If you need guaranteed identical throughput, choose Option A (reserved concurrency for the window). Option B is lower friction but subject to capacity policies; we'll prioritize but not reserve GPU pools.
+- If you commit to a post-POC quarterly usage commitment within 30 days of conversion, we can increase the credit discount to 25%.
+
+Next steps:
+- If procurement prefers Option A, send PO to finance@redwood.com and we'll attach the addendum.
+- If Option B, let me know bucket size and I'll generate the credit invoice.
+
+I've attached: Flowly-POC-Amendment-v1.pdf (legal summary) and flowly-extension-pricing-matrix.xlsx (line items). Looping in David in case you want engineering bandwidth guarantees.
+
+Best,
+Markus Klein
+Senior Account Executive, Redwood Inference
+markus.klein@redwood.com
+
+From: procurement@flowly.ai
+To: Markus Klein <markus.klein@redwood.com>
+Cc: Lydia Park <lydia.park@flowly.ai>
+Date: Thu, 25 Jun 2026 08:43:00 -0700
+Subject: Re: Quick question on POC runway — can we add 3 weeks?
+
+Hi Markus,
+
+Thanks for the options. Procurement's preference is Option B (credits) because it's faster on our PO process. A couple clarifying questions before we raise a PO:
+1) How exactly are credits consumed — token-first or spike-first? We need an audit trail for usage.
+2) If capacity throttling occurs under Option B, will Redwood commit to a minimum SLA for the 3-week window or offer credits back?
+3) We need the invoice and SOW language to reference the Flowly PO# F-2026-1146.
+
+If you can confirm the answers and send an invoice (net 30) with the discounted line applied, we can get the PO signed today.
+
+Regards,
+Flowly Procurement
+procurement@flowly.ai
+
+From: Markus Klein <markus.klein@redwood.com>
+To: procurement@flowly.ai, Lydia Park <lydia.park@flowly.ai>
+Cc: Kimberly Park <kimberly_park@redwood.com>, David Kim <david_kim@redwood.com>
+Date: Thu, 25 Jun 2026 16:03:00 -0700
+Subject: Re: Quick question on POC runway — can we add 3 weeks?
+
+On Thu, 25 Jun 2026 at 08:43, procurement@flowly.ai wrote:
+> Thanks for the options. Procurement's preference is Option B (credits) because it's faster on our PO process. A couple clarifying questions before we raise a PO:
+> 1) How exactly are credits consumed — token-first or spike-first? We need an audit trail for usage.
+> 2) If capacity throttling occurs under Option B, will Redwood commit to a minimum SLA for the 3-week window or offer credits back?
+> 3) We need the invoice and SOW language to reference the Flowly PO# F-2026-1146.
+
+Hi — quick answers inline and next steps. Looping Kimberly (finance) to confirm invoice flow and David (solutions) for capacity/SLA nuance.
+
+Answers:
+1) Credits are deducted token-first against your account usage; they'll show up in the billing exports and the Console's token ledger. We can provide a daily consumption CSV for the duration for your audit team.
+2) Option B is not a capacity reservation. We will prioritize your requests and can offer an operational credit (pro-rated) if capacity constraints caused higher-than-expected latency and we fail to meet the agreed performance band. For full guaranteed throughput we recommend Option A.
+3) Kimberly will issue the invoice and include the PO reference. Kimberly — can you confirm net 30 invoice and apply the 20% discount line item?
+
+David: for the SLA carve, do you want me to propose the language that says "operational credit up to X% if requests exceed latency thresholds for more than Y% of the window"?
+
+Kimberly Park <kimberly_park@redwood.com>:
+> We can issue an invoice with PO# and net 30. I can apply the 20% discount for this credit bucket. If Flowly elects to convert to a quarterly commitment within 30 days, finance will process a 5% retrospective rebate.
+
+David Kim <david_kim@redwood.com>:
+> I will draft suggested SLA credit language and forward a short ops-runbook for the 3-week window (monitoring hooks, escalation path).
+
+If that works, Lydia/procurement — reply with the intended credit bucket size (tokens estimate) and I'll generate the invoice + drive link to the amendment for signature.
+
+Thanks —
+Markus
+Senior Account Executive, Redwood Inference
+markus.klein@redwood.com

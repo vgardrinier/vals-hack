@@ -1,0 +1,105 @@
+MSA redline — governing law / dispute resolution (Apex)
+
+From: Hannah Schmitt <hannah.schmitt@redwood.ai>
+To: Marissa Cole <marissa.cole@redwood.ai>, Vivek Kulkarni <vivek.kulkarni@redwood.ai>
+Cc: Jordan Myers <jordan.myers@outsidecounsel.com>
+Date: Sun, 04 Jan 2026 09:14:00 -0800
+Subject: MSA redline — governing law / dispute resolution (Apex)
+
+Team — attaching Apex's redline on the MSA and the Order Form. Apex has pushed a few changes around governing law and dispute resolution that will affect our risk profile:
+
+- Apex redlined the governing law to New York.
+- They propose mandatory arbitration for most disputes, seat in NY, with a carveout for certain injunctive relief but the language is narrow.
+- They've added language that would limit equitable relief to where the intellectual property claim is filed (they reference CA only for IP).
+
+Attachments: Redwood_MSA_v3_Apex_redline.docx, OrderForm_APEX_2026.pdf
+
+Key asks: can legal surface (1) a recommended stance (accept arbitration? defend litigation carveouts?), (2) sample language we can propose that preserves injunctive relief for Redwood/IP and allows clear emergency relief in a US federal or CA state forum, and (3) an assessment of whether governing law should be Delaware (our usual preference) or if CA is preferable here.
+
+Vivek — sales note: Apex is time-boxed on procurement; we want to avoid protracted jurisdiction fights if we can reach a clean compromise (still need to protect IP and stop abuses).
+
+Thanks,
+Hannah
+Head of Sales Operations
+Redwood Inference
+
+From: Jordan Myers <jordan.myers@outsidecounsel.com>
+To: Hannah Schmitt <hannah.schmitt@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>, Vivek Kulkarni <vivek.kulkarni@redwood.ai>
+Cc: Karen Lopez <legal@apexretail.com>
+Date: Sun, 04 Jan 2026 13:02:00 -0800
+Subject: RE: MSA redline — governing law / dispute resolution (Apex)
+
+Hannah / Marissa / Vivek — I reviewed Apex's proposed edits. High-level thoughts:
+
+1) Arbitration: Apex's approach (mandatory arbitration, seat in NY) is commercial common but they dial into a NY-centric posture. Arbitration is acceptable from an enforcement standpoint, but it reduces discovery and increases uncertainty for certain injunctive remedies.
+
+2) Injunctive relief carveout: the carveout they propose is narrower than we'd want — it limits emergency relief to "temporary restraining orders until the arbitral tribunal convenes." That could be problematic for immediate IP protection. Recommend we insist on a clear, express court-litigation carveout for equitable relief (injunctive and interim relief) with venue for such relief to be a federal or state court in California or Delaware. Sample clause I recommend (short form):
+
+"Notwithstanding the agreement to arbitrate, either party may seek injunctive or other equitable relief in any court of competent jurisdiction to protect its Confidential Information or Intellectual Property; such remedies shall not be deemed inconsistent with the agreement to arbitrate and shall not preclude a party from seeking arbitration on the merits."
+
+3) Governing law: Apex proposes New York law. Our usual preference is Delaware (corporate law and precedents). California is also workable but may have consumer-protective rules that increase risk. If deal speed is important and Apex insists on NY, consider: governing law = Delaware; procedural seat = New York (for arbitration); injunctive relief venue = California (for Redwood IP) or Delaware — this hybrid is used frequently and balances both sides.
+
+4) Class/Representative actions: Ensure a clear class/collective action waiver and that arbitration rules enforce it.
+
+5) Practical ask: I'll draft two short redline snippets: A) arbitration accepted with explicit injunctive exception and specified injunctive forum; B) counter-proposal to keep governing law = Delaware but agree arbitration seat = NYC. If you prefer, I can also draft a one-paragraph rationale for our negotiators (Vivek) to use with Apex procurement.
+
+I've attached a short file with suggested language (MSA_govlaw_snippets.docx). Let me know if you want me on the call to push the language.
+
+— Jordan
+Outside Counsel
+Myers & Finch LLP
+
+From: Marissa Cole <marissa.cole@redwood.ai>
+To: Hannah Schmitt <hannah.schmitt@redwood.ai>, Vivek Kulkarni <vivek.kulkarni@redwood.ai>
+Cc: Jordan Myers <jordan.myers@outsidecounsel.com>
+Date: Mon, 05 Jan 2026 10:20:00 -0800
+Subject: RE: MSA redline — governing law / dispute resolution (Apex)
+
+Thanks Jordan — good summary. Quick internal recommendation:
+
+- Governing law: propose Delaware (our standard). If Apex refuses, accept NY only if we secure the injunctive relief carveout and choice of injunctive forum favoring CA or Delaware.
+- Arbitration: accept mandatory arbitration for most disputes, seat in New York (neutral) with AAA rules, but expressly exclude: (i) claims for injunctive or other equitable relief to protect IP or Customer Data, and (ii) claims seeking preliminary injunctive relief related to misuse of models or data.
+- Injunctive forum: carve out courts in California (Northern District of California) OR state courts in Delaware for immediate relief; both are enforceable and familiar.
+- Add explicit language preserving the right to seek provisional remedies before a court and state that seeking such relief does not waive arbitration rights.
+
+I've drafted redline language and a short talking script for Vivek to use with procurement — file attached. On risk: litigation over venue/gov law is low-probability but high-impact. If Apex will not budge on NY law + arbitration without the carveout, we should escalate to execs for one-off exception only if the commercial terms justify it.
+
+I'll attach the proposed snippet and can take point on the next redline. Jordan — please include the short clause you suggested above in the redline.
+
+Marissa Cole
+Head of Legal, Redwood Inference
+
+From: Vivek Kulkarni <vivek.kulkarni@redwood.ai>
+To: Marissa Cole <marissa.cole@redwood.ai>, Hannah Schmitt <hannah.schmitt@redwood.ai>
+Cc: Karen Lopez <legal@apexretail.com>, Jordan Myers <jordan.myers@outsidecounsel.com>
+Date: Mon, 05 Jan 2026 16:40:00 -0800
+Subject: RE: MSA redline — governing law / dispute resolution (Apex)
+
+Marissa / Hannah — I support the approach. From a commercial perspective: Apex is asking for a small set of concessions elsewhere (longer initial term, reduced onboarding credits). We can trade on forum + arbitration language to keep procurement moving.
+
+Ask for: an explicit injunctive relief carveout and choice of court (CA or DE) and we'll be flexible on arbitration seat = NYC. If they push NY law and refuse an injunctive forum, I'll flag for escalation — but prefer to keep it at legal redline level.
+
+Vivek
+Account Executive — Strategic Accounts
+Redwood Inference
+
+From: Karen Lopez <legal@apexretail.com>
+To: Marissa Cole <marissa.cole@redwood.ai>, Hannah Schmitt <hannah.schmitt@redwood.ai>, Vivek Kulkarni <vivek.kulkarni@redwood.ai>
+Cc: Jordan Myers <jordan.myers@outsidecounsel.com>
+Date: Tue, 06 Jan 2026 16:22:00 -0800
+Subject: RE: MSA redline — governing law / dispute resolution (Apex)
+
+Marissa / Hannah / Vivek — appreciate the quick review. Apex's commercial team is comfortable with arbitration in New York under AAA rules. For governing law, we prefer New York as well — it's consistent across our vendor contracts.
+
+We're open to the following compromise:
+- Governing law: New York (for contract interpretation)
+- Arbitration: mandatory, seat = New York, AAA, but the parties expressly reserve the right to seek injunctive or other equitable relief in a court of competent jurisdiction; such relief shall not waive the parties' right to arbitrate the merits.
+- Location for injunctive relief: either (a) a federal or state court in New York, or (b) if Redwood provides a reasonable business justification, venue may be Northern District of California or courts in Delaware for limited injunctive relief related to IP or data protection.
+
+We agree this language should be explicit. To expedite, we're available for a 30-minute call tomorrow to resolve the remaining sentence-level edits. Attached is a clean Order Form and a redline with our proposed compromise.
+
+Attachments: OrderForm_APEX_2026.pdf, Redwood_MSA_v3_Apex_redline.docx
+
+Thanks —
+Karen Lopez
+Senior Counsel, Apex Retail

@@ -1,0 +1,33 @@
+eng-platform
+
+mia: noticed the per-model "unit-cost" card is reporting ~5-7% more spend for the canary routing slice compared to the raw token ledger for the same hourly window. small but persistent. any quick theories?
+owen: is this the 09:00-10:00 UTC window where we flipped the canary?
+mia: yes. lined up with the rollout. chart shows same token count but higher cost after the routing tag change.
+leo: could be cache-crediting not matching route attribution. maybe route tag lost before billing join. do we have an example event?
+mia: sample event id `ev-20260321-9911`. here's the billing join we run (simplified):
+```
+SELECT COALESCE(r.route_id, 'unknown') AS route_id, SUM(t.tokens * m.price_per_token) AS cost
+FROM token_events t
+LEFT JOIN routes r ON t.route_ref = r.ref_id
+LEFT JOIN model_catalog m ON t.model = m.sku
+WHERE hour = '2026-03-21T09'
+GROUP BY route_id;
+```
+ci-cd-bot: econ-service transform v2026.3.21.0905 deployed to canary :rocket:
+cass: fyi we had a transform that flattens metadata only for payloads <= 64k. anything larger keeps nested `meta` object. that could be the culprit.
+frank: digging raw events now  i can see `meta.session.route` populated in many token events but `route_ref` is null at top-level for those. billing join expects top-level `route_ref`.
+nina: product question: should console show a separate "Unattributed cache savings" row when route-level tags are missing, or fold it into the model card with a tooltip? ops prefer a distinct line to quickly spot attribution gaps.
+owen: ops visibility makes sense. also propose an inline badge on model cards when unattributed fraction > 1%.
+leo: proposal: add a lightweight normalize step in the econ ingestion pipeline that promotes nested `meta.session.route` -> `route_ref` if top-level missing. implement as idempotent map in streaming transform. also run a one-off backfill job for the last 48 hours to reconcile historical mismatches.
+mia: sounds good. can we also add a nightly report listing models/routes with >0.5% unattributed cost so SRE/product can triage?
+cass: yes. i'll queue up the transform patch. frank: can you author the backfill SQL?
+frank: on it. rough backfill query I'll test in sandbox:
+```
+UPDATE token_events
+SET route_ref = meta->'session'->>'route'
+WHERE route_ref IS NULL AND meta->'session'->>'route' IS NOT NULL AND hour >= now() - interval '48 hours';
+```
+nina: UX: we'll add a separate "Unattributed" line in the cost breakdown with a tooltip: "Costs that could not be assigned to a route due to missing routing metadata. Click to view sample events." also add copy for the badge.
+owen: alerts: i'll add a metric and an alert when unattributed_share > 1% for any model or route group and a weekly digest for smaller drifts.
+ci-cd-bot: scheduled rollout: econ-ingest-transform -> canary -> prod (ETA 10:45 UTC).
+mia: thanks everyone. i'll reconvene after backfill finishes and verify unit-cost cards line up.

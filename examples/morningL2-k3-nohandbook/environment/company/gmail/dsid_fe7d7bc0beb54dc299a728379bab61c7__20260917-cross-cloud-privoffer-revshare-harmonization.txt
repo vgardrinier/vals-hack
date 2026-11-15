@@ -1,0 +1,113 @@
+Cross-cloud private offer: harmonize rev-share & term exceptions (Helix)
+
+From: Lukas Meyer <lukas.meyer@redwood.com>
+To: contracts@helixsys.com
+Cc: marissa.cole@redwood.com, karthik.iyer@redwood.com
+Date: Tue, 15 Sep 2026 09:12:00 -0700
+Subject: Private offers (AWS + GCP) — proposal for aligned rev-share and one-term playbook
+
+Hi Caitlin,
+
+Thanks for taking time on Friday. Per our conversation, I'm attaching a single SOW and two private-offer drafts (AWS + GCP) that reflect the commercial terms Helix asked for: a 28% revenue share to Helix for the first 12 months, then 18% thereafter; 24-month minimum commitment; and a negotiated data-retention carveout for evaluation traffic.
+
+Two things to flag for alignment with the Deal Desk and Marketplace teams:
+- AWS and GCP each require slightly different product listing verbiage and timing for private offers; we should align the start-date and the payment terms to avoid downstream reconciliation mismatches. Ideally net45 across both.
+- Helix is requesting a one-time onboarding credit of $75k applied against usage in month 2 — this is outside standard marketplace listing policy and will need exec sign-off.
+
+Request: Can the Deal Desk / Marketplace leads review and confirm whether we can:
+1) Approve a unified rev-share schedule (28% → 18% after 12 months) across AWS + GCP private offers, and
+2) Allow a one-time onboarding credit to be recorded as a contra-revenue item for this deal (not reflected in Helix-facing invoice line items).
+
+I've cc'd Marissa and Karthik for pricing and channel considerations. If helpful I can draft the approval memo.
+
+Attachments: HELIX_SOW_v3.pdf; PrivateOffer_Draft_AWS.docx; GCP_PrivateOffer_Summary.xlsx
+
+Thanks,
+Lukas Meyer
+Senior Account Executive | Redwood Inference
+l.meyer@redwood.com
++1 (415) 555-0198
+
+From: Caitlin Burke <contracts@helixsys.com>
+To: Lukas Meyer <lukas.meyer@redwood.com>
+Cc: marissa.cole@redwood.com, karthik.iyer@redwood.com
+Date: Tue, 15 Sep 2026 11:03:00 -07:00
+Subject: Re: Private offers (AWS + GCP) — proposal for aligned rev-share and one-term playbook
+
+Thanks Lukas — confirmed receipt. We reviewed the SOW and the two drafts and those numbers look right for us. The onboarding credit is important because our implementation partner billing is front-loaded.
+
+Two quick asks from Helix:
+- Can the credit be applied as a rebate on the first invoice rather than month 2? That would simplify cashflow for us.
+- We need a clause allowing a single 30-day extension to the commitment window if pre-prod go-live slips due to third-party certs.
+
+Happy to discuss on a short call if that helps.
+
+Warmly,
+Caitlin Burke
+Head of Commercial Operations | Helix Systems
+contracts@helixsys.com
+
+From: Marissa Cole <marissa.cole@redwood.com>
+To: aditya.rao@redwood.com, laura.bennett@redwood.com, vanessa.ortiz@redwood.com, karthik.iyer@redwood.com
+Cc: lukas.meyer@redwood.com
+Date: Wed, 16 Sep 2026 08:15:00 -07:00
+Subject: Fwd: Private offers (AWS + GCP) — exec approval needed for onboarding credit + rev-share harmonization
+
+Team — forwarding Helix reply and the attachments. Summary: customer wants unified rev-share (28% -> 18%) across AWS & GCP, net45, a one-time $75k onboarding credit ideally applied on invoice #1, and a single 30-day extension right.
+
+Why this is special:
+- Rev-share is above typical channel ranges for private offers; approving across both clouds simplifies procurement for Helix but increases our immediate revenue share cost.
+- Onboarding credit as rebate on invoice #1 is a non-standard accounting treatment for Marketplace listings and will need finance sign-off.
+- Extension clause is small but should be scoped so it doesn't change committed MAU/start windows.
+
+Suggested ask for Exec approval:
+1) Approve unified rev-share schedule (28% first 12 months; 18% thereafter) across AWS & GCP for RDW-2026-547.
+2) Approve one-time $75k onboarding credit to be issued as a rebate on invoice 1. Finance to treat it as contra-revenue; Deal Desk to document in contract annex.
+3) Approve a single 30-day commitment extension for pre-prod delays but require written notice 14 days prior to commitment end.
+
+Impact if denied: Helix may push back and request separate private offers which could delay listing by 3+ weeks and risk losing the cloud-native PoC timeline.
+
+Requesting expedited exec approval before EOD 17 Sep so we can proceed with marketplace listing windows.
+
+—Marissa
+Marissa Cole | Head of Marketplace Partnerships, Redwood Inference
+marissa.cole@redwood.com
+
+From: Aditya Rao <aditya.rao@redwood.com>
+To: marissa.cole@redwood.com, laura.bennett@redwood.com, karthik.iyer@redwood.com, vanessa.ortiz@redwood.com
+Cc: lukas.meyer@redwood.com
+Date: Thu, 17 Sep 2026 10:02:00 -07:00
+Subject: Re: Fwd: Private offers (AWS + GCP) — exec approval needed for onboarding credit + rev-share harmonization
+
+On Thu, Sep 16, 2026 at 08:15 AM Marissa Cole <marissa.cole@redwood.com> wrote:
+> Team — forwarding Helix reply and the attachments. Summary: customer wants unified rev-share (28% -> 18%) across AWS & GCP, net45, a one-time $75k onboarding credit ideally applied on invoice #1, and a single 30-day extension right.
+
+Thanks for the clear summary. I approve the unified rev-share schedule for this opportunity, with these conditions:
+- Finance (Laura) to confirm contra-revenue treatment and sign off on recognition mechanics.
+- Legal to add an explicit clause that the onboarding credit does not impact marketplace rev-share calculations or partner payouts beyond the first invoice.
+- Deal Desk to require Helix submission of an implementation partner invoice showing the $75k is implementation-related (to avoid the credit being used for software credits).
+
+Laura, can you confirm finance OK by 5pm PT? If all good, Marissa, proceed to finalize a 1-page approval memo and I'll sign off so we can hit the AWS & GCP private offer windows next week.
+
+-Aditya
+Aditya Rao | VP, Revenue Operations | Redwood Inference
+aditya.rao@redwood.com
+
+From: Laura Bennett <laura.bennett@redwood.com>
+To: aditya.rao@redwood.com, marissa.cole@redwood.com, karthik.iyer@redwood.com, vanessa.ortiz@redwood.com
+Cc: lukas.meyer@redwood.com
+Date: Thu, 17 Sep 2026 17:45:00 -07:00
+Subject: Re: Fwd: Private offers (AWS + GCP) — exec approval needed for onboarding credit + rev-share harmonization
+
+Aditya / Team — finance confirms the contra-revenue approach is acceptable for this one-off credit. Accounting treatment: record as contra-revenue tied to invoice 1, amortize recognition across first billing period for ARR reconciliation. Two notes:
+1) We need Deal Desk to provide the final invoice stub and the partner invoice showing the $75k charge before payment runs.
+2) For ASR/reporting, the marketplace rev-share calculations will be run on gross usage; finance will record the $75k separately so partner payouts (where applicable) are not double-adjusted.
+
+Assuming the legal clause Marissa mentioned is added, finance signs off. Lukas — proceed to confirm with Helix that invoice 1 will reflect the $75k rebate, and we will route the private offers to AWS/GCP marketplace ops for listing.
+
+Thanks,
+Laura Bennett
+Director, Finance | Redwood Inference
+laura.bennett@redwood.com
+
+(end of thread)

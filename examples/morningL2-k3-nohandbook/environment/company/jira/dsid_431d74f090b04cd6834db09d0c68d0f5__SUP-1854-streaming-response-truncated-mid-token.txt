@@ -1,0 +1,58 @@
+Streaming response truncated mid-token (client sees clean 200 + stream ends early) - suspected proxy/idle timeout
+
+Issue summary
+- Customer reports streamed chat completions intermittently end early (no explicit error), often mid-token. Customer sees HTTP 200 and receives several SSE chunks, then the stream closes and the assistant message is incomplete.
+- Customer notes the truncation frequency increased after routing traffic through their corporate egress proxy (TLS inspection enabled). They also see it more often when responses are longer (> ~1,000 output tokens).
+
+Impact
+- End users receive incomplete assistant responses; customer must detect truncation and re-issue request, leading to higher token spend and degraded UX.
+- Customer claims ~3–8% of streaming calls impacted over last 24h in us-east.
+
+Customer environment
+- Customer: Acme AI (Corp) (enterprise)
+- Region: us-east
+- Endpoint: /v1/chat/completions (stream=true)
+- SDK: TypeScript SDK v1.12.0 (customer also tested raw fetch)
+- Transport: HTTP/2 from client to proxy; proxy to Redwood not confirmed
+
+Observed symptoms (from customer)
+- SSE stream terminates without [DONE]
+- Last chunk sometimes ends with partial UTF-8 sequence / partial token boundary (customer concatenation logic yields invalid JSON at the tail)
+- No client-side timeout triggered (they allow 120s)
+
+Support intake checklist (captured)
+- Request IDs: rwd_req_01HTY7Q2F1S9F0E6YH2ZQ2A3Z7, rwd_req_01HTY7Q8CN2QW4Y2V9KX0J1R3M (examples)
+- Approx timestamps: 2026-02-11 18:22–18:35 UTC
+- Customer network: corporate proxy + outbound NAT; TLS inspection on
+- Confirmed: issue reproduced with customer’s proxy path; not reproduced from a direct connection test in a small sample (see comments)
+
+Working hypothesis
+- Stream is being closed upstream (proxy / intermediate load balancer) due to idle timeout/keepalive mismatch or HTTP/2 flow-control behavior under sustained streaming.
+- Gateway currently classifies this as a generic disconnect; customer sees a clean close without enough context.
+
+What we asked customer to provide (customer-safe)
+- Full response headers from initial request
+- Whether they see [DONE] event in successful cases
+- Proxy vendor + relevant timeout/keepalive settings (no internal IPs)
+- A pcap is NOT requested; instead, request IDs + their proxy logs around stream close events
+
+Escalation notes
+- This resembles SUP-1842 pattern but differs in that customer sees truncation mid-token with no explicit client error. Flagging SRE + Gateway/runtime for confirmation and any known mitigations.
+
+Proposed immediate actions
+1) Share streaming workaround guidance (retry/reconnect, idempotency key, timeouts/keepalive) and a specific check: disable HTTP/2 to isolate proxy behavior.
+2) Validate on Redwood side via request IDs: did we observe disconnect at gateway vs runtime? Any upstream 499/504 equivalents?
+3) If confirmed proxy-driven, document as known issue + add explicit client detection guidance for missing [DONE] + incomplete JSON events.
+2026-02-11 18:41 UTC — Priya Shah (Support): Opened ticket from Acme escalation thread. Customer reports SSE closes early without [DONE]. Requested request IDs + timestamps + whether traffic passes through proxy/TLS inspection. Set priority P1 due to enterprise impact and repeat frequency.
+2026-02-11 19:05 UTC — Owen Phillips (Support): Acknowledged to customer with initial guidance: detect missing [DONE] as incomplete stream; implement retry with backoff and idempotency key; increase client read timeout; capture Request-Id from response headers. Shared draft link to KB: workaround-streaming-timeouts-and-reconnect.
+2026-02-11 19:22 UTC — Owen Phillips (Support): Internal note: created Slack bridge per playbook (#support-bridge-sup-1854) and invited oncall SRE + gateway owner. Linked related ticket SUP-1842 for pattern matching.
+2026-02-11 19:39 UTC — Sean Gallagher (SRE): Pulled logs for rwd_req_01HTY7Q2F1S9F0E6YH2ZQ2A3Z7. Gateway recorded client disconnect mid-stream; runtime was still producing tokens for ~1.2s after disconnect. No internal errors; appears upstream close rather than model/runtime failure.
+2026-02-11 20:10 UTC — Mina Haddad (Platform/Routing): Confirmed no fallback routing event for the sampled request IDs; not a model swap/version pin issue. Suggested isolating proxy/HTTP2 path.
+2026-02-12 16:05 UTC — Priya Shah (Support): Customer tested direct connection (no corporate proxy) for ~200 calls; saw 0 truncations. With proxy enabled, truncation re-appeared (~6/200). Customer notes proxy has a 60s idle timeout on long-lived responses; they will trial keepalive adjustments.
+2026-02-12 17:20 UTC — Rafael Mendes (SRE): Recommendation: suggest customer disable HTTP/2 between client and proxy or proxy and Redwood; also adjust proxy buffering/streaming settings (ensure it supports SSE pass-through). From Redwood side, action item is improved error classification and surfacing request IDs (ENG-4822 / PR-19321).
+2026-02-13 09:50 UTC — Wei Chen (Docs/DevEx): Added a callout request to ensure KB explicitly states: 'If stream ends without [DONE], treat as incomplete and retry.' Also added a section on proxy/LB timeouts and HTTP/2 disable test. Will land via docs PR referenced in related PRs.
+2026-02-14 18:30 UTC — Owen Phillips (Support): Customer confirmed mitigation: set proxy idle timeout to 5m and disabled HTTP/2 between proxy and upstream; truncations dropped to ~0 over 12h. Marking ticket resolved; keeping linked engineering work open for improved error messaging.
+Resolved via customer-side mitigation. Redwood-side investigation indicates client disconnect at gateway mid-stream with no serving-runtime error. Root cause likely proxy/idle timeout/HTTP2 behavior in customer egress path. Provided workaround guidance: treat missing [DONE] as incomplete; retry with idempotency; adjust proxy idle timeout/keepalive; test disabling HTTP/2 / ensure SSE pass-through. Linked to existing streaming troubleshooting/known-issue guidance and to ongoing engineering work to improve disconnect error details.
+If customer reports recurrence, request new request IDs and confirm whether disconnect is still gateway-observed vs runtime error.
+Track ENG-4822 / PR-19321 rollout to improve streaming disconnect classification and request ID propagation.
+Ensure KB article includes explicit 'missing [DONE] => incomplete stream' guidance and proxy timeout checklist (Docs PR-2843 follow-up if needed).

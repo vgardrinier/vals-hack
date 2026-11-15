@@ -1,0 +1,121 @@
+Priv deploy: evidence mapping, operator proof & retention sync
+
+From: Aditi Sharma <aditi@vitalcare.ai>
+To: Connor O'Brien <connor.obrien@redwoodinference.com>, Laura Bennett <laura.bennett@redwoodinference.com>
+Cc: 
+Date: Tue, 3 Jun 2025 09:12:00 -0700
+Subject: Priv deploy: operator access & retention clarifications
+
+Hi Connor / Laura,
+
+Thanks again for the demo last week — VitalCare is excited to move the Private VPC pilot forward. Before our procurement team drafts PO language, a couple of open items from compliance that I need clarified (so the procurement folks can model the risk and acceptance):
+
+- Operator access model: you have previously described a "stewarded operator" model where Redwood personnel may perform snapshot validation in a customer VPC. We need the exact checklist you use during that process and how access is limited (session duration, MFA, IP allowlist, console vs. agent-based access).
+- License scope for on-prem: does the Order Form + private-deploy addendum carve out model residency or grant a limited-use license for snapshots/runbooks to be executed by the customer? Procurement wants clear language they can include in the SOW.
+- Evidence & escrow-like asks: our security team may request a signed statement or snapshots for continuity — what form factors do you support (signed witness, encrypted image, escrowed artifacts, attestation letters)? Also, what is the proposed retention and deletion workflow for those artifacts?
+
+Attached: VitalCare-SOW.pdf (draft). Can you point me to the evidence checklist and share any runbook excerpt that describes the operator validation steps? We can set a short call if helpful — procurement would like to resolve the acceptance criteria this week.
+
+Best,
+Aditi Sharma
+Sr. Program Manager, Integrations
+VitalCare AI
+
+---
+Attachment: VitalCare-SOW.pdf (application/pdf, stub)
+From: Connor O'Brien <connor.obrien@redwoodinference.com>
+To: Aditi Sharma <aditi@vitalcare.ai>
+Cc: Laura Bennett <laura.bennett@redwoodinference.com>, Marissa Cole <marissa.cole@redwoodinference.com>
+Date: Tue, 3 Jun 2025 11:05:00 -0700
+Subject: Re: Priv deploy: operator access & retention clarifications
+
+Hi Aditi — thanks for the clear list. Quick responses and next steps below: 
+
+1) Operator access / validation checklist: we have a short runbook excerpt that covers (a) temporary console access via short-lived credentials, (b) session recording retention policy, (c) MFA and IP restriction requirements, and (d) least-privilege roles scoped to snapshot/validation operations only. I'll attach the runbook digest and a one-page checklist.
+2) License scope: our standard private-deploy addendum grants Redwood a narrowly-scoped, non-commercial right to instantiate model snapshots solely for validation and failover testing; it does not grant broader distribution rights. Laura is looping in legal for precise suggested MSA language.
+3) Evidence / escrow: we support encrypted snapshot transfer under an NDA, and we can provide a signed attestation of access and validation steps. We do not currently offer third-party escrow custody by default, but we can propose an "escrow-lite" workflow (encrypted snapshot + notarized attestation + time-limited access token) for customers who require it.
+
+If it helps, I propose a 30-min working session Thursday (6/5) to walk procurement through the checklist and proposed addendum text. Same time we can drop the runbook fragment into a shared Drive.
+
+Connor
+Connor O'Brien
+Solutions Engineer, Redwood Inference
+connor.obrien@redwoodinference.com | +1 415-555-0199
+
+---
+Attachment: runbook-digest.txt (text/plain, stub)
+From: Laura Bennett <laura.bennett@redwoodinference.com>
+To: Aditi Sharma <aditi@vitalcare.ai>, Connor O'Brien <connor.obrien@redwoodinference.com>
+Cc: Marissa Cole <marissa.cole@redwoodinference.com>, Dylan Brooks <dylan.brooks@redwoodinference.com>
+Date: Wed, 4 Jun 2025 10:30:00 -0700
+Subject: Re: Priv deploy: operator access & retention clarifications
+
+Aditi / Connor — looping in a few legal and delivery points. I reviewed the SOW draft and summarized our asks and proposed MSA redline positions below. I've attached a first-pass redline for the private-deploy addendum.
+
+Key items we'd like to confirm (short list):
+- Explicit license boundary: order form + addendum should state that Redwood retains model IP and that any snapshots transferred to the customer are licensed for internal run/test and continuity purposes only; no redistribution. Suggested clause in redline: "Customer is granted a non-exclusive, revocable, limited license to use delivered snapshots solely for internal continuity and testing; all other rights reserved."
+- Operator proof: we can provide signed attestations and session recordings as evidence of operator activity. Customer requests for raw snapshot images require a documented evidence request and an agreed acceptance test. We propose an approval window (30 days) for the customer to review evidence following delivery.
+- Escrow-lite workflow: addendum includes option (A) encrypted snapshot + RSA-signed attestation delivered to customer, or (B) encrypted snapshot deposited with mutually-agreed custodian (third party) for the duration of the agreement. Custodian option requires explicit fees and SLA.
+- Retention & deletion: define retention periods for session recordings and evidence artifacts (e.g., 90 days for session logs, 365 days for escrowed artifacts unless renewal).
+
+Action items for VitalCare / MedSys procurement: please confirm whether you expect raw snapshot handover or if a signed attestation + test workload run is sufficient. That choice will affect both license language and delivery timelines.
+
+Attachment: MedSys-MSA-Redlines_v1.pdf (application/pdf, stub)
+
+Thanks,
+Laura Bennett
+Senior Counsel, Redwood Inference
+laura.bennett@redwoodinference.com
+
+-----Original Message-----
+From: Aditi Sharma <aditi@vitalcare.ai>
+Sent: Tuesday, June 3, 2025 9:12 AM
+To: Connor O'Brien <connor.obrien@redwoodinference.com>; Laura Bennett <laura.bennett@redwoodinference.com>
+Subject: Priv deploy: operator access & retention clarifications
+
+(Quoted original message for context)
+From: Aditi Sharma <aditi@vitalcare.ai>
+To: Tom Reynolds <t.reynolds@medsys.com>, procurement@medsys.com
+Cc: Connor O'Brien <connor.obrien@redwoodinference.com>, Laura Bennett <laura.bennett@redwoodinference.com>
+Date: Wed, 4 Jun 2025 13:22:00 -0700
+Subject: Fwd: Priv deploy: operator access & retention clarifications
+
+Tom / Procurement team — forwarding the thread and Redwood's initial responses. See key points from Laura's note: choice between attestation-only vs. raw snapshot transfer will drive license scope and potential custodian fees.
+
+On Wed, Jun 4, 2025 at 10:30 AM Laura Bennett <laura.bennett@redwoodinference.com> wrote:
+> Aditi / Connor — looping in a few legal and delivery points. I reviewed the SOW draft and summarized our asks and proposed MSA redline positions below. I've attached a first-pass redline for the private-deploy addendum.
+>
+> Key items we'd like to confirm (short list):
+> - Explicit license boundary: order form + addendum should state that Redwood retains model IP and that any snapshots transferred to the customer are licensed for internal run/test and continuity purposes only; no redistribution.
+> - Operator proof: we can provide signed attestations and session recordings as evidence of operator activity. Customer requests for raw snapshot images require a documented evidence request and an agreed acceptance test.
+
+Could you advise which route MedSys prefers? If procurement wants a custodian option, we'll need to scope fees and timing.
+
+Best,
+Aditi
+
+(Forwarded attachment: VitalCare-SOW.pdf)
+From: Connor O'Brien <connor.obrien@redwoodinference.com>
+To: Aditi Sharma <aditi@vitalcare.ai>, Tom Reynolds <t.reynolds@medsys.com>, procurement@medsys.com
+Cc: Laura Bennett <laura.bennett@redwoodinference.com>, Marissa Cole <marissa.cole@redwoodinference.com>, Dylan Brooks <dylan.brooks@redwoodinference.com>
+Date: Thu, 5 Jun 2025 16:48:00 -0700
+Subject: Re: Priv deploy: operator access & retention clarifications — proposed MAP and artifacts
+
+Hi all — thanks for the fast turnaround. To keep procurement moving, proposed Mutual Action Plan below (30-day cadence):
+
+Day 0 (today): Redwood confirms proposed addendum language (attached redline) and delivers runbook digest + evidence checklist.
+Day 3: Procurement confirms whether attestation-only meets acceptance criteria or if raw snapshot handover is required. If raw snapshot required, procurement confirms custodian preference.
+Day 7: If raw snapshot chosen, Redwood provides encrypted snapshot transfer plan and list of test vectors for acceptance.
+Day 14: Joint acceptance window opens; customer validates evidence against agreed test vectors.
+Day 30: Final acceptance and order form signature.
+
+Deliverables attached to this email: redwood-privdeploy-evidence-checklist.xlsx (stub), runbook-digest.txt (previous), and a short FAQ on the escrow-lite options.
+
+If everyone is aligned I'll schedule a 30-min call Friday 6/6 at 10am PT to walk procurement through the checklist and the custody options. If not, propose alternate times.
+
+Thanks,
+Connor O'Brien
+Solutions Engineer, Redwood Inference
+connor.obrien@redwoodinference.com | +1 415-555-0199
+
+Attachments: redwood-privdeploy-evidence-checklist.xlsx (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, stub); runbook-digest.txt (text/plain, stub)

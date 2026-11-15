@@ -1,0 +1,70 @@
+Sidecar metrics lock + healthcheck flood causing API 5xx elevation and upstream runtime CPU saturation
+
+Issue summary:
+During a sustained healthcheck spike from a downstream customer (NimbusAI), the api-gateway began returning a high rate of 5xx responses (502/503). Concurrently we observed CPU saturation on a subset of serving runtimes and prolonged response times from the sidecar metrics collector.
+
+Impact:
+- Customer-facing ratio of 5xx increased from baseline ~0.02% to 6.8% over a 12-minute window.
+- NimbusAI (dedicated tenant) reported failed inference calls and stream drops.
+- Affected traffic covered 2 AZs in us-east-1; overall platform error budget impacted briefly.
+
+Environment:
+- prod, us-east-1 region
+- Dedicated pool: nvme-backed GPU nodes serving redwood-open-1 model variants
+
+Steps to reproduce (observed pattern):
+1) Healthcheck flood from a misconfigured internal probe on NimbusAI side (high-frequency synthetic requests).
+2) api-gateway enqueue/backpressure increased; concurrent healthchecks saturated sidecar metrics lock attempting to write metrics to local agent.
+3) Sidecar thread holding metrics lock blocked the proxy's keepalive/accept path, increasing accept queue latency.
+4) Serving runtime CPU increased as runtime threads waited on connection handoffs; NVML driver saw transient timeouts and a few GPU watchdog resets.
+5) Gateway replies degraded to 502/503 for in-flight requests.
+
+Observed behavior:
+- p95 latency for API route /v1/generate jumped from 220ms -> 1.8s.
+- 5xx rate peak: 6.8% at 09:11 UTC.
+- Sidecar logs show repeated "metrics_writer: lock contention" entries and ~200ms+ blocked durations.
+- Grafana panels: connection_reset_count increased by 120 within 10 minutes; nvml_gputimeout_count recorded 3 events.
+
+Expected behavior:
+- Healthchecks should be rate-limited at ingress and never cause sidecar-level lock contention or upstream runtime CPU saturation.
+- Gateway should shed healthcheck-only traffic earlier to protect serving runtimes.
+
+Logs / links:
+- Grafana (alert): https://grafana.redwood.ai/d/alerts/5xx-sidecar-lock-2026-03-12
+- Slack thread: https://slack.redwood.ai/archives/C0SUPPORT/p1648
+- Sidecar log excerpt: "2026-03-12T09:09:42Z metrics_writer: lock contention 245ms (queue=18)"
+
+Initial triage notes:
+- Hypothesis A: Misbehaving external probe triggered a high-rate healthcheck stream that bypassed normal rate-limiter and repeatedly polled /health on tenant route causing local sidecar to contend on a mutex used for batching metrics writes.
+- Hypothesis B: Metrics writer lock held during a flush to disk/agent while the api-gateway accept queue grew, causing unbounded queueing and proxy-side request timeouts.
+- Evidence: Sidecar contention log aligned exactly with p95 latency spike and increased accept queue depth in the apigw metrics.
+
+Immediate actions taken:
+- Support temporarily blocked the misbehaving source (NimbusAI probe IP) at the edge (rate-limit + IP ban) at 09:16 UTC — 5xx rate dropped to 0.6% within 3 minutes.
+- Opened INT-4102 to coordinate a sidecar hotfix; deployment planned to remove blocking flush behavior.
+- Added ad-hoc alert for sidecar-metrics-lock-duration > 100ms.
+
+Workaround for affected customers:
+- Rate-limited healthchecks on customer-side (instructed NimbusAI to reduce probe frequency to <1/min) and applied edge rate-limits.
+
+Next steps / action plan:
+1) Engineering (runtime & sidecar) to roll a sidecar patch that converts the metrics writer to a lock-free ring buffer (PR linked). Target hotfix window: 2026-03-13 02:00 UTC.
+2) Add platform-level guard to drop high-frequency /health requests above 30/min per source IP and emit a dedicated healthcheck-shed metric.
+3) Postmortem to document root cause and customer guidance; coordinate with NimbusAI for long-term remediation.
+
+Customer impact note:
+- NimbusAI experienced transient failed requests but did not exceed SLO credits. We informed CS and Nimbus account team; they accepted temporary mitigation and will apply configuration changes.
+
+[2026-03-12 09:22] Ava (Support): Noticed synchronous lock contention logs in sidecar correlating to 5xx spike. Blocked suspicious probe IP and filed INT-4102 for a hotfix. Customer notified: NimbusAI SRE acknowledging probe misconfiguration.
+[2026-03-12 09:35] Ravi (SRE): Confirmed sidecar 'metrics_writer' mutex hold times match the gateway accept-queue growth. Collected flamegraph and nvml logs. Temporary mitigation applied at edge; preparing canary for ring-buffer patch.
+[2026-03-12 11:01] Product (Maya Lopez): Recommend adding a healthcheck rate-limit on gateway level as a short-term policy. Logged feature request to product backlog.
+[2026-03-13 01:47] Ravi (SRE): Deployed sidecar hotfix to canary pool in us-east-1; observed no lock contention after deploy. Preparing broader rollout pending validation. Related PR: https://github.com/redwood/repro-fix/pull/402
+[2026-03-13 08:12] Ava (Support): Customer NimbusAI confirmed reduced error rate and are scheduling probe config change. Marking customer as informed; will follow up after full rollout.
+[2026-03-13 12:00] Postmortem Owner (Ravi): Assigned for write-up. Tentative RCA: healthcheck amplification -> metrics lock contention -> accept queue growth -> runtime CPU wait -> gateway 5xx. Postmortem draft link: https://confluence.redwood.ai/pages/PM-SUP-989901
+Artifacts collected: sidecar logs, apigw accept queue histogram, nvml watchdog logs. Flamegraphs show kernel wait on futex in metrics writer thread. Reproduced in staging by running a synthetic /health flood from an IP without rate-limit — produced identical lock contention pattern. Patch changes metrics writer to async buffer + background flush. Canary shows p95 restore to baseline.
+Edge-level IP rate-limit applied to offending probe; instructed customer to throttle healthchecks. Added temporary alert and monitoring dashboards to detect recurrence.
+In progress — hotfix deployed to canary and scheduled for gradual rollout. Customer mitigation accepted. Postmortem pending.
+Rollout sidecar hotfix to all prod us-east clusters (Ravi)
+Implement gateway healthcheck rate-limiter (Product + Edge)
+Create public KB for customers on recommended healthcheck cadence (DX)
+Write postmortem and notify NimbusAI account team (Ravi + Ava)

@@ -1,0 +1,123 @@
+VM retention and remediation routing for BrightBank SIG review
+
+From: audits@brightbank.com
+To: vanessa.ortiz@redwood.com
+Cc: security@innerscan.io
+Date: 2026-10-04T09:12:00Z
+Subject: VM retention and remediation routing for BrightBank SIG review
+
+Vanessa —
+
+Thanks for taking this on. As part of BrightBank's SIG review we need a short package that clarifies Redwood's vulnerability management retention and remediation routing. Specifically we need:
+
+- Scan cadence (authenticated/internal + unauthenticated/external) and how long raw scan artifacts and exports are retained.
+- SLA by severity for CVE remediation and how exceptions are routed/approved.
+- Proof that fixes were applied (patch manifests or deployment IDs) for any CVEs closed in the last 12 months.
+- Clarification on third-party dependency scanning and retention for vendor-supplied components.
+
+Can you confirm whether a 12-month retention window for raw scan artifacts and the remediation matrix we requested is available? If so, please share the artifacts and a short signed attestation we can include in the SIG packet. Ideally we need this by COB 2026-10-11.
+
+If you prefer, we can accept a single compressed bundle and a signed DocuSign attestation. Let me know the expected delivery and whether you need a GAP window.
+
+Thanks,
+Erin Caldwell
+Security Auditor, BrightBank
+audits@brightbank.com
+
+---
+Forwarded to: vanessa.ortiz@redwood.com
+
+From: vanessa.ortiz@redwood.com
+To: audits@brightbank.com
+Cc: kimberly.park@redwood.com, monica.patel@redwood.com
+Date: 2026-10-04T10:28:00Z
+Subject: Re: VM retention and remediation routing for BrightBank SIG review
+
+Erin —
+
+Thanks, we can provide what you outlined. Quick summary up-front:
+
+- Scan cadence: authenticated internal scans run weekly; external unauthenticated scans run nightly.
+- Retention: raw scan exports and historical scan reports retained for 14 months by default (longer retention available on request).
+- CVE remediation SLA: Critical (7 days), High (30 days), Medium (90 days), Low (180 days); exceptions handled via an internal compensating control review and approved by Security Ops.
+- Third-party dependency scanning: we run SCA at least weekly and include vendor-supplied dependency manifests in the same retention window.
+
+I've attached the following artifacts for your review: vm-scan-index.csv (metadata for the last 12 months), cve-closure-matrix.xlsx (mapping: CVE -> owner -> ticket -> patch/deploy ID), and a short policy extract (scan-retention-policy.pdf).
+
+Next steps: can you confirm that a single ZIP of these files plus a DocuSign signature will be accepted? If yes, I'll route the DocuSign to you and provide the ZIP via the Drive link below.
+
+Delivery commitment: we can upload the bundle to the Drive folder and send DocuSign for signature by EOD 2026-10-06. If you need the signed attestation earlier, please tell me and we'll prioritize.
+
+Thanks — VANESSA ORTIZ
+Manager, Security & Compliance Enablement
+Redwood Inference
+vanessa.ortiz@redwood.com
++1 (415) 555-0123
+
+Attachments:
+- vm-scan-index.csv (CSV, 1.2MB)
+- cve-closure-matrix.xlsx (XLSX, 320KB)
+- scan-retention-policy.pdf (PDF, 85KB)
+
+Drive: https://drive.redwood.com/drive/folders/1A2b3C_vm_artifacts
+DocuSign (prep): https://docusign.net/prepare/Redwood_VM_Attestation
+
+From: kimberly.park@redwood.com
+To: vanessa.ortiz@redwood.com, monica.patel@redwood.com
+Date: 2026-10-04T10:45:00Z
+Subject: Re: VM retention and remediation routing for BrightBank SIG review
+
+Vanessa — quick technical addendum to include in the response (feel free to paste as a short appendix):
+
+- SCANNER STACK / CADENCE:
+  * Internal auth scans: Tenable.io credentialed scans against defined asset groups, weekly.
+  * External unauthenticated scans: Nessus/Qualys nightly perimeter scans, nightly for public-facing surfaces.
+  * SCA: Snyk scans of CI/CD builds and dependency manifests, weekly.
+
+- RETENTION & ARTIFACTS:
+  * Raw scan exports (Nessus XML / Tenable CSV) retained for 14 months in our secure artifact store (immutable backups for the first 90 days) and accessible to auditors with a signed request.
+  * Aggregated reports (PDF/CSV) retained for 36 months for compliance reporting.
+
+- REMEDIATION ROUTING / SLAS:
+  * Triage: auto-create ticket in JIRA SECOPS- board, severity assigned by the triage rule.
+  * Ownership: dev or infra team assigned; security owns exceptions.
+  * SLA: Critical = 7 calendar days (hotpatch window + verification), High = 30 days, Medium = 90 days, Low = 180 days.
+  * Exceptions: documented in JIRA with compensating control description; approvals logged in the ticket and mirrored to our audit ledger (JIRA link included).
+
+- PROOF OF FIXES:
+  * We include: ticket ID, deploy job ID (CI build), kube rollout/AMI version, and post-patch scan evidence (simple delta report).
+
+Notes: for third-party vendor components where we cannot patch upstream, we provide mitigation artifacts & exception records and include CVSS/time-to-fix rationale.
+
+Kimberly Park
+Director, Vulnerability Management
+kimberly.park@redwood.com
+
+On 2026-10-04 10:28, vanessa.ortiz@redwood.com wrote:
+> Erin —
+> 
+> Thanks, we can provide what you outlined. Quick summary up-front:
+> ...
+
+From: audits@brightbank.com
+To: vanessa.ortiz@redwood.com
+Cc: security@innerscan.io
+Date: 2026-10-05T09:02:00Z
+Subject: Re: VM retention and remediation routing for BrightBank SIG review
+
+Vanessa / Kimberly —
+
+Appreciate the quick turnaround and the attachments. The 14-month retention for raw exports and the SLA table look acceptable for our SIG packet. A couple of clarifications before we close the item:
+
+1) For vendor-supplied components where patching is not controlled by Redwood, please include the most recent evidence of the compensating control (config, WAF rule, isolation) and the exception ticket ID.
+
+2) For proof of fixes, our review prefers deploy job IDs + post-patch delta scan when available. The CVE matrix you sent looks like it includes deploy IDs — perfect.
+
+Please send the ZIP through the Drive folder and route the DocuSign attestation to audits@brightbank.com (we'll sign on receipt). COB 2026-10-11 is fine; if you can deliver earlier (by 2026-10-06 as proposed), that helps our audit sprint.
+
+I'll mark this thread as resolved after we have the signed attestation attached to the SIG packet.
+
+Thanks,
+Erin Caldwell
+audits@brightbank.com
+

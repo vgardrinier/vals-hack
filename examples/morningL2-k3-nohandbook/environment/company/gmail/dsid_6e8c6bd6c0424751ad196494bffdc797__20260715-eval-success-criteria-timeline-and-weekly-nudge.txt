@@ -1,0 +1,133 @@
+Evaluation success criteria, timeline and weekly check-ins
+
+From: Liam O'Neill <liam.oneill@clearbay.io>
+To: Nikhil Sharma <nikhil.sharma@redwood.com>
+Cc: Ava Chen <ava.chen@clearbay.io>
+Date: Wed, 8 Jul 2026 14:05:00 -0400
+Subject: Re: Quick sync — Redwood trial next steps (recap)
+
+Hi Nikhil — thanks again for the demo this morning. Quick recap from our side and a couple of asks so we can get this POC moving next week:
+
+- Primary goal: validate 95th-percentile latency under our 1k qps synthetic workload and confirm inference cost per 1M tokens with batching.
+- Secondary goal: measure output quality on our 150 prompt test set and ensure no regressions vs. our existing in-house model.
+- Timeline: ideally a two-week hands-on trial starting 7/13, with a mid-trial check on day 7 and an internal review by 7/27.
+- Blockers: we need a short network/egress checklist and an NDA/PO in place.
+
+Can you confirm Redwood can provide: the success-criteria doc, a shared Drive with the test harness, and a point-of-contact for network/infra? Also share any standard evaluation script you recommend.
+
+Thanks — Liam
+Liam O'Neill
+Head of ML Platforms, ClearBay Analytics
+[mobile: +1 (415) 555-0192]
+
+On Wed, Jul 8, 2026 at 11:00 AM Nikhil Sharma <nikhil.sharma@redwood.com> wrote:
+> Great call earlier — really excited about ClearBay's use case.
+
+From: Nikhil Sharma <nikhil.sharma@redwood.com>
+To: Liam O'Neill <liam.oneill@clearbay.io>
+Cc: Ava Chen <ava.chen@clearbay.io>, Marissa Cole <marissa.cole@redwood.com>, Grace O'Connor <grace.oconnor@redwood.com>
+Date: Wed, 8 Jul 2026 16:20:00 -04:00
+Subject: Re: Quick sync — Redwood trial next steps (POC plan + owners)
+
+Liam — thanks for the clear summary. Confirming next steps from Redwood's side and attaching a first-draft success criteria spreadsheet for your review. High level plan below:
+
+1) Success criteria (attached):
+   - Latency: 95th percentile < 300ms on 1k qps synthetic, with target tail < 500ms under burst.
+   - Cost: baseline estimate for 1M tokens with continuous batching; we'll provide low/med/high configs.
+   - Quality: pass >= 88% on your 150-prompt test set (precision-style metric in the sheet).
+   - Reliability: zero crashes, model fallback behavior for overloaded conditions.
+
+2) Evaluation plan:
+   - Week 0 (prep): network allowlist, access to test harness, config file exchange.
+   - Week 1 (7/13-7/19): initial run, latency/cost profiling, and quick quality pass.
+   - Midpoint sync: 7/16 — 30-minute readout with infra and CS.
+   - Week 2 (7/20-7/26): follow-up runs, resolve perf regressions, final quality report.
+
+3) Ownership:
+   - Redwood POC lead: Nikhil Sharma (me) — trial orchestration, perf configs, billing ops.
+   - Redwood CS: Evelyn Hart — onboarding, logs, and output-quality evaluation support.
+   - ClearBay lead: Liam O'Neill — test suite, internal approval.
+
+4) Deliverables before trial start: signed NDA/PO, shared Drive access to the harness, network checklist completed.
+
+I've attached: POC_Success_Criteria_v1.xlsx and a short network-requirements.pdf. Also linking a short eval script we run internally (Drive link below).
+
+If this looks good, I'll send a one-page mutual action plan and calendar invites for the 7/13 start and the 7/16 midpoint.
+
+Best,
+Nikhil Sharma
+Account Executive, Redwood Inference
+[attachment: POC_Success_Criteria_v1.xlsx]
+[attachment: network-requirements.pdf]
+https://drive.google.com/drive/folders/1aB2cC-example
+
+From: Nikhil Sharma <nikhil.sharma@redwood.com>
+To: Marissa Cole <marissa.cole@redwood.com>, Grace O'Connor <grace.oconnor@redwood.com>
+Cc: Evelyn Hart <evelyn.hart@redwood.com>
+Date: Thu, 9 Jul 2026 09:12:00 -04:00
+Subject: Internal: ClearBay trial — ask on infra support and temporary credits
+
+Marissa / Grace — forwarding the POC plan from ClearBay (see attached). A couple of asks from the commercial side before we proceed:
+
+- Can we approve one week of complimentary trial credits to cover the first run (estimate ~ $3k)? This will help speed their internal sign-off.
+- Can the infra team allocate an engineer for the 7/16 midpoint readout in case we need kernel/tuning tweaks? 1-2 hours of on-call support.
+
+Evelyn: can you confirm CS capacity to own day-1 onboarding and the quality metric collection?
+
+If we green-light credits and on-call infra, I’ll lock the 7/13 start and send the M.A.P.
+
+Thanks — Nikhil
+
+From: Marissa Cole <marissa.cole@redwood.com>
+To: Nikhil Sharma <nikhil.sharma@redwood.com>
+Cc: Grace O'Connor <grace.oconnor@redwood.com>, Evelyn Hart <evelyn.hart@redwood.com>
+Date: Thu, 9 Jul 2026 10:05:00 -04:00
+Subject: Re: Internal: ClearBay trial — ask on infra support and temporary credits
+
+Nikhil — green on the credits (approve $3k trial credit). I can ping Platform Oncall to reserve an engineer for 7/16 14:00 ET. Evelyn, please confirm you can run the quality collection and the test harness onboarding on 7/13 morning.
+
+Marissa
+VP Sales, Redwood Inference
+
+From: Nikhil Sharma <nikhil.sharma@redwood.com>
+To: Liam O'Neill <liam.oneill@clearbay.io>
+Cc: Ava Chen <ava.chen@clearbay.io>, Evelyn Hart <evelyn.hart@redwood.com>
+Date: Fri, 10 Jul 2026 08:30:00 -04:00
+Subject: Re: Quick sync — Redwood trial next steps (confirmations + MAP)
+
+Liam — quick update and next steps:
+
+- We approved a $3k trial credit to cover initial runs.
+- Evelyn (CS) will own the 7/13 onboarding and the mid-trial quality collection.
+- Platform will be on-call 7/16 for the midpoint readout (Marissa reserved an engineer).
+
+Attached is a one-page Mutual Action Plan (Drive link above). Please confirm you have Drive access and that the ClearBay legal team can return the NDA (I'll attach the standard template if useful).
+
+Two asks for you before we start on 7/13:
+1) Share a short snippet of the 150-prompt test set (5 representative prompts) so we can sanity-check scoring.
+2) Confirm a primary VPN IP range or CIDR block for the allowlist (network-requirements.pdf lists ports).
+
+If those are good, I’ll send invites for the 7/13 09:00 ET onboarding and the 7/16 14:00 ET midpoint.
+
+Cheers,
+Nikhil
+[link to Mutual Action Plan: https://docs.google.com/document/d/1xyz-POC-plan]
+
+From: Nikhil Sharma <nikhil.sharma@redwood.com>
+To: Liam O'Neill <liam.oneill@clearbay.io>
+Cc: Ava Chen <ava.chen@clearbay.io>, Marissa Cole <marissa.cole@redwood.com>, Evelyn Hart <evelyn.hart@redwood.com>
+Date: Wed, 15 Jul 2026 09:10:00 -04:00
+Subject: Weekly nudge — pre-trial checklist and kickoff confirmation
+
+Hi Liam / Ava — friendly nudge ahead of tomorrow's 09:00 ET onboarding:
+
+- Do you have Drive access to the POC folder? (https://drive.google.com/drive/folders/1aB2cC-example)
+- Were you able to return the NDA? If not, send estimate when legal will sign.
+- Primary CIDR for allowlist we received: 203.0.113.0/24 — can you confirm?
+- Also please drop 5 sample prompts (as requested) so Evelyn can pre-run scoring.
+
+If anything changes to the start time, flag me and we can shift. Otherwise see you at 09:00 ET tomorrow for onboarding.
+
+Thanks — Nikhil
+Account Executive, Redwood Inference
+[Sent from Redwood — please see attachments and Drive link for deliverables]

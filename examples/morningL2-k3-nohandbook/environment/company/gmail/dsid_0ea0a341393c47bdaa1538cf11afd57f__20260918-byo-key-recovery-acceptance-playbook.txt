@@ -1,0 +1,90 @@
+BYOK recovery acceptance playbook for VPC/on‑prem deployment
+
+From: Ethan Park <ethan.park@redwood.ai>
+To: Connor O'Brien <connor.obrien@redwood.ai>, Olga Petrov <olga.petrov@redwood.ai>, Vanessa Ortiz <vanessa.ortiz@redwood.ai>
+Cc: Alice Monroe <alice.monroe@arcadiahealth.com>, security@arcadiahealth.com
+Date: Fri, 18 Sep 2026 09:12:00 -0700
+Subject: BYOK recovery acceptance playbook for VPC/on‑prem deployment
+
+Team — attaching a focused 'recovery acceptance' playbook for the Arcadia BYOK onboarding. This is not the full operator runbook; it is the acceptance criteria and test plan we will use with the customer during the on‑prem cutover and the staged recovery exercise.
+
+Top goals:
+- Define a repeatable, auditable key recovery window and success criteria for both KMS‑backed and HSM‑wrapped BYOKs.
+- Lock down egress/attestation checks that Arcadia requires before we mark a recovery event as successful.
+- Capture roles, expected operator actions, and an explicit checklist for external custodian handoff.
+
+Actions I need from each of you:
+- Connor: validate the network preflight (ports, private peering, jump host workflow) in the spreadsheet and confirm it matches our NAT/NACL plan.
+- Olga: review the attestation artifacts section — we need a plain list of what to collect (HSM cert chain, KMS audit bundle, signed policy document) so Arcadia can file to compliance.
+- Vanessa: confirm the operator privilege model (time‑bound breakglass, ephemeral sudo) and any console/evidence retention we need to enable.
+
+Proposed timeline: short review today, then a 60‑minute dry run w/ Arcadia next Friday (24 Sep) in the staging VPC. Please comment in the Drive link or reply with inline edits.
+
+Attachments: byok-recovery-playbook-v0.3.md, vpc-egress-checklist.xlsx, recovery-network-diagram.png
+
+Thanks —
+Ethan
+Ethan Park
+Senior Solutions Architect, Redwood Inference
+attachments: byok-recovery-playbook-v0.3.md (draft)
+
+From: Olga Petrov <olga.petrov@redwood.ai>
+To: Ethan Park <ethan.park@redwood.ai>, Connor O'Brien <connor.obrien@redwood.ai>, Vanessa Ortiz <vanessa.ortiz@redwood.ai>
+Date: Fri, 18 Sep 2026 10:01:00 -0700
+Subject: Re: BYOK recovery acceptance playbook for VPC/on‑prem deployment
+
+Thanks — quick security pass from me. I skimmed v0.3 and added inline comments in the Drive doc, but summarizing the high‑level:
+
+1) Attestation bundle: please require the following from the HSM vendor/custodian for an acceptance event — CA chain, device serials, firmware hash + signing cert, FIPS validation evidence (if applicable), and a signed statement from the custodian describing access controls used during the recovery. The current doc mentions 'attestation' but doesn't enumerate items.
+
+2) Key wrapping / KEK handling: if Arcadia is BYOK (they will), ensure we explicitly call out the KEK derivation and that we will never store plain key material. The playbook must show a zero‑knowledge transfer step + encrypted transport (SFTP TLS, signed envelope).
+
+3) Recovery test plan: add a non‑disruptive test mode where we exercise the unseal/recover steps against a disposable keyset and collect audit logs (KV cache flushes, token issuance). Arcadia will want log bundles for 90 days — include which fields to collect.
+
+4) Egress gating: the 'egress checklist' needs to say which domains/ips we allow for remote attestation validation and specify exact TLS ciphers and minimum TLS version.
+
+I'll flag one must‑have change in the playbook: require that operator sessions for any recovery be started via an ephemeral bastion with OAuth 2.0 backed SSO and recorded session capture. No direct local SSH into HSM network.
+
+I'll be available for the Friday dry run; if you want me in the call earlier to walk the Arcadia security team through the bundle requirements I can do 30 min today at 11:30 PDT.
+
+— Olga
+Olga Petrov
+Security Engineering Manager, Redwood Inference
+
+From: Connor O'Brien <connor.obrien@redwood.ai>
+To: Ethan Park <ethan.park@redwood.ai>, Olga Petrov <olga.petrov@redwood.ai>, Vanessa Ortiz <vanessa.ortiz@redwood.ai>
+Date: Fri, 18 Sep 2026 12:35:00 -0700
+Subject: Re: BYOK recovery acceptance playbook for VPC/on‑prem deployment
+
+Good notes, added a few operational clarifications in the spreadsheet. Highlights:
+
+- Network: The recovery sequence requires a temporary peering between Arcadia's on‑prem gateway and our staging VPC for the dry run; we should avoid opening 0.0.0.0/0. Steps: create VPC peering, restrict routing to the test CIDR (10.45.0.0/24), and use a jump host we control.
+- Ports: HSM vendor agent requires outbound 443 to vendor attestation endpoints and TCP/1502 for the hardware management channel during the maintenance window. I'll add those exact IP ranges to the egress sheet.
+- NAT & DNS: Recommend we use egress proxy that enforces hostname allowlist (no wildcard) and mTLS to vendor endpoints. That will simplify Arcadia's audit ask.
+- Cutover rollback: added a rollback checklist to the playbook — how to rewrap keys and revoke temporary tokens. Please verify the token TTL values in the playbook (I suggest 15m for recovery operator tokens).
+
+I'll be on the dry run and will operate the jump host. If Arcadia wants to run a second test from their DR site, we should schedule an extra hour.
+
+— Connor
+Connor O'Brien
+Platform Reliability Engineer, Redwood Inference
+
+From: Alice Monroe <alice.monroe@arcadiahealth.com>
+To: Ethan Park <ethan.park@redwood.ai>, Olga Petrov <olga.petrov@redwood.ai>, Connor O'Brien <connor.obrien@redwood.ai>, Vanessa Ortiz <vanessa.ortiz@redwood.ai>
+Date: Fri, 18 Sep 2026 15:02:00 -0700
+Subject: Re: BYOK recovery acceptance playbook for VPC/on‑prem deployment
+
+Ethan / team — thanks for the draft and rapid responses. A few items from Arcadia SecOps: 
+
+- We need at least one week notice before the dry run and a copy of the attestation bundle at least 48 hours before the exercise.
+- SOC2 + HITRUST evidence: we'll accept the HSM vendor's FIPS evidence and your signed audit bundle; please add a sample format for the audit bundle in the Drive doc.
+- During the dry run, Arcadia will require an observer on the call to validate that no secret material is staged on Redwood infrastructure. We expect the operator actions to be visible but not the key material.
+
+We can do the dry run Friday the 24th, but prefer the window 13:00–14:30 PDT. If you can provide the attestation bundle and signed acceptance template by 22 Sep EOD, that should give us time.
+
+Thanks — I added a couple of inline comments in your Drive link with a sample acceptance template.
+
+Regards,
+Alice Monroe
+Senior SecOps Manager, ArcadiaHealth
+security@arcadiahealth.com

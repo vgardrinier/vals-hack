@@ -1,0 +1,121 @@
+Re: Mutual Action Plan & Close cadence — NovaCare procurement constraints
+
+From: Melanie Thompson <melanie@novacarehealth.com>
+To: Rachel Kim <rachel_kim@redwoodinference.com>
+Cc: Margaret Lee <margaret.lee@novacarelegal.com>, Procurement Portal <procurement@novacarehealth.com>
+Date: 2026-08-01T09:12:00-07:00
+Subject: Mutual action plan + procurement questionnaire (NovaCare)
+
+Hi Rachel,
+
+Thanks for the demo last week — the eval team was impressed with the latency numbers and the dedupe examples. Procurement asked me to capture a target close window and to share our vendor intake questionnaire so legal/procurement can start their review in parallel.
+
+Can you do the following by EOD Tuesday (2026-08-03)?
+- Confirm who on Redwood will be the procurement point-of-contact for contract redlines.
+- Provide a first-pass MAP (milestones + owners) that shows evaluation gating, security evidence, legal review, and signature target.
+- Upload any corporate docs (SOC2, encryption whitepaper) to our portal (link below).
+
+Attaching the vendor questionnaire — there are sections procurement will need filled out before routing to the budget owner. We have a strict DPA turnaround target of 3 business days from first redline received (vendor permitting).
+
+Procurement portal: https://procure.novacarehealth.com/request/4521
+
+Attachment: Novacare_Procurement_Q.pdf (60KB, pdf)
+
+Appreciate quick alignment — Melanie
+Melanie Thompson
+Sr. Procurement Manager | NovaCare Health
+melanie@novacarehealth.com
++1 415-555-0142
+
+From: Rachel Kim <rachel_kim@redwoodinference.com>
+To: Melanie Thompson <melanie@novacarehealth.com>
+Cc: Kimberly Park <kimberly_park@redwoodinference.com>, Karthik Iyer <karthik_iyer@redwoodinference.com>, Margaret Lee <margaret.lee@novacarelegal.com>
+Date: 2026-08-01T11:07:00-07:00
+Subject: Re: Mutual action plan + procurement questionnaire (NovaCare)
+
+Thanks Melanie — looping in Kimberly (sales ops) and Karthik (legal ops) so we can run in parallel. I populated a draft MAP and attached it (MAP-draft-RK-v1.docx). High level plan below — please flag anything that doesn't match your internal steps.
+
+PROPOSED MUTUAL ACTION PLAN (high level)
+- Aug 3: Redwood to upload SOC2 + encryption brief to your portal; provide MAP draft and procurement POC. (Owner: Rachel)
+- Aug 4–6: Security review (SSO + KMS questionnaire). If anything needs a live call, schedule the security deep-dive for Aug 6. (Owner: Redwood security)
+- Aug 7: Legal sends initial MSA redline to NovaCare counsel (Owner: Redwood Legal - Karthik).
+- Aug 10: NovaCare provides DPA redline back (target 3 business days).
+- Aug 12: Order form and pricing sign-off; target DocuSign prepared. (Owner: Procurement)
+- Aug 14: Target signature date (soft target — can be expedited with parallel redlines).
+
+Notes / dependencies:
+- If NovaCare requires Dedicated capacity SLA language, we will need scope and throughput targets by Aug 4 to size a brief addendum.
+- Security evidence: SOC2 cert + KMS diagram + data residency statement. We will upload these to your portal today.
+
+I'll upload the SOC2 and the short encryption brief to your portal now. Who should receive the Docusign orderform when it's ready (single recipient or procurement team distribution)?
+
+Attachment: MAP-draft-RK-v1.docx (13KB, docx)
+
+Thanks — Rachel
+Rachel Kim
+Director, Strategic Accounts | Redwood Inference
+rachel_kim@redwoodinference.com
++1 650-555-0217
+
+From: Kimberly Park <kimberly_park@redwoodinference.com>
+To: Rachel Kim <rachel_kim@redwoodinference.com>, Melanie Thompson <melanie@novacarehealth.com>
+Cc: Karthik Iyer <karthik_iyer@redwoodinference.com>
+Date: 2026-08-02T08:45:00-07:00
+Subject: Re: Mutual action plan + procurement questionnaire (NovaCare)
+
+Quick thoughts from ops/legal ops:
+- Recommend adding an SSO smoke test milestone between security review and legal sign-off (we usually request IdP handshake + test user by day 2 of security).
+- If NovaCare plans to require HSM-backed KMS for production keys, we should surface expected timeline (procurement lead may need to budget for infra).
+- For the DPA: we can return a clean redline in 48 hours for standard terms; anything bespoke (audit frequency, subprocessor addenda) may extend the window.
+
+I'll prepare a short checklist for the security call and share it after reviewing the portal upload.
+
+—Kimberly
+Kimberly Park
+Enterprise Sales Operations | Redwood Inference
+kimberly_park@redwoodinference.com
+
+From: Melanie Thompson <melanie@novacarehealth.com>
+To: Rachel Kim <rachel_kim@redwoodinference.com>, Kimberly Park <kimberly_park@redwoodinference.com>
+Cc: Margaret Lee <margaret.lee@novacarelegal.com>, Procurement Portal <procurement@novacarehealth.com>
+Date: 2026-08-03T10:22:00-07:00
+Subject: Re: Mutual action plan + procurement questionnaire (NovaCare)
+
+Thanks — that MAP looks reasonable. A couple of constraints from my side:
+- Budget owner will only sign if DPA redlines are returned within 3 business days of receiving the vendor redline. If Redwood can start with a DPA redline on Aug 7, we need responses by Aug 10.
+- Our legal counsel (cc'd) prefers to handle the MSA redlines directly; Margaret will send a short note outlining the non-negotiables (audit windows, data retention limits).
+- Procurement prefers DocuSign distribution to procurement@novacarehealth.com and the assigned budget owner; please include procurement@novacarehealth.com as the recipient.
+
+Link to the intake where you can upload artifacts: https://procure.novacarehealth.com/request/4521
+
+We also logged a ticket with our cybersecurity team requesting a brief call for Aug 6 — target 30 minutes. I'll confirm the exact time after they triage.
+
+Best,
+Melanie
+
+From: Rachel Kim <rachel_kim@redwoodinference.com>
+To: Melanie Thompson <melanie@novacarehealth.com>, Kimberly Park <kimberly_park@redwoodinference.com>, Karthik Iyer <karthik_iyer@redwoodinference.com>
+Cc: Margaret Lee <margaret.lee@novacarelegal.com>, Procurement Portal <procurement@novacarehealth.com>
+Date: 2026-08-05T16:02:00-07:00
+Subject: Re: Mutual action plan + procurement questionnaire (NovaCare)
+
+Appreciate the constraints — confirmed below and listing next steps so we have a clean action board.
+
+FINALIZED ACTIONS / OWNERS & TARGETS
+1) Artifact upload (today, Aug 5): SOC2 report, encryption brief, KMS diagram uploaded to your portal. (Owner: Rachel)
+2) Security smoke test (Aug 6): 30-minute call to validate SSO test user + prefix isolation. Kimberly will lead the checklist. (Owner: Kimberly)
+3) MSA redline (Aug 7): Redwood legal (Karthik) will issue initial MSA redline.
+4) DPA redline window (Aug 7–10): NovaCare to provide DPA comments within 3 business days of our redline.
+5) Order form prep (Aug 9–11): Redwood to prepare DocuSign package and send to procurement@novacarehealth.com + budget owner.
+6) Target signature (Aug 14): Soft target. If DPA is clean on Aug 10 we can accelerate to Aug 12.
+
+A couple of clarifying asks: please confirm (a) the budget owner email for DocuSign distribution and (b) whether NovaCare requires an HSM addendum so we can size a Dedicated SLA if needed.
+
+Attachment: redline-instructions.pdf (4KB, pdf)
+DocuSign link (to be generated after orderform prep): https://www.docusign.com/link/NTX-4521-orderform
+
+If that looks good I'll lock the MAP and schedule a 15-minute sync for Aug 6 (security) — proposed window 09:30–10:00 PT.
+
+Thanks — Rachel
+
+(End of thread)

@@ -1,0 +1,129 @@
+Service disruption: remediation, credits, and executive review
+
+From: Sara Nguyen <sara@blueleafhealth.com>
+To: Hannah Schmitt <hannah@redwood.com>, Sean Gallagher <sean@redwood.com>
+Cc: Michael Chen <michael.chen@blueleafhealth.com>
+Date: Mon, 02 Jun 2025 16:12:00 -0400
+Subject: Major degradation this morning — request for remediation & credits
+
+Hannah, Sean —
+
+We experienced a significant service degradation this morning between 08:45–10:10 PT that impacted our production workflows. We saw sustained 5xx error rates (~28–33%) and tail latencies spiking over 600–800ms for generation calls. This caused ~18% of our user flows to fail and delayed processing of time-sensitive patient notifications.
+
+This is material for us. Per our contract (SLA section, see included excerpt), we expect to discuss:
+- Root cause and remediation plan
+- Credit calculation for the impacted window
+- A timeline to avoid recurrence (and executive engagement if needed)
+
+Please confirm receipt and provide an owner + ETA for an initial update. If we don’t get a substantive reply by EOD PT today we will escalate internally and pause feature rollouts dependent on Redwood.
+
+Thanks,
+Sara Nguyen
+Head of Product Ops, BlueLeaf Health
+Sara Nguyen | BlueLeaf Health
+[sent from mobile]
+
+Attachments: sla-excerpt.pdf (excerpted SLA, highlighted pages attached)
+From: Hannah Schmitt <hannah@redwood.com>
+To: Sara Nguyen <sara@blueleafhealth.com>
+Cc: Sean Gallagher <sean@redwood.com>, Marcus Lin <marcus@redwood.com>, Laura Bennett <laura@redwood.com>
+Date: Mon, 02 Jun 2025 17:02:00 -0400
+Subject: Re: Major degradation this morning — request for remediation & credits
+
+Sara — thank you for flagging and I’m very sorry for the impact this caused. We’ve opened an incident and I’ll own coordinating the remediation and commercial response.
+
+Immediate next steps: 
+1) Incident call (15–30m) to run initial RCA — I’m proposing 17:30 PT / 20:30 ET today. Please let us know if that works.
+2) Marcus (SRE lead) will pull full telemetry and error traces and prepare a preliminary timeline and root cause.
+3) Sean (account lead) and Laura (CS) will coordinate credits/contract review and help with exec touchpoints.
+
+I’ve CC’d Marcus and Laura. Marcus — can you confirm you’ll have a preliminary cause and the incident postmortem draft by tomorrow EOD PT?
+
+Hannah Schmitt
+Director, Customer Success — Redwood Inference
+Redwood Inference | hannah@redwood.com
+
+[Calendar invite to follow]
+
+From: Marcus Lin <marcus@redwood.com>
+To: Hannah Schmitt <hannah@redwood.com>, Sean Gallagher <sean@redwood.com>, Laura Bennett <laura@redwood.com>
+Date: Tue, 03 Jun 2025 09:15:00 -0400
+Subject: Re: Major degradation this morning — request for remediation & credits
+
+Quick technical update before the call:
+- Scope: 2025-06-02 08:40–10:12 PT, affecting BlueLeaf production cluster (cluster-id: blh-prod-3).
+- Observed: One of the GPU worker pools (node group gpum-7) lost NVLink connectivity and several pods failed over to CPU-bound fallback instances. That fallback path has higher token latency and a bug in the retry logic caused repeated 5xx for a subset of payloads.
+- Impact: ~3x median latency for affected requests and 5xx rate peaked ~33% for a 90m window.
+
+Action items I’m executing: 
+- Full trace export and error sampling (attaching incident-postmortem.pdf draft).
+- Patch to retry logic queued for canary tomorrow morning (2025-06-04).
+- Proposal for credit calc: convert the impacted window to % downtime-equivalent under SLA tier (I’ll share a precise worksheet).
+
+I’ll have the postmortem and a damage/credit calc spreadsheet by EOD tomorrow (attached: incident-postmortem.pdf).
+
+Marcus Lin
+SRE Lead, Runtime — Redwood Inference
+
+Attachments: incident-postmortem.pdf (draft)
+
+From: Sara Nguyen <sara@blueleafhealth.com>
+To: Hannah Schmitt <hannah@redwood.com>, Sean Gallagher <sean@redwood.com>
+Cc: Michael Chen <michael.chen@blueleafhealth.com>, Laura Bennett <laura@redwood.com>
+Date: Wed, 04 Jun 2025 11:42:00 -0400
+Subject: Re: Major degradation this morning — request for remediation & credits
+
+Thanks Marcus and team — appreciate the transparency. We need two things from Redwood by COB Friday PT:
+1) A written remediation plan with clear mitigations and timelines (including the retry logic fix and any scheduling/HA changes).
+2) A commercial remediation (credit) calculation that maps to our SLA table and shows the math.
+
+Also escalating to our CTO — I’ve looped Michael to make sure we get an exec-level review. Would want to see a named VP-level participant from Redwood on the call if the remediation impacts our renewal decision.
+
+Sara
+
+P.S. We will share logs that show our failed job lists if it helps your tracing (we have 2 sample request IDs attached).
+From: Hannah Schmitt <hannah@redwood.com>
+To: Sara Nguyen <sara@blueleafhealth.com>
+Cc: Sean Gallagher <sean@redwood.com>, Marcus Lin <marcus@redwood.com>, Laura Bennett <laura@redwood.com>
+Date: Fri, 06 Jun 2025 14:05:00 -0400
+Subject: Proposed remediation package and credit calculation
+
+Sara — following up with the remediation package we discussed. Attached are: (1) credit-calculation.xlsx — a transparent worksheet mapping the impacted window to SLA credit tiers, (2) remediation-offer.pdf — a short commercial proposal, and (3) sla-excerpt.pdf for reference. Key items below: 
+
+Summary of findings:
+- Root cause: GPU node NVLink failure + retry logic regression causing repeated 5xx under failover.
+- Corrective actions: immediate retry fix, improved failover path, expanded GPU pool redundancy in your region.
+
+Commercial remediation proposed:
+- Pro-rata credit equivalent to 10% of June invoice (calculated in sheet).
+- One month of Dedicated burst capacity (equivalent to 2500 GPU-minutes) at no charge to allow you to catch up on delayed workloads.
+- A technical postmortem and a 30-day follow-up review with SRE and product (dates offered).
+
+We are ready to sign a DocuSign if this package is acceptable; link included. If you need an elevated VP-level commitment I can get our VP of Reliability on the next call (available early next week).
+
+Next steps: Please confirm by EOD Monday PT whether this resolves the commercial side or if you will request escalation.
+
+Best,
+Hannah Schmitt
+Director, Customer Success — Redwood Inference
+Redwood Inference
+
+Attachments: credit-calculation.xlsx, remediation-offer.pdf, sla-excerpt.pdf
+Related link: https://docusign.com/abc123-remediation-offer
+From: Sara Nguyen <sara@blueleafhealth.com>
+To: Hannah Schmitt <hannah@redwood.com>
+Cc: Michael Chen <michael.chen@blueleafhealth.com>, Sean Gallagher <sean@redwood.com>, Laura Bennett <laura@redwood.com>
+Date: Thu, 12 Jun 2025 11:03:00 -0400
+Subject: Re: Proposed remediation package and credit calculation
+
+Hannah — thank you for the proposal and the detailed worksheet. We’re appreciative of the quick turnaround. A few items from our side:
+
+1) Commercial: We need the credit to reflect the severity — asking for 15% of June invoice (instead of 10%). Please update the DocuSign with that figure or confirm trade-offs if 15% isn’t possible.
+2) Executive review: Our CTO (Michael Chen) wants a 30-minute follow-up next week with your VP of Reliability and SRE lead to review the mitigation plan and timelines before renewal discussions progress. Please propose 3 timeslots.
+
+If we can close the credit figure and lock the executive review, we’ll consider the remediation offer sufficient and move forward with the renewal conversation.
+
+Sara Nguyen
+Head of Product Ops, BlueLeaf Health
+
+Attachments referenced: sample-request-ids.txt (sent earlier)

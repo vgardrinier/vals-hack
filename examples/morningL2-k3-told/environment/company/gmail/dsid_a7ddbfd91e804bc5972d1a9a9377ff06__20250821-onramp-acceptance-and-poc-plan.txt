@@ -1,0 +1,124 @@
+Onramp options for Redwood Private — quick technical runbook and asks
+
+From: Asha Shroff <asha@acme-analytics.com>
+To: kimberly.park@redwood.com
+Cc: netops@acme-analytics.com, ben.carter@redwood.com
+Date: Thu, 21 Aug 2025 09:12:00 -0700
+Subject: Connecting Acme on-prem to Redwood Private — initial asks
+
+Hi Kimberly,
+
+Thanks for taking this. We are evaluating Redwood Private for a pilot and need to decide an ingress path from our on-prem datacenter (Equinix / Cisco stack) into the Redwood VPCs. Our security and netops teams asked for a short comparison of the three common options: VPC Peering, PrivateLink (interface endpoints / endpoint services), and site-to-site VPN.
+
+Top constraints for us:
+- We can't move account ownership for project resources — peering across accounts is allowed but our security team dislikes long-lived cross-account peering.
+- Need predictable egress IPs for allowlisting (for SOC2 evidence).
+- Throughput target: sustained 300 Mbps for model payloads, spikes to ~700 Mbps during ingestion windows.
+- RTO/RPO for inference of <200ms p95; control-plane ops are less sensitive.
+
+Can you send a concise recommendation that covers: required account-level work, NAT/egress requirements, HA considerations, and a pragmatic path for POC -> production? Attached a short network diagram.
+
+Thanks — please loop anyone on your side who should be aware.
+
+—Asha
+Asha Shroff
+Head of Platform Engineering, Acme Analytics
+
+Attachment: network-flow-diagram.png (diagram stub)
+From: kimberly.park@redwood.com
+To: Asha Shroff <asha@acme-analytics.com>
+Cc: ben.carter@redwood.com, david.kim@redwood.com
+Date: Thu, 21 Aug 2025 11:05:00 -07:00
+Subject: Re: Connecting Acme on-prem to Redwood Private — initial asks
+
+Hi Asha — thanks, this is exactly the right set of constraints. Quick, pragmatic reply here and then Ben will add the low-level config notes.
+
+High-level tradeoffs (short):
+- VPC Peering: simple L3 connectivity and low latency. But it creates a long-lived peering relationship between AWS accounts and requires route management across VPCs. Not ideal if Acme wants strict account isolation or has policy against peering with vendor-managed VPCs. No built-in allowlist for egress IPs — you must use NAT or a proxy in the peered VPC.
+
+- PrivateLink (interface endpoints / endpoint service): preserves account isolation (Acme creates ENIs in their VPC that connect to our endpoint service). Provides a stable endpoint on Acme's side and avoids peering. We can provide a small set of stable ingress IPs if Acme front-ends the endpoint with an NLB under your account, or we can publish a list of NLB IPs (note: NLB IPs can change unless you own the LB). Slightly more operational setup (endpoint service acceptance, NLB config) but cleaner from a security/governance perspective.
+
+- Site-to-site VPN: Fastest to stand up for a POC; supports NAT and egress allowlisting easily because Acme controls the tunnel endpoint. Latency and bandwidth are variable depending on the transit path; for sustained high throughput you'll need multiple tunnels or a managed VPN appliance. Good fallback plan.
+
+Suggested pragmatic path:
+1) POC: Stand up an IPsec S2S VPN for 2 weeks to validate throughput and request patterns. This gives immediate allowlisting and minimal cross-account setup.
+2) Prod: If account isolation is required, move to PrivateLink (endpoint service) with an Acme-owned NLB in front; provide the PrivateLink service from our side and document acceptance workflow. If you prefer simpler steady-state networking and both sides agree to peer, evaluate VPC Peering only if your security team signs off on the account relationship.
+
+Action items needed from Acme:
+- Confirm whether Acme can host an NLB in your account (gives best allowlist guarantees).
+- Provide egress IP requirements (CIDR or nat IPs) and bandwidth profile per-hour.
+- If you want a VPN POC, share your public VPN endpoints, PSK or certificate preference, and preferred IKE settings.
+
+I'll attach a one-page matrix and a config-snippets file that Ben curated.
+
+—Kimberly
+Kimberly Park
+Solutions Architect, Redwood Inference
+
+Attachment: privatelink-vs-peering-matrix.xlsx (matrix stub)
+Attachment: config-snippets.txt (snippet stub)
+From: ben.carter@redwood.com
+To: kimberly.park@redwood.com, Asha Shroff <asha@acme-analytics.com>
+Cc: david.kim@redwood.com
+Date: Fri, 22 Aug 2025 08:47:00 -07:00
+Subject: Re: Connecting Acme on-prem to Redwood Private — initial asks
+
+Adding low-level notes and an ops checklist. Quoting Asha's original to keep context.
+
+On Thu, 21 Aug 2025 at 09:12 AM Asha Shroff <asha@acme-analytics.com> wrote:
+> Top constraints for us:
+> - We can't move account ownership for project resources — peering across accounts is allowed but our security team dislikes long-lived cross-account peering.
+> - Need predictable egress IPs for allowlisting (for SOC2 evidence).
+
+Technical notes:
+- Peering specifics:
+  * Cross-account peering requires both accounts to accept the peering request; transitive routing is not supported by default (no peering transit). If Acme is unwilling to add a route into your VPCs pointing to an external vendor VPC, peering is a non-starter.
+  * For egress IPs with peering: you must NAT in either side (e.g., Acme NAT GW in their VPC) or build a proxy with elastic IPs. That adds operational overhead.
+
+- PrivateLink specifics:
+  * On our side, we configure an endpoint service backed by an NLB (recommended for scale). The NLB sits in our VPC and forwards to the redwood-private instances (or target group).
+  * Acme creates an interface endpoint in their VPC which shows up as ENIs with private IPs. From a routing perspective, traffic stays in the Acme VPC until it hits the ENI.
+  * If Acme owns the NLB (recommended), Acme can control the egress IPs (ELB static IPs via NLB + Elastic IP per AZ) and provide allowlistable addresses. If Redwood owns the NLB, we can publish the current IPs but they may change (not ideal for SOC2).
+  * Endpoint acceptance step: Acme will need to accept our endpoint service (this is a simple console/API step and can be automated via CLI).
+
+- VPN specifics:
+  * Quick to provision: two tunnels, BGP optional. Throughput via software tunnels can be limited; for sustained 700 Mbps you should either use a hardware VPN appliance or bundle multiple tunnels and do flow hashing.
+  * Egress IPs: trivial to lock down — Acme controls the customer gateway IPs and can NAT to a known set of public IPs.
+
+Operational checklist for a PrivateLink production cutover (recommended if you need account isolation):
+- [ ] Acme to provision NLB (or agree to allow Redwood to publish static NLB IPs).
+- [ ] Exchange endpoint service names and accept the service on Acme side.
+- [ ] Validate MTU (ENI path may add overhead), test with 1GB samples.
+- [ ] Run perf test for 48 hours to validate p95 and throughput.
+- [ ] Add monitoring (vpc flow logs + endpoint health) and document runbook for cutover rollback back to VPN.
+
+Config snippets included show an example ipsec tunnel, example AWS CLI commands to accept an endpoint, and an NLB healthcheck suggestion (HTTP 200 /health).
+
+Ben Carter
+Senior Network Engineer, Redwood Inference
+
+Attachment: config-snippets.txt (shows IKE v2 sample, AWS CLI accept command, NLB target group config)
+From: Asha Shroff <asha@acme-analytics.com>
+To: kimberly.park@redwood.com
+Cc: ben.carter@redwood.com, netops@acme-analytics.com
+Date: Mon, 25 Aug 2025 16:05:00 -07:00
+Subject: Re: Connecting Acme on-prem to Redwood Private — initial asks
+
+Kimberly / Ben — thanks, this is very helpful and practical. A few quick replies from netops:
+- We can host an NLB in our account and allocate Elastic IPs per AZ (happy to do that for production).
+- For the POC we want the fastest path: we will stand up a VPN appliance and share public endpoints + PSK by EOD tomorrow.
+- Security wants the endpoint acceptance workflow documented (audit trail) — can Redwood produce an acceptance log or automation snippet that writes to a shareholder bucket?
+
+Proposed short timeline:
+1) Tomorrow (26 Aug): Acme provides VPN endpoints and PSK; Redwood provides ipsec sample and we stand up VPN POC.
+2) Week of Sep 8: If POC perf is good, Acme provisions NLB + EIPs and we begin PrivateLink acceptance flow.
+
+Can you send a short runbook (2 pages) for the acceptance + monitoring steps we can attach to our SOC2 evidence? If possible include the exact AWS CLI commands for the accept step and an example of the minimal CloudTrail/audit entry we should capture.
+
+Thanks again — looping in netops for visibility.
+
+—Asha
+Asha Shroff
+Head of Platform Engineering, Acme Analytics
+
+Quoted earlier attachments: privatelink-vs-peering-matrix.xlsx, config-snippets.txt, network-flow-diagram.png

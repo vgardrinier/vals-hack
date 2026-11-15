@@ -1,0 +1,32 @@
+sales
+
+Maya Chen: Heads up — Riverbank just asked if we can run a 2-week POC to validate migration from their current vendor. Key asks: API compatibility layer, prompt/response parity, streaming behavior, and an enterprise pricing comparison. Also SSO and data residency checks. Can we scope?
+Tom Rivera: Yep. Primary risk is response shape/streaming differences + tokenization. I can lead the compat shim work.
+Olivia (SE): For the POC we should aim for three things: 1) request/response mapper that accepts competitor payloads, 2) an automated prompt-parity test harness across their top 50 prompts, 3) cost/latency comparison dashboard.
+Maya Chen: Client wants a simple demo by EOW. Is that realistic?
+Tom Rivera: EOW demo = limited. We can do a minimal shim + a couple of prompt parity examples. Full 50-prompt sweep needs the 2-week window.
+Anita Gupta: Security checklist — they need SOC2 Type II, KMS-backed encryption, SSO (SAML), and certificate of data deletion for POC data. I've attached the questionnaire in the secure drive. @sec-bot can you post the link?
+sec-bot: Security questionnaire uploaded: https://redwood.secure/drive/rb-riverbank-sq.pdf :white_check_mark:
+Olivia (SE): Two quick technical notes on compatibility: 1) their API expects streaming chunks with `choices[0].text` deltas. Our streaming uses presence + content deltas and chunk header metadata. 2) tokenizers differ: byte-pair vs our default; token counts may diverge >10% on some prompt families. Both affect pricing and max_tokens behavior.
+Tom Rivera: Here's a tiny shim prototype we can drop into their stack to translate requests -> Redwood API:
+```js
+// shim: transform competitor request -> Redwood format
+function mapRequest(req){
+  return {
+    model: mapModelId(req.model),
+    input: req.prompt || req.input,
+    max_tokens: req.max_tokens || req.maxTokens,
+    stream: !!req.stream
+  }
+}
+// and reverse map for responses: choices[0].text -> choices[0].text
+```
+Maya Chen: Good. Include a note about edge cases: tool-calling/formatted json outputs and stop-sequences can behave differently.
+Lars Bjorn: Also flag safety filters — our content-moderation may kick earlier, which changes visible outputs. For parity tests we should run with moderation disabled (POC mode) and then a second run with production moderation to show delta.
+Anita Gupta: Contract/blockers: they want a clause that PII never leaves EU for the POC. We can offer Redwood Private in eu-west region or Dedicated with commit. Sales will need to confirm pricing delta for Dedicated.
+Maya Chen: Pricing — Riverbank asked for a 30% delta target vs current vendor. We can offer POC credits for 2 weeks and a proposal with two options: hosted (usage) and dedicated (commit). Tom/Oli — can you draft numbers?
+Olivia (SE): Will do. I'll include token-count adjustments in the spreadsheet and example run for 10 prompts.
+Tom Rivera: Timeline proposal: Day 0–2: shim + CI deploy; Day 3–5: 10-prompt parity + streaming test; Day 6–10: 50-prompt sweep + cost dashboard; Day 11–14: finalize report + demo.
+Maya Chen: Sounds good. I'll confirm timing with the customer and send the SSO details; Anita, pls check EU data residency wording.
+Anita Gupta: I'll update the questionnaire and add the EU-only processing addendum.
+Maya Chen: Thanks. Next steps: Tom/Olivia to push initial shim to staging by tomorrow, attach sample outputs, and drop the cost spreadsheet in the shared folder. I'll book a sync with Riverbank for Wed 10am. :calendar:

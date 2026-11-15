@@ -1,0 +1,141 @@
+Stonehaven: PO ledger format and monthly tranche exception
+
+From: Elena Morales <elena.morales@stonehavencapital.com>
+To: michael_grant@redwood.ai, priyom_das@redwood.ai
+Cc: procurement@stonehavencapital.com
+Date: Tue, 18 Aug 2026 09:14:00 -0700
+Subject: PO 4589: ledger mapping and invoice cadence questions
+
+Hi Michael / Priyom,
+
+Thanks for the pilot quote. Procurement here at Stonehaven has reviewed the PO (attached) and we need to clarify a couple of things before we can issue the signed PO:
+
+- Our treasury requires the ability to receive invoices in multiple tranches tied to a single master PO number (PO 4589). Can Redwood accept monthly or bi-weekly invoices that reference PO 4589 + a tranche line (e.g., 4589-01, 4589-02)?
+- We also need the invoice header to contain our internal ledger fields (BU code, CC, project code). Is there a standard invoice template you can provide so our AP system can auto-map?
+- Net terms: our standard is Net 60 for new vendors, but we can do Net 45 if the vendor accepts a two-day remittance window on large files. Is Net 60 acceptable?
+- Remittance: Stonehaven uses a consolidated remittance advice for multi-tranche POs. Can Redwood provide a consolidated statement at month-end that lists the tranche-level invoices?
+
+Attaching the draft PO for reference (STONEHAVEN_PO_4589.pdf). If you can send the invoice template we can check mapping with our ERP team. Would like to close this by end of week to keep the pilot start next month.
+
+Best,
+Elena Morales
+Senior Procurement Manager
+Stonehaven Capital
+
+Attachment: STONEHAVEN_PO_4589.pdf (PDF, 58KB)
+
+From: michael_grant@redwood.ai
+To: Elena Morales <elena.morales@stonehavencapital.com>
+Cc: priyom_das@redwood.ai, vanessa_ortiz@redwood.ai
+Date: Tue, 18 Aug 2026 13:12:00 -07:00
+Subject: Re: PO 4589: ledger mapping and invoice cadence questions
+
+Elena — thanks for the clear list. Short answers up front: yes, we can support tranche-level invoices referencing the master PO; we can supply an invoice template; and Net 60 is possible but needs Finance approval for this account.
+
+A few details and next steps:
+- Invoice cadence: our billing engine normally issues one invoice per customer per month per billing account. We can produce bi-weekly invoices as a special billing cadence if you need them — this would be an exception to our default.
+- PO format: please put the master PO in the invoice header and then include a "Tranche reference" field for line-level invoices (e.g., PO 4589 / Tranche 01). That maps cleanly to our ledger export.
+- Ledger fields: attachable template included (invoice_schedule_template.xlsx). If you return it with sample codes we will validate mapping to BU/CC/Project.
+- Net terms: our default enterprise term is Net 45. We can provisionally agree Net 60 for the pilot provided your AP team signs the vendor setup form and we obtain credit approval. If Stonehaven needs Net 60 as a firm term for the contract, we will need to flag that for Sales Ops and add it to the SOW amendment.
+
+Next actions:
+1) Elena: confirm whether you want monthly or bi-weekly invoice cadence for the pilot and return the filled invoice template.
+2) Priyom/Vanessa: I am looping you for SOC/finance sign-off and for the amendment if Net 60 is requested.
+
+We want to avoid any manual AR work for your team — if we can get the ERP codes we will pre-populate the invoice fields.
+
+Thanks,
+Michael Grant
+Head of Revenue Operations
+Redwood Inference
+
+Attachment: invoice_schedule_template.xlsx (Excel, 12KB)
+
+From: priyom_das@redwood.ai
+To: Elena Morales <elena.morales@stonehavencapital.com>, michael_grant@redwood.ai
+Cc: laura_bennett@redwood.ai, vanessa_ortiz@redwood.ai
+Date: Wed, 19 Aug 2026 10:05:00 -07:00
+Subject: RE: PO 4589: ledger mapping and invoice cadence questions
+
+Hi Elena — quick operational clarifications from Sales Ops / Billing: 
+
+- System constraint: Netsuite-based invoicing requires one AP-GL mapping per invoice file. Practically that means we can either (A) issue a single consolidated invoice each month that lists multiple tranche lines under the master PO, or (B) issue multiple smaller invoices (one per tranche) but each must include the master PO and the same remittance address. Both are supported; option (A) is preferred for your ERP to reduce lock-step remittance entries.
+- Metadata required on each invoice: Invoice number, Invoice date, PO number, Tranche reference, BU code (Stonehaven internal), Cost center, Project code, Remit-to address, Tax ID. Missing any of these will cause rejections in your AP uploads.
+- Net 60: we can provision Net 60 for the pilot on a case-by-case basis, but it requires sign-off from Finance and a short credit form. If Stonehaven wants Net 60 as the long-term term, we need Legal to add an amendment to the subscription agreement.
+
+If you can confirm whether Stonehaven's ERP prefers (A) consolidated month-end statement OR (B) bi-weekly tranche invoices, we'll route the request through Finance for the Net 60 approval faster.
+
+Regards,
+Priyom Das
+Sales Operations, Redwood Inference
+
+--- Forwarded message ---
+From: michael_grant@redwood.ai
+Date: Tue, 18 Aug 2026 13:12:00 -0700
+Subject: Re: PO 4589: ledger mapping and invoice cadence questions
+
+From: Elena Morales <elena.morales@stonehavencapital.com>
+To: michael_grant@redwood.ai, priyom_das@redwood.ai
+Cc: procurement@stonehavencapital.com
+Date: Thu, 20 Aug 2026 09:30:00 -07:00
+Subject: Re: PO 4589: ledger mapping and invoice cadence questions
+
+Thanks — quick answers and a follow-up ask from Treasury: 
+
+- Preferred cadence: Treasury strongly prefers a bi-weekly invoice ladder for high-value pilots (cashflow smoothing). They can accept a consolidated month-end statement but it breaks their internal cash-sweep rules.
+- Ledger mapping: attached is a sample export with the BU and project codes filled (we added two project codes in case you need separate tracking).
+- Net terms: Stonehaven wants Net 60 for vendor standardization. Could Redwood offer Net 60 with a 1% early-pay discount if invoices paid within 15 days? That would be our preference.
+- Remittance: Yes, we can accept monthly consolidated remittance notes, but the tranche invoices must still appear as discrete documents in the ERP.
+
+If Redwood can accept bi-weekly invoices for the pilot and include the tranche reference field, we can issue the signed PO this week.
+
+Thanks,
+Elena Morales
+Senior Procurement Manager
+Stonehaven Capital
+
+Attachment: STONEHAVEN_PO_4589_MAPPED.xlsx (Excel, 9KB)
+
+From: michael_grant@redwood.ai
+To: Elena Morales <elena.morales@stonehavencapital.com>
+Cc: priyom_das@redwood.ai, laura_bennett@redwood.ai, vanessa_ortiz@redwood.ai
+Date: Sat, 22 Aug 2026 16:03:00 -07:00
+Subject: Re: PO 4589: ledger mapping and invoice cadence questions — internal decision and next steps
+
+Elena — thanks for the quick turnaround and for the mapped file. Internal update and confirmed path forward below; copying the people who will own each step.
+
+Decision (what Redwood can do):
+- We will accept a bi-weekly invoice cadence for Stonehaven as a pilot-only exception for the first 90 days. Invoices must reference the master PO (4589) and include a Tranche reference in the header (e.g., 4589-01).
+- Each tranche invoice will be a discrete invoice document in our system so it can be ingested into your ERP; we will also provide an optional consolidated month-end statement that lists all tranche invoices for remittance reconciliation.
+- Net terms: Finance has approved Net 45 as standard. Net 60 may be granted for this account contingent on a signed credit form and a one-time amendment to the contract. We can, however, offer a 1% early-pay discount if Stonehaven pays within 15 days — we will include that as an optional line in the amendment.
+
+Required invoice fields (must match the template you sent):
+- Invoice number
+- Invoice date
+- Master PO number (4589)
+- Tranche reference (4589-XX)
+- BU code / Cost center / Project code
+- Remit-to address and Tax ID
+
+Next steps and owners:
+- Vanessa Ortiz (Account Exec): finalize commercial amendment language and confirm whether Stonehaven will sign for Net 60 or accept Net 45 + 1% 15-day discount. (Owner: Vanessa)
+- Laura Bennett (Legal): prepare a short PO amendment and the vendor credit form for signature if Net 60 is requested. (Owner: Laura)
+- Priyom Das (Sales Ops): set up the bi-weekly billing cadence in Netsuite for the customer and ensure the invoice template includes the tranche field. (Owner: Priyom)
+- Michael Grant (Revenue Ops): I will prepare the invoice runbook and share the DocuSign link for the amendment and SOW update. (Owner: Michael)
+
+Elena — if this matches your expectations we will send the amendment package and the DocuSign link by Monday. Please confirm if Stonehaven will sign the credit form for Net 60 or accept Net 45 + 1% 15-day early pay discount.
+
+Best regards,
+Michael Grant
+Head of Revenue Operations
+Redwood Inference
+
+Quoted for context:
+> From: Elena Morales <elena.morales@stonehavencapital.com>
+> Date: Thu, 20 Aug 2026 09:30:00 -0700
+> Subject: Re: PO 4589: ledger mapping and invoice cadence questions
+> 
+> - Preferred cadence: bi-weekly invoice ladder
+> - Net terms: Net 60 preferred; 1% early-pay discount for 15-day pay window requested
+
+Attachments: SH-2026-017_SOW_draft.pdf (PDF, 42KB)

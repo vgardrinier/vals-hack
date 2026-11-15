@@ -1,0 +1,19 @@
+Scheduler queue buildup delays streaming start times (Hosted us-west)
+
+Issue summary:
+First token times for streaming are extremely high; queue depth climbing. Some clients retry aggressively, compounding load.
+
+Impact:
+Customer-visible latency; timeouts at gateway.
+
+Environment:
+prod us-west; hosted tier.
+
+Notes:
+Suspected regression in scheduler admission control under high concurrency.
+2025-12-03 14:08 PT (Jordan Blake): Alert fired: scheduler_queue_depth > 1500. Need runtime owner to confirm recent changes.
+2025-12-03 14:16 PT (Aisha Rahman): Found admission controller change in latest build; preparing rollback.
+2025-12-03 14:32 PT (David Kim): Rolling back scheduler deployment in us-west; expect drain in ~10m.
+2025-12-03 14:48 PT (Aisha Rahman): Queue depth falling; first-token p95 improving.
+2025-12-12 (Aisha Rahman): Postmortem finalized; closing.
+Rolled back scheduler admission controller regression; tightened temporary rate limits; added follow-up action items in postmortem.

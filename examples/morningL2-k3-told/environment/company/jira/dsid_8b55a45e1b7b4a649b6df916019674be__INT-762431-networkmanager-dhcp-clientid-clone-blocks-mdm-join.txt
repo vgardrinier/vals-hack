@@ -1,0 +1,62 @@
+NetworkManager DHCP client-id duplication after image clone prevents MDM join on reimaged workstations
+
+Issue summary:
+After recent updates to the corporate Ubuntu 22.04 image (custom NM dispatcher hooks), several reimaged developer workstations fail to complete MDM/SCEP join during post-provisioning. Devices boot, join corporate network, but enrollment times out after the device appears to be contacting MDN (mdm.redwood.ai) and receiving a 403.
+
+Impact:
+- New and repaired laptops intermittently fail automatic MDM enrollment and SSO agent registration.
+- Affected users cannot access internal resources that require device certs until manual remediation.
+- Estimated ~3-5% of reimages in staging in the last 48 hours. Potential to hit production during next campus wave.
+
+Environment:
+- Staging imaging pipeline, Ubuntu 22.04 image built 2026-03-08, network via corporate DHCP (infoblox).
+- Observed on Lenovo and Dell models listed in affected_models.
+
+Observed behavior and hypothesis:
+- NetworkManager is generating DHCP client-id with a machine-specific token derived from systemd-machine-id + persistent mac. When machines are reimaged from a golden clone artifact, the DHCP client-id collides with the old lease record in Infoblox. The DHCP server returns the old lease and DHCP transaction appears successful, but subsequent device identification handshake with MDM fails because the ephemeral network identity does not match the machine identity expected by the enrollment service (SCEP/CSR validation).
+- Secondary hypothesis: the image build process is not regenerating /etc/machine-id (or NetworkManager dispatcher hook), causing client-id duplication across clones.
+
+Steps to reproduce:
+1) Take golden Ubuntu 22.04 image with preinstalled NetworkManager hooks and systemd machine-id generated in build pipeline.
+2) Clone image to two test machines A and B via PXE imaging.
+3) Boot both machines on same VLAN and trigger provisioning.
+4) Observe DHCP exchange and MDM enrollment logs; machine B receives old lease and enrollment fails with 403 during SCEP CSR exchange.
+
+Logs / evidence:
+- /var/log/syslog excerpt during failed enrollment: "dhclient[324]: DHCPACK from 10.1.2.3 (lease 10.1.2.45)\n  network-manager[412]: sent CSR to mdm.redwood.ai, received 403 Forbidden (csr mismatch)"
+- Infoblox lease history shows client-id field equal to "nm-client-7f8a-<machine-id>" for both old and new device.
+- image build log: post-install step skipped regen of /etc/machine-id when running in chroot (see build log line 212: "skipping machine-id regen in chroot")
+
+Workaround (manual):
+- Before enrolling, run: "sudo systemd-machine-id-setup" and restart NetworkManager (sudo systemctl restart NetworkManager). Then re-trigger enrollment via the provisioning script. This regenerates the machine-id and NetworkManager uses unique DHCP client-id; enrollment completes.
+
+Requested outcome:
+- Short-term: update imaging pipeline to ensure systemd-machine-id is regenerated post-deploy and NetworkManager dispatcher hook validates uniqueness. Add a post-image check in staging.
+- Long-term: modify DHCP server (Infoblox) to avoid relying on client-id for CSR mapping, or enable a grace path for devices with recent image timestamps.
+
+1) Build or use current golden Ubuntu 22.04 image.
+2) Clone image to multiple machines without regenerating systemd machine-id.
+3) Boot both on same VLAN.
+4) Observe that DHCP client-id is identical and MDM enrollment fails with CSR 403.
+5) Regenerate machine-id and restart NetworkManager to confirm enrollment succeeds.
+Mar 10 09:12:11 hostnm dhclient[324]: DHCPDISCOVER on eth0 to 255.255.255.255 port 67
+Mar 10 09:12:11 hostnm dhclient[324]: DHCPOFFER from 10.1.2.3
+Mar 10 09:12:11 hostnm dhclient[324]: DHCPREQUEST on eth0 to 10.1.2.3 port 67
+Mar 10 09:12:11 hostnm dhclient[324]: DHCPACK from 10.1.2.3 (lease 10.1.2.45) -- client-id nm-client-7f8a-4b2c
+Mar 10 09:12:14 hostnm network-manager[412]: Sending CSR to mdm.redwood.ai
+Mar 10 09:12:15 hostnm network-manager[412]: Received 403 Forbidden from mdm.redwood.ai (csr mismatch)
+Infoblox lease record: client-id=nm-client-7f8a-4b2c, mac=00:1a:4b:16:01:23, lease-timestamp=2026-03-09T22:01:02Z
+- Reproduced in staging with two VMs cloned from the same image.
+- Confirmed /etc/machine-id was identical on both clones.
+- Confirmed NetworkManager uses machine-id in DHCP client-id via our custom dispatcher hook.
+- Build pipeline step 'regenerate-machine-id' was disabled to speed builds; likely root cause.
+- Ticket INT-234567 referenced: similar DHCP/client-id collisions observed previously in edge cases; that ticket implemented a DHCP server mitigation but imaging pipeline change was not applied there.
+- Created quick patch in imaging repo to run 'systemd-machine-id-setup' during first-boot script; test patch passed basic enrollment in staging VMs.
+
+2026-03-10 10:02 - Diego Morales: Assigned for triage. Will reproduce in staging cluster and validate imaging pipeline logs.
+2026-03-10 11:20 - Asha Patel: Repro steps and initial logs attached. Manual regen of machine-id allows enrollment to complete consistently.
+2026-03-11 09:44 - SRE Team (comment): Confirmed Infoblox shows client-id collisions; we recommend enforcing machine-id regen at first boot.
+2026-03-12 14:05 - Diego Morales: Pushed hotfix branch (see related_github_prs). Running a small batch test of 50 laptops in staging at 15:00 PT.
+2026-03-12 16:52 - QA (comment): Batch test: 50/50 enrolled successfully after hotfix; monitoring for regressions.
+2026-03-12 17:30 - Diego Morales: Leaving in-progress while we roll the hotfix into the main imaging pipeline and add a post-image validation check.
+Triage and hotfix applied to imaging pipeline; awaiting rollout to production imaging and post-rollout verification. Complete resolution will include production rollout notes and an Infoblox DHCP policy review.

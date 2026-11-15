@@ -1,0 +1,143 @@
+Offer & next steps: Redwood Senior SWE — call + e-sign logistics
+
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Priya Desai <priya.desai@gmail.com>
+Cc: irene_choi@redwood.com, jordan_blake@redwood.com
+Date: 2026-08-19T09:12:00-07:00
+Subject: Redwood offer & quick call to walk through details
+
+Hi Priya —
+
+Congratulations again — we'd love to move forward with an offer for the Senior Software Engineer role. Attached is the conditional offer letter (PDF) with compensation, equity, and the standard onboarding checklist. Before you sign, we usually do a short 20-minute offer walk-through so we can address any questions (start date, relocation, visa timing, etc.).
+
+Available windows for a call today/this week:
+- 11:30–11:50 PT (today)
+- 15:00–15:20 PT (today)
+- 09:00–09:20 PT (Thu 8/20)
+
+If none of those work, send two times that do. We will send a DocuSign envelope after the call; if you have redlines please reply with the exact language you want changed (we route legal redlines through HR/legal).
+
+Attachments: [Redwood_Offer_Priya_v1.pdf (PDF), Redwood_Onboarding_Checklist.pdf (PDF)]
+
+Link (DocuSign placeholder): https://app.docusign.com/envelope/56789-example
+
+Best,
+Laura Bennett
+Senior Recruiter, Talent Acquisition
+Redwood Inference
+laura_bennett@redwood.com
+
+---
+Original attached: Redwood_Offer_Priya_v1.pdf
+
+From: Priya Desai <priya.desai@gmail.com>
+To: Laura Bennett <laura_bennett@redwood.com>
+Cc: irene_choi@redwood.com, jordan_blake@redwood.com
+Date: 2026-08-19T12:00:00-07:00
+Subject: Re: Redwood offer & quick call to walk through details
+
+Hi Laura —
+
+Thank you — I really appreciate the quick turnaround and the thorough packet. I can do the 15:00 PT slot today. Quick notes before we talk so you can loop legal/HR if needed:
+
+1) Start date: my current notice period finishes 9/10, but I have some flexibility to start earlier if we agree on a partial remote ramp for the first two weeks (I relocate internationally). Would 9/20 be acceptable as a target start if we include a remote-first ramp?
+
+2) Relocation: there is a relocation stipend discussed verbally — can you confirm what is included (ship, temporary housing, arrival allowance)? Also curious whether Redwood uses a relocation vendor (we may need a direct contact).
+
+3) Equity cliff: in the offer file the vesting start is the signature date — can that be backdated to official start-of-employment if needed?
+
+If anything requires redlines I will try to capture exact language, but keen to discuss live at 15:00 PT.
+
+Thanks — Priya
+Priya Desai
++1 (415) 555-9843
+
+On Wed, Aug 19, 2026 at 9:12 AM Laura Bennett <laura_bennett@redwood.com> wrote:
+> Congratulations again — we'd love to move forward with an offer for the Senior Software Engineer role. Attached is the conditional offer letter (PDF) with compensation, equity, and the standard onboarding checklist....
+
+From: Irene Choi <irene_choi@redwood.com>
+To: Priya Desai <priya.desai@gmail.com>
+Cc: laura_bennett@redwood.com, jordan_blake@redwood.com
+Date: 2026-08-19T13:45:00-07:00
+Subject: Re: Redwood offer & quick call to walk through details
+
+Hi Priya —
+
+Thanks for the quick reply and for flagging these items ahead of the call. Confirming our 15:00 PT call (15 minutes) — calendar invite sent. I put a short agenda below so we can be efficient:
+
+- Start date options & remote ramp approach
+- Relocation package overview and vendor info
+- Equity/vesting technicals and possible dates
+- DocuSign flow and how to propose redlines
+
+Quick notes for transparency:
+- Relocation vendor: we commonly use an external partner (onboarding@globalreloc.com) for international moves; I’ve copied that address into our internal notes to loop post-call if Priya wants vendor outreach.
+- Redlines: small administrative edits (typos, start date) we can handle on an amendment. Salary/structural changes will go to HR/legal and will typically require approval from recruiting + hiring manager.
+
+I attached an onboarding checklist that explains typical timelines for visa/relocation.
+
+Attachments: [Redwood_Onboarding_Checklist.pdf]
+
+Thanks — talk soon.
+Irene Choi
+Sr. TA Operations Manager
+Redwood Inference
+irene_choi@redwood.com
+
+On Wed, Aug 19, 2026 at 12:00 PM Priya Desai <priya.desai@gmail.com> wrote:
+> Thank you — I really appreciate the quick turnaround and the thorough packet. I can do the 15:00 PT slot today. Quick notes before we talk so you can loop legal/HR if needed:...
+
+From: Jordan Blake <jordan_blake@redwood.com>
+To: Irene Choi <irene_choi@redwood.com>, laura_bennett@redwood.com
+Date: 2026-08-19T17:22:00-07:00
+Subject: Re: Redwood offer & quick call to walk through details
+
+Thanks team — quick thoughts after reading Priya's note:
+
+- I'm comfortable with a 9/20 target start with a two-week remote ramp. That gives her time to relocate and finish notice. We can make her first two sprints fully remote without blocking onboarding work.
+- Relocation: approve a one-time arrival allowance up to $6,000 and coverage of shipping costs. If GlobalReloc pricing exceeds that, we can revisit, but this will be the standard stroke-of-check policy for this role.
+- Equity: OK to set vesting start to official start date rather than signature date — route through HR/legal for formal language.
+
+If HR/legal needs to make any edits, please route redlines to me and I’ll sign off quickly. Laura — if Priya requests an uplift to base, keep me in the loop; I can approve up to a $7k sign-on range.
+
+Jordan Blake
+Engineering Manager, Platform
+Redwood Inference
+
+On Wed, Aug 19, 2026 at 1:45 PM Irene Choi <irene_choi@redwood.com> wrote:
+> Hi Priya — Thanks for the quick reply and for flagging these items ahead of the call. Confirming our 15:00 PT call (15 minutes) — calendar invite sent....
+
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Priya Desai <priya.desai@gmail.com>
+Cc: irene_choi@redwood.com, jordan_blake@redwood.com
+Date: 2026-08-20T17:04:00-07:00
+Subject: Finalized offer envelope + e-sign instructions (Redwood)
+
+Hi Priya —
+
+Thanks again for the call yesterday — great to meet. Per our discussion we have:
+- Target start: 2026-09-20 with a two-week remote ramp.
+- Relocation: $6,000 arrival allowance + shipping covered; vendor contact copied below if you want them to start booking things.
+- Vesting: HR will update the vesting start date to official start (9/20) in the final envelope.
+
+I am sending the DocuSign envelope now. If you are ready to accept, please review and sign the envelope. If you want to propose a redline, reply to this thread with the exact sentence(s) you want changed — we’ll convert it into a tracked redline and route to HR/legal.
+
+DocuSign link: https://app.docusign.com/envelope/56789-example (envelope expires 30 days from send)
+Envelope ID: 56789-example
+
+Attachments included in the envelope: Redwood_Offer_Priya_v1.pdf (with updated vesting clause), Redwood_Onboarding_Checklist.pdf
+
+Relocation vendor: onboarding@globalreloc.com (cced on internal notes; external outreach will come from them if you want quotes).
+
+If you'd like, we can add a short amendment explaining the two-week remote ramp so it's explicitly part of the offer. Let me know and I’ll have HR add it before you sign.
+
+Best,
+Laura Bennett
+Senior Recruiter, Talent Acquisition
+Redwood Inference
+laura_bennett@redwood.com
+
+[Attachment stubs: Redwood_Offer_Priya_v1.pdf, Redwood_Onboarding_Checklist.pdf, DocuSign_Envelope_56789.link.txt]
+
+On Thu, Aug 19, 2026 at 5:22 PM Jordan Blake <jordan_blake@redwood.com> wrote:
+> Thanks team — quick thoughts after reading Priya's note:...

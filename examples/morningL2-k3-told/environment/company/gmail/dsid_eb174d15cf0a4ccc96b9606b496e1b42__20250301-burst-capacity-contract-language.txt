@@ -1,0 +1,161 @@
+Burst Capacity option — contract/SLA language (v1)
+
+From: Michael Grant <michael.grant@redwoodinference.com>
+To: Lauren Bishop <lauren.bishop@redwoodinference.com>
+Cc: Laura Bennett <laura.bennett@redwoodinference.com>, Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>, Jordan Blake <jordan.blake@redwoodinference.com>, Jasmine Liu <jasmine.liu@redwoodinference.com>
+Date: Sat, Mar 1, 2025 at 9:12 AM PT
+Subject: Burst Capacity option — contract/SLA language (v1)
+Attachments: Redwood_Dedicated_Burst_Capacity_Addendum_v1.docx; Dedicated_Service_Description_ExhibitB_Burst_v1.docx
+
+Team — attached first pass of contract language for Dedicated “Burst Capacity” (as an addendum + Exhibit B service description edits).
+
+Key goals for v1:
+- Define “Baseline Dedicated Capacity” vs “Burst Capacity” clearly.
+- Make clear Burst is optional/paid and not guaranteed (best efforts), with explicit denial/throttling language.
+- Confirm existing Dedicated SLA applies to Baseline; Burst does not expand SLA and does not earn service credits.
+- Preserve our right to suspend/limit Burst for fleet safety / SLO protection.
+- Keep customer-facing terms readable enough for Sales.
+
+Open questions for this group:
+1) How explicit do we want to be re: “global circuit breaker / fleet safety cap” mechanics? I currently frame it as “platform safety controls” without implementation detail.
+2) Billing: do we want “Burst Usage Fees” as GPU-seconds, token-based, or allow either by Order Form? I wrote it as “as set forth in the Order Form” + a definition of “Burst Usage.”
+3) Any hard commitments we’re making inadvertently (e.g., “will” vs “may”). Please flag.
+
+If you can, please reply inline with redlines or bullets by Tue EOD so I can turn a v2 for the Cobalt Finance review.
+
+—
+Michael Grant
+Legal | Redwood Inference
+
+
+
+From: Lauren Bishop <lauren.bishop@redwoodinference.com>
+To: Michael Grant <michael.grant@redwoodinference.com>
+Cc: Laura Bennett <laura.bennett@redwoodinference.com>, Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>, Jordan Blake <jordan.blake@redwoodinference.com>, Jasmine Liu <jasmine.liu@redwoodinference.com>
+Date: Sat, Mar 1, 2025 at 11:03 AM PT
+Subject: Re: Burst Capacity option — contract/SLA language (v1)
+
+Thanks Michael. Quick skim comments (will do deeper pass Monday):
+
+- Suggest we define the “Burst Cap” as a customer-configured limit (e.g., max additional throughput / max additional GPU capacity / max spend) rather than “Redwood discretion” only. Customers are going to ask “what exactly did I buy.”
+- In the addendum, section 2.2: “Burst Capacity is not guaranteed and may be denied” is fine, but I’d like to add one sentence on “denials will include a reason code” (Supportability requirement + aligns to product).
+- For SLA/service credits: agree Burst shouldn’t expand SLA; just make sure language doesn’t read like baseline SLA is weaker during a burst event. We’ve been messaging “non-burst neighbors are protected.”
+
+Will send line edits.
+
+Lauren Bishop
+Product (Dedicated) | Redwood Inference
+
+
+
+From: Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>
+To: Michael Grant <michael.grant@redwoodinference.com>
+Cc: Lauren Bishop <lauren.bishop@redwoodinference.com>, Laura Bennett <laura.bennett@redwoodinference.com>, Jordan Blake <jordan.blake@redwoodinference.com>, Jasmine Liu <jasmine.liu@redwoodinference.com>
+Date: Mon, Mar 3, 2025 at 8:26 AM PT
+Subject: Re: Burst Capacity option — contract/SLA language (v1)
+
+Adding sales-side feedback (from active Cobalt convo + another deal):
+
+1) Can we avoid “sole discretion” phrasing wherever possible? Legal is right that we need flexibility, but customers read that as “we can turn it off any time.” Suggest “subject to platform safety controls” / “in Redwood’s reasonable judgment” type language.
+2) They will ask: “If burst is denied, what happens to requests?” We should align with product: routing may backpressure/429/queue depending on config. Even one sentence like “Requests may be throttled, queued, or rejected” helps reduce surprises.
+3) Contract should make it clear burst is within-region only for now. I see it in Exhibit B but not in addendum body.
+
+Also: Cobalt’s counsel asked whether we can provide an audit trail for admin changes to burst settings. If we can’t commit to specifics, can we at least say “changes are logged in the audit log where enabled” or point to our audit logging feature set?
+
+Stephanie Nguyen
+Sales Enablement (NA) | Redwood Inference
+
+
+
+From: Laura Bennett <laura.bennett@redwoodinference.com>
+To: Michael Grant <michael.grant@redwoodinference.com>
+Cc: Lauren Bishop <lauren.bishop@redwoodinference.com>, Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>, Jordan Blake <jordan.blake@redwoodinference.com>, Jasmine Liu <jasmine.liu@redwoodinference.com>
+Date: Mon, Mar 3, 2025 at 10:11 AM PT
+Subject: Re: Burst Capacity option — contract/SLA language (v1)
+
+Finance notes:
+
+- We need a clean definition to prevent “double counting” disputes (baseline vs burst). Ideally: “Burst Usage” is only the portion above the Baseline Dedicated Capacity actually consumed, measured per second (or other unit) at the service boundary.
+- Please include “Burst Charges billed monthly in arrears” (or at least “as invoiced”) and tie to our usage reporting/export.
+- Add language that burst may be limited if customer is delinquent on payment (standard), but don’t overcomplicate.
+
+If helpful, I can send sample invoice line item text.
+
+Laura Bennett
+Finance | Redwood Inference
+
+
+
+From: Michael Grant <michael.grant@redwoodinference.com>
+To: Lauren Bishop <lauren.bishop@redwoodinference.com>
+Cc: Laura Bennett <laura.bennett@redwoodinference.com>, Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>, Jordan Blake <jordan.blake@redwoodinference.com>, Jasmine Liu <jasmine.liu@redwoodinference.com>
+Date: Tue, Mar 4, 2025 at 6:02 PM PT
+Subject: Re: Burst Capacity option — contract/SLA language (v2 edits + questions)
+
+All — incorporated the themes from Lauren/Stephanie/Laura into a v2 draft (same attachments in Drive link; not re-attaching to avoid version confusion).
+
+Notable changes:
+- Replaced “sole discretion” with “subject to platform safety controls” and “reasonable judgment” in a couple places.
+- Added definition: “Burst Cap” = the configured maximum for incremental capacity and/or spend, as stated in the Order Form and/or Console configuration.
+- Added statement: Burst is within the contracted Region; no cross-region burst.
+- Clarified denial behaviors: “throttled, queued, rejected” and that denial responses may include a reason code.
+- Billing: defined “Burst Usage” as usage above Baseline Dedicated Capacity at the measurement boundary; charges invoiced monthly in arrears per Order Form.
+- Audit: added a light statement that “administrative changes to Burst settings are recorded in audit logs where Audit Logging is enabled for the Customer’s environment.” (Not making audit logging universally available / turned on by default.)
+
+Two remaining items I’d like alignment on before we send to Cobalt:
+1) Service credits: I wrote “Burst Capacity does not increase Service Credits or expand the SLA beyond Baseline Dedicated Capacity.” Is everyone comfortable with that wording?
+2) Suspension language: I wrote we can “temporarily suspend Burst Capacity (in whole or in part) to protect the platform, other tenants, or Redwood SLOs.” That’s important, but if Sales wants softer language, propose edits.
+
+If no objections by tomorrow 12pm PT, I’ll send to Cobalt’s counsel as “draft for discussion.”
+
+Michael
+
+
+
+From: Jordan Blake <jordan.blake@redwoodinference.com>
+To: Michael Grant <michael.grant@redwoodinference.com>
+Cc: Lauren Bishop <lauren.bishop@redwoodinference.com>, Laura Bennett <laura.bennett@redwoodinference.com>, Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>, Jasmine Liu <jasmine.liu@redwoodinference.com>
+Date: Wed, Mar 5, 2025 at 9:14 AM PT
+Subject: Re: Burst Capacity option — contract/SLA language (v2 edits + questions)
+
+Fine by me.
+
+Suggest one tweak to #1: make it explicit that baseline SLA stays intact. Something like: “SLA applies to Baseline Dedicated Capacity irrespective of any Burst usage.” Avoids the misread that baseline SLA is conditional.
+
+Otherwise OK to send as draft.
+
+Jordan Blake
+VP, Business Operations | Redwood Inference
+
+
+
+From: Michael Grant <michael.grant@redwoodinference.com>
+To: Avery Chen <avery.chen@cobaltfinance.com>, Legal Team <legal@cobaltfinance.com>
+Cc: Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>, Lauren Bishop <lauren.bishop@redwoodinference.com>
+Date: Wed, Mar 5, 2025 at 4:48 PM PT
+Subject: Draft language — Dedicated Burst Capacity option
+Attachments: Redwood_Dedicated_Burst_Capacity_Addendum_v1.docx
+
+Avery — per your request, attached draft addendum language for the Dedicated “Burst Capacity” option for discussion.
+
+A few callouts to orient your review:
+- Burst is an optional, paid feature that allows usage above the contracted Baseline Dedicated Capacity, subject to platform safety controls.
+- The Dedicated SLA continues to apply to Baseline Dedicated Capacity irrespective of any Burst usage; Burst does not expand the SLA or service credits.
+- When Burst is unavailable/denied, requests may be throttled, queued, or rejected, and responses may include a reason code to aid troubleshooting.
+- Burst is within-region (no cross-region burst in the initial release).
+
+Happy to walk through any comments live. Stephanie can coordinate times.
+
+Best,
+Michael Grant
+Legal | Redwood Inference
+
+On Wed, Mar 5, 2025 at 9:14 AM Jordan Blake <jordan.blake@redwoodinference.com> wrote:
+> Fine by me.
+>
+> Suggest one tweak to #1: make it explicit that baseline SLA stays intact. Something like: “SLA applies to Baseline Dedicated Capacity irrespective of any Burst usage.” Avoids the misread that baseline SLA is conditional.
+>
+> Otherwise OK to send as draft.
+>
+> Jordan Blake
+> VP, Business Operations | Redwood Inference

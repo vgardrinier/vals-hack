@@ -1,0 +1,115 @@
+Support Ops: procurement shortlist & pilot sequencing
+
+From: Rachel Kim <rachel_kim@redwood.com>
+To: aditya_rao@redwood.com, marcus_lin@redwood.com, lauren_bishop@redwood.com, dev_patel@redwood.com, laura_bennett@redwood.com
+Date: 2026-09-28T09:12:00-07:00
+Subject: Support Ops: procurement shortlist & pilot sequencing
+
+Team — attaching the consolidated RFP responses and my initial scoring. We heard back from Zendesk, Intercom and Gainsight plus a small consultancy (Helix) with a proposed quick-win for inbox routing automation.
+
+TL;DR recommendation request: which vendor(s) should we run short pilots with, and in what order? My constraints: CS needs an inbox + automation fix ASAP (Q4), Platform can spare ~2 engineer-weeks for pilot integrations, and Finance requires PO/terms before any paid pilot beyond 30 days. 
+
+Attachments: RFP-responses.xlsx, scoring-sheet.csv, pilot-scope.md (high level scope for 30-day pilots).
+
+Asks: 1) Please call out your preferred pilot sequencing (1,2,3) with a one-line rationale. 2) Confirm any legal/procurement blockers you know of (SaaS terms, data residency). 3) Assign an owner for the Intercom pilot scoping (we'll need Eng + CS).
+
+I'll collate by Wed EOD and then loop in procurement/legal.
+
+Thanks —
+Rachel Kim
+Head of Customer Success Operations
+Redwood Inference
+
+From: Aditya Rao <aditya_rao@redwood.com>
+To: Rachel Kim <rachel_kim@redwood.com>
+Cc: marcus_lin@redwood.com, lauren_bishop@redwood.com, dev_patel@redwood.com, laura_bennett@redwood.com
+Date: 2026-09-29T10:05:00-07:00
+Subject: Re: Support Ops: procurement shortlist & pilot sequencing
+
+Rachel — quick take from a PLG/sales lens:
+
+1) Intercom first (30-day pilot) — best for improving self-serve funnels and bot-handled cases; biggest near-term impact on CS load.
+2) Zendesk parallel pilot for ticket routing and SLA visibility — they offered a lightweight pilot that doesn't require long-term commitment.
+3) Gainsight after we have renewal signals and a clear events schema — their strength is renewal/health tooling, not inbox routing.
+
+Resource ask: Dev Patel and I can scope the Intercom integration. We should reserve 2 eng-weeks and 1 CS analyst for the pilot period. Legal: check if Zendesk's pilot has any auto-conversion clauses.
+
+Happy to lead the Intercom pilot scoping if that helps.
+
+—Aditya
+Senior Solutions Engineer
+Redwood Inference
+
+From: Zoe Chen <zoe@zendesk.com>
+To: Rachel Kim <rachel_kim@redwood.com>
+Date: 2026-09-29T16:40:00-07:00
+Subject: Zendesk pilot proposal for Redwood Inference
+
+Hi Rachel — thanks for the RFP and the call yesterday. Attached is a short pilot proposal (zendesk-pilot-proposal.pdf) covering: scope (ticket routing, SLA dashboards, automations), success criteria, and a 30-day pilot price (waived for proof-of-concept; paid only if conversion to production).
+
+Key notes:
+- Pilot includes a Zendesk technical lead for configuration and a 2-week enablement session for CS ops.
+- No auto-renewal; any production contract is a separate procurement step.
+- We can provide sandbox access and sample connectors for event ingestion.
+
+If helpful I can set a 30-minute walkthrough with our solutions architect next week.
+
+Best,
+Zoe Chen
+Senior Account Executive, Zendesk
+Zendesk Inc.
+Attachment: zendesk-pilot-proposal.pdf
+
+From: Rachel Kim <rachel_kim@redwood.com>
+To: ops@gainsight.com
+Cc: aditya_rao@redwood.com, marcus_lin@redwood.com, lauren_bishop@redwood.com, dev_patel@redwood.com
+Date: 2026-09-30T08:30:00-07:00
+Subject: Fwd: Zendesk pilot proposal for Redwood Inference — ask on POC/pricing parity
+
+Forwarding Zendesk's pilot proposal for context.
+
+Gainsight team — can you confirm whether Gainsight can provide a comparable 30-day pilot focused on renewal signals and account health scoring? Key questions: data ingestion (events/usage), sample models for health scoring, and any minimum seat or MRR thresholds that would block a short POC.
+
+Quoted message below.
+
+On Tue, Sep 29, 2026 at 16:40 Zoe Chen <zoe@zendesk.com> wrote:
+> Hi Rachel — thanks for the RFP and the call yesterday. Attached is a short pilot proposal (zendesk-pilot-proposal.pdf) covering: scope (ticket routing, SLA dashboards, automations), success criteria, and a 30-day pilot price (waived for proof-of-concept; paid only if conversion to production).
+>
+> Key notes:
+> - Pilot includes a Zendesk technical lead for configuration and a 2-week enablement session for CS ops.
+> - No auto-renewal; any production contract is a separate procurement step.
+> - We can provide sandbox access and sample connectors for event ingestion.
+>
+> If helpful I can set a 30-minute walkthrough with our solutions architect next week.
+>
+> Best,
+> Zoe Chen
+> Senior Account Executive, Zendesk
+> Zendesk Inc.
+
+Thanks — please reply with the specific asks you'd need to provide a pilot quote.
+
+Rachel
+Head of Customer Success Operations
+Redwood Inference
+
+From: Lauren Bishop <lauren_bishop@redwood.com>
+To: rachel_kim@redwood.com
+Cc: aditya_rao@redwood.com, marcus_lin@redwood.com, dev_patel@redwood.com, laura_bennett@redwood.com
+Date: 2026-10-02T17:45:00-07:00
+Subject: Re: Support Ops: procurement shortlist & pilot sequencing
+
+Approved — proceed with pilot sequencing as follows:
+
+1) Intercom pilot (priority): Aditya to own scope and PO request. Dev Patel to allocate 2 eng-weeks. Marcus to define success metrics with CS analysts.
+2) Zendesk pilot (parallel): Accept Zendesk's 30-day pilot terms; Rachel to finalize kickoff and schedule their solutions architect. Procurement/legal (cc Laura Bennett) to review the pilot doc and confirm no auto-convert clauses.
+3) Gainsight: exploratory only for now — ask Gainsight for a POC quote and minimum requirements. If they can do a 30-day proof for renewal signals, we will evaluate post-pilot.
+
+Finance: Laura, please open a PO placeholder for the pilots (we'll route actual costs after sign-off). Rachel — once Zendesk confirms dates, loop Legal/Procurement and I'll sign-off on the PO.
+
+Related: I've uploaded a short list of next steps (procurement-next-steps.md) and put a Drive folder at https://drive.google.com/open?id=1a2b3c4d-pilot-scope.
+
+—Lauren
+VP, Customer Experience
+Redwood Inference
+Attachment: procurement-next-steps.md

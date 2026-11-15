@@ -1,0 +1,47 @@
+Edge-signed tenant-assertion header mismatch blocks scheduled batch workers in private VPC
+
+Issue summary:
+Customer reports that their scheduled batch inference workers running inside a Private VPC intermittently receive 403 responses from the Redwood Private control plane. The failures began after an edge upgrade last week. Failures appear to correlate with specific worker restart windows and high ingress traffic through the customer's edge appliance.
+
+Impact:
+- Several nightly batch jobs that provisioned prompt sets and pre-warm KV caches failed to complete (approx 30% failure rate across job runs).
+- Customer is experiencing delayed batch processing and increased cost due to retries.
+- No observed data leakage; failures are authorization-only (403).
+
+Environment:
+- Customer: VectorScale Analytics (private deployment)
+- VPC region: us-east-1
+- Redwood Private version: 2.8.4 (control plane), identity-proxy 1.4.2 (edge-side)
+- Edge appliance: vendor-edge v10.1.3 (customer-managed)
+
+Desired outcome:
+- Restore reliable authorization for scheduled workers and identify permanent fix to edge-signed assertion handling.
+1) Deploy a scheduled batch worker in customer's private VPC that uses a service account token to call the Redwood Private admin endpoints.
+2) Ensure the customer's edge appliance is configured to sign and forward a tenant-assertion header (X-Redwood-Tenant).
+3) Trigger a worker restart during a moderate ingress load.
+4) Observe intermittent 403 responses from the control plane when the edge-signed header is present (worker succeeds when header absent or when request is routed directly).
+- Control plane auth logs (2026-03-10T02:12:45Z): authz_denied: tenant_assertion_mismatch: header_signature_unverified
+- Identity-proxy logs (customer edge, 2026-03-10T02:12:44Z): signed-assertion forwarded: sig=sha256:7a2f...
+- Worker-side curl to /v1/admin/health returned 403 with body '{"error":"tenant mismatch"}' in 8/25 attempts during crash window
+- No 5xx spikes in serving-runtime; failures localized to admin/auth check path
+- Reproduced internally by simulating signed header with altered tenant namespace: requests signed for 'tenants/vector' were delivered as 'vector' after edge rewrite.
+- Identity proxy verification expects full namespaced tenant id (tenant://org/namespace). Edge appliance is signing a URL-encoded variant and sometimes strips the 'tenant://' prefix.
+- Race condition: scheduled workers rotate ephemeral service tokens at restart; when token rotation coincides with an edge rewrite that strips prefix, the control plane rejects the assertion due to aud/tenant canonicalization mismatch.
+- Correlated with edge upgrade that enabled path-based host rewriting; we saw 14% of forwarded headers truncated when line-length exceeded 4k bytes.
+- Related internal note created INT-9042 for a proposed normalization change in auth middleware.
+2026-03-10 Priya Desai (Support): Logged report from customer with sample request/response and timestamps. Assigned to Ethan for initial triage.
+2026-03-10 Ethan Morales (Eng): Confirmed 403s in control plane logs. Hypothesis: header namespace normalization mismatch between edge and auth middleware. Reproducing with local edge emulator.
+2026-03-11 VectorScale SRE (customer): We rolled back the edge to v10.1.1; failures dropped to ~2% but still occur under high concurrency. Providing additional traces.
+2026-03-11 Ethan Morales (Eng): Found truncated header occurrences when combined header length > 4096. Filed a candidate fix to trim/normalize and to accept both 'tenant://' prefixed and plain forms. See PR linked.
+2026-03-12 Priya Desai (Support): Notified customer of mitigation steps and scheduled a maintenance window to push a control plane normalization patch.
+2026-03-12 VectorScale Ops: Agreed to run patch in staged window and report back after two nightly runs.
+Workaround applied: Rolled out control plane auth middleware update that tolerant-parses tenant assertions — accepts both 'tenant://org/name' and the plain namespaced key, and logs the original header for later correlation. Customer instructed to roll back edge rewrite or upgrade to v10.1.4 (edge vendor patch) that fixes header truncation.
+Root cause: Edge appliance path-based rewrite introduced header rewriting/truncation and the identity verification logic in the control plane performed strict canonicalization of the tenant assertion, causing aud/tenant mismatches when the 'tenant://' prefix or URL-encoding was stripped.
+Follow-ups:
+- INT-9042: Add robust canonicalization and normalization tests in identity-proxy to handle URL-encoded and truncated forms (owner: auth-team).
+- Ops runbook update: document 'signed-assertion' length checks and recommended edge config to avoid header clipping.
+- Recommend customer upgrade edge appliance to vendor-edge v10.1.4.
+- Monitor scheduled job success rate for 7 days post-patch.
+- Verify logs for 'header_truncated' alerts in next control plane release.
+- Add automated e2e test that sends oversized X-Redwood-Tenant header to detect truncation handling.
+- Customer to confirm two consecutive nightly runs succeed before closing.

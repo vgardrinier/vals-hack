@@ -1,0 +1,34 @@
+customer-success
+
+jess: Quick weekly check-in for Zephyr — reconciling hosted commit vs actual burn. spotted a flag overnight from cost-bot.
+omar: saw that, yeah. cost-bot said +42% burn vs expected for the rolling 7d window.
+lucy: do we have breakdown by API route? Is this generation tokens or embeddings?
+cost-bot: ALERT: Zephyr (acct ZPH-88) — hosted API spend anomaly detected. delta=+42% vs commit projection. top_routes=[/v1/generate, /v1/embed], top_models=[open-7b, rwdx-13b].
+maya (AE): tagging me. Zephyr's committed tier is 500k tokens/mo. current usage 310k, projected month-end 710k. that's a risk for overage.
+jess: thanks. lucy — can you pull per-route token counts and a per-day chart? want to see if it's a burst or steady drift.
+lucy: on it. grabbing dashboard: https://console.redwood.ai/billing/customers/zephyr -> usage/drilldown
+lucy: quick snapshot: last 24h token delta +120k, /v1/generate accounts for 78% of that. avg latency unchanged (p50 120ms -> 125ms), errors up slightly (5xx rate 0.15% -> 0.45%)
+omar: looks like a spike in long-sequence generation from their new search feature rollout. they passed a prompt with long context repeatedly.
+jess: ok, two threads: 1) immediate spend mitigation 2) postmortem + enablement to avoid repeat. propose: enable short-term rate limit on /v1/generate for their API key to 60 rps, and a proactive recommendation email about prompt trimming and KV cache.
+maya (AE): Zephyr contact is @carlos. i'll ask for permission to throttle for a few hours — prefer we give them a heads up before applying hard limits.
+jess: fair. can we set a soft quota alert at 80% of commit and a temporary traffic shaping policy instead of full throttle?
+lucy: we can. policy snippet:
+```
+policy: {
+  target: "acct:ZPH-88",
+  route: "/v1/generate",
+  soft_limit: 400000, // tokens/month threshold
+  action: "shape_to_60rps_then_notify"
+}
+```
+jess: perfect. maya pls coordinate with Carlos, offer a short-term top-up or commit adjustment as alternative.
+maya (AE): will do. i'll send options: 1) temporary top-up credits, 2) increase commit, 3) implement rate-shaping + prompt guidance. sending now.
+cost-bot: NOTE: created ticket CS-7234 for anomaly follow-up, linked alert -> https://tickets.redwood.ai/CS-7234
+omar: quick ask for eng: if we shape, do we still have accurate per-token billing? want to ensure we don't misreport for month-end invoicing.
+lucy: shaping doesn't change token accounting. it's just rate limiting. billing remains per-token consumed.
+jess: action items: maya -> confirm with Carlos (by EOD) and pick mitigation. lucy -> upload per-route CSV to ticket and capture the top 10 offending request examples (sanitized). omar -> prep a short note for billing about expected overage and potential invoice impact. i'll draft the customer email template.
+maya (AE): pinged Carlos, he's in a meeting until 3pm PT. asked for permission to apply rate-shaping if they don't respond within 4 hours. he'll escalate internally.
+jess: thanks. marking this check-in as a green→amber risk until we hear back. will update CS-7234 with progress. :eyes:
+lucy: uploaded CSV + sample prompt snippets to the ticket.
+omar: drafted billing note, added estimated incremental cost = ~$1.8k if no commit change.
+jess: closing loop for now. next sync in tomorrow's weekly if no resolution. feel free to add any extra notes in CS-7234.

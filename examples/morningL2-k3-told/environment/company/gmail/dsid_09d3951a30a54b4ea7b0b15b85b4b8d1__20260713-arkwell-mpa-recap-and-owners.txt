@@ -1,0 +1,123 @@
+Post-call: Arkwell pilot MPA & decision owners (recap + next steps)
+
+From: Jonas Weber <jonas.weber@redwoodinference.com>
+To: Aisha Patel <aisha.patel@arkwell.com>
+Cc: Marissa Cole <marissa_cole@redwoodinference.com>, Ben Carter <ben_carter@redwoodinference.com>
+Date: Mon, 13 Jul 2026 15:02:00 +0000
+Subject: Post-call: Arkwell pilot MPA & decision owners (recap + next steps)
+
+Hi Aisha (and team),
+
+Thanks again for the time today — really appreciated the candid run-through of Arkwell's priorities. Below is a short recap of what we heard, the proposed Mutual Action Plan (MPA) milestones, owners, and a couple of open items we flagged on the call. Please confirm or correct anything that’s off.
+
+Why Arkwell is exploring Redwood
+- Need sub-200ms inference for user-facing classification to avoid impacting conversion funnel.
+- Current provider has high per-token costs and unpredictable latencies at peak.
+- Regulatory concern: data residency + auditable access logs for a single-tenant pilot.
+
+Top goals for the pilot (30–60 days)
+- Validate latency SLO (p95 < 200ms) on a 5k QPS-equivalent workload
+- Prove 3x reduction in inference cost/token compared to current baseline
+- Demonstrate secure VPC deployment with integration to Arkwell KMS and audit exports
+
+Proposed Mutual Action Plan (draft milestones & owners)
+1) Scoping & contract alignment — Target complete: 2026-07-23 — Owner: Aisha (Arkwell) + Ben (Redwood sales)
+2) Security and compliance checklist + evidence exchange — Target complete: 2026-07-30 — Owner: Devon (Arkwell) + Marissa (Redwood CS) — includes SOC2 artifact handoff and KMS integration details
+3) Pilot deployment (private VPC) + load test — Start: 2026-08-03, End: 2026-08-17 — Owner: Marissa (Redwood) + Arkwell infra engineer (TBD)
+4) Evaluation & decision review — Complete by: 2026-08-24 — Owner: Aisha (Arkwell) + Ben (Redwood) — decision criteria: latency, cost delta, compliance checklist
+
+Open questions from call
+- Which Arkwell team will own infra work (we noted an infra engineer but don’t have a name).
+- Any internal procurement windows / approval gates we should factor into the 8/24 review?
+- Are there minimum SLAs or commercial terms that Arkwell requires for the pilot to be considered?
+
+Attachments: I’ve attached a one-page MPA spreadsheet (arkwell-mpa-v1.xlsx) with the milestones above and a stub list of required security artifacts.
+
+Next steps
+- Ben to send contract redline template (Ben will share EULA/PO terms by 07/16).
+- Aisha to confirm infra owner + procurement windows by 07/20.
+- Redwood (Marissa) to provision a private test pool and share pre-flight checklist by 07/29.
+
+If that all looks right, I’ll update the MPA (sheet) and Ben will kick off the procurement thread once we have the infra owner.
+
+Thanks — talk soon.
+
+Jonas Weber
+Senior Solutions Engineer | Redwood Inference
+jonas.weber@redwoodinference.com | +1 (415) 555-0182
+
+Attachments: arkwell-mpa-v1.xlsx (spreadsheet, 1 page)
+
+From: Aisha Patel <aisha.patel@arkwell.com>
+To: Jonas Weber <jonas.weber@redwoodinference.com>
+Cc: Devon Shaw <devon.shaw@arkwell.com>
+Date: Tue, 14 Jul 2026 09:17:00 +0000
+Subject: Re: Post-call: Arkwell pilot MPA & decision owners (recap + next steps)
+
+Jonas — thanks for capturing this so clearly. Quick confirmations and clarifications from our side: 
+
+Confirmations
+- Goals & milestones look accurate. The timeline is aggressive but acceptable if procurement and infra ownership are clear.
+- We require a private VPC deployment for the pilot (no shared tenancy).
+
+Clarifications / asks
+- Procurement: We have a monthly procurement cutover on the 20th — if we can get commercial terms before 07/20 that would keep things moving quickly.
+- Infra owner: I’ll loop in our infra lead, Devon (cc’d). Devon — can you confirm if you can allocate a single engineer for the pilot (estimated 3–5 days across the pilot window)?
+- Security: We will need a copy of any SOC2 + access log export examples to share with our internal auditors.
+
+I’ll aim to confirm the infra owner and procurement constraints by 07/20. If Redwood can share the SOC2 evidence stub now, that would help speed our internal review.
+
+Best,
+Aisha Patel
+VP, Product Operations | Arkwell Technologies
+aisha.patel@arkwell.com | +1 (617) 555-0124
+
+From: Jonas Weber <jonas.weber@redwoodinference.com>
+To: Aisha Patel <aisha.patel@arkwell.com>, Devon Shaw <devon.shaw@arkwell.com>
+Cc: Marissa Cole <marissa_cole@redwoodinference.com>, Ben Carter <ben_carter@redwoodinference.com>
+Date: Tue, 14 Jul 2026 16:45:00 +0000
+Subject: Re: Post-call: Arkwell pilot MPA & decision owners (recap + next steps)
+
+Thanks Aisha — appreciate the quick reply and helpful context. A few updates inline and one small ask: 
+
+1) Procurement timing — Ben will attach a one-page commercial summary and our standard pilot terms by 07/16 to give your procurement team a head start prior to your 07/20 cutover.
+
+2) SOC2 & logs — Marissa is cc’d; we can provide a sanitized SOC2 summary and a sample audit log export today. I’m adding an item to the MPA for evidence exchange (target 07/30).
+
+3) Infra owner — Devon, if you can confirm availability for 3–5 days across the 08/03–08/17 window that would be ideal. If you need a narrower window we can accommodate.
+
+Action items (updated)
+- Ben (Redwood) — commercial summary + pilot terms by 2026-07-16.
+- Aisha (Arkwell) — confirm infra owner and procurement gate by 2026-07-20.
+- Marissa (Redwood) — prepare SOC2 stub and sample access log export (delivered 2026-07-15).
+- Jonas (Redwood) — update MPA and send revised sheet after Ben’s commercial doc (target 2026-07-17).
+
+I’ll attach the updated MPA once Ben shares the commercial summary.
+
+On the logistics side, do you have a preferred channel for the infra access setup (VPN + temporary service account) or should Marissa propose the standard flow we use for VPC pilots?
+
+— Jonas
+
+From: Marissa Cole <marissa_cole@redwoodinference.com>
+To: Aisha Patel <aisha.patel@arkwell.com>, Devon Shaw <devon.shaw@arkwell.com>
+Cc: Jonas Weber <jonas.weber@redwoodinference.com>, Ben Carter <ben_carter@redwoodinference.com>
+Date: Wed, 15 Jul 2026 08:30:00 +0000
+Subject: Re: Post-call: Arkwell pilot MPA & decision owners (recap + next steps)
+
+Hi Aisha / Devon — looping in the standard VPC onboarding checklist here to make the infra work straightforward. To confirm: we’ll propose the standard Redwood private VPC flow (temporary service account + short-lived VPN) unless you prefer a direct peering approach. Either works, but peering adds procurement steps on your side.
+
+I’m attaching the SOC2 summary and a sample (sanitized) access-log export for your auditors (arkwell-security-evidence-stub.pdf). That doc includes the fields our logs capture and typical retention options.
+
+Next operational milestones from CS side
+- Pre-flight checklist & VPC creds exchange — target 2026-07-29 — Owner: Marissa (Redwood) + Devon (Arkwell)
+- Pilot provisioning complete — target 2026-08-02 — Owner: Marissa (Redwood)
+- Load test execution — 2026-08-03 to 2026-08-07 — Owner: Marissa (Redwood) + Arkwell infra
+
+If Devon can confirm the infra owner and preferred onboarding channel today or tomorrow we’ll lock the pre-flight window. Otherwise we’ll default to the temporary VPN flow and proceed.
+
+Thanks — Marissa
+Marissa Cole
+Customer Success Manager | Redwood Inference
+marissa_cole@redwoodinference.com | +1 (206) 555-0199
+
+Attachments: arkwell-security-evidence-stub.pdf (SOC2 summary; sample access log fields)

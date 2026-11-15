@@ -1,0 +1,102 @@
+Next steps & CFO one-pager for pilot — Stratigen
+
+From: Maya Srinivasan <maya@redwood.com>
+To: Anika Shah <anika.shah@stratigen.com>
+Cc: Ben Carter <ben@redwood.com>
+Date: Fri, 05 Jun 2026 15:03:00 -0400
+Subject: Post-demo recap + MAP draft (pilot next steps)
+
+Hi Anika —
+
+Thanks again for walking us through the use case this morning. Quick recap and proposed next steps so we stay aligned internally and with your procurement/security teams.
+
+What I heard you say: 
+- Economic buyer: Girish Patel (CFO) — cares about TCO and 12-month ROI.
+- Security/Legal: Lina Morales (Head of Security) — will need SOC2 evidence, data residency confirmation, and a quick threat model summary.
+- Procurement: procure@stratigen.com — standard SOW + PO flow; procurement will want lead times and billing terms.
+
+Redwood actions (proposed):
+1) Share a 1-page CFO-focused ROI summary and a 10-minute slide deck you can present to Girish.
+2) Send our SOC2 evidence matrix and answers to the security questionnaire.
+3) Circulate a draft Mutual Action Plan (MAP) so we can confirm milestones, owners, and target pilot scope.
+4) Propose a readiness call to prep internal stakeholders — suggest Wed 6/10 10 AM ET.
+
+Attached: Stratigen-MAP-Draft.pdf (MAP with milestone + owners), SOC2-evidence-request.xlsx (request template).
+
+Quick ask for you: please confirm the procurement contact and any purchase order deadlines we should know about. Also, if there’s an internal deck template you prefer, send it and we’ll align the CFO one-pager to match.
+
+Thanks — I’ll loop Ben and Vivek to craft the CFO talk track and security blurb.
+
+Best,
+Maya
+
+Maya Srinivasan
+Enterprise Account Executive | Redwood Inference
+maya@redwood.com | (415) 555-0192
+[Attachment: Stratigen-MAP-Draft.pdf (pdf)]
+[Attachment: SOC2-evidence-request.xlsx (xlsx)]
+From: Anika Shah <anika.shah@stratigen.com>
+To: Maya Srinivasan <maya@redwood.com>
+Cc: Ben Carter <ben@redwood.com>, Procurement <procure@stratigen.com>
+Date: Mon, 08 Jun 2026 09:12:00 -0400
+Subject: Re: Post-demo recap + MAP draft (pilot next steps)
+
+Maya —
+
+Appreciate the fast follow. A few clarifications from our side:
+- Confirmed: Girish (CFO) is the economic buyer; he wants a concise ask and the expected cost savings over 12 months. If you can show ARR impact or a break-even timeline that helps.
+- Security: Lina will want a short writeup on data flow (we store PHI in a masked form) and confirmation of regional data residency; SOC2 artifacts + encryption details are essential.
+- Procurement: they’ll need a draft SOW with deliverables and a standard net-45 term; I’ve included them on the thread.
+
+Can you:
+- Send a one-pager aimed strictly at the CFO (numbers first, two quick bullets on risk reduction).
+- Provide a 3-slide deck (title, problem/value, cost/ROI) I can use in a 10-minute exec slot.
+
+Also attaching our internal procurement intake (procurement-guidelines.pdf) — procurement tends to push for a single-point SOW with a PO.
+
+If you can get the CFO one-pager by EOD Tue that would be perfect — we’ve got a slot with Girish later in the week.
+
+Thanks —
+Anika
+Director of Product Strategy | Stratigen Health
+anika.shah@stratigen.com
+[Attachment: procurement-guidelines.pdf (pdf)]
+From: Maya Srinivasan <maya@redwood.com>
+To: Anika Shah <anika.shah@stratigen.com>
+Cc: Ben Carter <ben@redwood.com>, Vivek Kulkarni <vivek@redwood.com>, Procurement <procure@stratigen.com>
+Date: Tue, 09 Jun 2026 08:27:00 -0400
+Subject: Re: Post-demo recap + MAP draft (pilot next steps)
+
+Anika — thanks, noted. Looping internal leads (Ben + Vivek) to produce the CFO one-pager and the short slide pack. Below are the suggested bullets we’ll include; Ben/Vivek — please edit where needed.
+
+CFO one-pager (draft bullets):
+- Ask: 3-month pilot (50k tokens/month equivalent) at a fully loaded rate of $X/month; pilot cap: $XXk.
+- Expected savings: 20–30% reduction in annotation and QA headcount through automation (modeled as $YYk annualized).
+- Revenue upside: 2–4% lift in customer retention for the addressed use case = $ZZk incremental ARR (conservative estimate).
+- Break-even: ~6–8 months at midpoint assumptions.
+- Risk reduction: privacy controls (encryption at rest/in transit), on-premizable private deploy option for PHI, and SOC2 + audit support.
+
+Security blurb (for Lina):
+- Data residency: can pin to us-east-1 or customer VPC; encrypted KV cache and redaction pipeline available.
+- SOC2: we will provide scope summary + sample report sections and a checklist linking to artifacts.
+- Minimal data access: model outputs can be configured to avoid persistent logs; per-request logs retained per your policy.
+
+Attachments I’ll send with the next email: CFO-one-pager.pdf, security-answers.docx.
+
+Proposed readiness call: Wed 10 Jun 2026 10:00 AM ET — confirm and I’ll send a calendar invite. Also tagging Procurement so we can align on SOW template and billing terms. HubSpot link to deal: https://app.hubspot.com/contacts/12345/deal/RWF-2026-1789
+
+Thanks —
+Maya
+[Attachment planned: CFO-one-pager.pdf]
+[Attachment planned: security-answers.docx]
+From: Ben Carter <ben@redwood.com>
+To: Maya Srinivasan <maya@redwood.com>, Vivek Kulkarni <vivek@redwood.com>
+Date: Tue, 09 Jun 2026 11:42:00 -0400
+Subject: Re: Post-demo recap + MAP draft (pilot next steps)
+
+Maya — ack, I’ll draft the 3-slide CFO deck and the one-pager. Vivek — can you add two lines on model-level cost reduction (quantization + batching) we can cite as conservative savings? I’ll aim to have drafts by Tue EOD so Maya can push to Anika.
+
+Ben
+Sr. Solutions Architect | Redwood Inference
+ben@redwood.com
+[Note: calendar invite to follow for Wed 10 Jun 10:00 AM ET readiness call]

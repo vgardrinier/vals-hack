@@ -1,0 +1,114 @@
+Request: network-induced latency carveout for Private VPC — Greenfield Bio
+
+From: Elena Morris <elena.morris@greenfieldbio.com>
+To: Irene Choi <irene.choi@redwood.com>
+Date: Thu, 20 Aug 2026 09:12:00 -0700
+Subject: SLA exception request: network-induced latency for private VPC
+
+Hi Irene,
+
+Thanks for taking this. We've been seeing transient token-generation latency spikes for requests routed to your private-VPC deployment. Our infra team traced the higher tail latencies to intermittent packet drops on the customer side NAT/gateway during peak sync windows — this impacts the long-lived TLS sessions that keep KV caches warm.
+
+Because this is customer-network-originated, we need an SLA carveout for latency SLOs (p95/p99) tied to customer-managed network disruptions. Can your legal/ops team propose example language and an operational playbook (what telemetry you need, what we should remediate and by when) so we can finalize an amendment?
+
+Context: Greenfield is on Dedicated Private (VPC) with private control plane. We've opened ticket 19384 with our network provider and attached a short PCAP.
+
+Attaching: greenfield-net-trace-aug20.pcap (excerpt)
+
+Best,
+Elena Morris
+Head of Platform Engineering
+Greenfield Bio
+
+---
+Note: forwarding to devops@greenfieldbio.com as requested.
+From: Irene Choi <irene.choi@redwood.com>
+To: Elena Morris <elena.morris@greenfieldbio.com>
+Cc: Vivek Kulkarni <vivek.kulkarni@redwood.com>
+Date: Thu, 20 Aug 2026 11:04:00 -07:00
+Subject: Re: SLA exception request: network-induced latency for private VPC
+
+Elena — thanks for the detail and the trace. Vivek handles policy for SLA carveouts; looping him in. A few quick asks so we can draft a clean amendment:
+
+- Could you confirm the expected remediation window from your network vendor (we usually record a "customer remediation ETA" to condition any exception).
+- Do you have a longer sample of p95/p99 token latency by hour (48–72h preferred) so we can model billing/credits?
+- Are you able to add HTTP/2 connection metrics (open TLS sessions, reconnect rate) to the logs you share? That helps us size KV-cache warmup impact.
+
+Operationally, high-level approach we propose:
+- Carveout for customer-network-originated packet loss: Redwood will not count network-induced tail latency against the Hosted SLAs defined in Section 3.1 if customer provides evidence of network outages and an active remediation plan within agreed ETA.
+- Conditional credits: If issue persists beyond the remediation ETA, credit calculation will be a proportion of affected requests (we can model this once we see sample latencies).
+
+Vivek — can you propose sample amendment text and an appendix we can attach to the SOW?
+
+Irene
+Principal Product Manager, Privacy & Compliance
+Redwood Inference
+
+From: Vivek Kulkarni <vivek.kulkarni@redwood.com>
+To: Irene Choi <irene.choi@redwood.com>, Elena Morris <elena.morris@greenfieldbio.com>
+Cc: Lauren Bishop <lauren.bishop@redwood.com>
+Date: Fri, 21 Aug 2026 10:15:00 -07:00
+Subject: Draft: customer-network carveout language + monitoring checklist
+
+Elena / Irene — draft language below for the amendment and a short monitoring checklist. This is intentionally prescriptive so downstream legal and procurement can slot it in.
+
+Proposed amendment clause (draft):
+"Where Customer-managed networking (including but not limited to on-prem gateways, NATs, and third-party WAN links) causes packet loss, persistent reconnects, or other conditions that materially increase request latency to the Private Deployment endpoint, such conditions shall be considered Customer Network Events and excluded from Redwood's latency uptime SLO calculations provided that: (a) Customer submits evidence (logs/pcap/ISP ticket) within 48 hours of the event; (b) Customer provides a remediation ETA no greater than 7 calendar days or a mutually-agreed mitigation plan; and (c) Customer enables the telemetry collectors listed in Appendix A during the remediation period. If remedial action is not completed within the agreed ETA, Redwood will apply proportional service credits calculated against the subset of requests demonstrably impacted by the Customer Network Event."
+
+Appendix A (monitoring checklist):
+- Upload of pcap or representative flow logs (pcap, sFlow excerpt)
+- TLS session open/close rate and reconnect count per minute
+- Application-level request IDs/sample payloads (redacted) correlated with timestamps
+- ISP/third-party vendor ticket ID and status URL
+
+Attachment: network-appendix-draft.pdf (contained: sample appendix text + credit calc examples).
+
+A couple of notes:
+- For credit math we prefer to base on fraction of tokens processed during impacted requests rather than full monthly usage (example table in the draft).
+- We can include an operational fallback: automatic routing to hosted (non-private) model for traffic tagged as "no-KV-cache" if you'd like an automatic mitigation. That's a separate config we can enable in the routing policy.
+
+If this matches your expectation, we'll move to procurement with SOW language and send a redline-ready PDF.
+
+— Vivek
+Head of Customer Agreements
+Redwood Inference
+
+From: Elena Morris <elena.morris@greenfieldbio.com>
+To: Vivek Kulkarni <vivek.kulkarni@redwood.com>, Irene Choi <irene.choi@redwood.com>
+Cc: devops@greenfieldbio.com, Lauren Bishop <lauren.bishop@redwood.com>
+Date: Fri, 21 Aug 2026 13:22:00 -07:00
+Subject: Re: Draft: customer-network carveout language + monitoring checklist
+
+Vivek — this looks good and straightforward. A few quick clarifications:
+
+- ETA: our WAN provider has acknowledged the issue and given an initial remediation window of 5 business days. We'll confirm via the ticket that the ETA is firm (link below).
+- Credit calc: we prefer the "fraction of affected tokens" approach — please include the example table in the amendment.
+- Fallback routing: yes please propose an opt-in routing policy to route requests to Hosted model during verified Customer Network Events; we want minimal customer-side changes.
+
+I've uploaded a fuller PCAP and a timeline in the ticket (https://support.greenfieldbio.com/tickets/19384). Attaching an excerpt we shared earlier.
+
+Thanks — Elena
+Head of Platform Engineering
+Greenfield Bio
+
+Attachment: greenfield-net-trace-aug20.pcap (excerpt)
+From: Irene Choi <irene.choi@redwood.com>
+To: Elena Morris <elena.morris@greenfieldbio.com>
+Cc: Vivek Kulkarni <vivek.kulkarni@redwood.com>, Lauren Bishop <lauren.bishop@redwood.com>
+Date: Sun, 22 Aug 2026 16:05:00 -07:00
+Subject: Finalizing amendment path for procurement
+
+Elena — appreciate the quick responses and the ticket link. Next steps from Redwood: 
+
+1) We will convert Vivek's draft clause and Appendix A into a redline-ready amendment PDF and share it with your procurement team by Tue 2026-08-24 EOD.
+2) Lauren (CC'd) will coordinate the routing-policy opt-in: you'll get a short config toggle in the Console and a one-page runbook for enabling automatic fallback to Hosted model during a Customer Network Event.
+3) For credits: we'll include the example table and two calculation modes (tokens-affected and duration-adjusted) so procurement can pick.
+
+Please confirm the remediation ETA in the ticket once your WAN provider confirms — that will be included verbatim in the amendment. Once the amendment is signed we'll mark the carveout as active.
+
+If you'd like, we can schedule a 30-min call early next week to walk procurement/legal through the wording.
+
+Thanks,
+Irene
+Principal Product Manager, Privacy & Compliance
+Redwood Inference

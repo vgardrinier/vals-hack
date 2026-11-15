@@ -1,0 +1,23 @@
+sales
+
+Alex (AE): Hey team — MediCore is asking if we can guarantee that customer data and inference requests for their POC stay entirely in the EU. They want a short write-up for their security board and a rough Dedicated pricing estimate for 2x A100 reserved for 12 months.
+Priya (Solutions): Thanks Alex. Two parts: 1) technical routing / region guarantee, 2) pricing for Dedicated. I can own the POC plan. Do they need VPC/private control plane or is strict datastore residency enough?
+Alex (AE): They said 'no data leaves EU, including metadata about request routing' — so sounds like control plane isolation is required. They asked whether hosted API can be constrained to eu regions or if we need Dedicated/Private.
+Sam (Infra Eng): Short answer: hosted API (our shared control plane) may touch non-EU control-plane services for orchestration/telemetry; we do not store customer payloads outside region by default but metadata/observability can. For a strict policy (no control plane hops outside EU) we recommend Dedicated with VPC peering or Private deployment.
+Lena (Privacy): We'll need to provide the sub-processor list and DPA addendum. For EU-only processing commitments we also require a contractual clause + SOC2 + our subproc attestation. I can prepare the security board note.
+Priya (Solutions): For the POC: propose Dedicated in eu-west-1 with VPC peering and a small reserved pool (2xA100) for 30-day smoke then scale to 12-month commit if OK. I can spin up config for the customer and run latency tests.
+Alex (AE): Pricing question: what's the monthly committed rate ballpark for 2xA100 Dedicated in eu-west-1? Customer expects a number today to proceed with internal approvals.
+Sam (Infra Eng): Ballpark (high level) — committed Dedicated for 2xA100 typically starts around ~€18k-€25k/month depending on support/SLA and burst capacity. I'll confirm exact quote with capacity pricing team.
+Priya (Solutions): For the security board note, I'll include these items: - Deployment model recommendation (Dedicated + VPC), - Dataflow diagram showing no egress from eu-west-1, - Sub-processor list link, - Contractual addendum ask.
+Lena (Privacy): I'll attach the latest sub-processor manifest and DPA excerpt. Note: the sub-processor list includes monitoring vendors (some US-based); for strict EU-only we can supply an EU-only subproc subset and escalate with legal for exceptions.
+Alex (AE): Can someone paste the canonical link to the sub-processor list and a one-paragraph tech summary I can drop into the RFP?
+InfraBot: Deploy logs: provisioning-dedicated-eu request queued (ticket #7421). ETA 3 business days for config template prep.
+Sam (Infra Eng): Sub-processor list (internal): https://redwood.example/subprocessors/latest (copy for customer: https://redwood.example/subprocessors/eu-only).
+Priya (Solutions): One-paragraph summary for RFP:
+```
+Redwood recommends a Dedicated deployment in eu-west-1 with VPC peering or Private control plane to ensure inference payloads and control-plane operations remain within the EU. Our Dedicated offering allows reserved GPU pools with network isolation and contract-level commitments (DPA + sub-processor attestation). For strict EU residency requirements, we will exclude non-EU sub-processors and provide a tailored addendum; please see attached sub-processor manifest and proposed DPA clause.
+```
+Alex (AE): Perfect. Action items: Priya — prepare POC plan + config template; Sam — confirm exact pricing and any limitations on EU-only subproc; Lena — prepare subproc docs + one-page legal note. I'll update customer and request their security questionnaire.
+Priya (Solutions): On it. I'll schedule a kickoff with customer for tomorrow 10:00 CET.
+Lena (Privacy): I'll draft the legal note and post here for review.
+Alex (AE): Thanks all :thumbsup:

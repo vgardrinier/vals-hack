@@ -1,0 +1,119 @@
+SaaSify - tiered commit & premium-model allocation (follow-up)
+
+From: Lydia Park <lydia.park@saasify.ai>
+To: Rafael Mendes <rafael_mendes@redwood.com>
+Cc: Tom Reynolds <tom.reynolds@saasify.ai>
+Date: 2026-10-31 15:08:00 -0700
+Subject: Pricing ask: commit tiers + model mix
+
+Hi Rafael,
+
+Thanks again for the demo today — the latency numbers look promising. Our finance team is running a model for annual spend and asked me to get a firm proposal for: (1) a 12-month commit with monthly reconciliation, and (2) how committed units would be allocated if we use a mix of standard chat + a small % of premium models and embeddings-heavy workloads.
+
+A couple of clarifying Qs up front:
+- Does the premium-model surcharge apply to embedding calls or only to generation/chat?
+- How do unused committed tokens behave — credit rollover, conversion to prepaid credits, or forfeiture?
+- Can we get an example P&L at three commit levels (100M, 500M, 2B tokens) showing blended per-token effective price if premium models account for 20% of generation and embeddings are 30% of calls?
+
+Can you send a short proposal and ballpark effective rates so we can run it through procurement? Tom and I are looping procurement next week.
+
+Best,
+Lydia
+
+--
+Lydia Park
+Head of ML Platforms, SaaSify
+lydia.park@saasify.ai
+
+From: Rafael Mendes <rafael_mendes@redwood.com>
+To: Lydia Park <lydia.park@saasify.ai>
+Cc: Marissa Cole <marissa_cole@redwood.com>, Aditya Rao <aditya_rao@redwood.com>
+Date: 2026-11-02 10:24:00 -07:00
+Subject: Re: Pricing ask: commit tiers + model mix
+
+Lydia —
+
+Appreciate the details and the thoughtful questions. Attached is a short proposal (saasify_proposal_v1.pdf) and a decision table; summary below to help procurement. I kept the structure simple so legal/finance can map it to a PO.
+
+High level proposal (12-month commit, monthly billing against committed tokens):
+- Commit tiers considered: 100M, 500M, 2B tokens/month (we can also do annualized tokens).
+- Base per-token rates (hosted API, standard chat model): $0.0008 / token.
+- Premium model surcharge: +150% on base (i.e., premium chat = $0.0020 / token).
+- Embedding calls: priced per-embedding unit; standard embedding = $0.0025 / embedding call. Premium embedding model = +100% surcharge (i.e., $0.0050).
+
+Blended example (500M commit, monthly):
+- Assumptions: 20% generation on premium models, 30% of total calls are embeddings (standard), remaining generation on standard chat.
+- Effective blended per-token (generation+embeddings apportioned to token-equivalent): ~$0.00105 / token (this includes embedding units normalized at our typical tokens-per-embed factor — see attached table).
+
+Unused commit handling options (pick one):
+A) 12-month term, monthly true-up: unused tokens expire at month-end (standard).
+B) Convert unused tokens to one-time credits at 80% of face value, usable across Redwood hosted products for 12 months.
+C) Rollover up to 10% of monthly unused tokens to next month; any beyond expire.
+
+Operational notes:
+- We can lock in premium-model allocation floors (e.g., up to 25% premium without extra commit) or charge on usage above that floor.
+- Burst capacity above commit is available at on-demand rates (no surcharge) or via pre-purchased burst bundles (recommended for predictable peaks).
+
+Next steps 
+1) Tell us which unused-commit policy you prefer (A/B/C).
+2) Confirm whether premium surcharge should apply to embeddings for your use case — we can carve it out or apply it uniformly.
+3) If acceptable, we’ll convert the proposal to a draft SOW and route to legal.
+
+I copied Marissa and Aditya (pricing/legal) for visibility.
+
+Thanks,
+Rafael
+
+--
+Rafael Mendes
+Senior Account Executive, Redwood Inference
+rafael_mendes@redwood.com
+Attachments: saasify_proposal_v1.pdf
+
+From: Marissa Cole <marissa_cole@redwood.com>
+To: Rafael Mendes <rafael_mendes@redwood.com>
+Cc: Neha Kapoor <neha_kapoor@redwood.com>, Aditya Rao <aditya_rao@redwood.com>, Lydia Park <lydia.park@saasify.ai>
+Date: 2026-11-03 11:24:00 -07:00
+Subject: Re: Pricing ask: commit tiers + model mix
+
+Looping in a few practical guardrails from our side:
+- For enterprise deals we typically recommend Option B for unused-commit (convert at 80% credit) for strategic customers; it simplifies procurement and reduces sticker shock.
+- Suggest a hybrid surcharge for embeddings: standard embedding rate for vector-only operations (search/indexing), premium surcharge only when premium embedding model demonstrably improves quality (measured via evals). We can include a 30-day evaluation window where premium embedding calls are billed at standard rate pending quality signoff.
+- For the blended pricing table, we should present two scenarios: (i) premium-surcharge-applies-to-embeddings, (ii) premium-surcharge-exempt-for-embeddings-during-PO-eval. This helps procurement see upside.
+
+Operational asks for Lydia/Tom to confirm:
+1) Preferred unused-commit policy (we recommend B).
+2) Target % of traffic you expect to hit premium chat in month 1 vs month 6 (helps us size dedicated capacity).
+3) Whether you need SLA-backed latency targets (we can include a Dedicated capacity add-on if required).
+
+I’ll work with Aditya to convert the summary into PO-friendly language and a short schedule of rates that legal can attach. Rafael — once Lydia confirms the first two items we can push a draft SOW.
+
+Marissa
+
+--
+Marissa Cole
+Head of Commercial Pricing, Redwood Inference
+marissa_cole@redwood.com
+
+From: Tom Reynolds <tom.reynolds@saasify.ai>
+To: Rafael Mendes <rafael_mendes@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, Lydia Park <lydia.park@saasify.ai>
+Cc: SaaSify Procurement <procurement@saasify.ai>
+Date: 2026-11-05 10:42:00 -07:00
+Subject: Re: Pricing ask: commit tiers + model mix
+
+Thanks team — quick follow after procurement reviewed the attachment. They sent a redline (attached: SaaSify_PO_redline_20261105.pdf) and asked two concrete clarifications before we can issue a PO: 
+1) Confirm that embeddings used for semantic search (indexing + similarity) will be billed at the standard embedding rate during a 30-day POC even if they use a premium embedding model; any premium uplift to apply only after mutual signoff.
+2) Request explicit callout in the SOW that unused tokens converted to credits under option B will be usable across both hosted API and Dedicated offerings (procurement wants portability).
+
+Can Redwood confirm these two items in writing so we can attach to the PO and route to legal? Also, procurement wants a single-line effective blended rate for the 500M tier (month 1) under both embedding-charge scenarios — can you provide that as a single-dollar-per-token figure?
+
+We’re aiming to get a PO out this week if we can lock the two bullets above.
+
+Thanks,
+Tom
+
+--
+Tom Reynolds
+VP Product, SaaSify
+procurement@saasify.ai
+Attachments: SaaSify_PO_redline_20261105.pdf

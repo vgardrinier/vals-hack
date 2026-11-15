@@ -1,0 +1,71 @@
+Set up cross-team on-call handover workspace and automations (Jira project, Confluence space, Slack workflow)
+
+Issue summary:
+Request to provision a lightweight, auditable cross-team handover workspace for SRE <> Support on-call shifts. The workspace should include: a dedicated Jira project for handover tickets, a Confluence space with an editable handover template, and a Slack channel + workflow that converts handover submissions into Jira issues and notifies the right groups.
+
+Impact:
+Current handovers are done ad-hoc via Slack messages and private docs. This causes missed context on shift change, inconsistent incident triage state, and difficulty auditing who accepted handovers. The proposed workspace will standardize capture, create an auditable ticket trail, and reduce missed follow-ups. Expected to reduce follow-up tickets and paging churn for the first-month on-call cohort.
+
+Business justification:
+- Supports cross-functional SRE and Support teams for consistent 24/7 handoffs.
+- Required for upcoming SOC 2 evidence collection (auditability of handover records).
+- Reduces risk during rollouts by ensuring owners and next-actions are recorded.
+
+Request details (deliverables):
+1) Jira project: key ONCALL, name "Oncall-Handoffs"
+   - Project template: Service Desk? (prefers classic "Business" project with a single issuetype "Handover")
+   - Issue fields: Summary, Handover_Time, From_Oncall (group), To_Oncall (group), Severity, Steps_To_Reproduce, Links, Attachments, Next_Steps, Followup_By (user)
+   - Default workflow: Open -> In Progress -> Acknowledged -> Closed; transition auto-log when To_Oncall opens ticket
+   - Permissions: Browse/Transition/Create restricted to groups: group-sre-oncall, group-support-oncall, infra-platform-admins; Project-visible to platform-eng and support orgs
+
+2) Confluence space: key SRE-HANDOFF, name "Oncall Handoffs"
+   - Space should include a page template "Handover Note" with structured fields matching Jira issue (use blueprint if possible)
+   - Add space permissions so only oncall groups and managers can edit; read for wider org
+   - Link space to the Jira project via application links
+
+3) Slack channel and workflow: channel #oncall-handoffs (private) + Workflow Builder form
+   - Workflow form fields: Handover title, Severity, Short summary, Steps to reproduce (optional), Current state, Blocking actions, Links, Incident ID (optional), Attach screenshots/log links, Handover to (dropdown: SRE, Support, Mobile oncall)
+   - On submit: create ONCALL-<auto> Jira issue, attach form contents as description, add original submitter as reporter, add mentioned attachments if provided, post confirmation to submitter (DM) and to #oncall-handoffs thread with link to Jira issue
+   - Add automated notification to on-call groups based on "Handover to" selection (use user groups or usergroup IDs)
+   - Pin the daily handover checklist message; add scheduled reminder at 07:00 UTC and 19:00 UTC to prompt shift owners to submit handover if no ticket created
+
+Automation specifics / mapping:
+- Slack -> Jira mapping: form Severity -> Jira priority mapping (P1->High, P2->Medium, P3->Low), Handover to -> watcher/group assignment, Incident ID -> link field
+- Add automation rule: when ONCALL issue is created, create a Confluence page from the template and link it to the Jira issue (for editable details during shift)
+- When issue status transitions to Closed, workflow should post summary back to #oncall-handoffs and tag both groups
+
+Access & provisioning:
+- Create user groups: group-sre-oncall, group-support-oncall; populate via SCIM/Okta provisioning or manual until SCIM sync is configured
+- Ensure project and space visibility align with Redwood SSO and use existing SSO groups where possible
+
+Validation & rollout plan:
+- Provision in staging first: staging ONCALL project + #stg-oncall-handoffs channel; run through end-to-end test (submit form, create Jira, create Confluence page, notify groups).
+- After validation, create production artifacts and perform a dry-run with next 2 rotation owners.
+- Owner for rollout: Aisha Patel (reporter) until ownership handed to platform-ops.
+
+Runbooks / links for builders:
+- Existing runbook: https://confluence.redwood.ai/display/SRE/Oncall+Playbook
+- Slack workflow docs: internal #platform-automation channel
+
+Security / compliance notes:
+- Handover channel will contain attachments and incident links; ensure retention matches security policy and Confluence pages are auditable.
+- Avoid storing secrets in handover notes; add automated check to flag keywords like "password", "secret" and surface to owner (informational).
+
+Acceptance criteria:
+- ONCALL project exists with correct fields and permissions.
+- Confluence space and page template created and linked.
+- Slack workflow creates Jira issues and posts notifications to the right groups.
+- SCIM/SSO-based groups provisioned or staging plan documented.
+- End-to-end test documented and passed in staging.
+
+Requested timeline:
+- Staging provision + test: within 3 business days of ticket assignment
+- Production roll-out: within 10 business days (dependent on staging validation)
+
+Contact for questions / handoff: Aisha Patel (aisha@redwood.ai) and SRE lead Priya Nair (priya@redwood.ai).
+2026-03-13 10:42 - Aisha Patel: Created ticket. Please assign to Platform Ops or Automation team. Priority P2 since this is a non-urgent ops enablement but needed for SOC2 prep.
+2026-03-13 14:05 - Liam Chen (Platform Ops): Acknowledged. Can you confirm whether you want a Service Desk customer-facing portal or an internal business project? Service Desk adds SLAs but changes workflow.
+2026-03-13 15:10 - Aisha Patel: Prefer internal business project (no external customers). Added details to description about fields and workflow.
+Also: ask Security about retention policy before prod rollout.
+2026-03-14 09:20 - Sarah Gómez (Security): Noted. We'll provide retention guidance by EOD 2026-03-15 and confirm the keyword flagging approach.
+2026-03-14 11:48 - Platform Automation Bot: Reminder scheduled: please attach staging test results back to this ticket once staging validation completes.

@@ -1,0 +1,27 @@
+incidents
+
+Sanjay Patel: heads up — acme-inc reporting 500s from hosted /v1/generate starting ~08:12 PST. sample req id req_8a3f7c, customer says it's intermittent but spikes then clears. low QPS though, not a traffic surge.
+Support Jen: getting their logs now, says 500 with no JSON body, just 'internal server error'. any recent deploys to quota or router?
+Kelly (oncall): no deploys in last 3 hours from infra side. i'll pull traces. can someone post gateway logs + trace id?
+Support Jen: pasted trace from customer header: trace-id=tr_20260315_acme_77
+infra-bot: automated alert — quota-orchestrator service reported repeated upstream timeouts to quota-allocator between 08:11:45-08:13:10 UTC; 95th p50 latency spike.
+Sanjay Patel: looks like quota check is misrouting to alloc service fallback path when its DB lease check times out. that fallback path currently returns 500 instead of 429 because of a bug introduced in route-switch logic.
+Alex (platform): copying related logs:
+```
+2026-03-15T08:12:07Z ERROR quota-orch alloc_proxy: upstream timeout (dial tcp 10.4.12.7:8080) err=timeout
+correlation=req_8a3f7c trace=tr_20260315_acme_77 route=quota-check->alloc fallback=true
+2026-03-15T08:12:07Z WARN quota-orch handler: fallback path panicked: returning 500 to client
+```
+Kelly (oncall): confirmed trace shows router hit quota-orch -> alloc -> timeout -> panic path. panic originated in route_switch.go line 214 (recent change).
+Sanjay Patel: hypothesis: when alloc check times out we should map to 429 or 503 depending on policy, not throw a 500. customer expectation is 429 for quota violations; 5xx is causing customer retries and spiking downstream load.
+Support Jen: acme-inc escalation is on a call now, they want ETA and mitigation. can we temp-fix?
+Alex (platform): mitigation plan: 1) add emergency rule in edge router to treat quota-orch fallback responses as 429 (cheap), 2) hotfix route_switch.go to return well-formed 4xx/5xx per contract, 3) add circuit-breaker to alloc calls to fail fast.
+Kelly (oncall): doing step 1 now — applying edge override to map 500 from quota-orch -> 429 for requests with header x-service=quota-orch. will monitor.
+infra-bot: change applied to edge-router release-2026-03-15-eh1 by Kelly.
+Sanjay Patel: creating PR for hotfix (route_switch.go) to normalize error mapping and add tests. PR link: https://git.internal/redwood/quota-orch/pull/482
+Dana (billing): FYI acme-inc flagged this as affecting paid customers. operations should follow up with credits if we confirm SLA breach.
+Alex (platform): after edge override, acme reported their errors changed to 429 and retries stopped. still seeing occasional 502s but client call stable. starting rollout of hotfix to canary.
+Support Jen: relaying update to client — they appreciated fast response. tagging for postmortem.
+Sanjay Patel: postmortem items: 1) revert route_switch regression, 2) add unit/integration tests for fallback mapping, 3) add e2e for quota->alloc timeouts, 4) update runbook to apply edge-mapping quicker, 5) billing review for affected tenants. I'll own 1-2.
+Kelly (oncall): monitoring dashboards show error rate back to baseline. closing the incident once hotfix verified in prod canary and rollout completes.
+Support Jen: closing loop with acme and opening ticket for billing per Dana. thanks all. :thumbsup:

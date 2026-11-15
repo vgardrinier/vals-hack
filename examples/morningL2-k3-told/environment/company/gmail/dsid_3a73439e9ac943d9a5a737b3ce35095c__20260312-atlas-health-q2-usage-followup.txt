@@ -1,0 +1,115 @@
+Re: Atlas Health Q2 Renewal QBR — missed call & next steps
+
+From: Sean Gallagher <sean.gallagher@redwood.com>
+To: Kim Sanford <kim.sanford@atlashealth.com>, Tom Reyes <tom.reyes@atlashealth.com>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Monica Patel <monica_patel@redwood.com>
+Date: 2026-03-12T09:15:00-07:00
+Subject: Atlas Health — Q2 renewal QBR (usage + forecast) — Mar 15 10:00am PT
+
+Hi Kim / Tom —
+
+Following up to lock in our Q2 renewal QBR. I’ve proposed Monday, Mar 15 at 10:00am PT (30m). Agenda (brief):
+- Feb usage trends and cost drivers (attached)
+- Forecast for Q3 capacity and expansion opportunities
+- Renewal timing and procurement checkpoints
+
+Can you confirm that time works? I attached the usage export for Feb so you can scan ahead. If needed we can expand to 45m.
+
+Attachments: ATLAS-Q2-usage-2026-02.pdf (PDF, 1.2MB)
+
+Thanks,
+Sean Gallagher
+Account Executive | Redwood Inference
+sean.gallagher@redwood.com | +1 (415) 555-0123
+
+
+From: Kim Sanford <kim.sanford@atlashealth.com>
+To: Sean Gallagher <sean.gallagher@redwood.com>
+Cc: Tom Reyes <tom.reyes@atlashealth.com>, Laura Bennett <laura_bennett@redwood.com>
+Date: 2026-03-13T08:07:00-07:00
+Subject: Re: Atlas Health — Q2 renewal QBR (usage + forecast) — Mar 15 10:00am PT
+
+Thanks Sean — that time works for us. I confirmed on my calendar. Looking forward to the usage review — I flagged a couple items with our finance team in case we need to dive deeper.
+
+See you Monday.
+Kim
+Director of Cloud Ops | Atlas Health
+kim.sanford@atlashealth.com
+
+
+From: Sean Gallagher <sean.gallagher@redwood.com>
+To: Kim Sanford <kim.sanford@atlashealth.com>, Tom Reyes <tom.reyes@atlashealth.com>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Monica Patel <monica_patel@redwood.com>
+Date: 2026-03-15T10:05:00-07:00
+Subject: Missed: Atlas Health Q2 renewal QBR — are you available to rebook?
+
+Hi Kim / Tom —
+
+We were on for 10:00 but it looks like the call didn’t connect. Hoping everything is okay — do you have 30 minutes later today or early next week to reschedule?
+
+Quick options I have:
+- Today (Mon 3/15) 3:00–3:30pm PT
+- Wed 3/17 11:00–11:30am PT
+- Thu 3/18 11:00–11:30am PT
+
+If none of those work, tell me two windows and I’ll send updated invite. I’ll also share the recording and the Feb usage export.
+
+Best,
+Sean
+
+
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Sean Gallagher <sean.gallagher@redwood.com>, Monica Patel <monica_patel@redwood.com>
+Date: 2026-03-15T10:43:00-07:00
+Subject: Internal: Atlas no-show — quick plan
+
+Sean — quick note: if they need to push, let’s try to include a short renewal overview and an ask for SKU-level forecast. Monica, can you prepare a 2-slide summary of where usage spiked (Feb) + three recommended tier options (conservative / expected / aggressive)?
+
+I’ll be ready to join the make-up session if leadership from Atlas wants to discuss commitment windows.
+
+Thanks,
+Laura Bennett
+Enterprise Sales Manager | Redwood Inference
+
+
+From: Tom Reyes <tom.reyes@atlashealth.com>
+To: Sean Gallagher <sean.gallagher@redwood.com>, Kim Sanford <kim.sanford@atlashealth.com>
+Cc: procurement@atlashealth.com, Monica Patel <monica_patel@redwood.com>
+Date: 2026-03-15T12:10:00-07:00
+Subject: Re: Missed: Atlas Health Q2 renewal QBR — are you available to rebook?
+
+Hey Sean — really sorry about the no-show. We had an unexpected vendor outage this morning and I had to run firefighting ops.
+
+Proposed make-up windows:
+- Thu Mar 18 at 11:00am PT
+- Fri Mar 19 at 9:00am PT
+
+We’d appreciate the Feb usage export and a short list of recommended commitment tiers ahead of the call so procurement can review. I’ve looped in procurement@atlashealth.com for visibility.
+
+Tom Reyes
+VP, Technology Operations | Atlas Health
+
+
+From: Sean Gallagher <sean.gallagher@redwood.com>
+To: Tom Reyes <tom.reyes@atlashealth.com>, Kim Sanford <kim.sanford@atlashealth.com>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Monica Patel <monica_patel@redwood.com>
+Date: 2026-03-15T14:02:00-07:00
+Subject: Re: Missed: Atlas Health Q2 renewal QBR — confirmed Thu Mar 18 11:00am PT
+
+Tom / Kim — no problem, thanks for the update and hope the outage is fully resolved. Thu Mar 18 at 11:00am PT works for us — I’ve sent an updated invite.
+
+Action items before the make-up:
+- Monica: two-slide usage summary + three tier options (separate slide) — will share by EOD Wed 3/17
+- Sean: refresh the Feb export with per-feature token breakdown and upload to the shared drive (link below)
+- Tom / Procurement: please confirm any pricing guardrails you need us to include in the draft renewal term so we can tailor the options
+
+Shared links: https://docs.redwood.com/qbr-templates/atlas (usage export & slides will be uploaded there)
+HubSpot record: https://hubspot.company/contacts/12345
+
+I’ll also attach the Feb usage PDF to the calendar invite. Looking forward to the make-up call.
+
+Best,
+Sean Gallagher
+Account Executive | Redwood Inference
+sean.gallagher@redwood.com | +1 (415) 555-0123
+

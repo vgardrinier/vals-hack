@@ -1,0 +1,100 @@
+Crestline MAP draft + exec sponsor alignment / EB timing
+
+From: Alberto Ruiz <alberto.ruiz@crestlinehealth.com>
+To: Neha Kapoor <neha_kapoor@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Cc: Karthik Iyer <karthik_iyer@redwood.com>
+Date: Tue, 18 Aug 2026 09:12:00 -0700
+Subject: Re: Next steps / executive briefing for Crestline evaluation
+
+Hi Neha / Marissa,
+
+Thanks again for the demo last week — the team at Crestline is eager to get a clear mutual action plan so we can move through procurement and clinical review on a ~90-day cadence. Procurement (I've cc'd Erin from ProcureCo) wants dates for exec alignment (EB) and a shortlist of deliverables they can take into their vendor committee.
+
+High level asks from our side:
+- A single-page MAP we can show to our CISO and the CFO (high level milestones + owners).
+- Proposed executive briefing window for the week of Sep 7–11. Prefer mornings PST.
+- Confirmation of which Redwood exec should attend (CISO vs. Head of Sales) for procurement Q&A.
+
+Could you share a draft MAP and a recommended EB attendee list? Also flag anything that will typically slow approvals so we can pre-empt.
+
+Thanks,
+Alberto
+VP, Digital Transformation
+Crestline Health
+
+---
+Attachment: procurement_questions_template.docx (attachment stub)
+From: Neha Kapoor <neha_kapoor@redwood.com>
+To: Alberto Ruiz <alberto.ruiz@crestlinehealth.com>, Erin Walsh <erin.walsh@procureco.com>
+Cc: Marissa Cole <marissa_cole@redwood.com>, Karthik Iyer <karthik_iyer@redwood.com>
+Date: Tue, 18 Aug 2026 11:03:00 -07:00
+Subject: RE: Next steps / executive briefing for Crestline evaluation
+
+Alberto — thanks, this is helpful. Attached is a short draft MAP (spreadsheet) and an EB invite stub. Below is a concise plan and our recommended sponsor mapping.
+
+Proposed 10-week MAP (summary):
+- Week 0: MAP review + kickoff (Redwood PM + Crestline PM) — owner: Neha
+- Weeks 1–3: Security questionnaire & SOC evidence handoff — owner: Karthik
+- Weeks 2–5: Clinical eval + pilot plan (data subset) — owner: Marissa
+- Weeks 6–8: Procurement review & T&Cs negotiation — owner: Crestline procurement / Erin
+- Week 9: Executive briefing + decision window — owner: Alberto / Redwood execs
+
+Executive sponsor mapping (recommended):
+- Crestline exec sponsor: Alberto Ruiz (VP, Digital Transformation) — primary internal sponsor at Crestline
+- Redwood execs to include: Marissa Cole (VP, Strategic Accounts) + optional technical lead Karthik Iyer (Head of Solutions) for security/arch Q&A
+
+EB timing (recommended slots):
+- Preferred week: 2026-09-07 to 2026-09-11
+- 09:00–11:00 PT block (gives east-coast attendees a comfortable slot)
+
+Ask from Crestline: please confirm three windows (morning PT preferred) and who will represent the CFO / legal at the EB. We'll update the single-sheet MAP and push to the Drive link.
+
+Attachments: Crestline_MAP_v1.xlsx (MAP draft) | EB_invite_draft.ics
+
+Cheers,
+Neha Kapoor
+Principal Account Executive
+Redwood Inference
+neha_kapoor@redwood.com | (415) 555-0192
+
+---
+Quoted earlier message preserved for context.
+From: Marissa Cole <marissa_cole@redwood.com>
+To: Alberto Ruiz <alberto.ruiz@crestlinehealth.com>, Neha Kapoor <neha_kapoor@redwood.com>
+Cc: Karthik Iyer <karthik_iyer@redwood.com>, Erin Walsh <erin.walsh@procureco.com>
+Date: Wed, 19 Aug 2026 08:10:00 -07:00
+Subject: Re: Next steps / executive briefing for Crestline evaluation
+
+Alberto — thanks for the run-through. Quick confirmations from our side:
+- I'll attend the EB along with Neha; Karthik will be on standby for deeper security questions and can join the call if the CISO or network team wants to dive in.
+- For the EB agenda I suggest: 1) executive overview (10 min), 2) clinical pilot outcomes (15 min), 3) procurement/governance Q&A (20 min), 4) next steps and decision criteria (10 min).
+
+I've penciled two pilot EB windows in our calendar and attached the .ics so your team can choose — both are morning PT as requested:
+- Sep 8, 09:30–10:30 PT
+- Sep 10, 10:00–11:00 PT
+
+If legal/CFO want pre-reads, we can bundle SOC2 highlights and the one-page MAP in a single packet. Neha — can you upload a short pre-read (2 pages max) to the Drive folder? Alberto — can you confirm who will be the CFO/legal attendee so we can include them on the invite?
+
+Thx,
+Marissa
+VP, Strategic Accounts
+Redwood Inference
+
+Attachment: EB_invite_draft.ics (two slots)
+From: Karthik Iyer <karthik_iyer@redwood.com>
+To: Alberto Ruiz <alberto.ruiz@crestlinehealth.com>, Neha Kapoor <neha_kapoor@redwood.com>
+Cc: Marissa Cole <marissa_cole@redwood.com>
+Date: Fri, 20 Aug 2026 15:30:00 -07:00
+Subject: Re: Next steps / executive briefing for Crestline evaluation
+
+Alberto / Neha — quick logistics note from Security: the SOC evidence package will be available by Aug 25 and I will drop the download link in the Drive folder. Two minor asks that can affect the MAP timeline:
+- Crestline will need an on-prem data handling addendum (short) if the pilot includes PHI — can you confirm whether the pilot dataset includes PHI?
+- If Crestline requires HSM/KMS key custody language, that typically takes an additional 2–3 weeks in legal review.
+
+If the pilot data is anonymized, we can keep the standard data processing terms and remain on the 10-week MAP. Otherwise we should flag a +3-week contingency.
+
+I'll be on the EB for the technical Q&A if needed.
+
+Karthik
+Head of Solutions (Security & Integration)
+Redwood Inference

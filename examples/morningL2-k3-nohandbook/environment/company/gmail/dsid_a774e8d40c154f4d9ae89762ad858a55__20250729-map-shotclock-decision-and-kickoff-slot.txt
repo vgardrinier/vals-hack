@@ -1,0 +1,123 @@
+MAP shotclock: final governance signoff, signature timing & Day-1 slot
+
+From: Tessa Morgan <tessa.morgan@redwood.ai>
+To: Asha Kapoor <asha@everlytech.com>, Ben Thompson <ben.t@procureco.com>
+Cc: Karthik Iyer <karthik.iyer@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>
+Date: Tue, 29 Jul 2025 09:12:00 -0700
+Subject: MAP shotclock: final governance signoff, signature timing & Day-1 slot
+
+Hi Asha / Ben —
+
+Thanks again for the trial run last week. Attached is Everly_MAP_v3.pdf and the working MutualActionPlan.xlsx with the minimal approval ladder we discussed. Two asks to keep the shotclock tight so we can hit the onboarding window:
+
+1) Can we confirm the governance call on Thu, Jul 31 at 9:00am PT? I propose a 30-minute alignment: security, procurement (Ben), and your exec sponsor.
+2) Please confirm the preferred Day‑1 start slot — we can target Mon Aug 4 or Mon Aug 11 depending on signoff velocity.
+
+Quick summary of required approvals on our side and yours:
+- Exec approval (Everly) — final business signoff
+- Procurement/Finance (Everly) — PO once e‑sign received
+- Legal (Redwood) — minor redlines already captured in Drive SOW
+- Security/compliance (Redwood & Everly) — SOC2 attestation & DPA acknowledged
+
+If you can confirm the call and preferred Day‑1 by EOD Wednesday (Jul 30), I will lock the timeline and circulate a short shotclock with clear owners.
+
+Attachments: Everly_MAP_v3.pdf, MutualActionPlan.xlsx
+
+Thanks —
+Tessa Morgan
+Account Executive | Redwood Inference
+T: 415-555-0142
+
+From: Asha Kapoor <asha@everlytech.com>
+To: Tessa Morgan <tessa.morgan@redwood.ai>
+Cc: Ben Thompson <ben.t@procureco.com>
+Date: Tue, 29 Jul 2025 12:30:00 -0700
+Subject: Re: MAP shotclock: final governance signoff, signature timing & Day-1 slot
+
+Tessa —
+
+Thanks for the update and the files. We can do the Thu Jul 31 9:00am PT call. A couple of notes from procurement/finance:
+
+- Finance will need a DocuSign-ready SOW and a final invoice/term sheet before issuing the PO.
+- If we can get the DocuSign envelope the same day as the governance signoff, finance can turn the PO quickly, but we need signatures by EOD Fri Aug 1 to make the Aug 4 start.
+
+Can Redwood compress the signature window to one business day (send on Jul 31 after the call, sign by Aug 1 EOD)? That would be ideal.
+
+Asha Kapoor
+VP, Platform Operations | Everly HealthTech
+asha@everlytech.com
+
+From: Tessa Morgan <tessa.morgan@redwood.ai>
+To: Asha Kapoor <asha@everlytech.com>, Ben Thompson <ben.t@procureco.com>
+Cc: Karthik Iyer <karthik.iyer@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>
+Date: Tue, 29 Jul 2025 14:05:00 -0700
+Subject: Re: MAP shotclock: final governance signoff, signature timing & Day-1 slot
+
+Great — thanks Asha. Yes, we can run a compressed flow. Proposed shotclock (I will circulate an owner matrix after the call):
+
+- Thu Jul 31 09:00 PT — Governance alignment call (30m)
+- Thu Jul 31 12:00 PT — Redwood sends DocuSign envelope (DocuSign-envelope-12345) with SOW and DPA
+- Fri Aug 1 17:00 PT — Signatures due (Everly + Redwood exec/legal)
+- Mon Aug 4 — Target Day‑1 start (onboarding sequence begins)
+
+Links: HubSpot deal EVR-4721, Drive SOW: https://drive.google.com/open?id=1a2b3cMAP-finalSOW
+
+I’ll also include the short checklist Karthik requested during the call.
+
+—Tessa
+
+From: Karthik Iyer <karthik.iyer@redwood.ai>
+To: Tessa Morgan <tessa.morgan@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>, Olga Petrov <olga.petrov@redwood.ai>
+Cc: Asha Kapoor <asha@everlytech.com>, Ben Thompson <ben.t@procureco.com>
+Date: Wed, 30 Jul 2025 08:15:00 -0700
+Subject: Re: MAP shotclock: final governance signoff, signature timing & Day-1 slot
+
+Couple of gating items from an ops/compliance perspective (to confirm on the call or immediately after):
+
+- SOC2 report: Everly to confirm receipt of our current SOC2 Type II report (we will provide link during call).
+- DPA: final DPA text is in the Drive SOW; legal needs to confirm no additional redlines.
+- Network onboarding: please confirm if you require a private VPC deployment (this impacts the earliest possible Day‑1).
+- Payment terms: finance needs net‑30 vs net‑45 confirmation (impacts whether PO can be processed quickly).
+
+If Everly can sign by Aug 1 EOD, and network requirements are standard, Aug 4 is achievable. If procurement needs internal signoffs that stretch beyond Fri, target Aug 11.
+
+-Karthik
+Head of Customer Reliability | Redwood Inference
+
+From: Ben Thompson <ben.t@procureco.com>
+To: Tessa Morgan <tessa.morgan@redwood.ai>, Asha Kapoor <asha@everlytech.com>
+Date: Wed, 30 Jul 2025 10:50:00 -0700
+Subject: Re: MAP shotclock: final governance signoff, signature timing & Day-1 slot
+
+Quick note — finance has reviewed. We can issue a PO the same day signatures are complete. To hit Aug 4 we need the DocuSign envelope on Thu (Jul 31) and signed by Fri (Aug 1) EOD.
+
+I attached our PO template for your billing team to validate (Everly_PO_template.pdf).
+
+-ben
+
+From: Tessa Morgan <tessa.morgan@redwood.ai>
+To: Asha Kapoor <asha@everlytech.com>, Ben Thompson <ben.t@procureco.com>
+Cc: Karthik Iyer <karthik.iyer@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>, Olga Petrov <olga.petrov@redwood.ai>
+Date: Thu, 31 Jul 2025 17:05:00 -0700
+Subject: FINAL: lock in shotclock & owner matrix (post-call)
+
+Thanks all — good alignment on the call. Finalizing cadence and owners below; please treat this as the shotclock to close: 
+
+Action items and owners:
+- Redwood to upload final SOW + DPA to DocuSign and send envelope — Owner: Tessa (send by Jul 31 12:00 PT)
+- Everly to circulate any final internal legal redlines by Jul 31 18:00 PT — Owner: Asha
+- Finance (Everly) to issue PO upon receipt of signed DocuSign — Owner: Ben
+- Redwood security to provide SOC2 link during the call; Everly to confirm receipt — Owner: Karthik
+- Final signatures due by Aug 1 17:00 PT; if received, Day‑1 kickoff is locked for Aug 4 — Owner: All
+
+If any approval slips outside of these windows please reply-all immediately with updated ETA. I will follow up with the DocuSign envelope and HubSpot note (EVR-4721).
+
+Docs attached / referenced: Everly_MAP_v3.pdf, MutualActionPlan.xlsx, DocuSign-envelope-12345, Everly_PO_template.pdf
+
+Best —
+Tessa Morgan
+Account Executive | Redwood Inference
+On Thu, Jul 31, 2025 at 09:05 AM Asha Kapoor <asha@everlytech.com> wrote:
+> Thanks — see you in a few.
+>
+> — Asha

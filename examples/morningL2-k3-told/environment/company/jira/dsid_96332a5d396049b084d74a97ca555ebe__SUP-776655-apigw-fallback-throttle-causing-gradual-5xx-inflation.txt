@@ -1,0 +1,53 @@
+API gateway fallback throttling leading to slow 5xx growth and intermittent runtime crashes
+
+Issue summary:
+Customers (notably BrightForms) started seeing a gradual but persistent increase in 5xx responses from text-generation endpoints beginning ~2026-03-12 05:10 UTC. Error rate climbed from baseline ~0.2% to ~3% over an hour, with periodic spikes to 8-12% correlated with tenant connection failovers and streaming route fallbacks. Some calls observed upstream runtime exits (OOM and SIGABRT) during the same window.
+
+Impact:
+- BrightForms reported degraded product experience for ~15% of requests that route through the us-east dedicated pool.
+- Increased token replays and customer-visible latency due to retries.
+- Potential billing concerns for duplicate/hedged requests.
+
+Environment:
+- Prod (us-east-1), Dedicated capacity cluster for BrightForms (tenant id bfrm-1182).
+- API route: /v1/chat/completions (streaming and non-streaming).
+- Model variants: redwood-open-13b (quantized), mosaic-ml-7b (fallback variant).
+
+Steps to reproduce:
+1) Run a sustained low-latency stream workload with ~600 rps (mix of streaming and short non-streaming).
+2) Simulate occasional socket hiccups by introducing short (100-300ms) packet drops at the proxy layer.
+3) Observe that traffic migrates to fallback routes and throttler engages after connection churn.
+4) Monitor apigw 5xx rate and runtime watcher logs for OOM/SIGABRT.
+2026-03-12 05:30 UTC - Support (Aisha): Initial triage - elevated 5xx for BrightForms, escalated to SRE. Captured request ids and sample stack traces. Notified customer of investigation.
+2026-03-12 05:45 UTC - SRE (Marco): Observed accept-queue growth on apigw frontends and increased fallback routing to secondary runtime pool. Several runtime processes logged low-memory OOM messages around 05:20-05:40 UTC.
+2026-03-12 06:10 UTC - Eng (Priya - serving-runtime): Hypothesis - throttler/backoff policy on fallback path incorrectly uses aggregated pending-requests count (includes hedged retry attempts) which amplified queueing under connection churn, causing runtime preemption and increased memory pressure.
+2026-03-12 06:35 UTC - Support (Aisha): Sent workaround to BrightForms: reduced client-side concurrent streams and temporarily pinned calls to primary variant (redwood-open-13b) to avoid fallback fanout. Customer confirmed partial improvement.
+2026-03-12 07:05 UTC - SRE (Marco): Applied temporary apigw throttling adjustment for BrightForms route (raise soft limit, increase keepalive). Observed 5xx drop from 3% -> 0.6% over 20 minutes.
+2026-03-12 09:20 UTC - Eng (Priya): Deployed a hotfix to throttle logic to exclude hedged/retry in pending count calculations (canary 5 nodes). Monitoring for regressions.
+2026-03-12 12:00 UTC - Support (Aisha): Customer reports stable behavior with occasional blips. Keeping ticket open for follow-up and postmortem.
+Timeline:
+- 05:10 UTC: first customer alerts and SLO alarms.
+- 05:15-05:40 UTC: accept-queue on apigw frontends for tenant bfrm-1182 rose by 6x; fallback traffic to secondary pool increased by 4x.
+- 05:20-05:42 UTC: runtime logs show repeated 'std::bad_alloc' / OOM killer entries on 3/12 nodes, followed by abrupt restarts.
+- 05:30 UTC: hedged retry rate increased after client reconnects, leading to duplicate inflight requests counted by throttler.
+
+Findings:
+- Throttler uses an aggregate inflight counter that included hedged/replicated attempts. Under connection churn this inflated perceived concurrency and triggered aggressive backoff that propagated to fallback routing.
+- Fallback routing increased model fanout (calls to multiple variant pools) which raised memory allocation peaks in runtimes not prewarmed for the extra concurrency.
+- Keepalive/session churn on apigw compounded the problem by forcing cold rehandshakes and transient request spikes.
+
+Evidence:
+- apigw metric (apigw.accept_queue.depth) spike graph (link in related_confluence_pages).
+- Runtime logs: /var/log/redwood/runtime/watcher.log entries referencing OOM and SIGABRT (sample ids attached in incident folder).
+- Correlation between hedged.retry.rate and 5xx_rate (Pearson r=0.82 for 05:10-06:00 UTC).
+Actions taken:
+1) Immediate: Raised apigw soft accept limits and increased keepalive durations for the BrightForms route to reduce connection churn (mitigated within 20 minutes).
+2) Hotfix: Adjusted throttler logic to exclude hedged/retry attempts from inflight counters; canary deployed and validated on 9 nodes, then rolled to remaining frontends. (github.com/redwood-inference/apigw/pull/1309)
+3) Runtime stabilization: Restarted three affected runtime processes with larger prewarm pools and applied a memory allocation cap to guard against single-tenant preemption.
+4) Customer remediation: Provided guidance to BrightForms to reduce their concurrent stream count temporarily (and option to increase dedicated capacity).
+5) Follow-up actions:
+   - Postmortem scheduled (owner: Priya Shah) to analyze root cause and long-term fix.
+   - Add unit/integration tests to throttler to prevent counting hedged retries.
+   - Add alerting to detect sudden hedged-retry amplification and fallback fanout (owner: SRE).
+
+Status: mitigated; monitoring for recurrence. Customer notified and satisfied with interim remediation; ticket will be closed after postmortem and permanent fix deployment.

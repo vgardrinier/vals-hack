@@ -1,0 +1,12 @@
+Office whiteboard marker refill station request (misc ops)
+
+Issue summary: Kitchen/courtyard whiteboard markers are nearly depleted and there is no refill station. Impact: Teams in 3rd-floor courtyard and adjacent meeting rooms are frequently out of markers during brainstorming sessions. Request: Install a small magnetic marker holder with an initial stock of 12 assorted dry-erase markers and 2 erasers near the courtyard whiteboard. Steps to reproduce/observe: Walk to 3rd-floor courtyard whiteboard after 2pm, typically only 1 marker remains. Preferred vendor: office-supplies-standard SKU (if available). Budget: <$50. Notes: This is a low-priority facilities request but helps avoid frequent interruptions to meetings. If procurement prefers bulk purchase for multiple floors, advise and I'll coordinate a consolidated request.
+2025-01-03 Samira Patel: Filing this after noticing yesterday's lunch brainstorm drowned in marker scarcity. Not urgent but annoying.
+2025-01-04 Ethan Park: Thanks Samira — can you confirm preferred location (magnetic on left side of whiteboard or small wall hook)? I'll check stock and budget.
+2025-01-05 Samira Patel: Magnetic holder on left side preferred. If we do bulk, 3rd and 5th floors would be useful too but start with courtyard.
+2025-01-07 Office Ops (via Slack #office-ops): We have standard dry-erase pack (SKU: DRY-ASSORT-12) in inventory. Ordering holder and markers today.
+2025-01-11 Ethan Park: Procurement placed order PO-4472; ETA 2025-01-14. Will update when received.
+2025-01-14 Office Ops: Delivered to mailroom, assigned to Ethan. Planning to place near whiteboard after 3pm.
+2025-01-15 Samira Patel: Confirmed marker holder installed and stocked — thank you! Leaving ticket open for a week to make sure it stays stocked.
+2025-01-15 Ethan Park: Will set recurring reminder to check stock monthly; marking as in progress until first-month check completes.
+Initial install completed 2025-01-14; placed magnetic holder with 12 markers and 2 erasers. Follow-up: set monthly inventory reminder (owner: Ethan Park) to restock as needed.

@@ -1,0 +1,109 @@
+Validate/adjust DKIM/SPF/DMARC + SendGrid authenticated domain config for scaling lifecycle email volume
+
+Request
+- We are ramping volume for the Hosted API onboarding email v2 as part of the Lifecycle Growth Experiments sprint.
+- Need confirmation that Redwood’s sending domain authentication is correctly set up and aligned with our current provider (SendGrid), and that SPF/DKIM/DMARC are passing with alignment for the From domain.
+
+Background / impact
+- We saw an increase in “didn’t receive onboarding email” reports and deliverability variability as we started ramping (esp. Gmail).
+- Risk: scaling volume without correct authentication will amplify spam folder placement and/or bounces, and invalidate experiment readouts.
+
+Scope
+1) DNS: verify SPF record(s) for the From domain used by lifecycle emails.
+2) DNS: verify DKIM keys (CNAMEs) for SendGrid authenticated domain are present and matching SendGrid UI.
+3) DNS: verify DMARC exists and is reasonable for our current maturity (monitor first, then tighten).
+4) SendGrid: verify authenticated domain + custom return-path/bounce domain configured, and that the From address matches the authenticated domain.
+
+What I need from Internal Support / Marketing Ops
+- Confirm current “From” domain and SendGrid authenticated domain.
+- Provide exact DNS records required (host/name + type + value) and confirm after propagation.
+- Provide quick validation output (header authentication results) for a test message.
+
+Notes
+- We’ll keep ramp conservative until authentication is confirmed.
+- If DMARC is missing or misconfigured, propose minimal safe config (p=none + rua) to start.
+
+References
+- Related customer ticket volume: SUP-24871 (Not receiving onboarding emails)
+- Ongoing deliverability thread with vendor support referenced in sprint notes (SendGrid investigation)
+
+Acceptance criteria
+- DKIM: PASS for lifecycle emails with alignment to the From domain.
+- SPF: PASS with alignment (or documented rationale if using subdomain/return-path alignment).
+- DMARC: PASS (at least p=none) with reporting enabled.
+- Document final records + where to monitor (SendGrid, Postmaster Tools).
+2026-01-14 10:12 PT — Ben Carter (Reporter)
+Creating internal ticket to unblock the ramp. We’re planning to increase onboarding sends starting next week and need DNS/auth in a known-good state. Current From address in templates is: "Redwood Inference <noreply@redwoodinference.com>". If that should be a subdomain (e.g., mail.redwoodinference.com) please advise ASAP so we can update templates consistently.
+2026-01-14 13:45 PT — Tyler Benson (Assignee)
+Acknowledged. I’ll verify SendGrid authenticated domain configuration + current DNS records today. Likely we want a dedicated subdomain (e.g., em.redwoodinference.com) for lifecycle to isolate reputation, but we can proceed with root domain if already in use and passing alignment.
+
+Next steps:
+1) Pull current DNS for redwoodinference.com (SPF/DKIM/DMARC)
+2) Check SendGrid → Settings → Sender Authentication (domain + DKIM selector)
+3) Send test emails to Gmail + Yahoo and capture headers for auth results.
+2026-01-15 09:30 PT — Tyler Benson
+Findings (current state):
+- SPF: root domain had "v=spf1 include:sendgrid.net ~all" present, but we also have a legacy include from a previous vendor in another TXT record. Multiple SPF TXT records can cause permerror in some receivers.
+- DKIM: SendGrid shows authenticated domain set up previously but the 2 DKIM CNAME records in DNS don’t match current SendGrid-provided values (likely rotated/recreated at some point).
+- DMARC: No DMARC record found at _dmarc.redwoodinference.com.
+
+Proposed changes:
+A) Consolidate SPF into a single TXT record for the root domain.
+B) Re-create/confirm SendGrid authenticated domain and publish the correct DKIM CNAMEs.
+C) Add DMARC (p=none) with rua reporting mailbox.
+
+I’m coordinating with Internal Support DNS admin to publish updates. Will post exact records once confirmed in SendGrid UI.
+2026-01-15 11:05 PT — Michael Grant
+Looping in from Legal/Privacy perspective: DMARC rua reports can include limited metadata; that’s fine, but keep them in a restricted mailbox. Recommend starting with p=none while we validate, then consider moving to quarantine/reject once stable. No objections to dedicated subdomain approach if it improves deliverability.
+2026-01-15 14:22 PT — Tyler Benson
+Exact DNS records to publish (approved):
+
+1) SPF (root)
+- Host/Name: redwoodinference.com
+- Type: TXT
+- Value: v=spf1 include:sendgrid.net -all
+
+Action: remove/merge any other SPF TXT entries on root to avoid multiple SPF records.
+
+2) DKIM (SendGrid)
+- Host/Name: s1._domainkey.redwoodinference.com
+- Type: CNAME
+- Value: s1.domainkey.u#########.wl###.sendgrid.net
+
+- Host/Name: s2._domainkey.redwoodinference.com
+- Type: CNAME
+- Value: s2.domainkey.u#########.wl###.sendgrid.net
+
+(Values copied from SendGrid Sender Authentication page; masked here in Jira — full values in the DNS change request.)
+
+3) DMARC
+- Host/Name: _dmarc.redwoodinference.com
+- Type: TXT
+- Value: v=DMARC1; p=none; adkim=s; aspf=s; rua=mailto:dmarc-reports@redwoodinference.com; ruf=mailto:dmarc-forensics@redwoodinference.com; fo=1; pct=100
+
+Note: ruf may not be honored by many providers; ok if we prefer to drop ruf, but leaving for now.
+
+Once propagated, I’ll validate with a test send and paste Authentication-Results headers.
+2026-01-16 10:18 PT — Tyler Benson
+Propagation check: SPF/DKIM/DMARC records now visible via public resolvers.
+
+Test send results (Gmail):
+- SPF: PASS (mailfrom=bounces+...@em####.redwoodinference.com)
+- DKIM: PASS (d=redwoodinference.com; s=s1/s2)
+- DMARC: PASS (p=none; spf=pass aligned, dkim=pass aligned)
+
+Note: SendGrid is using a custom return-path under a SendGrid-managed subdomain; alignment is still passing due to DKIM d=redwoodinference.com. We should keep From domain as redwoodinference.com for now to avoid template churn during the sprint.
+
+Action for Growth: safe to proceed with ramp plan. Monitor bounce/complaint as planned.
+2026-01-18 16:40 PT — Ben Carter
+Confirmed test headers look good on my end as well. We’ll proceed with the ramp and continue monitoring. Thank you.
+
+Follow-up request: can we add a short internal note/runbook on where to check these (SendGrid auth page, DNS, Postmaster Tools) and a reminder about single SPF record? This bit us last week.
+2026-01-24 09:05 PT — Tyler Benson
+Closed out with follow-ups:
+- Added internal checklist to Marketing Ops (single SPF record, DKIM selectors match SendGrid, DMARC present).
+- Monitoring: SendGrid Deliverability + Google Postmaster Tools + DMARC aggregate mailbox.
+
+Recommendation (not blocking): if we continue scaling lifecycle volume, consider moving to a dedicated subdomain (e.g., mail.redwoodinference.com) for reputation isolation after the sprint, and then tighten DMARC to quarantine/reject once stable.
+
+Marking INT-3301 resolved.

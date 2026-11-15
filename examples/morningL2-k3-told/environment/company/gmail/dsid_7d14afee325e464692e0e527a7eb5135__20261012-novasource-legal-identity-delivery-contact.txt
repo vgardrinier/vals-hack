@@ -1,0 +1,108 @@
+Novasource: legal entity details, EIN, banking and delivery contact
+
+From: Naomi Feldman <naomi.feldman@redwood.ai>
+To: accounts@novasource.com
+Cc: jonas.weber@redwood.ai
+Date: Mon, 12 Oct 2026 09:14:00 -0700
+Subject: Vendor setup: legal name, EIN, remit & delivery contact
+
+Hi Lina / Novasource AP team,
+
+Hope you’re well — we’re creating a supplier record for Novasource so you can receive POs and invoices from Redwood. To finish the vendor profile in our system we need the following items:
+
+- Legal entity name (as registered)
+- Tax ID / EIN and completed W-9 (or W-8 if applicable)
+- Registered / remit address (for 1099/records) and preferred remit email for invoices/ACH
+- Banking instructions (or secure portal link) for ACH payments
+- Primary AP contact (name, email, phone)
+- Delivery/fulfillment contact for POs that include shipped goods (name, email, phone, preferred carrier instructions)
+- Any PO reference format you require (PO# prefix, EDI capability)
+
+I’ve attached a short vendor setup form — if you can return it with the W-9 and any banking instructions we’ll create the vendor record and confirm the default invoice routing and PO delivery contact.
+
+Target timeline: if we can get this by Thursday EOD we’ll be able to issue our first PO next week.
+
+Thanks,
+Naomi Feldman
+Procurement Operations
+Redwood Inference
+naomi.feldman@redwood.ai
+(415) 555-0189
+
+Attachment: vendor_setup_form.pdf (fillable)
+
+From: Lina Park <lina.park@novasource.com>
+To: Naomi Feldman <naomi.feldman@redwood.ai>
+Cc: accounts@novasource.com
+Date: Tue, 13 Oct 2026 10:03:00 -0700
+Subject: Re: Vendor setup: legal name, EIN, remit & delivery contact
+
+Hi Naomi — thanks for the note. I’m Lina (Novasource AP lead) — answering here and copying our accounts mailbox. We’ve attached the W-9 and our articles of incorporation. Details below:
+
+Legal name: Novasource Incorporated
+Tax ID / EIN: 12-3456789 (see attached Novasource_W9.pdf)
+Registered / remit address: 1102 Meridian Blvd, Suite 410, San Mateo, CA 94401
+Preferred invoice email (billing): billing@novasource.com
+Preferred remit email (ACH notifications): payments@novasource.com
+
+Banking instructions: we transmit full bank wiring/ACH details via our secure payments portal for new vendors. I’ll share the upload link in a follow-up once we confirm Redwood’s vendor record is created. (We avoid sending full bank files over plain email.)
+
+AP contact: Lina Park — lina.park@novasource.com | +1-650-555-2244
+Delivery / fulfillment contact: Jason Marin — jason.marin@novasource.com | +1-650-555-3321
+PO references: We accept Redwood PO numbers as written on the invoice (format: RWD-#####). We do not currently support EDI for PO ingestion; EDI roadmap is Q2 next year.
+
+Attached: Novasource_W9.pdf, incorporation_certificate.pdf
+
+Let me know if you need anything else to complete the vendor profile.
+
+Best,
+Lina Park
+Director, Finance Operations
+Novasource Inc.
+
+Attachments: Novasource_W9.pdf (pdf stub), incorporation_certificate.pdf (pdf stub)
+
+From: Naomi Feldman <naomi.feldman@redwood.ai>
+To: Lina Park <lina.park@novasource.com>
+Cc: jonas.weber@redwood.ai, rishi.malhotra@redwood.ai
+Date: Wed, 14 Oct 2026 08:26:00 -0700
+Subject: Re: Vendor setup: legal name, EIN, remit & delivery contact
+
+Thanks Lina — this is great. A couple quick clarifying items so our vendor profile and PO flow are correct:
+
+- For ACH remit, once you upload bank details via the portal can you confirm the bank account name exactly as it will appear on bank files? We need an exact match for ACH verification.
+- Is billing@novasource.com monitored for invoice receipt and remittance acknowledgement? We route invoices automatically to that address and create a ticket.
+- For physical deliveries tied to POs: do you have any preferred carriers or receiving hours at the Meridian Blvd address? Any delivery SLA (e.g., do FedEx/UPS require appointment)?
+- Do you require a specific contract/PO terms to be attached to the invoice for payments (we have a standard supplier agreement — happy to share the clause that references net terms).
+
+I’m copying Jonas from procurement partner ops and Rishi from vendor compliance to ensure tax/1099 capture and to coordinate the vendor record bake. If you can confirm the account name and receiving hours we’ll finalize the profile and flip the vendor to Active.
+
+Thanks again — aiming to finalize by EOD Thursday.
+
+— Naomi
+Procurement Operations
+Redwood Inference
+
+
+From: Lina Park <lina.park@novasource.com>
+To: Naomi Feldman <naomi.feldman@redwood.ai>
+Cc: accounts@novasource.com
+Date: Thu, 15 Oct 2026 11:42:00 -0700
+Subject: Re: Vendor setup: legal name, EIN, remit & delivery contact
+
+Hi Naomi / team — quick answers below:
+
+- Bank account name for ACH: Novasource Incorporated (exact) — we will upload the ACH file to the secure portal and notify payments@novasource.com when it’s available. The portal link: https://secure.payments.novasource.com/upload/abc123 (one-time access token).
+- billing@novasource.com is the monitored inbox for invoice receipt and remittance confirmation.
+- Delivery / receiving: Meridian Blvd receiving dock hours are Mon–Fri 8:00–16:00 PT. For scheduled pallet deliveries please request a dock appointment via jason.marin@novasource.com; small parcel drop-offs do not require appointments. Preferred carriers: UPS, FedEx, and common LTL carriers; no special carrier restrictions.
+- Contract/PO terms: we typically accept Redwood’s PO terms. If you plan to apply a special contract or deviation please send the term summary; otherwise standard PO attachment is fine. Net terms: Novasource typically sets Net30 for new partners.
+
+I’ve uploaded the W-9 and incorporation cert in my previous message and will upload the bank instructions to the secure link when we receive the vendor profile confirmation.
+
+If you need a signed vendor agreement before PO issuance, let me know and I can route it through DocuSign.
+
+Cheers,
+Lina
+
+Related: Doc link for vendor onboarding questionnaire: https://drive.redwood/example/vendor-onboarding/novasource
+Attachment: bank_instructions (uploaded to secure portal)

@@ -1,0 +1,172 @@
+Exec escalation: Acme AI — streaming timeouts/disconnects (us-east) — approval needed
+
+From: Jasmine Liu <jasmine.liu@redwoodinference.com>
+To: Priya Natarajan <priya.natarajan@redwoodinference.com>, Sean Gallagher <sean.gallagher@redwoodinference.com>
+Cc: Rachel Kim <rachel.kim@redwoodinference.com>, Rafael Mendes <rafael.mendes@redwoodinference.com>, Dev Patel <dev.patel@redwoodinference.com>, Avery Johnson <avery.johnson@redwoodinference.com>
+Date: Sat, Feb 7, 2026 at 7:42 AM PST
+Subject: Exec escalation: Acme AI — streaming timeouts/disconnects (us-east) — approval needed
+Attachments: Acme_streaming_escalation_summary_2026-02-07.pdf, Acme_customer_email_draft_v2.txt
+
+Team — escalating Acme AI (enterprise) streaming timeouts/disconnects in us-east. They’re requesting (a) an exec-owned written update they can forward internally, and (b) clarity on potential credits given the customer impact.
+
+I need approvals by 10:00am PT on:
+1) Customer-facing language (attached draft) — specifically what we can state re: cause + “resolved” wording.
+2) Whether we should proactively offer any goodwill / service credits vs. wait for their formal request + post-incident report.
+
+Summary (details in PDF; ticket: SUP-1842):
+- Customer: Acme AI (Corp)
+- Symptom: SSE streaming responses resetting mid-generation (connection resets / truncated streams). Non-streaming less affected.
+- Scope: us-east primarily; intermittent. Most visible on long generations.
+- Current status: Mitigated overnight. Still monitoring; no new spike since ~00:10 PT.
+- Mitigation: routing adjustments + gateway config rollback; recommended client-side timeout/retry guidance shared with Acme.
+
+Customer asks / context:
+- They have an internal exec review Monday and want a statement today.
+- They asked for “credits for the incident window” on the call (Rachel has notes).
+
+Proposed customer email language (high-level):
+- Acknowledge impact + timeline
+- Confirm mitigation applied
+- Provide temporary client-side mitigation guidance
+- Commit to follow-up RCA within 5 business days
+- Avoid promising “fixed permanently” until we confirm longer soak
+
+Please reply-all with:
+- “Approved” / edits on the attached customer email
+- Credits guidance (ok to offer X%, or wait)
+
+Thanks,
+Jasmine
+
+—
+Jasmine Liu
+VP, Customer Success & Support
+Redwood Inference
+
+
+
+From: Rafael Mendes <rafael.mendes@redwoodinference.com>
+To: Jasmine Liu <jasmine.liu@redwoodinference.com>, Priya Natarajan <priya.natarajan@redwoodinference.com>, Sean Gallagher <sean.gallagher@redwoodinference.com>
+Cc: Rachel Kim <rachel.kim@redwoodinference.com>, Dev Patel <dev.patel@redwoodinference.com>, Avery Johnson <avery.johnson@redwoodinference.com>
+Date: Sat, Feb 7, 2026 at 8:03 AM PST
+Subject: Re: Exec escalation: Acme AI — streaming timeouts/disconnects (us-east) — approval needed
+
+Adding SRE technical color for customer-safe wording.
+
+What happened (customer-safe):
+- We saw an elevated rate of mid-stream disconnects for streaming requests in us-east, concentrated on longer-lived connections.
+- Non-streaming requests had normal success rates; this was primarily a streaming transport stability issue.
+
+Most likely cause (keep high level):
+- An interaction between a gateway config change and connection handling under elevated concurrency in us-east led to increased connection resets for long-lived streaming responses.
+
+What we did:
+- Rolled back the relevant gateway config and applied a conservative keepalive/connection-handling adjustment.
+- Confirmed streaming reset rate returned to baseline in us-east post-mitigation.
+
+Confidence / cautions on wording:
+- I’d avoid “root cause fully resolved” in the email. Better: “Mitigation applied; metrics back to baseline; monitoring closely.”
+- We can commit to an RCA with preventative follow-ups.
+
+If Acme asks for immediate guidance:
+- Recommend setting an explicit client-side read timeout appropriate for their max generation length, and implementing retry with backoff on network disconnects.
+- If they can, temporarily switch to HTTP/1.1 for streaming clients behind aggressive proxies (we’ve seen fewer resets).
+
+Rafael
+
+
+
+From: Sean Gallagher <sean.gallagher@redwoodinference.com>
+To: Jasmine Liu <jasmine.liu@redwoodinference.com>, Priya Natarajan <priya.natarajan@redwoodinference.com>
+Cc: Rachel Kim <rachel.kim@redwoodinference.com>, Rafael Mendes <rafael.mendes@redwoodinference.com>, Dev Patel <dev.patel@redwoodinference.com>, Avery Johnson <avery.johnson@redwoodinference.com>
+Date: Sat, Feb 7, 2026 at 8:21 AM PST
+Subject: Re: Exec escalation: Acme AI — streaming timeouts/disconnects (us-east) — approval needed
+
++1 to Rafael’s guidance.
+
+On the comms draft:
+- Approve if we remove/soften any “we identified the root cause” phrasing. I suggest:
+  - “We identified a likely contributing factor in gateway connection handling under load and applied a rollback + configuration adjustment.”
+  - “Streaming stability metrics have returned to baseline; we’re continuing to monitor.”
+- Keep the “RCA within 5 business days” commitment.
+
+On credits:
+- Recommend we do not proactively promise credits in the same note as mitigation.
+- Suggest language: “If you’d like to request service credits per your agreement, we can evaluate once we finalize the incident timeline and impact assessment.”
+
+Reason: avoids creating a precedent / commitment before we have the full incident accounting and contract interpretation.
+
+Sean
+
+
+
+From: Rachel Kim <rachel.kim@redwoodinference.com>
+To: Jasmine Liu <jasmine.liu@redwoodinference.com>
+Cc: Priya Natarajan <priya.natarajan@redwoodinference.com>, Sean Gallagher <sean.gallagher@redwoodinference.com>, Rafael Mendes <rafael.mendes@redwoodinference.com>, Dev Patel <dev.patel@redwoodinference.com>, Avery Johnson <avery.johnson@redwoodinference.com>
+Date: Sat, Feb 7, 2026 at 8:47 AM PST
+Subject: Re: Exec escalation: Acme AI — streaming timeouts/disconnects (us-east) — approval needed
+
+Customer context + what they’re asking for:
+
+- Morgan Lee (Acme Eng) is the point; they looped IT Ops because their internal dashboards lit up as “app instability.” They want a note they can forward to their VP Eng.
+- They explicitly asked: “Are we going to get credits? We had a customer-visible incident.”
+- They also asked whether they should pin traffic away from us-east for now.
+
+My suggestions for the email:
+- Include one sentence recommending temporary routing away from us-east *only if* they can do so without violating their internal requirements. Otherwise, we keep the guidance focused on retries/timeouts.
+- Re: credits: agree with Sean — don’t promise. But we should reassure we’ll respond quickly if they submit a request.
+- Update cadence: we told them we’d send a written update this morning and another check-in by EOD if anything changes. That’s aligned with what they expect.
+
+Also: please keep wording very explicit that the workaround guidance is temporary and we’ll follow up with long-term prevention.
+
+Rachel
+
+
+
+From: Avery Johnson <avery.johnson@redwoodinference.com>
+To: Jasmine Liu <jasmine.liu@redwoodinference.com>
+Cc: Rachel Kim <rachel.kim@redwoodinference.com>, Priya Natarajan <priya.natarajan@redwoodinference.com>, Sean Gallagher <sean.gallagher@redwoodinference.com>, Rafael Mendes <rafael.mendes@redwoodinference.com>, Dev Patel <dev.patel@redwoodinference.com>
+Date: Sat, Feb 7, 2026 at 9:12 AM PST
+Subject: Re: Exec escalation: Acme AI — streaming timeouts/disconnects (us-east) — approval needed
+
+Adding Sales POV.
+
+Acme is in the middle of expanding usage this quarter. If we go too “legalistic” on credits, we may take a hit in the expansion motion.
+
+Question: are we comfortable with a *goodwill* credit (separate from contractual service credits) once stabilized, e.g., a one-time usage credit applied to next invoice, pending Jasmine approval?
+
+I’m aligned with not committing in writing today. But if Morgan pushes on the call, I’d like a clear internal decision tree:
+- If they ask verbally: do we say “we’ll evaluate and get back by X date” (what date)?
+- Who signs off (Jasmine vs. Finance)?
+
+Avery
+
+
+
+From: Jasmine Liu <jasmine.liu@redwoodinference.com>
+To: Priya Natarajan <priya.natarajan@redwoodinference.com>, Sean Gallagher <sean.gallagher@redwoodinference.com>
+Cc: Rachel Kim <rachel.kim@redwoodinference.com>, Rafael Mendes <rafael.mendes@redwoodinference.com>, Dev Patel <dev.patel@redwoodinference.com>, Avery Johnson <avery.johnson@redwoodinference.com>
+Date: Sat, Feb 7, 2026 at 10:19 AM PST
+Subject: Re: Exec escalation: Acme AI — streaming timeouts/disconnects (us-east) — approval needed
+
+Thanks all — incorporating edits now.
+
+Decision / approvals:
+1) Comms language: approved with Sean + Rafael’s edits.
+- We will NOT state “root cause confirmed” or “permanently fixed.”
+- We WILL state: mitigation applied, streaming stability metrics back to baseline, continued monitoring, RCA to follow.
+- We WILL include temporary mitigation guidance (timeouts/retry; optional HTTP/1.1 note) and keep it explicitly “temporary.”
+
+2) Credits:
+- We will not proactively offer credits in today’s email.
+- Verbal guidance if pressed: “We take this seriously and will evaluate service credits per your agreement once we finalize the incident timeline and impact assessment. We’ll get back to you by Wednesday, Feb 11.”
+- Any goodwill credit beyond contractual service credits requires my approval; loop me + Avery.
+
+Rachel: please send the finalized email to Morgan once I drop it into this thread (I’ll forward the final text in ~15 min). Rafael/Sean: thank you — please keep an eye on us-east streaming metrics through the afternoon and post in SUP-1842 if anything moves.
+
+Jasmine
+
+—
+Jasmine Liu
+VP, Customer Success & Support
+Redwood Inference

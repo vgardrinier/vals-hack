@@ -1,0 +1,108 @@
+AP delivery preference and remittance-split: hybrid portal + email plan
+
+From: ACME Finance <accounts-payable@acmecorp.com>
+To: Kimberly Park <kimberly.park@redwood.com>
+Cc: 
+Date: Sun, 18 May 2025 08:14:00 -0700
+Subject: AP system and invoice delivery options (multi-entity)
+
+Hi Kimberly,
+
+Thanks for the quick intro call last week. We are getting our AP house in order ahead of Redwood going live across our product lines. A couple of items we need to lock down:
+
+- We have three billing entities (ACME US, ACME EMEA, ACME Legacy Intl). Can Redwood split remittance per-entity so our payments route to the correct ledger?
+- Delivery preference: we prefer e-invoice via portal for US + EMEA, but Legacy Intl still needs emailed PDF attachments to a legacy ingestion system. Can you support a hybrid setup?
+- For the portal option, we require examples of the XML schema / webhook push so our AP team can map fields (PO#, remit entity, VAT number).
+- Any VAT evidence or tax-id fields Redwood can include on the invoice PDF would be helpful.
+
+Attached is our AP requirements doc with sample invoices and mapping notes. Can you confirm what the onboarding path looks like (SFTP vs webhook vs portal API), estimated timeline, and any technical contact we should loop in?
+
+Best,
+Ellen Hart
+Head of AP 
+ACME Finance
+accounts-payable@acmecorp.com
+
+Attachment: ACME_AP_requirements.pdf (application/pdf)
+
+From: Kimberly Park <kimberly.park@redwood.com>
+To: Ellen Hart <ellen.hart@acmecorp.com>
+Cc: Ben Carter <ben.carter@redwood.com>, Marissa Cole <marissa.cole@redwood.com>
+Date: Mon, 19 May 2025 09:22:00 -0700
+Subject: Re: AP system and invoice delivery options (multi-entity)
+
+Ellen —
+
+Thanks for the clear requirements and the sample files. This is exactly the kind of info we need. High level proposal from Redwood:
+
+1) Hybrid delivery approach (recommended)
+   - Portal/e-invoice (preferred) for ACME US and ACME EMEA. We will push structured XML/JSON over a webhook or provide SFTP drop (your choice). This allows field-level mapping (PO#, remit entity tag, VAT id).
+   - Email PDF fallback for ACME Legacy Intl, delivered to the legacy ingestion address you specify. We can include structured metadata in the message subject or an accompanying XML file if needed.
+
+2) Remittance split
+   - We will support per-invoice "remit_entity" metadata. On the invoice PDF we will show the remit entity name, remit address, and tax id. For structured pushes we include a remit_entity_code that your ledger can map to the correct bank details.
+
+3) VAT/tax fields
+   - Standard fields (VAT number, tax breakdown per line, tax-exempt flags) are available and included in the XML. We can also surface a VAT-evidence attachment if you need a certificate on file.
+
+4) Implementation plan & timeline
+   - Week 0: Exchange sample invoice and decide push method (webhook vs SFTP).
+   - Week 1: Redwood sends sample XML and example invoice PDFs.
+   - Week 2: Integration test (test invoice with remit split, PO match).
+   - Week 3: Pilot cutover for two entities; full production after verification.
+
+I attached a short spreadsheet with options and recommended defaults (portal-first, email fallback). Can Ben and Marissa help with the webhook schema and the onboarding checklist? If this plan looks good we'll schedule a 30-min tech session this week.
+
+Thanks,
+Kimberly Park
+Billing & Partnerships
+Redwood Inference
+kimberly.park@redwood.com
+
+Attachment: Redwood_AP_Options.xlsx (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+
+From: Ben Carter <ben.carter@redwood.com>
+To: Kimberly Park <kimberly.park@redwood.com>
+Cc: Marissa Cole <marissa.cole@redwood.com>, Ellen Hart <ellen.hart@acmecorp.com>
+Date: Mon, 19 May 2025 10:03:00 -0700
+Subject: Re: AP system and invoice delivery options (multi-entity)
+
+Kim — quick notes from ops:
+
+- PO handling: we can require PO# in the XML payload (and reject if missing) for the portal path. For emailed PDFs we can do pattern matching on subject or accept a small companion XML file.
+- Payment rails: for remit split we will surface a remit_entity_code. For SEPA/ACH specifics we can keep bank details off the public PDF and provide a secure remit bundle to your AR system if needed.
+- Fallbacks: if portal delivery fails we'll retry and then send the PDF to the fallback email; we log each delivery step in the invoice trace.
+
+I'll prepare a minimal webhook schema doc and a test payload for the session.
+
+— Ben
+Ben Carter
+Revenue Operations
+Redwood Inference
+ben.carter@redwood.com
+
+From: Marissa Cole <marissa.cole@redwood.com>
+To: Ellen Hart <ellen.hart@acmecorp.com>
+Cc: Kimberly Park <kimberly.park@redwood.com>, Ben Carter <ben.carter@redwood.com>
+Date: Tue, 20 May 2025 11:03:00 -0700
+Subject: Re: AP system and invoice delivery options (multi-entity)
+
+Ellen —
+
+Per Kimberly and Ben, Redwood supports the hybrid path. To keep things tight on our side, our proposed go-forward:
+
+- Pilot: ACME US + ACME EMEA on portal/webhook (structured push). ACME Legacy Intl will receive emailed PDFs for 30 days while you validate the legacy ingest.
+- Please send one sample invoice for each remit entity (PDF + any preferred XML mapping). We will use those to generate the test payloads.
+- Onboarding steps: we will provision a test webhook endpoint for you, provide a sample payload, and run two test invoices (one matching a PO, one without a PO to validate error handling).
+- Acceptance criteria: successful reconciliation in your AP system for the two portal entities and successful ingest into Legacy Intl system for the PDF fallback.
+
+Next steps: can you confirm the legacy ingest address and whether you prefer SFTP instead of webhook for EMEA (some local teams prefer SFTP)? I have attached our AP onboarding checklist for your procurement team. Once you confirm we can schedule the tech session on Thursday.
+
+Thanks again — looking forward to getting this live.
+
+Marissa Cole
+Revenue Enablement
+Redwood Inference
+marissa.cole@redwood.com
+
+Attachment: AP_Onboarding_Checklist.pdf (application/pdf)

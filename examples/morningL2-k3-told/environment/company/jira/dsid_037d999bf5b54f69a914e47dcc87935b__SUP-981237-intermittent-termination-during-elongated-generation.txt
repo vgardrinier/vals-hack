@@ -1,0 +1,56 @@
+Intermittent connection reset / early termination during prolonged generation with deep chat history
+
+Issue summary:
+Customer observes occasional connection resets and early completion when requesting long-form generation against a stream-enabled endpoint. The requests include ~100k token-like priming history (many short turns) plus ask for an additional large generated output (max_tokens ~ 65k).
+
+Impact:
+- Customer production flow intermittently receives an HTTP/502 or TCP connection reset mid-stream and client reports incomplete generation.
+- Occurs for ~5-15% of long-history requests during peak hours, causing failed user flows.
+
+Environment:
+- Dedicated capacity (reserved pool) assigned to Peregrine Labs, region us-west-2.
+- Model: redwood-open-7b-v2, runtime config uses streaming=true, batching=enabled, kv_cache=enabled, quantization=8-bit.
+
+Steps to reproduce (provided by customer):
+1) Recreate session with 300+ turns of short exchanges (~tokenized length ~95k).
+2) Send stream completion request with max_tokens set to 65000 and temperature=0.7.
+3) Observe streaming chunks for ~20-40s, then connection abruptly resets or server returns 502 with no final chunk.
+
+Expected behavior:
+- Stream should return incremental chunks until completion or a graceful timeout with error including reason.
+
+Actual behavior:
+- Abrupt connection reset or 502/504 with no clear server-side error in the immediate HTTP logs. Customer-side logs show socket closed by remote. Some attempts return partial output; some appear to stall and then cut.
+
+Attachments:
+- Customer-provided client-side pcap excerpt and request/response headers (attached to ticket).
+- Example request id from customer: req-pleg-20260310-8492
+
+Logs & quick traces (support captured):
+- API gateway shows TCP FIN for the connection around 26-45s into the request. No 5xx body payload returned.
+- Serving runtime trace (partial) for the same window shows last seen server-side logs: "stream_chunk_sent seq=124" then no further successful send entries before worker reports "stream flush error: write: connection reset by peer".
+- No explicit OOM in the instance metrics; GPU memory remained within expected bounds.
+
+Immediate customer impact: partial/failed responses for long-history, high-cost requests.
+
+2026-03-10 - Ava Martinez (Support): Customer reported repeated early terminations over the last 48 hours after a usage spike. They are on Dedicated. Provided request id and pcap. Marking P1 due to production outages.
+2026-03-10 - SRE (Devon Chen): Initial triage — checked node health and autoscaler events around timestamps. No cluster-wide preemptions recorded but saw transient high send-queue wait on a few worker pods at 2026-03-10T14:22:xxZ. Creating trace to correlate with runtime logs.
+2026-03-11 - Runtime Eng (Priya Rao): Hypothesis — long prefix + large max_tokens increases KV cache churn and causes larger-than-expected flush sizes; if a streaming TCP write blocks then upstream may reset. Asking for sample request bodies and exact retry headers to reproduce locally. Assigned to dedicated runtime team for replication.
+2026-03-11 - Customer (Peregrine Labs - ops@peregrine.example): We attached replay file and we can open a maintenance window next Wednesday. Blocking user-facing feature until resolved.
+2026-03-12 - Support (Ava Martinez): Added temporary mitigation suggestion: reduce max_tokens to <= 16k or disable streaming for those specific long-history flows. Customer confirmed temporary fallback works but not acceptable long-term.
+2026-03-12 - Eng (Devon Chen): Running isolated repro using customer's replay — managed to reproduce socket reset when batching and streaming enabled with very large response budgets. Captured runtime logs and increased socket-level send buffer to test; observed fewer resets but not eliminated.
+Reproduction: Using customer replay on a dedicated test pool reproduced early TCP resets when streaming + batching + kv_cache active and requested max_tokens >= 60k.
+Observation: When KV cache grows beyond threshold, worker performs more frequent KV serialization and small synchronous disk writes which coincide with spikes in send latency for the streaming socket.
+Hypothesis A: Head-of-line blocking on the streaming TCP socket combined with synchronous KV writes causes upstream timeouts or remote resets from the API gateway when latency exceeds connection timeouts. Gateway did not log a 504 but closed socket after inactivity window.
+Hypothesis B: Batching scheduler occasionally groups a very large request with other long-history requests causing worker thread exhaustion; subsequent flushing attempts collide with kernel-level TCP backpressure and the gateway or client closes.
+Metrics: send_queue_latency 95th escalated from 120ms to 1.3s during repro. Worker CPU and disk IO show short spikes at the moment of reset.
+Temporary test mitigation: increasing streaming socket send buffer by 2x reduced occurrence in lab but is not acceptable as a long-term fix. Disabling batching for these requests prevented the issue in repro.
+Related findings: Similar patterns referenced in SUP-29541 and SUP-60735 (linking established above).
+Workaround provided to customer: (1) set max_tokens <= 16k or (2) disable streaming for deep-history flows or (3) pin model config to disable batching for affected route. Customer accepted workaround for now.
+
+Long-term plan (next steps):
+- Runtime team to implement non-blocking KV serialization path and move heavy IO operations off the main send thread (PR https://github.com/redwood-inference/serving-runtime/pull/4189 created).
+- Scheduler update to detect very large-response budget requests and route them to isolated worker slots without batching.
+- Add monitoring alert for send_queue_latency and KV-serialize spikes for Dedicated pools.
+
+Status: In Progress. Tracking in internal epic INT-13402 for runtime change and INT-13403 for scheduler change. Expected release in 2 sprints subject to QA.

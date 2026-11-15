@@ -1,0 +1,106 @@
+APAC subprocessor: data transfer checklist, DPIA addendum, and Art.30 extract
+
+From: Sophie Grant <sophie.grant@medicorp.com>
+To: Irene Choi <irene_choi@redwood.ai>
+Cc: Marcus Lin <marcus_lin@redwood.ai>, legal@horizonhealth.org
+Date: 2026-01-11T09:12:00-08:00
+Subject: Subprocessor onboarding — APAC transfer controls and DPIA addendum request
+
+Hi Irene,
+
+Thanks for taking this on. We're preparing our security & privacy signoff for the new APAC connector that your engineering team will run. Two quick asks we need to close from a compliance perspective: 
+
+1) A completed subprocessor questionnaire for the APAC provider (templates attached).
+2) A short extract of your Art.30 register showing processing activities that touch APAC residents (CSV preferred) and any contractual transfer mechanisms for those flows.
+
+Separately, our privacy team flagged one DPIA gap for cross-border transfers — could you confirm whether Redwood can provide a DPIA addendum or a statement of mitigating controls we can include in our records? If you have a template addendum, please send.
+
+We hope to finish internal review by next Thursday (2026-01-15). If we can get the items above by EOD Wednesday, that would be ideal.
+
+Thanks — happy to jump on a short call if that's easier.
+
+Sophie
+Director, Privacy & Compliance
+MediCorp Health
+
+Attachments: apac-subprocessor-questionnaire.pdf
+
+From: Irene Choi <irene_choi@redwood.ai>
+To: Sophie Grant <sophie.grant@medicorp.com>
+Cc: Marcus Lin <marcus_lin@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>, legal@horizonhealth.org
+Date: 2026-01-12T11:04:00-08:00
+Subject: Re: Subprocessor onboarding — APAC transfer controls and DPIA addendum request
+
+Hi Sophie — thanks for the clear list.
+
+Summary of what I'm attaching and next steps: 
+
+- apac-subprocessor-questionnaire.pdf (completed by SCS Cloud Ops). It includes SOC/ISO statements, data residency options, and KMS handling.
+- art30-ledger-excerpt.csv (export filtered for APAC processing activities; column headers include activity_id, purpose, categories_of_data, recipients, transfer_basis).
+- dpia-addendum-request.docx (our proposed short addendum template that maps mitigations to Article 28 obligations).
+
+Notes: 
+- The Art.30 extract is intentionally redacted for unrelated customer IDs; it shows the legal basis used for transfers and the technical controls in place.
+- The DPIA addendum is written to be appended to your DPIA: it cites our standard subprocessors, access controls, KV-cache policies, and optional onshore hosting.
+
+Action items for you: please confirm whether MediCorp requires our full Art.30 register (we prefer to provide extracts with attestations rather than the whole ledger) and whether the attached addendum format is acceptable for your DPIA. If legal needs more, we can schedule a short session with our Data Protection Officer.
+
+I can also loop in Marcus for questions about the onshore hosting option and any contractual transfer mechanisms (SCCs vs. onshore tenancy).
+
+Thanks,
+Irene
+Head of Privacy Programs
+Redwood Inference
+
+Attachments: art30-ledger-excerpt.csv, dpia-addendum-request.docx
+
+From: Marcus Lin <marcus_lin@redwood.ai>
+To: Sophie Grant <sophie.grant@medicorp.com>, Irene Choi <irene_choi@redwood.ai>
+Cc: Laura Bennett <laura_bennett@redwood.ai>
+Date: 2026-01-13T08:35:00-08:00
+Subject: Re: Subprocessor onboarding — APAC transfer controls and DPIA addendum request
+
+Hi Sophie — quick clarifications from the infra side: 
+
+- Onshore option: we can provision a tenant in our Singapore region for data-at-rest isolation; that requires a short provisioning SLA (estimate 10 business days) and a billing addendum.
+- Transfer mechanism: for most customers we rely on SCCs (standard contractual clauses) and the technical controls in the DPIA addendum. If MediCorp requires a contractual Data Processing Addendum amendment, we can put that in DocuSign — I've opened a DocuSign envelope here: https://drive.redwood.ai/d/1a2b3cDocuSignLink
+- Logs: we can provide a 90-day access window to audit logs for the subprocessor scope; if you need longer retention we can discuss commercial terms.
+
+Laura — can you confirm whether the Art.30 extract includes the specific subprocessors list used for the APAC connector? If not, we should add a table row for the APAC provider and the limited categories processed.
+
+Marcus
+Sr Product Manager, Dedicated Deployments
+Redwood Inference
+
+Attachment: none
+
+From: Sophie Grant <sophie.grant@medicorp.com>
+To: Irene Choi <irene_choi@redwood.ai>
+Cc: Marcus Lin <marcus_lin@redwood.ai>, legal@horizonhealth.org, akshay.patel@apac-consulting.co
+Date: 2026-01-14T16:08:00-08:00
+Subject: Re: Subprocessor onboarding — APAC transfer controls and DPIA addendum request
+
+Irene/Marcus — received everything, thanks. A few quick confirmations: 
+
+- The questionnaire looks good and answers most of our privacy team's questions.
+- The Art.30 extract is sufficient for now; we don't need the full register provided you supply the attestation that the extract is representative (the CSV includes the activity_ids we needed).
+- The DPIA addendum template is acceptable in principle — our legal team will review the small wording tweaks.
+
+Next steps: 
+1) We'll route the DPIA addendum to our Legal (cc'd) and request the DocuSign for the contract amendment.
+2) Akshay (APAC consultant) will confirm whether onshore tenancy is required for certification; he should be able to confirm by Monday.
+3) Please confirm provisioning timeline and any billing addendum if we decide to go onshore.
+
+If your DPO can join a 30-min sync next week that would speed signoff — can you propose two windows?
+
+I'll mark this as an active compliance checkpoint for the MediCorp onboarding team; thanks for the speed.
+
+Best,
+Sophie
+
+Quoted: 
+> On Tue, Jan 13, 2026 at 08:35 Marcus Lin <marcus_lin@redwood.ai> wrote:
+> > ... I've opened a DocuSign envelope here: https://drive.redwood.ai/d/1a2b3cDocuSignLink
+>
+> On Mon, Jan 12, 2026 at 11:04 Irene Choi <irene_choi@redwood.ai> wrote:
+> > ... I can also loop in Marcus for questions about the onshore hosting option ...

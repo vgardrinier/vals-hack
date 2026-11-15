@@ -1,0 +1,132 @@
+Glossar AI — MSA & Order Form kickoff / initial questions
+
+From: Ava Chen <ava.chen@redwood.ai>
+To: Zara Singh <zara@glossar.ai>
+Cc: Dev Patel <dev.patel@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>
+Date: Sat, 30 May 2026 09:12:00 -0700
+Subject: Glossar AI — MSA & Order Form kickoff / initial questions
+
+Hi Zara —
+
+Thanks for sending over the documents earlier this morning (we grabbed the files from your portal). I wanted to start a quick intake thread so we can align on the review plan and what information we need from Glossar to keep this moving.
+
+Quick overview of next steps from our side:
+- Legal intake: Marissa will do an initial redline pass on the MSA and flag any material commercial or IP/DB terms.
+- Commercial intake: I’ll validate Order Form pricing blocks and confirm billing contacts.
+- Engineering intake: Dev will confirm any onboarding integration notes that belong in the SOW/exhibit.
+
+Couple of questions for you so we can scope the first pass:
+1) Is Glossar planning to use Redwood Hosted API or Dedicated instances for production? (affects data residency/exhibit language)
+2) Which billing entity should we list on the Order Form and who’s the contact for invoicing?
+3) Do you have any specific security checklist items beyond the SOC2 report (e.g., customer-specific encryption or logging requirements)?
+
+If you can share procurement contact and confirm which deployment option you expect, we’ll aim to return an initial redline within 3 business days. We’ve attached a short intake checklist for your reference.
+
+Thanks — looking forward to partnering on this.
+
+Best,
+Ava Chen
+Senior Account Executive
+Redwood Inference
+ava.chen@redwood.ai | +1 (415) 555-0187
+[Attachment: Redwood_MSA_Intake_Checklist.pdf (PDF)]
+From: Zara Singh <zara@glossar.ai>
+To: Ava Chen <ava.chen@redwood.ai>
+Date: Sat, 30 May 2026 10:05:32 -0700
+Subject: Re: Glossar AI — MSA & Order Form kickoff / initial questions
+
+Hi Ava —
+
+Thanks — attached are the current MSA and Order Form drafts (see filenames below). We expect to go live on Hosted API for the first integration, with Dedicated evaluated later in the year. Procurement contact below.
+
+Answers:
+- Deployment: Hosted API (production)
+- Billing entity: Glossar AI, Inc.
+- Invoicing contact: procurement@glossar.ai (cc’d)
+- Security: SOC2 is primary; we may ask for an encryption appendix if we move to Dedicated.
+
+We’d like to get your initial redline this week if possible — procurement deadline is 06/07.
+
+Files attached:
+- Glossar_MSA_Draft_v1.pdf (PDF)
+- Glossar_OrderForm_Q1_2026.xlsx (Excel)
+
+Thanks,
+Zara
+Head of Business Operations
+Glossar AI
+zara@glossar.ai | +1 (650) 555-6672
+
+On Sat, May 30, 2026 at 09:12 AM Ava Chen <ava.chen@redwood.ai> wrote:
+> Hi Zara —
+>
+> Thanks for sending over the documents earlier this morning (we grabbed the files from your portal). I wanted to start a quick intake thread so we can align on the review plan and what information we need from Glossar to keep this moving.
+>
+> [snip]
+From: Ava Chen <ava.chen@redwood.ai>
+To: Marissa Cole <marissa.cole@redwood.ai>, Dev Patel <dev.patel@redwood.ai>
+Date: Sat, 30 May 2026 11:30:15 -0700
+Subject: Fwd: Glossar AI — MSA & Order Form kickoff / initial questions
+
+Looping you both in — Glossar sent the MSA and Order Form (attached). Procurement wants an initial redline by 06/04 if we can.
+
+What I’m hoping for from legal/commercial intake:
+- Marissa: initial redline + top 6 risk items called out (IP, liability cap, indemnity scope, data residency, termination/transition, and export controls).
+- Dev: quick pass for Exhibit A / SOW bullets — confirm whether Hosted API usage will require any specific SLA or onboarding commitments beyond our default.
+
+Attachments: Glossar_MSA_Draft_v1.pdf, Glossar_OrderForm_Q1_2026.xlsx
+
+If you can both put notes in the doc and share the marked-up MSA in 48–72 hours, that will keep the procurement window comfortable.
+
+Appreciate it —
+Ava
+Senior Account Executive
+Redwood Inference
+From: Marissa Cole <marissa.cole@redwood.ai>
+To: Ava Chen <ava.chen@redwood.ai>, Dev Patel <dev.patel@redwood.ai>
+Date: Sat, 30 May 2026 15:00:02 -0700
+Subject: Re: Fwd: Glossar AI — MSA & Order Form kickoff / initial questions
+
+Thanks for the ping — I’ll take the lead on legal redlines. Initial observations after quick scan:
+- Liability cap: Glossar’s draft proposes unlimited liability for certain categories; we should push to a 2x fees cap and carve out only for gross negligence/willful misconduct.
+- Data clauses: Hosted API usage is fine but need to confirm data retention language and non-production logging (we should add a short clause on retention and KV cache handling).
+- IP & model outputs: their language is broad. Recommend we tighten to ensure Redwood retains model and runtime IP, and customers have rights to their input and outputs as defined.
+- Termination assistance: propose 90 days to align on transition assistance + export of customer data.
+- Security evidence: ask for SOC2 report link and if they want encryption appendix, we can offer template (for Dedicated later).
+
+Requests for Glossar to expedite the review:
+1) Confirm procurement contact (we need full legal name and remit-to address for the Order Form).
+2) Provide any standard vendor addenda your procurement team expects (e.g., their required insurance certs).
+
+I’ll produce a marked-up PDF and a summary memo highlighting the top commercial impacts by EOD Monday (06/01). If procurement needs the redline sooner, I can prioritize the cap/indemnity/IP sections first.
+
+Marissa Cole
+Sr. Counsel, Commercial Contracts
+Redwood Inference
+marissa.cole@redwood.ai | +1 (415) 555-0112
+[Attachment: Legal_Redline_Todo_List.txt (text)]
+From: Zara Singh <zara@glossar.ai>
+To: Marissa Cole <marissa.cole@redwood.ai>, Ava Chen <ava.chen@redwood.ai>
+Date: Sun, 31 May 2026 11:03:20 -0700
+Subject: Re: Glossar AI — MSA & Order Form kickoff / initial questions
+
+Thanks Marissa — that sounds good. Procurement details below and I’ve cc’d our billing/PO team on this thread.
+
+Procurement contact:
+- Name: Luis Ortega
+- Email: procurement@glossar.ai
+- Remit-to: Glossar AI, Inc.; 2700 Sand Hill Rd, Suite 300; Menlo Park, CA 94025
+
+We can accept your 90-day termination assistance. We’ll also send any vendor addenda we require by EOD Monday. Glossar is flexible on the liability cap discussion and prefers to see Redwood’s standard position first.
+
+Timeline: procurement wants final redline by 06/07, but understands if we need a short extension for legal negotiation.
+
+Best,
+Zara
+Head of Business Operations
+Glossar AI
+
+On Sat, May 30, 2026 at 03:00 PM Marissa Cole <marissa.cole@redwood.ai> wrote:
+> Thanks for the ping — I’ll take the lead on legal redlines. Initial observations after quick scan:
+> - Liability cap: Glossar’s draft proposes unlimited liability for certain categories; we should push to a 2x fees cap and carve out only for gross negligence/willful misconduct.
+> [snip]

@@ -1,0 +1,56 @@
+SSE late-ack window gap causes truncated final segment and missing attachment metadata
+
+Issue summary:
+Customer observes missing attachment metadata and truncated final sentence when streaming via SSE after a short burst of traffic and a subsequent auth cookie rotation. The stream returns partial content (final paragraph missing) and the separate attachment metadata envelope is not delivered.
+
+Impact:
+- Several end-user documents from AcmeSlides are missing the final bullet/attachment link in ~2-4% of streams during peak traffic windows.
+- Customer reports production impact for editors embedding generated attachments (images/PDF links).
+
+Environment:
+- Dedicated account on prod (us-east-1) using Redwood Dedicated pool RG-07.
+- Client: custom browser app (Chrome 112) using SSE fallback with auth cookie rotation every 30s.
+
+Steps to reproduce (reported by customer):
+1) Initiate long-form generation with attachments enabled (attachments metadata emitted as separate envelope after final chunk).
+2) Generate under synthetic high QPS (burst to ~160 rps against dedicated shard).
+3) After ~20–40s, rotate auth cookie (client refresh) causing SSE rebind.
+4) Observe stream completes but final paragraph and attachment metadata absent.
+
+Expected behavior:
+- Stream completes with final paragraph and a distinct attachments metadata envelope.
+
+Observed behavior:
+- Stream ends with what appears to be a graceful final chunk but the terminal marker for the attachments envelope is not received. The last sentence is truncated in ~2–4% of trials.
+
+Initial customer-supplied trace IDs:
+- trace: us-east:trace/4a7d9c2b
+- session_id: acme-xyz-20260310-11
+
+Notes:
+- Customer confirmed non-streaming (polling) requests for the same task return attachments and full text consistently.
+- Issue seems correlated with high burst and auth rotation timing.
+
+sample server logs (redacted):
+[2026-03-10T11:02:15Z] RG-07 worker-12: stream start session=acme-xyz-20260310-11 trace=4a7d9c2b
+[2026-03-10T11:02:33Z] gateway-5: auth-cookie-rotate user=acme-slides session=acme-xyz-20260310-11
+[2026-03-10T11:02:33Z] gateway-5: sse-rebind attempt session=acme-xyz-20260310-11 code=200
+[2026-03-10T11:02:33Z] worker-12: late-ack-window start session=acme-xyz-20260310-11
+[2026-03-10T11:02:33Z] worker-12: emit-final-chunk session=acme-xyz-20260310-11 bytes=1200
+[2026-03-10T11:02:33Z] worker-12: scheduled-attachments-envelope session=acme-xyz-20260310-11 state=queued
+[2026-03-10T11:02:33Z] gateway-5: keepalive-ack delayed by 220ms session=acme-xyz-20260310-11
+[2026-03-10T11:02:33Z] worker-12: attachments-envelope dropped (client-ack-window-expired) session=acme-xyz-20260310-11
+
+03/10 11:30 - Reproduced locally using a dedicated dev shard with synthetic burst and auth rotation script; observed identical symptom when rotation aligned with final-chunk emission.
+Hypothesis: during SSE rebind the gateway's re-ack window (late-ack or keepalive delays) can allow the final-chunk to be delivered but the subsequent attachments envelope to be considered out-of-window and dropped by the gateway-side flow control component.
+Observed that worker emits final chunk and then enqueues attachments envelope. If gateway experiences a transient ack/backpressure delay, the envelope passes the gateway's per-session out-of-order/time-window heuristic and is not forwarded to client.
+No evidence of payload corruption at worker level; worker logs show 'queued' then 'dropped by gateway' for attachments envelope.
+Reviewing recent change: gateway flow-control heuristic PR merged 2026-02-28 (PR 1836) modified ack window policy for rebind cases. Candidate for regression.
+Heap/sockets during repro show ephemeral increase in epoll backlog at gateway (~300ms spikes).
+Support (2026-03-10T12:05) - Aisha: Thanks for the reproduction steps and traces. We've escalated to infra and will attempt to replicate in a staging Dedicated pool.
+Customer (2026-03-10T12:22) - Jordan (AcmeSlides): We've isolated it to times when users rotate auth while the model emits the last paragraph. Happy to run a longer replay if you need more traces.
+SRE (2026-03-10T14:10) - Marcus: Reproduced in staging with a 10k-run harvest. Gateway is dropping the post-final envelope when rebind occurs within 250ms window after final chunk emission. Opening INT ticket for gateway flow-control rollback test.
+Eng (2026-03-11T09:03) - Priya Shah: Found the PR that tightened drop thresholds for rebind edge-cases (PR 1836). The policy change did not consider attachments-as-separate-envelope pattern. Preparing hotfix branch to relax policy when envelope-type=\"attachments\".
+Support (2026-03-12T08:30) - Aisha: Customer notified that we have a mitigative rollback on staging and are scheduling a canary rollout to Dedicated pools tomorrow.
+Temporary mitigation: increase client-side resilience by including attachments inline in the final chunk (client setting: attachments.inline=true) OR delay auth cookie rotation until stream completion. We provided client-side snippet to hold rotation until server 'stream_end' event received.
+1) Finish hotfix branch to adjust gateway ack-window heuristic for attachment envelopes (ENG). 2) Canary deploy to one Dedicated pool and monitor stream success rate (SRE). 3) If canary passes, schedule rollout and communicate to affected customers. 4) Postmortem to review why PR 1836 didn't include this pattern (PM/ENG).

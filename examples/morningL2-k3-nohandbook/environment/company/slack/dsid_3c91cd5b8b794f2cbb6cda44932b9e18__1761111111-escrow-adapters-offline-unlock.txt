@@ -1,0 +1,24 @@
+architecture
+
+Priya: follow-up from design review: we need a compact spec for 'escrow adapters' so private, dedicated, and hosted can all use same broker primitives.
+Diego: agreed. adapters should be pluggable: hwm_attest, agent_signed, proxy_mtls, kms_offline. each adapter exposes a tiny verification result enum: OK, WEAK, FAIL.
+Maya: operator UX note: private installs want an 'offline unlock' path that doesn't hit our control plane. propose: controlplane stores ciphertext + metadata, operator runs local 'redwood-escrow unlock --id <policy> --signer <key>' which writes a local grant and audit entry.
+Zoe: security: broker must never return raw policy. only short-lived JWS grants with scope, exp, rid and evidence_hash. runtimes present grant in Authorization header.
+Priya: enforcement levels: AUDIT, WARN, ENFORCE, DEGRADE. defaults: hosted=ENFORCE, dedicated=WARN->ENFORCE per contract, private=CONFIGURABLE. document mapping clearly for sales.
+Diego: signals matrix is crucial. hosted provides full signals, dedicated omits billing by default, private is operator-defined. runtime should query GET /runtime/available_signals at startup.
+Maya: latency tradeoffs: attestation adds 20-120ms depending on adapter. recommend caching grants per (tenant, model, route) and invalidating on model rollouts. streaming sessions get a hot-lease with heartbeat.
+Zoe: audit schema: release_event -> {policy_id, adapter, evidence_hash, release_cid}. store hashes only. add correlation id linking request->grant->release.
+Priya: token rotation: broker publishes jwks, accept old keys for short grace window, and force re-attestation for high-sensitivity policies on rotation.
+Diego: failure semantics: if a required signal is missing or attestation returns FAIL, then if policy marked 'must_guard' -> DENY else -> DEGRADE. record signal_missing flag.
+Maya: emergency operator override: implement 2-person signed override that issues a signed override grant. log and alert to SRE.
+Zoe: sample config snippet for RFC:
+```
+policy_escrow:
+  id: pii_block_v1
+  adapter: agent_signed
+  token_ttl: 300
+  enforcement: enforce
+  required_signals: [tenant_id, model_id, geo]
+```
+Priya: next steps: Maya to write offline-unlock CLI spec + audit UX, Diego to draft signals matrix + perf numbers, Zoe to draft JWS grant spec and rotation notes. i'll incorporate into RFC and ping for review.
+ops-bot: rfc: escrow-adapters draft pushed to ./docs/escrow-adapters.md by Priya at 2026-03-26T14:00:00Z :white_check_mark:

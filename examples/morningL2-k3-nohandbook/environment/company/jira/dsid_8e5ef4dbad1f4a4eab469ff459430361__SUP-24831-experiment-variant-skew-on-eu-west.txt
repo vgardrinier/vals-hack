@@ -1,0 +1,133 @@
+Route experiments: variant traffic skew in eu-west during beta (expected 50/50, observed ~90/10)
+
+Issue summary:
+- Acme AI reports that their route-level experiment in Console (beta) is heavily skewed in eu-west.
+- Expected split: 50/50 between variants (control vs candidate model).
+- Observed split: ~90/10 (varies by hour), affecting rollout confidence.
+
+Impact:
+- Experiment results are not interpretable; customer paused ramp due to concern that assignment is not deterministic/consistent.
+- Potential product trust issue during beta.
+
+Customer context:
+- Customer: Acme AI (beta design partner)
+- Deployment: Dedicated; primary traffic in eu-west
+- Experiment: Route experiment on /v1/chat/completions (route_id: chat-completions-prod)
+
+Environment:
+- prod, eu-west
+
+What customer sees:
+- Console results dashboard shows variant B receiving disproportionate traffic vs configured split.
+- Customer also notes that skew is more pronounced for streaming requests.
+
+Initial hypotheses:
+1) Missing/low-entropy stickiness key leading to bucket collisions (e.g., IP-based fallback behind NAT).
+2) Assignment cache/config propagation inconsistency specific to eu-west.
+3) Metrics attribution/aggregation issue (skew in telemetry rather than actual routing).
+
+Requested from customer:
+- Sample request IDs and headers (redacted) for a few requests that landed in the "wrong" variant.
+- Confirm what stickiness key is being passed (if any) via SDK.
+
+Links:
+- Slack thread: #eng-platform "variant-skew report / missing sticky key" (internal): sources/slack/eng-platform/1736538810-variant-skew-report-missing-sticky-key.json
+- Dashboard (Grafana): Route Experiments > Variant Traffic Share (eu-west) (internal link)
+- Dashboard (Grafana): Experiment Attribution Drop Rate (eu-west) (internal link)
+2025-03-08 10:14 UTC — Logan Wright (Reporter)
+Customer (Acme AI) pinged Support via shared Slack channel: configured 50/50 split but seeing ~90/10 in eu-west. They provided screenshots from Console results view and note this started after they rolled out a new build of their gateway/SDK wrapper on Mar 7.
+
+Asked for:
+- whether they pass a stable stickiness key (customer_id/user_id/session_id)
+- sample request_id + response headers (x-redwood-experiment-id / x-redwood-variant-id)
+2025-03-08 11:02 UTC — Jordan Lee (Assignee)
+Acknowledged. Will check policy engine evaluator logs and assignment distribution for experiment_id=exp_8f3a (from Console screenshot).
+
+Next:
+- Use internal assignment debug endpoint to compare hash inputs in eu-west vs us-east.
+- Verify eu-west router build version and config cache behavior.
+2025-03-08 12:20 UTC — Caleb Johnson
+Checked telemetry: attribution is present for >99% of requests; this does not look like a pure attribution-drop artifact. The skew shows up in both request counts and token counts.
+
+Noted: highest skew correlates with traffic that has no explicit stickiness key header. For those requests, the router is falling back to "client_ip" in eu-west (per span attributes).
+2025-03-08 13:05 UTC — Jordan Lee
+Used experiment assignment debug endpoint for 20 sample request_ids from eu-west.
+Finding:
+- stickiness_key_source=client_ip for most (missing x-redwood-sticky-key / no customer_id)
+- Many requests map to same /24 NAT range; effective entropy is low.
+- Hashing distribution across variants is sensitive to low-entropy keys; with current bucketing implementation, skew can happen in smaller populations and with IP clustering.
+
+Also observed:
+- In us-east, same customer traffic includes x-redwood-sticky-key from their edge layer (seems region-specific deployment mismatch on their side).
+
+Action:
+- Ask customer to confirm stickiness header is being set in eu-west.
+- In parallel, propose product-side mitigation: improve default stickiness fallback (do not use client_ip by default) + emit warnings/guardrails in Console when stickiness key missing.
+2025-03-08 13:22 UTC — Logan Wright
+Sent customer guidance:
+- For experiments, MUST pass a stable, high-entropy stickiness key per end-user or per customer session. IP-based stickiness is not recommended (NAT / proxies).
+- Recommended: x-redwood-sticky-key = stable user_id or session_id.
+
+Customer replied they assumed Redwood would "just split" without extra headers; their eu-west edge path is not injecting the sticky key header yet.
+2025-03-09 09:10 UTC — Allison Grant
+Adding observability notes:
+- Confirmed skew alarm in eu-west: variant_share deviates >20% absolute from configured allocation for >15m.
+- This is consistent with true routing skew, not just dashboard aggregation.
+
+Proposed:
+- Add a dedicated metric: experiment_missing_sticky_key_rate by {route, experiment_id, region}
+- Add a Console banner when missing sticky key rate > threshold for the selected time range.
+2025-03-10 16:40 UTC — Jordan Lee
+Engineering fix in progress:
+- PR opened to adjust safe defaults when stickiness key is missing (avoid low-entropy fallback causing skew; prefer request-scoped stable hashing inputs when available, and warn rather than silently falling back to IP).
+- Also adding validation/warning surface to reduce recurrence.
+
+Tracking PR:
+- https://github.com/redwood/pr-28705-fix-variant-skew-when-stickiness-key-missing
+
+Mitigation for customer now:
+- Customer should set x-redwood-sticky-key in eu-west edge path ASAP.
+- Until then, advise running experiment at 5/95 with manual override cohorts rather than relying on implicit bucketing.
+2025-03-11 10:05 UTC — Logan Wright
+Customer confirmed they deployed sticky key injection to eu-west (using hashed end_user_id). Traffic started normalizing within ~30 minutes.
+
+Observed:
+- Variant shares approaching expected 50/50.
+- Customer still requests Redwood-side fix so other beta users don’t hit this.
+2025-03-12 18:30 UTC — Jordan Lee
+PR-28705 merged to main. Rollout plan:
+- Feature flag gated in eu-west first, then expand.
+- Add a warning when stickiness key is absent and population is small/likely to skew.
+
+Also queued:
+- Add/update integration test coverage to simulate missing sticky key and ensure we don’t silently choose client_ip fallback.
+
+Ops ask:
+- SRE to watch for any latency impact from new warning/metrics tagging (should be negligible).
+2025-03-14 08:55 UTC — Sean Gallagher
+SRE sign-off:
+- Deployed to eu-west canary at 10%.
+- No regression in p95 router latency; no increase in 5xx.
+- Confirmed new metric series is within cardinality budget.
+
+Plan:
+- Ramp to 100% in eu-west today; then us-east tomorrow (beta accounts only).
+2025-03-15 12:10 UTC — Logan Wright
+Customer update:
+- Fix rolled out to eu-west.
+- Customer’s experiment allocation stable and matches configured split.
+- Provided customer with updated troubleshooting guidance: always set x-redwood-sticky-key and confirm via response headers.
+
+Marking Resolved; will close after 7 days if no recurrence.
+Root cause: In eu-west, a significant fraction of requests entered the experiment without an explicit stickiness key; router fell back to client_ip-based hashing (low entropy behind NAT/proxies), producing sustained variant skew. Customer’s eu-west edge path was missing sticky key injection, amplifying the issue.
+
+Fix:
+- Product-side: updated routing/assignment behavior to avoid low-entropy default stickiness fallback and to surface warnings/validation when sticky key is missing (PR-28705).
+- Customer-side mitigation: customer deployed x-redwood-sticky-key injection in eu-west.
+
+Verification:
+- Post-mitigation, variant share converged to configured split in eu-west and remained stable for >24h.
+- No detected performance regressions from the change.
+Follow up with Console team to ensure UX copy clearly communicates sticky key requirement and shows missing-sticky-key rate in results view.
+Add runbook section: diagnosing skew specifically due to missing stickiness key + NAT/IP clustering patterns (link in alerts).
+Monitor eu-west skew and missing_sticky_key_rate for Acme AI for 7 days; close if stable.

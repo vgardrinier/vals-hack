@@ -1,0 +1,62 @@
+Restore GCP->AWS federated assume-role path for ml-ci ephemeral provisioning
+
+Issue summary:
+GCP-based CI (ml-ci) jobs that provision ephemeral AWS instances via workload identity federation began failing to assume the target AWS role. This prevents model replay jobs and nightly validation runs from starting.
+
+Impact:
+- CI pipelines for model replay and integration tests failing (~60% of ml-ci runs in us-east).
+- Delayed validation and onboarding of new model builds; potential downstream deployment slowdowns.
+
+Environment:
+- GCP project: redwood-ml-ci-staging / redwood-ml-ci-prod
+- AWS account: rw-infer-prod (arn:aws:iam::123456789012:role/ci-ephemeral-provisioner)
+- Federation mechanism: GCP Workload Identity -> AWS STS AssumeRoleWithWebIdentity via OIDC token
+
+Observed behavior:
+- GCP jobs obtain an identity token successfully but AWS STS returns AccessDenied when calling AssumeRoleWithWebIdentity. Error seen in logs: "Error: AccessDenied: Not authorized to perform sts:AssumeRoleWithWebIdentity" and "The principal is not authorized to assume the role".
+
+Expected behavior:
+- ml-ci pod/service account should exchange GCP identity token for temporary AWS credentials and assume role ci-ephemeral-provisioner to create ephemeral EC2/EKS resources.
+
+Temporary mitigation:
+- Manual run by infra on a dedicated bastion with long-lived credentials; limited capacity and not scalable.
+
+Notes:
+- This ticket covers investigation and permanent fix to restore the federated path and update any IAM conditions or identity configuration that caused the break.
+1) In a test GKE pod with workload identity bound to service account ml-ci-sa, run: 
+   gcloud auth print-identity-token --audiences=sts.amazonaws.com 
+2) Attempt AWS exchange: 
+   aws sts assume-role-with-web-identity --role-arn arn:aws:iam::123456789012:role/ci-ephemeral-provisioner --role-session-name test-session --web-identity-token <token> --duration-seconds 3600
+3) Observe STS error: AccessDenied / principal not authorized
+
+Notes: reproduces in both staging and prod project service accounts when using the current audience/issuer values.
+[2026-03-10T09:12:04Z] ml-ci-runner: obtaining identity token for sa:ml-ci-sa
+[2026-03-10T09:12:05Z] aws-sts: assume-role-with-web-identity failed: AccessDenied: Not authorized to perform sts:AssumeRoleWithWebIdentity	status code: 403
+[2026-03-10T09:12:05Z] aws-sts: request id: b1f4c2d3-example
+Additional context: Token audience was 'sts.amazonaws.com' and issuer 'https://iam.gserviceaccount.com/..'
+
+Timeline:
+- 2026-03-10 09:30: Initial customer-reported failures in ml-ci backlog; alerted via #internal-support.
+- 2026-03-10 10:00: Verified STS AccessDenied from a reproducer; confirmed tokens being minted.
+- 2026-03-10 13:00: Cross-checked role trust policy (AWS) and GCP Workload Identity pool config; noticed an IAM Condition referencing 'aud' claim equality that had been tightened during a recent audit (INT-120999).
+Hypotheses tested:
+- Hypothesis A: Audience mismatch due to new audience format -> reproduced when using older audience string; AWS rejects because condition enforces exact match.
+- Hypothesis B: Role trust condition now restricts source account or principal tag which ml-ci doesn't provide -> tested by adding permissive condition to a test role; assume succeeded.
+Findings:
+- Root cause: A recent housekeeping change to the AWS role trust policy added a StringEquals condition on "sts:Audience" and/or a tag condition on "aws:PrincipalTag/ci-runner"; GCP identity tokens emitted by ml-ci do not include that specific tag and the audience string uses a new issuer URL.
+- Related change: a Terraform change in infra repo (PR #7421) updated the workload-identity provider audience formatting to include the full issuer; inadvertently changed token 'aud' value.
+Next steps:
+- Reconcile audience values between GCP Workload Identity config and the role trust policy.
+- Decide whether to relax the StringEquals to StringLike or to update GCP token audience formatting back to expected value.
+- Patch Terraform and roll out to staging first, verify ml-ci runs, then prod.
+
+2026-03-10 11:05 - Miles Granger: Assigned to me for triage. I'll reproduce and attempt a minimal policy change in a test role.
+
+2026-03-10 13:30 - Priya Singh (SRE): Reproducer shows token 'aud' set to 'https://iam.gserviceaccount.com/identity/12345'. AWS trust expects 'sts.amazonaws.com'. Need to normalize.
+
+2026-03-11 09:12 - Diego Ramos (Infra): Found terraform diff: modules/iam/workload_identity.tf changed audience interpolation in PR #7421. Opening revert PR to test.
+
+2026-03-12 15:40 - Miles Granger: Applied test fix to staging role: replaced StringEquals condition with StringLike("*sts.amazonaws.com*") and ran ml-ci replay -> assume-role succeeded; provisioning completed.
+
+2026-03-13 08:20 - Asha Patel: Confirmed ~20 successful ml-ci runs in staging after fix. Need infra review before prod rollforward.
+WIP: Temporary fix tested in staging by relaxing the AWS role trust condition to accept the current audience format. Permanent fix to be implemented by aligning GCP workload identity audience formatting with the AWS trust policy in terraform (PR ready: infra PR 7445). After code review we'll roll to prod during low-traffic window and monitor ml-ci runs for 24h. Follow-up action: add automated integration test that exercises assume-role-with-web-identity on PRs that touch workload-identity/iam modules.

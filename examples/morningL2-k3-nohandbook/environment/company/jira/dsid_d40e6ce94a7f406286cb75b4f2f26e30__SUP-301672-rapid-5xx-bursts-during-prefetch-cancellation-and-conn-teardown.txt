@@ -1,0 +1,51 @@
+Rapid 5xx bursts tied to prefetch cancellation + connection teardown leading to runtime evictions
+
+Issue summary: Customers (BrightDocs) observed repeated short bursts of 5xx responses (502/503) lasting 10-30s, recurring ~3-4 times per hour. Impact: user-facing API calls failed or retried, latency spiked and client-side retries amplified the error bursts. Root pattern appears to correlate with rapid prefetch cancellation events followed by connection teardown on the API gateway which triggers serving-runtime GPU context swaps and worker eviction.
+
+Impact: A subset of requests during bursts returned 502/503, some long-lived streaming sessions dropped. Customer reported interrupted batch-processing jobs and increased error budgets.
+
+Environment: Production cluster in us-east servicing BrightDocs dedicated tenant on reserved pool.
+
+1) Rapidly send a mixed workload to the tenant: 60 short chat requests/sec + 8 concurrent long streaming sessions.
+2) Trigger a client-side prefetch cancellation pattern by issuing prefetch requests then immediate cancels (simulate BrightDocs client behavior).
+3) Observe gateway connection teardown events and increased keepalive churn.
+4) Watch for runtime worker eviction logs and GPU context swap around the same timestamps.
+
+Relevant logs snippets aggregated from 2026-03-12T09:12:14Z - 2026-03-12T09:15:00Z: 
+- apigw: conn-teardown: fd=3187 rc=0 reason=client-cancel (rapid)
+- apigw: keepalive-pool: exhaustion=0.86 threshold=0.8 stall=250ms
+- runtime: worker-evict: id=87 reason=gpu-context-swap active_requests=3
+- runtime: watchdog: OOM-guard triggered kernel-swap for model=redwood-7b-v2 seq=1024
+- runtime: reply: 502 upstream-unavailable (evicted-worker)
+- metrics: request_5xx_rate{tenant="brightdocs"} spike from 0.001 -> 0.12
+- perf: nvml GPU memory fragmentation increased by ~12% at the same times
+
+Initial hypothesis: client prefetch cancellations lead to connection churn which stresses the keepalive connection pool at the API gateway. High churn triggers frequent short-lived connections and forces the serving-runtime to reallocate GPU contexts. During context reallocation there are transient resource constraints leading to worker eviction and 502/503 responses.
+
+What we checked:
+- Correlated apigw conn-teardown timestamps with runtime worker-evict logs (matching timestamps within 100-300ms).
+- Verified tenant was on a non-prewarmed GPU pool; requests with large seq lengths increased memory pressure.
+- Confirmed client pattern from BrightDocs logs: heavy prefetch+cancel behavior during their batch indexing job.
+- Reproduced a smaller-scale version in staging by simulating the cancel pattern; observed elevated keepalive reuse failures and occasional evictions.
+
+Hypotheses refined: two interacting factors required to trigger bursts: (1) connection churn causing apigw keepalive pressure and (2) memory/fragmentation hotspots in runtime during kernel swap or model loading that can't absorb a sudden rebind of contexts.
+
+Short-term mitigation (applied 2026-03-12 11:00 UTC):
+- Increased API gateway keepalive pool soft-limit for this tenant by 30% to reduce teardown amplification.
+- Added temporary rate-limit throttle on prefetch endpoints for BrightDocs (soft block for the next 48h).
+- Applied runtime config change: delay kernel-swap guard to wait for request quiescence (reduces eviction hysteresis).
+
+Long-term action items (backlog / engineering):
+- Runtime: implement graceful kernel swap path that drains active KV cache and queues new requests instead of evicting workers. (PR drafted: https://github.com/redwood/rev/pull/1893)
+- Gateway: expose tenant-level keepalive tuning knobs and adaptive backpressure when churn detected.
+- Product: advise customers with heavy prefetch behavior to use staggered prefetch windows or dedicated prewarmed pool.
+- Postmortem to be drafted and linked to confluence page above.
+
+Current status: mitigations removed burst pattern in prod during 24h monitoring window. Engineering change PR in review.
+
+2026-03-12 09:45 - BrightDocs support: 'We're seeing ~15% of calls return 5xx during our indexing stage. It began at ~09:12 and recurred every ~20 minutes.'
+2026-03-12 10:05 - Aisha Kapoor (Support): 'Collected traces and requested BrightDocs client logs for prefetch pattern. Notified SRE for deeper correlation.'
+2026-03-12 10:42 - SRE (Darren Mills): 'Confirmed correlation between conn-teardown and runtime-evict logs. Reproduced in staging with prefetch-cancel script. Increasing keepalive soft-limit as a stopgap.'
+2026-03-12 11:12 - Ops: 'Applied keepalive soft-limit increase and temporary prefetch throttle for tenant. Monitoring metrics show 5xx rate decreased to baseline.'
+2026-03-13 14:30 - Runtime eng: 'Submitted PR for guarded kernel-swap. Tests added for simulated churn. Requesting review from infra team.'
+2026-03-14 09:00 - Aisha Kapoor: 'Customer confirmed improved stability post-mitigation. Scheduling postmortem and customer RCA call for 2026-03-16.'

@@ -1,0 +1,143 @@
+Originate: Renewal playbook & QBR slot request — QuantaHealth
+
+From: Grace O'Connor <grace.oconnor@redwood.com>
+To: Amira Khan <amira@quantahealth.com>
+Cc: Jordan Lee <jordan.lee@quantahealth.com>, QuantaHealth Procurement <procurement@quantahealth.com>
+Date: Fri, 25 Sep 2026 09:12:00 -0700
+Subject: Originate: Renewal playbook & QBR slot request — QuantaHealth
+
+Hi Amira —
+
+Thanks again for taking the time last week. We’re starting the formal renewal & expansion origination for QuantaHealth (term ends 2026-11-30) and I wanted to propose a lightweight kickoff to align stakeholders, confirm the capacity uplift, and schedule the QBR. Key asks in this email:
+
+- Confirm target term change (12 vs 24 months) and whether you want the uplift staged or immediate.
+- Review the attached mutual action plan + capacity forecast (see attachments).
+- Propose 2x 60-minute QBR windows next week so we can lock in calendar availability for execs.
+
+Suggested kickoff timeline (high level):
+1) Kickoff & QBR scheduling (this week) — align stakeholders and agree on target term
+2) Draft amendment & legal review (1–2 weeks) — Ben (sales ops/legal) will surface changes
+3) Procurement & PO path (1–3 weeks) — Quanta procurement to confirm billing cadence
+4) Technical onboarding for uplift (SRE/CS) — Monica to confirm runbook and staffing
+
+Proposed QBR windows (pick two):
+- Tue, Sep 28, 10:00–11:00 PT
+- Tue, Sep 28, 15:00–16:00 PT
+- Wed, Sep 29, 09:00–10:00 PT
+
+Attachments: Quanta_Mutual_Action_Plan_v1.pdf, CapacityForecast_Q3-Q4.xlsx
+
+I’ve looped Jordan (procurement) to keep PO coordination visible. Monica (CS) and Ben (legal) are on copy to help with SLOs and contract language. If the team prefers, we can do a short 30-minute technical-only pre-call to validate the KV/prefix caching approach for the uplift.
+
+Next steps: please confirm which QBR slot works and whether you prefer a 12- or 24-month term.
+
+Best,
+Grace O'Connor
+Customer Success Manager | Redwood Inference
+grace.oconnor@redwood.com | +1 415-555-0198
+
+---
+Attachment stubs:
+- Quanta_Mutual_Action_Plan_v1.pdf (8 pages)
+- CapacityForecast_Q3-Q4.xlsx (3 sheets)
+
+From: Amira Khan <amira@quantahealth.com>
+To: Grace O'Connor <grace.oconnor@redwood.com>
+Cc: Jordan Lee <jordan.lee@quantahealth.com>, QuantaHealth Procurement <procurement@quantahealth.com>
+Date: Fri, 25 Sep 2026 11:20:00 -07:00
+Subject: Re: Originate: Renewal playbook & QBR slot request — QuantaHealth
+
+Hi Grace —
+
+Thanks — appreciate the clear plan. We’re planning to move to a 24-month term if pricing aligns and would like the uplift staged: initial +50% capacity for December then full capacity by Feb.
+
+Jordan (copied) owns procurement; he’ll confirm PO lead time but we typically need 2–3 weeks for standard amendments. For the QBR, Tue Sep 28 15:00 PT works for our execs. Can you include our SRE lead (I’ll add them after Jordan confirms) — they’ll want to review the caching strategy and canary routing plan.
+
+Two small asks:
+- Can you include a redline-friendly amendment (Word) so legal can review quickly?
+- Can you confirm the expected unit pricing for the staged uplift (per-token/embedding delta)?
+
+Appreciate it — see you on the 28th.
+
+— Amira Khan
+Director, ML Platform | QuantaHealth
+amira@quantahealth.com | +1 617-555-0102
+From: Grace O'Connor <grace.oconnor@redwood.com>
+To: Ben Carter <ben.carter@redwood.com>, Monica Patel <monica.patel@redwood.com>, David Kim <david.kim@redwood.com>
+Cc: Amira Khan <amira@quantahealth.com>, Jordan Lee <jordan.lee@quantahealth.com>, QuantaHealth Procurement <procurement@quantahealth.com>
+Date: Fri, 25 Sep 2026 12:05:00 -07:00
+Subject: Fwd: Originate: Renewal playbook & QBR slot request — QuantaHealth
+
+Team —
+
+Looping you in to coordinate our side. QuantaHealth intends 24 months with a staged uplift (+50% Dec, full Feb). They’ve picked Tue Sep 28 15:00 PT for the QBR. Action items I’m assigning:
+
+- Ben: Can you draft a redline-friendly amendment (Word) that includes staged capacity and the per-unit pricing for the uplift? We’ll need a quick internal legal check before sending to Jordan.
+- Monica: Can you prepare an ops runbook excerpt (30 minutes) to walk SRE through KV cache, prefix caching, and canary routing during the QBR?
+- David: Please own the pricing delta confirmation and provide a short table we can attach.
+
+I’ll schedule the 60-minute QBR (15:00–16:00 PT) and send calendar invites to visible stakeholders once Ben confirms the doc.
+
+Thanks — forwarding the customer thread below for context.
+
+On Fri, 25 Sep 2026 at 09:12, Grace O'Connor wrote:
+> Hi Amira —
+> 
+> Thanks again for taking the time last week. We’re starting the formal renewal & expansion origination for QuantaHealth...
+
+Gracie
+
+Grace O'Connor
+Customer Success Manager | Redwood Inference
+From: Ben Carter <ben.carter@redwood.com>
+To: Grace O'Connor <grace.oconnor@redwood.com>, Monica Patel <monica.patel@redwood.com>, David Kim <david.kim@redwood.com>
+Cc: Amira Khan <amira@quantahealth.com>, Jordan Lee <jordan.lee@quantahealth.com>
+Date: Mon, 28 Sep 2026 08:10:00 -07:00
+Subject: Re: Fwd: Originate: Renewal playbook & QBR slot request — QuantaHealth
+
+Thanks Grace — I have a first-pass amendment draft attached (Draft_Amendment_v1.docx). Highlights: staged uplift language, billing cadence options (monthly vs quarterly invoicing), and a pricing table for the uplift bands.
+
+A couple of notes for internal review before we send to Quanta:
+- We should avoid hard SLAs for burst capacity; propose a best-effort throughput target and a credit-based remediation for sustained breaches.
+- If they want immediate full uplift in Dec instead of staging, pricing should include a one-time uplift fee to cover capacity reservation.
+
+I’ll iterate quickly if David confirms the exact per-token delta. Monica — if you can attach the 2-page ops-runbook excerpt, I’ll include a pointer to the technical appendix in the amendment so procurement has it for review.
+
+Ben Carter
+Sales Operations (Contracts) | Redwood Inference
+ben.carter@redwood.com
+
+Attachment stub: Draft_Amendment_v1.docx
+From: Grace O'Connor <grace.oconnor@redwood.com>
+To: Amira Khan <amira@quantahealth.com>, Jordan Lee <jordan.lee@quantahealth.com>, QuantaHealth Procurement <procurement@quantahealth.com>
+Cc: Ben Carter <ben.carter@redwood.com>, Monica Patel <monica.patel@redwood.com>, David Kim <david.kim@redwood.com>
+Date: Tue, 29 Sep 2026 15:04:00 -07:00
+Subject: Confirmed: QBR booked + pre-reads (QuantaHealth renewal)
+
+Hi Amira / Jordan —
+
+Confirmed: I’ve booked Tue, Sep 28 15:00–16:00 PT as our renewal QBR (calendar invites sent). For the agenda and pre-reads:
+
+Agenda (60 minutes)
+- 0–10m: Exec alignment and renewal objectives (Amira + Grace)
+- 10–30m: Technical runbook excerpt & canary plan (Monica + Quanta SRE)
+- 30–45m: Commercial summary (David + Ben) — term options, pricing table, and procurement path
+- 45–60m: Open items & next steps (PO timeline, legal redline path)
+
+Pre-reads attached: Quanta_Mutual_Action_Plan_v1.pdf, CapacityForecast_Q3-Q4.xlsx, Draft_Amendment_v1.docx (for redline).
+
+Action items from our side before the QBR:
+- Ben: finalize Word amendment and circulate redline copy to Jordan for procurement.
+- David: attach final per-token/embedding delta and the staging pricing table.
+- Monica: prepare the 2-page ops runbook and the 10-minute tech slide on canary routing.
+
+Jordan — if you can confirm the procurement review timeline (roughly how many business days until PO/contract signature) we’ll align next steps and the mutual action plan dates.
+
+Thanks everyone — looking forward to the meeting.
+
+Best,
+Grace O'Connor
+Customer Success Manager | Redwood Inference
+
+---
+Attachments: Quanta_Mutual_Action_Plan_v1.pdf, CapacityForecast_Q3-Q4.xlsx, Draft_Amendment_v1.docx

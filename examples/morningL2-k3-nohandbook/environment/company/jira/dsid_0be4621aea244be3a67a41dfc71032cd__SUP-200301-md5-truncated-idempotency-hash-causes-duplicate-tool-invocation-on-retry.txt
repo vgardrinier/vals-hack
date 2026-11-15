@@ -1,0 +1,58 @@
+MD5-truncated idempotency hash leads to duplicate tool/function invocations on retry across SDKs
+
+Issue summary:
+Customer reports repeated tool/function invocations when their client retries after a transient network disconnect. The customer and our internal repros show that two separate requests that should have deduplicated via idempotency are treated as distinct because the idempotency header gets truncated/normalized differently in the edge layer.
+
+Impact:
+- Customer sees duplicated downstream webhook/funcall side effects (duplicate database writes and duplicate external API calls).
+- Affects production traffic for a single dedicated tenant (Cobalt Analytics) with observable increased costs and application-level consistency failures.
+
+Environment:
+- Redwood prod edge/proxy cluster in us-east fronting the API gateway.
+- Customer using latest Python SDK (v1.8.2) and TS SDK (v2.3.0).
+- Model: redwood-14b-quant pinned in their deployment.
+
+Steps to reproduce (internal repro):
+1) Customer code generates idempotency key by computing md5(payload) and sending hex digest truncated to 16 characters in header X-Idempotency (this was their in-app optimization).
+2) Simulate transient TCP reset between client and edge, client retries by resending new request with same truncated X-Idempotency.
+3) Edge proxy receives both attempts but an intermediate header normalization step truncates or lowercases the header value differently depending on protocol upgrade (http/2 -> http/1.1) and path through sidecar.
+4) Downstream dedup logic expects the full 32-char hex MD5 string; truncated values do not match stored keys and both requests are processed, triggering duplicate tool calls.
+
+Observed behavior:
+- Duplicate tool invocations and downstream webhook posts on ~0.3% of retry flows in customer's traffic profile.
+- Python SDK flows more frequently hit duplication than TS in our repro (likely due to header encoding differences and how the SDK sets Content-Length vs chunked).
+
+Expected behavior:
+- Retries with identical logical idempotency keys should be deduplicated and only a single downstream tool/function invocation should be executed.
+
+Relevant logs/snippets:
+- Customer-provided request headers (sanitized):
+  X-Idempotency: 5d41402abc4b2a76
+  (original MD5 hex: 5d41402abc4b2a76b9719d911017c592)
+- Edge access logs show two requests with different header values after proxy normalization:
+  requestA X-Idempotency: 5d41402abc4b2a76
+  requestB X-Idempotency: 5d41402ABC4B2A76  (case-changed)
+- Downstream dedup key stored: 5d41402abc4b2a76b9719d911017c592
+
+Temporary workaround provided to customer:
+- Stop truncating idempotency digests locally; send full-length idempotency tokens (32-char hex or better: base64 of HMAC).
+- Apply client-side exponential backoff + jitter to reduce immediate retry collision surface until infra fix is deployed.
+
+Next steps:
+- ENG: validate edge proxy normalization path and preserve header payload verbatim (no truncation or case folding) between external client and internal dedup service.
+- SDK: add guidance in Python/TS/Go docs discouraging truncated hashes and provide helpers to create HMAC-SHA256 idempotency tokens.
+- Ops: plan a canary release of edge-proxy fix to preserve headers for dedicated customers and monitor duplicate-funcall rate.
+
+2026-03-01 09:12 - Support (Aisha Patel): Received initial report from customer. Customer included sample request IDs and duplicate webhook timestamps. Escalated to SRE for investigation.
+2026-03-01 10:03 - SRE (Marco Ruiz): Reproduced locally by truncating md5 and toggling http2 -> http1 conversion; observed case normalization on proxy path. Created repro harness and captured headers. Linking PR to patch header pipeline.
+2026-03-02 15:20 - Customer (Cobalt Analytics - engineering): Confirmed customer uses md5(payload) truncated to 16 chars to save space in logs. They agree to send full token for now and test workaround.
+2026-03-03 11:45 - SDK Lead (Priya Menon): Added note to SDK backlog to include idempotency helper and warning about truncation; opened issue in SDK repo (see related_github_prs).
+2026-03-04 08:30 - Edge Team (Luca Marin): Identified code path in proxy where header value is copied into a fixed-size buffer and later canonicalized; buffer size is 20 bytes which allows truncation of md5 hex under some code paths. Preparing hotfix.
+2026-03-05 14:10 - Support (Aisha Patel): Customer validated that sending full MD5 hex prevents duplicates in their immediate tests. Monitoring production for 24 hours as hotfix rolls out to canary.
+Edge proxy uses a fixed-size char buffer when converting headers for the internal HTTP/1.1 path; non-ASCII or different case encodings caused truncation or value rewrite.
+Repro indicates Python SDK requests are chunked differently which takes a different proxy code path, explaining higher occurrence in Python flows.
+Truncated MD5 hex + case normalization produces collisions against stored full-length keys in dedup store. MD5 truncation reduces entropy and increases collision probability under load.
+Proposed short-term fix: ensure header copy uses dynamic buffer and preserve original bytes; add normalization step in dedup service to accept canonicalized equivalents (case-insensitive matching) when full token length present.
+Proposed long-term: deprecate using truncated MD5 as idempotency key in docs; recommend 1) UUIDv4, or 2) HMAC-SHA256(base64) scoped to request + secret.
+Hotfix deployed to edge-proxy canary (edge-proxy v3.4.1-canary) that increases header buffer and disables aggressive case-folding. Customer confirmed immediate reduction in duplicates when sending full-length tokens. SDK docs follow-up scheduled. Will monitor metric duplicate_tool_invocations.customer.CobaltAnalytics for 72h before closing.
+1) Add idempotency best-practices to SDK quickstart guides with explicit 'do not truncate' rule. 2) Add server-side defensive matching for common truncated forms for a rolling period to protect older clients. 3) Update edge-proxy unit tests to include header-preservation asserts.

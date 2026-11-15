@@ -1,0 +1,57 @@
+Wi-Fi 6E client channel-avoidance causes RA suppression and VPN liveness failures on macOS
+
+Issue summary:
+Several macOS laptops (MacBook Pro 2021/2022 w/ Intel AX210 and Apple Silicon devices) observed intermittent loss of internal API connectivity while on corporate Wi‑Fi 6E SSID. WireGuard sessions are marked dead by gateway after missing keepalives. Problem correlates with AP channel-avoidance events and the AP marking the client as non-responsive to Router Advertisements (RAs).
+
+Impact:
+- Affects ~6–12 users in SF office (prod-us-west) intermittently since 2026-03-01 09:30 PDT.
+- Internal services (console, internal metrics, git pushes) stall or return 502/524 from services behind the zero-trust gateway.
+- No evidence of server-side overload; issue localizes to client <-> AP behavior.
+
+Environment:
+- SSID: Redwood-Corp-6E (802.11ax/6E, DFS enabled, channel-avoidance + ACS enabled)
+- Clients: macOS 12.6.7 & macOS 13.4.1 (mix of Intel AX210 and Apple Silicon Wi‑Fi stacks)
+- VPN: WireGuard-based zero-trust agent (keepalive default 15s)
+- APs: Aruba CX series (firmware 10.8.3), automatic channel-avoidance/DFS response enabled
+
+Steps to reproduce (observed pattern):
+1) Client on 6 GHz band joins SSID, normal traffic flows.
+2) AP triggers channel-avoidance/DFS sweep (noise detected) and briefly moves radios or suppresses probe responses on specific clients.
+3) During the window (~2–8s), client stops receiving Router Advertisements (IPv6) and some multicast neighbor ops; WireGuard keepalives are queued by client stack and not transmitted timely.
+4) Gateway marks peer as dead after 3 missed keepalives; user loses internal connectivity until WireGuard restarts or user toggles network.
+
+Observed logs (client side):
+- syslog excerpts: "kernel: wlan0: disassociated by AP (reason 36)" followed by "kernel: ra_timer: no RA received for 8s, suppressing RA processing"
+- zero-trust-agent log: "peer not reachable, last handshake 18s ago, scheduling rekey"
+- AP event: "DFS Channel Avoidance: radar detected, client probe suppression engaged for 5s"
+
+Investigation notes / hypothesis:
+- Hypothesis 1: AP DFS/channel-avoidance implementation suppresses multicast/RAs for certain clients during avoidance windows. macOS Wi‑Fi stacks treat RA loss as network liveness degradation and deprioritize sending keepalives, leading to WireGuard timeouts.
+- Hypothesis 2: Specific driver/firmware combo (Intel AX210 on macOS via Intel firmware shim) mis-handles probe suppression, buffering outgoing small UDP packets (keepalives) until radio re-enabled.
+- Correlation: Events align with AP DFS timestamps in Aruba logs and client syslogs. Not reproducible on 2.4/5 GHz SSIDs or on wired ports.
+
+Temporary workaround applied:
+- Network team changed AP policy for affected AP cluster to "defer DFS channel-avoidance for user-critical SSID" (reduces avoidance aggressiveness).
+- Support recommended affected users to temporarily switch to 5 GHz SSID or wired desk port.
+- Increased WireGuard keepalive in agent config to 25s on a small test cohort (will reduce false-positive disconnects).
+
+Impact mitigation status:
+- After AP policy change and 5 GHz fallback, occurrence rate dropped by ~85% for affected users. Still reproducible in heavy DFS environments.
+
+Resolution plan / next steps:
+- Eng to produce a host-agent change to: 1) make keepalive adaptive when RA loss is detected (extend keepalive window during RA suppression windows) and 2) attempt fast re-transmit of keepalives at lower level when radio flaps are detected (PR linked below).
+- Network team to schedule Aruba firmware upgrade (10.9.x) that contains improved DFS channel-avoidance behavior; test in canary APs.
+- SRE to add metric/alert for RA loss events per client aggregated across APs.
+
+See also linked artifacts and runbook for RA suppression troubleshooting.
+
+2026-03-02 10:12 - Ava Patel: Initial report from desktop support. User Ben Liu reported repeated 502s to internal console after returning from lunch. Captured client syslogs and UTC timestamps. Escalating to network team.
+2026-03-02 11:01 - Priya Shah (SRE): Confirmed gateway saw repeated handshake timeouts matching client timestamps. No server-side spikes. Requesting AP event logs for 10:40–11:00 window.
+2026-03-02 11:24 - Rajiv Menon (Network): Pulled AP logs from AP-12/13: DFS avoidance events at 10:41:12, 10:45:03. AP shows probe suppression on 6GHz for a 4–6s window. Will temporarily relax avoidance policy on AP cluster 12.
+2026-03-02 13:05 - Diego Ramos (Eng): Started triage of zero-trust-agent keepalive behavior. Observed that agent doesn't extend retry window when system reports RA loss; filing PR to add adaptive keepalive behavior. Linked PR: https://github.com/redwood/zero-trust-agent/pull/2982
+2026-03-03 09:42 - Ben Liu (end user): After switching to 5 GHz SSID the last 24h have been stable — thanks. Still willing to test agent beta if needed.
+2026-03-05 14:11 - Priya Shah (SRE): Canary AP firmware scheduled for 2026-03-12. Plan: run 2 weeks of telemetry comparing RA-suppression events pre/post. Eng to merge agent change to canary channel once PR passes QA.
+Interplay between AP DFS/channel-avoidance behavior and macOS client radio handling resulted in temporary suppression of multicast Router Advertisements and delayed transmission of WireGuard keepalives. The gateway then considered peers dead after missed handshakes.
+Switch affected clients to 5 GHz SSID or wired network, or relax AP channel-avoidance policy for Redwood-Corp-6E. Increase WireGuard keepalive from 15s to 25s on affected hosts until agent patch is deployed.
+Mitigation: AP policy relaxed for affected cluster and test cohort moved to 5 GHz; keepalive increased for test users. Full fix: agent PR to add adaptive keepalive behavior and AP firmware upgrade planned. Status: in progress.
+1) Merge and roll out zero-trust-agent PR to canary (Diego). 2) Network to upgrade firmware on cluster 12 to Aruba 10.9.x and run 14-day telemetry (Rajiv). 3) SRE to add RA-loss metric and alert (Priya). 4) Re-evaluate ticket after canary results (target 2026-03-26).

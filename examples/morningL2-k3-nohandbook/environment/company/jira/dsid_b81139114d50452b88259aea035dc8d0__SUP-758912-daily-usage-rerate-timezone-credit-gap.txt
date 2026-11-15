@@ -1,0 +1,35 @@
+Daily usage rerate after account timezone change causing credit gap
+
+Issue summary: Customer reports a gap in applied daily credits for March 8-9 after we rolled a change to account-local daily rollups. NimbleDocs observes a ~12% of expected daily credits missing on the invoice and credits appear to have been shifted to March 7.
+
+Impact: Customer-facing billing discrepancy affecting month-to-date credits and forecast; customer has paused a scheduled audit until resolved. This is a single-customer (dedicated) issue but may affect other customers who have non-UTC account timezones.
+
+Environment: nimbledocs-prod (dedicated), account timezone set to America/New_York, rollup pipeline running in us-east-1.
+
+Observed timeline:
+- 2026-03-07 23:55 EDT: NimbleDocs batch jobs spike (normal).
+- 2026-03-08 00:05 EDT: Rerate/rollup job kicked off by scheduler change deployed 2026-03-06.
+- 2026-03-09 03:12 EDT: Customer reported missing credits via in-app billing link.
+
+Initial hypothesis: A recent change to the daily rollup window to honor account-local timezones caused a rerate job to reassign usage boundaries; a bug in the rerate window calculation double-applied an offset during DST/zone transition which moved a fraction of credits back one day instead of keeping them on the recorded day.
+
+Requested customer action: Provide any billing screenshots showing the missing credits (they already attached sample invoice lines) and confirm whether account timezone was recently modified on their side (they confirmed no).
+
+Steps to reproduce: See steps_to_reproduce field for operational reproduction checklist.
+Set up a dedicated account with timezone America/New_York
+Generate token usage that crosses midnight local time (e.g., job from 23:50 to 00:10 local)
+Trigger a manual rerate of the daily rollup for the affected date range using /internal/usage/rerate endpoint
+Observe that a subset of small-duration streaming sessions are re-assigned to the previous day after rerate
+Inspect credits allocation in the billing rollup and compare pre/post rerate lines
+Support triage: Verified invoice lines and compared raw token counts in usage store. Discrepancy corresponds to small, short streaming sessions (~0.4s median) around midnight local time.
+Reproduced locally with test account: rerate job moved sessions when account tz != UTC and DST flag handling path exercised.
+Hypothesis refined: when rerate job uses account-local offset, a recent refactor introduced use of cron-derived offset and then applied explicit DST correction, resulting in a cumulative extra hour shift for a small class of sessions.
+We observed the rerate job reprocessing historical blobs and writing new rollup records without marking old ones as superseded in billing ledger; this can leave invoices showing both original and rerated lines until consolidation runs.
+Potential blast radius: limited to dedicated and private accounts with non-UTC timezone settings and to dates near timezone transitions or where rerate jobs were executed during a window overlapping deployment (2026-03-06 -> 2026-03-08).
+2026-03-10 09:12 Aisha Kumar (Support): Thanks for the invoice attachments. We're investigating a likely rerate boundary issue. Can you confirm no timezone change on your account?
+2026-03-10 10:04 James Mallory (NimbleDocs): Confirmed no change. We use America/New_York for billing and noticed the credit drop on March 9 invoice. We need an ETA — this is impacting month-end close.
+2026-03-11 14:33 Marco Chen (SRE): Reproduced locally. Created a test job that replicates the one-hour double-offset. Filed INT-4201 for a fix to rerate window calc. Will test patch on staging tomorrow.
+2026-03-11 15:05 Aisha Kumar (Support): Shared a temporary mitigation: schedule a consolidation job to re-run ledger consolidation; this will surface correct single-line credits in the billing view pending a permanent fix. Asked customer if they'd like us to run consolidation on their tenant (requires maintenance window).
+2026-03-12 08:22 James Mallory (NimbleDocs): Please run consolidation. We can take a 10-minute maintenance window tonight after 22:00 EDT.
+2026-03-12 12:10 Marco Chen (SRE): Scheduled and executed consolidation at 2026-03-12 02:15 UTC (22:15 EDT). Preliminary results: invoice preview shows credits reassigned back to the expected days; further validation ongoing. Keeping ticket open until verification complete.
+Workaround: Performed ledger consolidation for nimbledocs tenant on 2026-03-12 02:15 UTC which restored credits to expected invoice lines. Root cause: rerate job double-applied DST/local offset for a subset of short streaming sessions when account timezone != UTC. Fix: INT-4201 patch to rerate-window calculation landed in staging; plan to roll to prod behind feature flag after additional tests. Follow-ups: (1) Run integrity check for other affected tenants in the same timezone cohort; (2) Add safeties to prevent rerate from writing duplicate ledger lines; (3) Add automated alert for credit-moves >0.1% of daily tokens. Customer requested confirmation email after customer invoice preview is validated.

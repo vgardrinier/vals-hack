@@ -1,0 +1,76 @@
+Intermittent p95/p99 latency spikes from head-of-line queueing tied to continuous batching behavior
+
+Issue summary:
+Customer GreenSky AI reports intermittent large p95/p99 latency spikes (300-1200ms above baseline) on a Dedicated GPU pool. Spikes correlate with periods of steady throughput with many short streaming requests. Suspected head-of-line queueing from continuous batching timer interactions with streaming connections.
+
+Impact:
+- Affects production inference for GreenSky AI's live-chat product (messages per second ~220).
+- Increased API timeouts for a subset of requests; some user-facing RPCs hit 5s timeout during peak spikes though average latency remains within SLA.
+- Reported by customer as user-visible slowdown and automated retry amplification.
+
+Environment:
+- Dedicated pool: d-pool-23 (customer-managed, Redwood Dedicated)
+- Region: us-west-1
+- Models: redwood-realtime-v1 (primary), fallback llama-2-13b-q4
+- Traffic profile: many small streaming requests (prompt sizes 10-40 tokens), high QPS steady-state (200-300 RPS)
+
+Steps to reproduce (attempted by Support):
+1) Attach to customer's dedicated pool and replay synthetic workload approximating request size distribution via load-replay tool.
+2) Start 10k synthetic short streaming sessions ramped to 250 RPS with interleaved non-streaming 1-2 token inference calls.
+3) Observe batching metrics, batch_wait_ms, and per-model queue depths for the serving runtime.
+4) Correlate with API gateway request queue and stream connection counts.
+
+Observed behavior:
+- Continuous batching logic batches many short streaming requests; when one request in a batch requires longer kernel execution (e.g., cache miss or quant path fallback), the entire batch is delayed leading to p95/p99 amplification (head-of-line blocking).
+- Batch timer (max_batch_wait_ms) occasionally extends waiting due to high sustained arrival rate and internal backpressure, increasing variability in tail latencies.
+- Streaming connections hold open and contribute to batching grouping opposite to expectation (should favor early flush for streaming).
+- Server-side logs show periodic increases in batch_size variance and batch_latency. No GPU OOMs or node restarts observed.
+
+Expected behavior:
+- Continuous batching should improve throughput while keeping p95/p99 within SLA bounds by avoiding excessive head-of-line blocking. Streaming sessions should flush earlier when downstream latency risk is detected.
+
+Logs & Metrics (excerpt):
+- monitoring link: https://monitoring.redwood.ai/d/abc123/dedicated-pool-d-pool-23
+- At 2026-03-09T18:12:00Z: per_batch_latency p95 jumped from 45ms to 520ms for ~2 minutes.
+- batch_timer_avg: 6.2ms -> 22.8ms during incident window.
+- queue_depth_peak: 38 concurrent pending requests at scheduler for redwood-realtime-v1.
+
+Timeline:
+- 2026-03-09 17:55 UTC: Customer opened support chat reporting intermittent timeouts.
+- 2026-03-09 18:05 UTC: Support triage and started load replay in staging copy; reproduced p95 spikes.
+- 2026-03-10 09:30 UTC: Escalated to Runtime team (INT-4021).
+- 2026-03-11 14:00 UTC: Applied mitigation config change to customer's dedicated pool (temporary batch wait cap and streaming-flush enable).
+
+Investigation notes:
+- Hypothesis A: Continuous batching timer and streaming request semantics interact such that streaming requests are held to wait for larger batches, causing head-of-line effects when a single heavy request in a batch stalls execution.
+- Hypothesis B: KV cache misses on specific requests cause heterogenous execution times which, when coalesced into a batch, increase tail latency.
+- Initial reproduction indicates that enabling early-flush for streaming sessions reduces p95 by ~60% in synthetic tests.
+- No evidence of noisy neighbor GPU saturation. GPU utilization stays ~70-85% during incidents.
+
+Action items taken so far:
+- Applied a temporary override on d-pool-23: max_batch_wait_ms lowered from 30ms -> 10ms; streaming_early_flush=true.
+- Enabled additional sampling logs for batch composition and per-request kernel path for next 48 hours.
+- Notified Runtime oncall; opened INT-4021 for deeper kernel-selection analysis.
+
+Next steps / Follow-up:
+- Runtime to analyze sampled traces and identify if kernel-selection/quant fallback patterns align with incidents (INT-4021).
+- If hypothesis confirmed, plan PR to add adaptive early-flush heuristics when streaming prevalence is high (see GH PR linked).
+- Coordinate with Customer Success to monitor production telemetry for 72 hours post-mitigation and confirm SLA compliance.
+
+Resolution notes (workaround):
+- Temporary mitigation (batch wait cap + streaming early flush) rolled out to customer's dedicated pool. Customer reported immediate reduction in user-visible timeouts. Ongoing monitoring required.
+
+Follow-ups required:
+- Engineering (Runtime) to provide root cause analysis and a permanent fix (expected ETA 2 weeks).
+- Create runbook entry for continuous-batching interactions with streaming traffic.
+
+2026-03-09 18:07 — Alyssa Chen (Support): Logged the issue after customer report. Started initial triage and triggered a replay job against staging. Reproducible p95 spikes seen during sustained short-stream traffic. Escalating to runtime team.
+2026-03-10 09:35 — Javier Ortega (Runtime oncall): Acknowledged escalation (INT-4021). Asking for 1 hour of packet-level traces and sampled batch composition logs. Noted similarity to earlier batching timing issue but different pattern due to streaming semantics.
+2026-03-10 11:12 — GreenSky AI (Customer): Noted that spikes usually happen during their 17:00–19:00 PST traffic surge. Provided correlation id list and example request ids. Asked for temporary mitigation ASAP.
+2026-03-11 14:05 — Marco Alvarez (Support): Applied temporary configuration changes to d-pool-23 (max_batch_wait_ms=10, streaming_early_flush=true). Customer reports immediate improvement in retries and fewer timeouts. Monitoring enabled.
+2026-03-12 08:40 — Javier Ortega (Runtime): Analysis of sampled traces indicates increased kernel latency when cache miss rate exceeded 12% for redwood-realtime-v1. Drafting fix proposal: adaptive batching that inspects per-request expected kernel path and avoids coalescing heterogeneous requests. Opening RFC/PR.
+2026-03-12 12:20 — GreenSky AI (Customer): Confirmed latency improvements in production over last 18 hours. Requesting status update once permanent fix and rollout plan exist.
+Sampled 2,000 batches over 24h; 7% had >1 request with a fallback kernel. Those batches contributed disproportionately to p99 events.
+No node-level resource exhaustion. Network latency stable. API gateway queueing minimal; root cause localized to runtime batch composition and execution variance.
+Early-flush heuristic reduced p95 in replay by ~60% but increased token cost by ~4% in synthetic tests; tradeoff validated with customer acceptance for until fix ships.
+Temporary mitigation applied to customer's dedicated pool (lowered max_batch_wait_ms to 10ms and enabled streaming_early_flush). This reduced p95/p99 spikes and customer-side timeouts. Runtime team to implement adaptive batching that avoids coalescing heterogenous kernel-path requests and to add heuristics favoring early-flush for streaming-heavy workloads. Follow-up INT-4021 tracks engineering work. Monitor for 72 hours; close ticket once stable for 7 days.

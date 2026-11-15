@@ -1,0 +1,50 @@
+support
+
+andrea: FYI customer ACME-Infra opened a ticket — embeddings coming back with different vector lengths depending on route (hosted -> dedicated -> private). customer sees 1536 on hosted, 1024 on dedicated/private. Happening intermittently after autoscale :confused:
+
+sam-ml: can you paste a sample response and the request headers? also which model alias were they hitting?
+
+andrea: pasted minimal logs below (redacted):
+```
+Request: POST /v1/embeddings
+Headers: Authorization: Bearer sk-CUST-REDACTED, X-Model-Alias: acme-search
+Body: {"input":"search query", "batch_size":4}
+
+Response (hosted): {"model":"m-embed-large-1536","embedding":[0.012,...],"dimensions":1536}
+Response (dedicated): {"model":"m-embed-base-1024","embedding":[0.003,...],"dimensions":1024}
+```
+
+jordan-support: customer reports they didn't explicitly set a model name, just the alias. they say it started after we rolled autoscale changes last week. ticket: https://acme.zendesk/1234
+
+lee-eng: quick theory: routing policy is honoring alias but downstream pinning in Dedicated/Private might prefer a cheaper variant. when capacity is constrained we fall back to smaller model. can you confirm alias->model mapping in routing table?
+
+maria-ops: billing note: the key shows both hosted usage (metered) and a dedicated pool attached to their org. dedicated has a pinned model mapping for alias "acme-search" -> m-embed-base-1024 (old cost-saving rule). hosted catalog has newer m-embed-large-1536.
+
+sam-ml: that explains different model names. but customer says embeddings change even when config didn't. possibility: batching/pad differences cause outputs to be reported with different dims? unlikely — dims come from model output shape. more likely alias resolution flipped between variants.
+
+oncall-bot: Incident created: INC-2026 -> "acme embedding vector-length oscillation". Pager duty: eng-runtime oncall paged.
+
+lee-eng: repro steps I ran from staging:
+```
+# reproduce routing flip
+curl -s -X POST https://api.redwood.ai/v1/embeddings \
+  -H "Authorization: Bearer sk-TEST-ACME" \
+  -H "X-Model-Alias: acme-search" \
+  -d '{"input":["a","b","c"],"batch_size":2}' | jq .
+# run concurrently 50x to simulate autoscale/failover
+```
+I saw 10% of responses come back m-embed-base-1024.
+
+sam-ml: added another datapoint — the dedicated router has `pad_to_batch=true` in its batching layer which is different from hosted. if model selector looks at requested shape or pad metadata it might choose shorter quantized variant. let's capture request-level metadata headers the routers see.
+
+andrea: customer and I ran your curl above, reproduced. I forwarded a small sample payload and both response types to eng-runtime via internal upload.
+
+eng-runtime: thanks. root cause appears to be routing fallback policy: when dedicated GPU utilization spikes we route to a compatible alias variant (cheaper profile) but we didn't attach a metadata tag that signals a dimension change (should have rejected). patch: AV-embed-guard will enforce model-dim invariants on alias resolution. PR opened: https://git.internal/r/AV-embed-guard (testing now).
+
+jordan-support: temporary mitigation for customer: set explicit `X-Model-Name: m-embed-large-1536` header or pin alias to hosted in their org until patch lands. customer accepted.
+
+maria-ops: also flagged billing confusion to finance — dedicated fallbacks were consuming reserved capacity unexpectedly. will follow up with an invoice note.
+
+sam-ml: added checklist for postmortem: capture alias->model mapping history, record router decision logs for the time window, verify batching configs across hosted/dedicated/private are consistent, add unit test to prevent model-dim alias swaps.
+
+andrea: closing loop with customer after mitigation. I'll keep thread updated when AV-embed-guard lands in qa. :white_check_mark:

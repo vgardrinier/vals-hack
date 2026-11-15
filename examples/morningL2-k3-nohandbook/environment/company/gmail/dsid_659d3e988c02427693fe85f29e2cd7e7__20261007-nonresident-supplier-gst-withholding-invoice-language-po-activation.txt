@@ -1,0 +1,92 @@
+Non-resident supplier onboarding — GST withholding, invoice language, and PO activation (APAC batch)
+
+From: Anita Rao <anita.rao@pacificlogistics.co>
+To: Rishi Malhotra <rishi_malhotra@redwood.com>
+Cc: accounts@pacificlogistics.co
+Date: 2026-10-07T08:12:00-07:00
+Subject: Supplier onboarding — PO and tax details needed
+
+Hi Rishi,
+
+Thanks for the warm onboarding call earlier. We're ready to accept POs from Redwood but have a couple of practical questions before the first invoice: 
+
+1) GST handling — Pacific Logistics is an Australian entity supplying logistics services to Redwood APAC. Do you withhold any GST on payments to non‑resident suppliers, or do you rely on reverse charge / customer reporting? We quoted 10% GST on our sample invoice because that's the usual AU GST.
+
+2) Invoice language — our operations team issues bilingual invoices (English + Mandarin) by default. Will Redwood accept a single bilingual PDF, or do you require a separate English-only invoice for AP accounting?
+
+3) PO reference format — our AP needs the Redwood PO number in the body and in the invoice header to auto-apply. Can you confirm the PO layout you will issue so we can match it?
+
+Attached: PL_tax-residency-certificate.pdf (tax ID + registration screenshot) and a sample bilingual invoice.
+
+Appreciate a quick confirmation so we can submit the first invoice next week.
+
+Best,
+Anita Rao
+Head of Finance Operations
+Pacific Logistics Pty Ltd
+attachments: [PL_tax-residency-certificate.pdf, PL_sample-invoice-en-zh.pdf]
+From: Rishi Malhotra <rishi_malhotra@redwood.com>
+To: Anita Rao <anita.rao@pacificlogistics.co>
+Cc: laura_bennett@redwood.com, neha_kapoor@redwood.com, vivek_kulkarni@redwood.com
+Date: 2026-10-07T10:03:00-07:00
+Subject: Re: Supplier onboarding — PO and tax details needed
+
+Hi Anita — thanks for sending these over and for the clear questions. Looping in Laura (AP), Neha (Tax), and Vivek (Payments) so we can confirm specifics. Quick answers below; detailed follow-up from Neha/Laura in a separate message.
+
+- GST / withholding: For Australia -> Redwood (US entity paying APAC costs) we generally do NOT withhold Australian GST on inbound payments to an AU supplier when the supplier charges GST. Instead, we consume the tax-inclusive invoice and Redwood AP will reconcile GST per local reporting. For Indian suppliers, there are additional withholding considerations — see Neha's note.
+
+- Invoice language: We can accept bilingual PDFs as long as the invoice contains a clear single set of invoice identifiers (invoice number, date, GST/VAT registration number) in English text. Please make sure the invoice number and GSTIN/ABN are visible in the English section.
+
+- PO reference format: Our system requires the PO number to appear in the invoice header and in the invoice body (line below supplier name). PO format will be RDW-AP-XXXXX. We will issue PO RDW-AP-2026-4492 once tax evidence is validated.
+
+Neha / Laura — next steps? Anita — can you also provide your bank beneficiary details and the preferred currency for settlement (AUD / USD)? If AUD, we'll route to our AUS payment pool; if USD, it goes through our APAC USD flow which may require additional FX info.
+
+Thanks — Rishi
+
+--
+Rishi Malhotra
+Senior Procurement Manager, Redwood Inference
+
+From: neha_kapoor@redwood.com <neha_kapoor@redwood.com>
+To: Anita Rao <anita.rao@pacificlogistics.co>, rishi_malhotra@redwood.com
+Cc: laura_bennett@redwood.com, vivek_kulkarni@redwood.com
+Date: 2026-10-07T14:09:00-07:00
+Subject: Re: Supplier onboarding — PO and tax details needed
+
+Hi Anita — thanks for the certificate and sample invoice. Two quick tax notes for cross-border clarity: 
+
+1) Australia (Pacific Logistics): If you are charging Australian GST (ABN and GST shown on the invoice), Redwood does not apply a separate withholding on the GST component. Make sure the ABN and tax invoice header follow ATO tax invoice requirements (ABN, GST amounts, subtotal/total).
+
+2) India (Bharat Supplies / non-resident supplier case): For Indian vendors providing services to Redwood outside India, we sometimes need to consider withholding tax (TDS). If the service is deemed provided in India, Indian tax rules may require a withholding — the exact rate depends on the service type and DTAA. For any Indian vendor, please provide: tax residency certificate, PAN (if available), and a brief confirmation of where services are performed.
+
+3) Invoice language: bilingual is fine; however, the English portion must include the invoice number, tax ID (ABN/GSTIN), invoice date, PO number, and a line-level description in English for automated mapping.
+
+Attachments requested for AP activation: 
+- Supplier bank details (signed bank details form)
+- VAT/GST registration screenshot (ABN/GSTIN)
+- WHT / Tax residency certificate (if invoiced from India)
+
+Once we have the above and bank details, Laura can issue the PO and set payment terms.
+
+Regards,
+Neha Kapoor
+Tax & Compliance Manager, Redwood Inference
+
+From: Anita Rao <anita.rao@pacificlogistics.co>
+To: rishi_malhotra@redwood.com
+Cc: accounts@pacificlogistics.co, laura_bennett@redwood.com
+Date: 2026-10-08T11:46:00-07:00
+Subject: Re: Supplier onboarding — PO and tax details needed
+
+Hi all — thanks for the clear guidance. Attached are: PL_bank-details-signed.pdf, PL_tax-residency-certificate.pdf (ABN & GST screenshot), and an updated bilingual invoice that highlights the English header fields.
+
+A few confirmations:
+- Currency: prefer AUD for settlement.
+- We are charging GST at 10% on the invoice.
+- Invoice PDF includes a small English-only summary page with the required identifiers for AP automation.
+
+Please confirm when the PO will be issued so we can process the invoice on our side. If you need a separate English-only file, we can generate one immediately.
+
+Best,
+Anita
+attachments: [PL_bank-details-signed.pdf, PL_tax-residency-certificate.pdf, Bharat_sample-invoice-en-hi.pdf]

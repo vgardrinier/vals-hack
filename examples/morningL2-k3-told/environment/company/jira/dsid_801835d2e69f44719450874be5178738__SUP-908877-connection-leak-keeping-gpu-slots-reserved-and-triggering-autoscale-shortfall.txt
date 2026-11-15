@@ -1,0 +1,54 @@
+Connection leak keeping GPU slots reserved and triggering autoscale shortfall in dedicated pool
+
+Issue summary:
+Customer LexaHealth reports persistent elevated p50/p99 latency and a degradation in throughput on their dedicated GPU pool during weekday business hours. Symptoms correspond to GPUs remaining attached/occupied for long periods even after clients close streams.
+
+Impact:
+- LexaHealth production traffic experiences 30-60% throughput degradation for batched routes and repeated autoscale down-failures.
+- Automated fallback to lower-tier model variants has been observed but does not restore throughput due to slot reservation.
+- Customer SLAs degraded; they are an important health-care partner (sensitive workloads).
+
+Environment:
+- Dedicated pool: lexah-health-dedicated-prod (us-west-2)
+- Runtime version: 2026.02.11-rc3
+- Autoscaler: predictive-v2 (configured min: 2, max: 24)
+- Scheduler/allocator: allocator-1.9.4
+
+Steps to reproduce (replicated internally):
+1) Send a sequence of long-lived streaming calls (keep-alive with no data for 45s) from a synthetic client matching LexaHealth traffic patterns (n=150 streams over 10m).
+2) Close TCP connection abruptly on client side for ~30% of connections.
+3) Observe connection/slot state in allocator and GPU attachment list.
+
+Observed behavior:
+- Several GPU slots show "attached" but have no active inference threads and show stale KV cache leases.
+- Autoscaler fails to shrink because allocator reports slots in-use; new allocations are delayed and queue grows.
+- p50 increases by ~120ms, p99 by ~800ms; throughput (requests/minute) drops ~40% relative to baseline.
+- Monitoring shows high ephemeral socket counts on serving runtime sidecar and open file descriptors not reclaimed.
+
+Expected behavior:
+- Closed/aborted client connections should free associated slot leases quickly (within 3s). Autoscaler should be able to scale down when unused capacity is available and not blocked by leaked reservations.
+
+Relevant logs & traces:
+- Sample serving sidecar stacktrace: "runtime/connection: reclaim loop stuck waiting on lease-release for 00:12:34" (attached in support artifact).
+- Allocator metric: slot_reserved_count spikes and does not fall for 10+ minutes after clients close.
+- Kernel-level socket states show many sockets in CLOSE_WAIT on sidecar.
+
+Initial customer report (excerpt):
+"We see our RL training jobs starve the dedicated pool in the morning window. It looks like slots are being held even though inference calls finished — this started last Wed after a deploy. Can you help?" — LexaHealth SRE
+
+2026-03-10 08:45 — Aisha Kumar (Support): Ticket created after initial customer report. Notified SRE and Engineering on #support and #dedicated-pools.
+2026-03-10 09:10 — Diego Martinez (SRE): Began triage. Reproduced slot reservation pattern in a sandbox. Collected allocator and sidecar heap profiles.
+2026-03-10 11:02 — Priya Nair (Eng, serving-runtime): Observed socket CLOSE_WAIT buildup in sidecar logs. Hypothesis: a race during abrupt client disconnect leaves lease token unreturned to allocator.
+2026-03-10 13:30 — Diego Martinez (SRE): Deployed temporary aggressive TTL reclamation to one reserve pool (lexah-health-dedicated-prod-agg1) as a mitigation. Observed partial recovery of throughput (~20% improvement) but some slots remained reserved.
+2026-03-11 09:50 — LexaHealth SRE: Confirmed reduced impact with mitigation but requested permanent fix. Provided additional connection traces and a sample of client SDK behavior (abrupt closes after heartbeat failure).
+2026-03-11 14:20 — Priya Nair (Eng): Created PR to add explicit lease cleanup on connection finalizers and added metrics around lease handoff. PR: https://github.com/redwood-inference/allocator/pull/8921
+2026-03-12 07:40 — Diego Martinez (SRE): Running load test with PR branch; observed near-complete slot reclamation within 5s on abrupt disconnects. Preparing rollout plan for canary on lexah-health pool.
+2026-03-12 13:05 — Aisha Kumar (Support): Informed customer of progress and planned canary rollout this evening. SLA remediation discussion scheduled if regression persists.
+Heap/profile analysis shows sidecar not entering connection finalizer when client TCP FIN is missing; sockets linger in CLOSE_WAIT.
+Allocator only accepts lease release events from sidecar — if sidecar finalizer does not run, allocator considers slot in-use.
+Repeatable with synthetic client that mirrors LexaHealth SDK abrupt-close behavior; not limited to a specific model but amplified for large KV caches (long context models).
+Temporary TTL reclamation improved availability but is a blunt instrument and risks premature eviction of genuinely warm slots.
+Mitigation: Enabled aggressive lease TTL reclamation for affected pool (lexah-health-dedicated-prod-agg1) at 2026-03-10 13:30 — partial throughput recovery.
+Fix in progress: PR to add explicit lease cleanup on sidecar connection finalizers and defensive GC for orphaned leases (allocator PR #8921).
+Rollout plan: Canary deploy fix to 5% of lexah pool traffic on 2026-03-12 20:00 UTC; monitor slot_reserved_count, p99 latency, and socket CLOSE_WAIT metrics for 2 hours. If stable, ramp to 100% over 4 hours.
+Follow-ups: Add automated test for abrupt-close scenarios in our integration harness; add monitor alert for slot_reserved_count > threshold to trigger auto-ttl escalation with a safe floor.

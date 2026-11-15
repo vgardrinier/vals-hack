@@ -1,0 +1,133 @@
+Coordination: contract redlines + demo scheduling (procurement + legal + SE)
+
+From: Lauren Bishop <lauren_bishop@redwood.com>
+To: Kelly Tran <kelly@acmehealth.com>
+Cc: Markus Klein <markus_klein@redwood.com>, Aditya Rao <aditya_rao@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: 2026-09-28T09:22:00-07:00
+Subject: Contract redlines + demo — alignment on next steps
+
+Hi Kelly —
+
+Thanks again for the time this week. To keep momentum on the SOW and the final demo, can we lock a 60-min session with your procurement + legal + engineering leads to walk through the redlines and confirmation items?
+
+Proposed slots (PT):
+- Tue Sep 29, 10:00–11:00
+- Wed Sep 30, 11:00–12:00
+
+Agenda (high level):
+- Quick recap of commercial terms (10m)
+- Legal redline walkthrough (30m)
+- Technical Q&A for SE/infra (10m)
+- Next steps / signatures (10m)
+
+I've attached the SOW draft (SOW-draft-v3.pdf) and would appreciate if your procurement/legal can attach their annotated redlines before the meeting. If procurement has travel that week, happy to shift — please advise.
+
+Thanks — I can host the call and have Aditya cover the technical piece.
+
+Best,
+Lauren Bishop
+Account Executive, Redwood Inference
+lauren_bishop@redwood.com
+Attachments: SOW-draft-v3.pdf
+
+From: Kelly Tran <kelly@acmehealth.com>
+To: Lauren Bishop <lauren_bishop@redwood.com>
+Cc: procurement@acmehealth.com, Samir Khanna <samir.k@acmehealth.com>, security@acmehealth.com
+Date: 2026-09-28T11:05:00-07:00
+Subject: Re: Contract redlines + demo — alignment on next steps
+
+Hi Lauren —
+
+Thanks — procurement is traveling Mon–Tue next week so Tue at 10 won't work. Wed Sep 30 at 11:00 PT looks good for us. Please include someone from security (I cc'ed them) since there are two fridge items around data retention in the SOW.
+
+I've attached our annotated redlines (Acme_redlines_0928.docx) — procurement wants a focused redline session, not a full demo. Can your legal join for the redline walkthrough? If legal can't make it, procurement asks to have a recorded walkthrough and a short follow-up for signatures.
+
+Kelly Tran
+Director, Vendor Ops — AcmeHealth
+kelly@acmehealth.com
+Attachments: Acme_redlines_0928.docx
+
+From: Markus Klein <markus_klein@redwood.com>
+To: Aditya Rao <aditya_rao@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, Rishi Malhotra <rishi_malhotra@redwood.com>, Lauren Bishop <lauren_bishop@redwood.com>
+Date: 2026-09-29T09:30:00-07:00
+Subject: Fwd: Contract redlines + demo — internal coordination
+
+Folks — forwarding Kelly's reply. Summary: Wed Sep 30 11:00 PT is preferred; procurement wants a focused redline session and security to attend.
+
+Action items before Wed:
+- Legal (Marissa) to review Acme_redlines_0928.docx and prepare a 20–25m walkthrough focused on exceptions we need to escalate.
+- SE (Aditya) to prepare a 10m technical clarifier (data flows and retention) and bring a short environment checklist.
+- Sales (Lauren) to confirm final attendee list on Acme side and circulate the Zoom link.
+- Ops/Finance (Rishi) be ready to confirm billing schedule if asked.
+
+I've created a short prep agenda (prep-agenda.txt) attached — please update with your owners where needed. If legal wants to escalate to leadership for an indemnity tweak, flag now so we can invite one of our directors.
+
+-Markus
+VP, Sales Operations, Redwood Inference
+markus_klein@redwood.com
+Attachments: prep-agenda.txt
+
+From: Aditya Rao <aditya_rao@redwood.com>
+To: Markus Klein <markus_klein@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, Lauren Bishop <lauren_bishop@redwood.com>
+Date: 2026-09-29T10:12:00-07:00
+Subject: Re: Fwd: Contract redlines + demo — internal coordination
+
+Thanks — I can cover the technical portion. A couple quick asks:
+- I'll need the test account and a short network diagram to point to during Q&A (can we get this by EOD Tue?).
+- Recommend we move the meeting to 11:00–12:00 PT on Wed to give procurement an hour buffer (Kelly asked for a focused session; same start time but add a hard stop at 12:00).
+
+Quoted for context:
+> "I've attached our annotated redlines (Acme_redlines_0928.docx) — procurement wants a focused redline session, not a full demo."
+
+If legal flags the indemnity clause, I can prepare a one-slide runbook to summarize customer-impacting options.
+
+- Aditya
+Senior Solutions Engineer, Redwood Inference
+aditya_rao@redwood.com
+
+From: Marissa Cole <marissa_cole@redwood.com>
+To: Markus Klein <markus_klein@redwood.com>, Lauren Bishop <lauren_bishop@redwood.com>, Aditya Rao <aditya_rao@redwood.com>
+Date: 2026-09-29T12:00:00-07:00
+Subject: Re: Fwd: Contract redlines + demo — internal coordination
+
+I've reviewed Acme_redlines_0928.docx and prepared a short summary (redline-summary.xlsx) — high level: most redlines are standard commercial edits. Two items to escalate:
+1) Indemnity carve (Section 7) — Acme is proposing broader language. This could require a leadership exception depending on risk tolerance.
+2) Data retention / deletion window — security will want this narrowed and a clear SLA on logs/retention.
+
+I can run the 25-minute legal walkthrough Wed; I'd like Markus to be on the line for the potential leadership escalation. If we need a director there, please confirm and I'll prep language for a one-page exception request.
+
+-Marissa Cole
+Senior Counsel, Redwood Inference
+marissa_cole@redwood.com
+Attachments: redline-summary.xlsx
+
+On Wed, Sep 28, 2026 at 09:22 AM Lauren Bishop <lauren_bishop@redwood.com> wrote:
+> Hi Kelly —
+>
+> Thanks again for the time this week....
+
+From: Lauren Bishop <lauren_bishop@redwood.com>
+To: Kelly Tran <kelly@acmehealth.com>
+Cc: Samir Khanna <samir.k@acmehealth.com>, procurement@acmehealth.com, security@acmehealth.com, Markus Klein <markus_klein@redwood.com>, Aditya Rao <aditya_rao@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: 2026-09-30T16:03:00-07:00
+Subject: Confirmed: Wed Sep 30 11:00–12:00 PT — Contract redline walkthrough (Zoom)
+
+Hi Kelly / team —
+
+Confirmed for Wed Sep 30, 11:00–12:00 PT. Zoom link: https://zoom.us/j/9876543210?pwd=example
+
+Attendees from Acme: Kelly Tran, Samir Khanna, procurement@acmehealth.com, security@acmehealth.com
+From Redwood: Lauren Bishop (AE), Aditya Rao (SE), Marissa Cole (Legal), Markus Klein (Sales Ops — present for escalation)
+
+Please find our SOW and the attachments you've shared here for reference. We'll keep the session focused on legal redlines and leave a short window for a technical clarifier. Meeting owner: Lauren Bishop — please add any final items to the prep-agenda.txt.
+
+If leadership is required for indemnity exceptions, Markus will determine who to invite. Otherwise we plan to capture the agreed edits and circulate an updated SOW for signature within 48 hours.
+
+Thanks all — see you Wednesday.
+
+Best,
+Lauren Bishop
+Account Executive, Redwood Inference
+lauren_bishop@redwood.com
+Related HubSpot: https://app.hubspot.com/deal/1234567/DEAL-2029-3821
+Attachments: SOW-draft-v3.pdf, Acme_redlines_0928.docx, redline-summary.xlsx

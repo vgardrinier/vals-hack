@@ -1,0 +1,104 @@
+Re: Request for cryptographic controls evidence (SIG/CAIQ)
+
+From: Marta Lopez <marta.lopez@bluebridgehealth.com>
+To: Neha Kapoor <neha.kapoor@redwood.com>
+Date: Sat, 16 May 2026 09:12:00 -0700
+Subject: Request: cryptographic controls evidence for SIG/CAIQ
+
+Hi Neha,
+
+We're wrapping up the vendor SIG/CAIQ review for Bluebridge Health and need a focused set of artifacts around encryption and key management. Specifically we need: 
+- A short diagram or description of how KMS is used for at-rest encryption across hosted vs dedicated deployments
+- Confirmation of HSM usage for key material (certificate chain or attestation) where applicable
+- Key rotation policy (frequency, triggers, emergency rotation procedures)
+- Clarification on customer-controlled keys vs Redwood-managed keys and any supported Bring-Your-Own-Key (BYOK) workflows
+
+Can you confirm whether you can deliver these items by EOD Tues (2026-05-18)? We plan to attach them to the CAIQ answers (question group A2/A6). If you have a single zip or Drive folder, that's perfect.
+
+Thanks,
+Marta
+Marta Lopez
+Head of Vendor Risk
+Bluebridge Health
+security@bluebridgehealth.com
+
+--
+Note: we'll need a footprint/summary for the SIG question fields, too.
+
+From: Neha Kapoor <neha.kapoor@redwood.com>
+To: Marta Lopez <marta.lopez@bluebridgehealth.com>
+Cc: Rafael Mendes <rafael.mendes@redwood.com>, Monica Patel <monica.patel@redwood.com>
+Date: Sat, 16 May 2026 11:05:00 -0700
+Subject: Re: Request: cryptographic controls evidence for SIG/CAIQ
+
+Marta,
+
+Thanks for the clear list — we can provide that. Looping in Rafael (Security) to assemble the artifacts and Monica (your account lead) so she can help prioritize with your procurement timeline.
+
+Plan: Rafael will confirm what is public vs internal, I will coordinate packaging into a single Drive folder, and Monica will confirm acceptance criteria for the CAIQ import.
+
+Target: We'll aim to deliver the Drive folder by EOD Tue (18 May). If we hit any scope questions we'll flag immediately.
+
+Best,
+Neha Kapoor
+Senior Solutions Engineer, Redwood Inference
+neha.kapoor@redwood.com
++1 (415) 555-0128
+
+On Sat, May 16, 2026 at 09:12 AM Marta Lopez <marta.lopez@bluebridgehealth.com> wrote:
+> We're wrapping up the vendor SIG/CAIQ review...
+From: Rafael Mendes <rafael.mendes@redwood.com>
+To: Neha Kapoor <neha.kapoor@redwood.com>, Monica Patel <monica.patel@redwood.com>
+Cc: Marta Lopez <marta.lopez@bluebridgehealth.com>
+Date: Sun, 17 May 2026 10:00:00 -07:00
+Subject: Re: Request: cryptographic controls evidence for SIG/CAIQ
+
+Neha/Monica — thanks for the tag. Quick notes from the security team: 
+
+1) Scope distinction: Redwood offers both Redwood-managed keys (default) and Dedicated/Private deployments which can be configured to use customer-managed keys via KMS integrations or by importing keys into an HSM-backed keystore. Let Marta know which model the CAIQ review should assume (managed vs BYOK).
+
+2) Artifacts we'll provide: 
+   - High-level KMS architecture diagram (redwood_kms_architecture_diagram.pdf)
+   - HSM attestation chain / certs (hsm_certificate_chain.pem) — redacted for internal IP, includes vendor attestation header
+   - Key management & rotation policy (key_rotation_policy_v2.1.pdf) — includes rotation cadence and emergency key-compromise playbook
+   - CSV mapping for SIG/CAIQ crypto questions (sig_ca_response.csv) — answers with links to artifacts
+
+3) A couple of caveats: the HSM cert is allowed to be shared under NDA/contract; if Bluebridge needs full attestation docs we'll request an access agreement. The rotation policy contains a short section on custodian roles that we may redact for public distribution.
+
+I'll assemble the folder and flag anything that requires legal/AM sign-off. Rafael.
+
+--
+On Sat, May 16, 2026 at 11:05 AM Neha Kapoor <neha.kapoor@redwood.com> wrote:
+> Thanks for the clear list — we can provide that...
+From: Neha Kapoor <neha.kapoor@redwood.com>
+To: Marta Lopez <marta.lopez@bluebridgehealth.com>
+Cc: Rafael Mendes <rafael.mendes@redwood.com>, Monica Patel <monica.patel@redwood.com>
+Date: Mon, 18 May 2026 15:23:00 -07:00
+Subject: Fwd: Request: cryptographic controls evidence for SIG/CAIQ
+
+Marta — attaching the artifacts requested. See Drive folder link below and the included files. Rafael and I redacted a few internal-only items (noted in the README inside the folder) but everything required to answer the A2/A6 crypto questions is present. Please confirm receipt and whether the CSV mapping works for your CAIQ import.
+
+Drive: https://drive.google.com/drive/folders/1a2b3c-redwood-evidence (view link)
+
+Attached files (in folder and zipped archive):
+- redwood_kms_architecture_diagram.pdf (PNG-based diagram + brief narrative)
+- hsm_certificate_chain.pem (PEM text; vendor attestation headers included)
+- key_rotation_policy_v2.1.pdf (rotation cadence: monthly automatic rolling for data keys; annual and on-demand for master keys; emergency rekey playbook)
+- sig_ca_response.csv (SIG/CAIQ question IDs mapped to artifact links and short answers)
+
+Notes:
+- For BYOK/Dedicated deployments we include integration notes and supported KMS providers (AWS KMS, GCP KMS, Azure Key Vault).
+- We recommend citing the rotation cadence for data keys (30 days) in your CAIQ answers and linking to key_rotation_policy_v2.1.pdf for details.
+- If Bluebridge needs a full HSM attestation package we'll coordinate an NDA scope via Legal — Rafael will follow up if requested.
+
+Thanks — please ping me if you need any edits before ingestion.
+
+Best,
+Neha Kapoor
+Senior Solutions Engineer, Redwood Inference
+neha.kapoor@redwood.com
+
+Attachments (referenced): redwood_kms_architecture_diagram.pdf, hsm_certificate_chain.pem, key_rotation_policy_v2.1.pdf, sig_ca_response.csv
+
+On Sun, May 17, 2026 at 10:00 AM Rafael Mendes <rafael.mendes@redwood.com> wrote:
+> Neha/Monica — thanks for the tag...

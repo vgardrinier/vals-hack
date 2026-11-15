@@ -1,0 +1,35 @@
+EC firmware mismatch after staged battery firmware deploy causes ACPI errors and intermittent boot/wake failures
+
+Issue summary: After the automated battery firmware (FW) staged deployment from the depot on 2026-03-09, a subset of Dell laptops report ACPI/EC mismatches at boot and during suspend/resume. Impact: devices either fail to resume from S3 (hang on black screen) or boot into a degraded power state requiring power-cycle. This affects developer and engineering workstations and blocks provisioning queues for depot-managed machines. Environment: corporate depot (SCCM-like distribution), US-WEST distribution point, Windows 11 22H2 corporate image with Redwood baseline install tasks. Scope estimated ~0.5% of imaged fleet but concentrated on Dell Precision/XPS units.
+1) Target laptop enrolled to depot and flagged for battery-FW update package (pkg id: BAT-FW-20260309).
+2) Device downloads and stages update during maintenance window.
+3) Reboot triggered to apply EC+battery FW.
+4) Observe system fail to resume or boot; some show ACPI errors in early boot logs.
+4b) Reproduced on a repro unit (Precision 5570) using same package and maintenance schedule.
+- System stops at black screen during resume (S3) and requires hard power-cycle.
+- Windows event logs show ACPI error entries and DEVICE_POWER_POLICY failures.
+- Kernel / Windows early boot logs indicate EC (Embedded Controller) vendor mismatch and 'ACPI BIOS Error' messages.
+- Docked devices sometimes report no battery and stay on AC even when unplugged.
+Battery firmware apply should result in normal resume/boot behavior; system should report correct battery and EC versions and re-establish charging / suspend-resume functionality.
+Sample dmesg / event snippet from repro unit:
+[    1.234567] ACPI Error: AE_NOT_FOUND, While evaluating a named object
+[    1.234568] ACPI: EC: region 2 failed to validate (expected 0x34 got 0x31)
+[    1.234569] ACPI: Embedded Control Interface probe failed
+Windows Event Viewer: System
+- EventID 41: Kernel-Power (unexpected shutdown)
+- EventID 7045: Service Control Manager: failure applying battery driver
+SCCM client logs: ContentDownloadManager.log shows package applied successfully but PostInstall step returns code 0xC000021A on some units.
+Initial triage: Support confirmed repro using package BAT-FW-20260309 on two lab devices. Hardware team inspected a recovered unit and observed firmware metadata mismatch between battery controller and EC that suggests partial apply (battery FW succeeded but EC table not updated). Hypothesis: repository contained mixed firmware set (battery FW v2.4 matched to EC v1.3) and the update did not include atomic EC patch; some devices applied only battery agent resulting in version skew. Commands run: fwupd --show, pmset -g, SCCM content validation and checksum compare against DP. Verified that release artifact on central depot matched intended checklist but one distribution point (us-west-dp-3) had an older EC payload. We are checking DP distribution logs for failed replication window on 2026-03-08 night. Cross-team notes: hardware FW engineer (J. Park) suspects race between EC rewrite and battery controller update; imaging task sequence does reboot between steps but may not allow full EC commit window.
+2026-03-10 - Ava Martinez (Support): Created ticket after first repro in lab and triage with hardware. Marking P1 due to developer disruption.
+2026-03-11 - J. Park (Firmware Eng): Observed EC version mismatch on recovered device. Recommending immediate block of BAT-FW-20260309 distribution. Preparing hotfix bundle with EC atomic update.
+2026-03-11 - Ethan Cole (Depot Ops): Paused package distribution on all DPs at 03:20 UTC. Confirmed us-west-dp-3 had stale payload (replication failed 2026-03-08 23:50) — reproducer found there. Rolling back DP payload to previous verified set.
+2026-03-12 - S. Gupta (SRE): Added diagnostics to provisioning pipeline to validate EC/battery version post-FW apply; added gating check to image task sequence. Will coordinate with firmware team for staged rollout.
+2026-03-12 - Ethan Cole (Depot Ops): Created hotfix package BAT-FW-20260312-ECFIX and queued for canary on 10 devices in IT lab. Monitoring scheduled for 24 hours.
+2026-03-12 - Ava Martinez (Support): Updated impacted machine list and notified engineering managers of temporary workaround (do not apply pending updates to affected models).
+Workaround: Blocked BAT-FW-20260309 on all distribution points and instructed users to avoid manual updates until fix. For already-impacted machines, recovery steps: 1) Boot to Windows Recovery and power-cycle 3x to clear EC stuck state; 2) Re-image via USB/alternate DP if recovery fails; or 3) hardware reflash at depot if EC remains inconsistent.
+Permanent fix: firmware team delivering BAT-FW-20260312-ECFIX which includes atomic EC+Battery update and version checks. Depot Ops will: 1) purge stale payloads from DPs, 2) add checksum+manifest verification step to DP replication, and 3) gate rollout to canary group of 100 devices across models before full release. Follow-ups: run a fleet-wide scan to identify devices with EC/battery version skew and schedule targeted repair appointments. Close criteria: 24h stable canary + no new repros from staged rollout + DP replication manifest validation automated.
+1) Firmware team to publish hotfix and sign binaries (ETA 2026-03-12 18:00 UTC).
+2) Depot Ops to perform controlled canary rollout and monitor telemetry for S3 resume failures.
+3) Support to outreach to impacted employees with recovery options and schedule depot repairs where needed.
+4) Postmortem document to be drafted if >50 devices impacted after rollout.
+When reproducing, ensure DP replication timestamps are validated and run fwupd with verbose log to capture EC commit handshake. Consider adding a short wait-and-verify loop after EC rewrite in the imaging task sequence to guarantee commit before battery FW install.

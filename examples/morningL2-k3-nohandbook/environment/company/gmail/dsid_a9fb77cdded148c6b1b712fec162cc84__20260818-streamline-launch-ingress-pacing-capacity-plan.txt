@@ -1,0 +1,113 @@
+Quota uplift and ingress pacing plan for Streamline Labs launch
+
+From: Maya Rivera <maya@streamlinelabs.com>
+To: Marissa Cole <marissa_cole@redwood.com>
+Date: 2026-08-18T09:12:00-07:00
+Subject: Launch day traffic profile + temporary quota request
+
+Hi Marissa —
+
+Thanks again for the walkthrough this morning. We confirmed the feature flag schedule with our product team and expect the public rollout to happen over a 72-hour window starting 2026-09-01 00:00 UTC. Key ask: can Redwood temporarily increase our per-minute token quota and provide a short-term sustained per-second concurrency bump for the first 36 hours?
+
+Attached is a preliminary forecast (launch_traffic_forecast.csv) that shows expected daily token volume and peak ingress per 15-minute window. Conservative peak estimate: 2.4M tokens/hour and ~220 concurrent requests at 99th percentile for a 20-second average completion.
+
+We'd like to finalize a mutual action plan this week so we can get the approval from our platform lead. If you need more granular traffic slices, tell me what format and we'll send it.
+
+Thanks,
+Maya Rivera
+Head of Integrations, Streamline Labs
+
+Attachments: launch_traffic_forecast.csv (CSV forecast), ops_runbook_v1.pdf (referenced)
+From: Marissa Cole <marissa_cole@redwood.com>
+To: Maya Rivera <maya@streamlinelabs.com>
+Cc: Karthik Iyer <karthik_iyer@redwood.com>, Neha Kapoor <neha_kapoor@redwood.com>
+Date: 2026-08-18T11:02:00-07:00
+Subject: Re: Launch day traffic profile + temporary quota request
+
+Maya —
+
+Appreciate the file. We can work this but need to align across product, infra, and our capacity ops team. Karthik/Neha — looping you in to confirm what we can support and the gating items.
+
+Immediate asks from our side:
+- A 36-hour temporary quota uplift for the account (token limit and concurrency).
+- A paced ingress policy to avoid cluster hot spots (we prefer a token-per-second ramp schedule).
+- Clear rollback triggers (errors > 5% or latency SLO breaches).
+
+Maya, would you be able to produce a 1-hour per-minute breakdown for the first 36 hours (CSV or sheet) with a per-region split if any traffic is not US-only? That will let us pick a safe concurrency cap.
+
+I attached a short template (ingress-pacing-matrix.xlsx) for the pacing matrix — fill in if helpful. We'll treat this as a temporary raise and put a timebox on it (48–72 hours) with automatic back-to-normal unless mutually extended.
+
+Thanks,
+Marissa Cole
+Senior Account Executive, Redwood Inference
+
+Attachments: ingress-pacing-matrix.xlsx (template)
+From: Karthik Iyer <karthik_iyer@redwood.com>
+To: Marissa Cole <marissa_cole@redwood.com>, Neha Kapoor <neha_kapoor@redwood.com>, Aditya Rao <aditya_rao@redwood.com>
+Cc: Grace O'Connor <grace_oconnor@redwood.com>
+Date: 2026-08-18T14:30:00-07:00
+Subject: Re: Launch day traffic profile + temporary quota request
+
+Team —
+
+Quick notes from the sales/CS side: Streamline is in their final QA cycle and the release is effectively locked for 2026-09-01. Their legal/procurement are comfortable with a temporary uplift (no contract amendment) if we document the timebox and rollback conditions. They requested pricing guidance for the extra tokens — we'll keep that in a short addendum to the usage invoice.
+
+Product/Infra asks for decisioning:
+- Max concurrency we can safely enable for a single account in us-west-2 without impacting other Dedicated customers.
+- Whether automatic prefix/KV cache warming is available for their call patterns to reduce cold-start token cost during the first hour.
+- A suggested ramp schedule (e.g., 0% -> 30% -> 60% -> 100% over 4 hours) we can present as standard practice.
+
+If we can get a provisional number today, I'll confirm with Streamline and ask them to fill the pacing matrix.
+
+Karthik
+Account Lead
+
+[one-line reply note from Maya quoted below]
+> Maya Rivera wrote:
+> Thanks — will attempt to provide the per-minute slice by EOD.
+
+From: Neha Kapoor <neha_kapoor@redwood.com>
+To: Karthik Iyer <karthik_iyer@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, Aditya Rao <aditya_rao@redwood.com>
+Date: 2026-08-19T09:08:00-07:00
+Subject: Re: Launch day traffic profile + temporary quota request
+
+Folks —
+
+I reviewed the CSV Maya sent. A few operational notes and our ask of Streamline:
+1) Please confirm if any calls will include long-generation sequences (>1024 tokens) — those materially affect concurrency.
+2) Split by client-region is critical; if traffic is multi-region we recommend edge routing to avoid cross-region latencies.
+3) Suggested temporary limits (provisional, subject to infra verification):
+   - Token rate cap: 250,000 tokens/minute sustained (approx 15M tokens/hour) — we will throttle above that with 429s.
+   - Concurrency cap: 300 concurrent requests (99th pct) for the 36-hour window.
+   - Ramp policy: start at 25% for first hour, step to 50% at hour 4, 75% at hour 12, 100% at hour 24.
+
+I've attached a short request PDF (temp_quota_change_request.pdf) that the infra team can use to process the temporary rule. Aditya — can you confirm whether we can set these as a scoped account override in us-west-2 and whether prefix caching can be pre-warmed? Also, can we provision automated telemetry to capture error and latency rates for the rollback triggers?
+
+Neha
+Solutions Engineering
+
+Attachments: temp_quota_change_request.pdf (quota change form)
+From: Aditya Rao <aditya_rao@redwood.com>
+To: Neha Kapoor <neha_kapoor@redwood.com>, Karthik Iyer <karthik_iyer@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, Grace O'Connor <grace_oconnor@redwood.com>
+Date: 2026-08-20T16:05:00-07:00
+Subject: Re: Launch day traffic profile + temporary quota request
+
+Confirming infra-side clearance: we can implement the scoped override in us-west-2 for the 36-hour window with the caps Neha suggested. Implementation notes:
+- Token cap will be enforced via a token-leaky-bucket policy at the account level.
+- Concurrency cap will be enforced by a short-lived reservation layer; excess requests will receive 429s with Retry-After headers.
+- We can pre-warm KV/prefix caches for their expected top-100 prompts as long as Streamline provides sample prompts by 2026-08-25.
+- Telemetry: we'll stream a dedicated trace tag (streamline_launch=DL-8742) and an alert will fire if p95 latency exceeds 2.5s or error rate >5% sustained for 5 minutes.
+
+Operational next steps:
+1) Streamline to upload the filled ingress-pacing-matrix.xlsx and per-minute CSV by 2026-08-21 23:59 UTC.
+2) Marissa/Karthik to sign off on the final ramp schedule and pricing addendum.
+3) Infra to schedule the override for 2026-09-01 00:00 UTC with a hard end time of 2026-09-03 12:00 UTC (36 hours + 12-hour buffer).
+
+I'll open the temp rule ticket once we get the filled matrix and sample prompts. Good to go pending those artifacts.
+
+Thanks,
+Aditya Rao
+Capacity & Ops, Redwood Inference
+
+---
+Thread notes: includes quoted earlier messages and attachments.

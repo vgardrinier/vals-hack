@@ -1,0 +1,40 @@
+finance
+
+elena: Heads up — noticed a mismatch between Stripe pending refunds and NetSuite AR credits after today's billing run. Stripe shows 6 refunds in succeeded state, but NetSuite only has 4 vendor credits posted.
+
+sanjay: Is this the webhook-driven credit flow? @billing-bot logs?
+
+billing-bot: Webhook delivery: /webhooks/stripe/refund succeeded 6 deliveries. Processing queue: 2 error retries.
+
+dave: Got logs: two webhooks returned 500 from the NS API: 'GL account mapping not found for product: redwood-hosted' — looks like mapping service returned 404.
+
+jen: When did the mapping change? We pushed pricing product metadata yesterday.
+
+kai: I pushed a small change to product metadata, but didn't touch GL mapping. However the mapping service cache was cleared in the deployment. Could be cache warmup race.
+
+elena: We need to avoid double-refunds. Can someone paste the webhook payload for one of the failed ones?
+
+dave: Here's the raw payload for refund id rfd_1:
+```
+{"id":"rfd_1","charge":"ch_123","amount":5000,"metadata":{"product_code":"redwood-hosted"}}
+```
+
+jen: NetSuite retry job attempted to reconcile later today at 09:12 but failed with 404 from mapping svc. I triggered a manual retry for those two refunds — watching.
+
+sanjay: Logs show the NS connector marks webhook as delivered only on 200. We'll add an alert for >3 retries. Also create a safeguard to hold refunds in Stripe pending if NS doesn't ack within 10 mins? Might be heavy.
+
+elena: For short-term: manual reconcile steps documented? We need to reverse any double credits and notify customers.
+
+dave: Manual steps: 1) Confirm refunds in Stripe. 2) Create AR credit in NetSuite with external_ref = refund id. 3) Mark webhook processed. I'll handle the two missing ones.
+
+jen: :thumbsup: I'll follow up with platform to check mapping svc cache warmup.
+
+kai: I'll add a retry with exponential backoff and circuit breaker for mapping svc in the NS connector. Will deploy a patch in next hour.
+
+elena: Thanks — ping me when done. Can someone add tickets: FIN-428 (manual reconcile), ENGOPS-1239 (mapping cache), SRE-587 (webhook alert)?
+
+sanjay: Added FIN-428 and ENGOPS-1239. Assigned to dave and kai. SRE-587 created, tagging oncall.
+
+billing-bot: Note: refunds involved: rfd_1, rfd_2. Customers affected: cust_789, cust_456. ETA for fix: ~1h
+
+elena: OK closing the loop — update in #finance when reconciled.

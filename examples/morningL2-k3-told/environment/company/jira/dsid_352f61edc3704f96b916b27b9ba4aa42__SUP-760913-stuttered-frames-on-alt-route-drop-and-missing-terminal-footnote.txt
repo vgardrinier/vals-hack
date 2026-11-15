@@ -1,0 +1,69 @@
+Stuttered frame sequences after transparent proxy route change — final footnote missing on SSE resume
+
+Issue summary:
+Customers on a dedicated deployment are observing 'stuttered' token/frame sequences when a transparent proxy path-change occurs mid-stream. After the client's SSE connection rebinds to a new upstream route, the resumed stream sometimes omits the final footnote (closing paragraph) and intermittently repeats a short prefix. Behavior is more common for long-running responses (>20s) and when the edge-proxy performs a quick connection swap (keepalive probe / health check).
+
+Impact:
+- ComposeAI reported ~7% of streaming requests for a specific dataset lost their closing footnote or returned duplicated 1–3 token prefixes after a route change.
+- Customer application displays 'incomplete answer' to end users and retries which amplifies cost.
+- Seen only on dedicated Tier deployments behind our edge-proxy; not reproducible in staging.
+
+Environment:
+- Deployment: Dedicated (customer-managed) via redwood edge-proxy in their VPC egress path.
+- Region: us-east (customer route uses two upstream edge nodes with active health probes).
+- Models: redwood-chat-13b (primary), redwood-open-7b (fallback).
+
+Steps to reproduce (observed / minimal reproduction):
+1) Start a long streaming generation call (prompt size ~400 tokens, expected token stream ~500+).
+2) While streaming, trigger a transparent route swap by briefly failing the primary upstream (simulated by toggling health check to fail for ~1s on edge node A).
+3) Client re-establishes SSE to a new upstream (edge node B) and issues a resume request with last-ack offset.
+4) On resume, output sometimes contains a duplicated 1–3 token prefix, and the final footnote (closing paragraph) is omitted; in other cases, the stream ends normally.
+
+Observed logs & traces (high level):
+- Edge-proxy: frequent 502->200 transition logs during the window; connection handoff shows short TCP close followed by new socket; no TLS handshake error. (see edge-proxy log snippet attached in comment).
+- API gateway: resume request acknowledged, async resume flow shows 'partial-kv-primed' events and a small delay (~120–300ms) between resume ack and first resumed token.
+- Serving runtime: a small set of workers logged 'kv-cache-not-prime' during resume which correlated with missing terminal footer.
+
+Initial hypothesis:
+- The resume logic and KV cache priming race: when the client reconnects to a new upstream quickly, the worker may start producing tokens from a partially primed KV cache resulting in a short duplicated prefix and the downstream end-of-stream marker being suppressed due to an early EOF/close during final write aggregation.
+- Transparent edge-proxy route swap can coalesce/mangle keepalive/heartbeat frames causing a misalignment of the resume offset vs the primed state on the worker.
+
+Requested customer impact data:
+- Provide 3 example request IDs and timestamps where this occurred (ComposeAI supplied two in the first comment).
+
+Investigation notes (timeline):
+- 2026-03-10 09:45 (Support): Case opened after ComposeAI filed via support portal citing missing closing paragraph on 4/60 streams.
+- 2026-03-10 10:30 (SRE): Collected edge-proxy trace for customer's egress group; observed route swap at 10:12:15 with a 800ms probe-induced socket reset.
+- 2026-03-10 12:00 (Eng - serving-runtime): Identified resume paths that do not block on KV priming when the resume offset is within the current session window; added instrumentation to log 'kv-primed-state' for resumed sessions.
+- 2026-03-11 02:15 (Support): Reproduced locally by orchestrating deliberate health-check toggles between two test edge nodes; saw same duplicate-prefix + occasional missing terminal footnote in ~12% of runs for long responses.
+
+Mitigations tried so far:
+- Short-term: Advised ComposeAI to enable 'resume-grace' 250ms client-side delay before reconnects; reduced incidence but did not eliminate it.
+- Platform: Deployed additional logging to identify 'resume-without-full-kv' on resumed sessions (PR referenced below).
+
+Next steps (planned):
+- Engineering to add synchronous KV priming check before resumed token emission for resumed sessions where the resume offset matches the worker's recent window. This will be gated behind a feature flag to limit latency impact.
+- Edge team to add brief drain window (100–300ms) on route-swap for SSE sessions to allow graceful handoff of in-flight streaming sessions.
+- Validate fix in a dedicated canary environment that mimics ComposeAI's multi-node egress path.
+
+Attachments / references:
+- Customer-provided request IDs: compose-req-20260310-1102, compose-req-20260310-1128
+- Related support tickets: SUP-214159 (similar resume delta investigation), SUP-314271 (edge route swap behavioral notes)
+- Linked PR: https://github.com/redwood-inference/serving-runtime/pull/783 (instrument resume kv-priming)
+Start a long SSE streaming generation (prompt ~400 tokens; expected output 500+ tokens)
+Trigger a health-check toggle on the primary edge node to force route swap (~fail for 500-1000ms)
+Client reconnects and issues resume with last-ack offset immediately
+Observe resumed stream for duplicated 1-3 token prefix and check if final footnote/closing paragraph is present
+2026-03-10 09:50 — ComposeAI (via portal): 'We saw missing footnote for request compose-req-20260310-1102 and prefix duplication on compose-req-20260310-1128. Customers see "Answer incomplete" and we have retries enabled.'
+2026-03-10 10:35 — Marco Diaz (SRE): 'Collected tcpdump and edge-proxy logs for the mentioned timestamps. Edge showed probe reset at 10:12:15. Attaching truncated proxy log lines in PR.'
+2026-03-10 12:10 — Linh Nguyen (Serving): 'Instrumented resume flow to emit kv-primed-state. Early look indicates ~18% of resumes in this pattern arrived with kv-primed-state: partial.'
+2026-03-11 02:20 — Aisha Patel (Support): 'Repro in internal canary using two edge nodes. Adding workaround suggestion for customer to add 250ms reconnect jitter.'
+2026-03-11 16:45 — Marco Diaz (SRE): 'Coordinating with Edge team to trial a short drain window during route swap. Will schedule a canary tomorrow.'
+Edge-proxy health-checks often flip for this customer because of short probe intervals configured in their egress group.
+Resume logic currently optimizes for minimal latency; it does not always wait for a full KV prime when the resume offset looks recent.
+Partial KV prime leads to re-emission of a small token prefix because the worker's local state lacks the last few KV entries and generates a short overlap before realigning.
+Serving-runtime metrics introduced: resume_attempts, resume_kv_partial_count, resume_emit_delay_ms. Correlation found between resume_kv_partial_count spikes and customer incidents.
+Temporary workaround: Recommend customers introduce a 200-300ms randomized reconnect delay (applies to ComposeAI) — documented in support reply.
+Planned fix: Add synchronous KV priming barrier when resuming sessions where the resume offset is within active worker window (feature flagged).
+Edge mitigation: Experiment with a 150ms drain window on route swaps for SSE sessions in canary environment.
+Post-deploy validation plan: Run 10k long-streamed resumes in canary with intentional route swaps; target <0.5% missing terminal footnote rate before enabling broadly.

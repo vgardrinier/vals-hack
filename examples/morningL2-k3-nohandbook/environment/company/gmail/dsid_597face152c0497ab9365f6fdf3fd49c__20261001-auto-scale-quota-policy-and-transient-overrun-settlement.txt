@@ -1,0 +1,108 @@
+Auto-scale quota policy and transient overrun settlement
+
+From: LaunchPad Ops <ops@launchpad.ai>
+To: Mateo Alvarez <mateo_alvarez@redwoodinference.com>
+Date: 2026-10-01T09:12:00-07:00
+Subject: Upcoming launch — avoiding throttles / overrun handling
+
+Hi Mateo,
+
+We have a coordinated feature launch on 2026-10-08 and the traffic forecasts attached show a short window spike (30–45 minutes) that will exceed our current quota by ~4x. We want to avoid customer-visible throttling. Two quick questions:
+
+1) Do you offer an automatic temporary quota bump (auto-scale) that kicks in during short spikes? If so, what is the billing model for auto-scale vs a one-off temporary top-up?
+2) If we opt for a standard overrun true-up, what's your recommended cadence and is there any discount for the first incident (we're a mid-stage customer and this is our first major launch)?
+
+Attached: traffic-forecast.csv — small window, high QPS.
+
+Thanks — can we schedule a 30-min call tomorrow to lock this down?
+
+— Ops Team
+LaunchPad.ai
+
+From: Mateo Alvarez <mateo_alvarez@redwoodinference.com>
+To: LaunchPad Ops <ops@launchpad.ai>
+Cc: Ben Carter <ben_carter@redwoodinference.com>, Monica Patel <monica_patel@redwoodinference.com>
+Date: 2026-10-01T11:03:00-07:00
+Subject: Re: Upcoming launch — avoiding throttles / overrun handling
+
+Hi Ops,
+
+Thanks for the forecast — looks like a classic short-window burst. We have two operational paths:
+
+Option A — Temporary top-up (recommended for short predictable spikes)
+- We provision a fixed temporary quota for the launch window (you pick size and duration).
+- Billing: one-time prorated fee based on peak token throughput + a small setup charge.
+- Pro: predictable invoice, no runtime throttling.
+- Con: you pay for reserved headroom you may not fully use.
+
+Option B — Auto-scale (pay-as-you-go burst)
+- Our runtime will automatically accept excess traffic and bill overrun at the overage rate.
+- Billing: standard overrun rates (listed below) billed in the next invoice period.
+- Pro: no manual provisioning.
+- Con: less predictable spend, higher per-unit price vs committed capacity.
+
+Proposal (fast path to reduce risk):
+- We can enable a temporary top-up for the launch window (10/08 00:00 — 10/08 06:00 UTC) sized for ~5x baseline to cover your forecast.
+- As a one-time launch goodwill, Redwood can apply a 15% credit against the overrun/top-up fee for this first incident if you sign the attached short addendum and commit to issuing PO within 7 days.
+
+Next steps:
+1) If you want the temporary top-up, confirm size (we can match the attached forecast).
+2) If you prefer auto-scale, confirm you accept the standard overrun billing and we'll turn on the policy; we'll also send a post-launch true-up one pager.
+3) If approved, I can send a draft addendum (attaching a short proposal now).
+
+I copied Ben (pricing) and Monica (billing) on logistics. Happy to hop on a 30-min call today or tomorrow.
+
+Thanks,
+Mateo
+Account Executive, Redwood Inference
+
+From: Mateo Alvarez <mateo_alvarez@redwoodinference.com>
+To: Ben Carter <ben_carter@redwoodinference.com>, Laura Bennett <laura_bennett@redwoodinference.com>, Monica Patel <monica_patel@redwoodinference.com>
+Date: 2026-10-01T13:05:00-07:00
+Subject: FW: Upcoming launch — avoiding throttles / overrun handling
+
+Ben / Laura,
+
+Looping you in. LaunchPad is asking for a short-window/top-up OR auto-scale; I proposed a 15% first-incident goodwill credit contingent on PO and signed addendum.
+
+Questions:
+- Is 15% within concession authority or should we cap at 10%?
+- If we approve temporary top-up, what's the shortest billing true-up cadence finance needs (monthly vs immediate post-usage invoice)? They want to avoid a large surprise on a single monthly invoice.
+
+Note: attached forecast suggests ~45 mins at ~4x baseline; estimate top-up fee at ~$3,200 before credit.
+
+Appreciate quick take — Ops wants confirmation today.
+
+— Mateo
+
+On 2026-10-01T09:12:00-07:00 LaunchPad Ops <ops@launchpad.ai> wrote:
+> [traffic-forecast.csv attached]
+From: Ben Carter <ben_carter@redwoodinference.com>
+To: LaunchPad Ops <ops@launchpad.ai>, Mateo Alvarez <mateo_alvarez@redwoodinference.com>
+Cc: Monica Patel <monica_patel@redwoodinference.com>, Laura Bennett <laura_bennett@redwoodinference.com>
+Date: 2026-10-03T17:05:00-07:00
+Subject: Re: Upcoming launch — avoiding throttles / overrun handling
+
+Hi Ops — thanks for the patience while we reviewed.
+
+We can do the temporary top-up for your 10/08 launch window. A few final notes:
+- Approved concession: 10% one-time credit applied to the temporary top-up invoice (we reduced from 15% to align to concession policy).
+- Billing cadence: temporary top-up will be invoiced immediately after the event as a separate line-item invoice (so it won't be buried in the monthly usage invoice).
+- If you'd rather use auto-scale, we'll keep the standard overrun pricing, invoiced in next monthly statement (no credit).
+
+Next steps to confirm:
+1) Ops confirms top-up size (we can mirror your forecast)
+2) Sign the attached short addendum and return PO (we've attached a one-page addendum and a PO template).
+
+I've attached the draft addendum and PO template. Once we receive signed addendum + PO, we will: provision the temporary quota, flag the account for the 10/08 window, and set the separate invoice flow.
+
+LaunchPad — if that works, please reply with: 
+- "Confirm top-up: yes" and the top-up number in requests/sec or tokens
+- Attach PO and signed addendum or confirm DocuSign intent.
+
+Best,
+Ben Carter
+Director, Pricing & Revenue Operations
+Redwood Inference
+
+Attachments: redwood-transient-proposal-draft.pdf, po-launchpad-2026.pdf

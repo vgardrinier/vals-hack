@@ -1,0 +1,3 @@
+Invoice MFL-2026-0290 from Marrow & Finch LLP
+
+From: Marrow & Finch LLP Billing <billing@marrowfinch.com>\nTo: finance@redwood.com\nDate: Wed, 12 Aug 2026 07:10:00 -0700\nSubject: Invoice MFL-2026-0290\n\nHello Redwood Inference finance team,\n\nPlease find our invoice details below.\n\nInvoice number: MFL-2026-0290\nInvoice date: 2026-08-10\nDue date: 2026-09-09\nAmount due: $4,633.22 USD\n\nPayment by ACH to the account on file. Thank you for your business.\n\nMarrow & Finch LLP billing

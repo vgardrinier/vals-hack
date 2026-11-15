@@ -1,0 +1,37 @@
+partnerships
+
+jordan: Heads-up — OrionCloud just sent a marketplace sync that shows our reserved pool for `dedicated-usa-east` was oversold. ETA moved from ~6w to ~12w for 3 racks (resv-id RC-9841). This touches two Dedicated customers with Feb commitments. Need immediate rebalancing/comp plan.
+
+maria: ack. can you paste the notification and which customers are affected? also ping @sam for inventory side.
+
+jordan: pasted below (sanitized). marketplace message: `ORION_ALERT: reservation RC-9841 status=oversold new_eta=2026-03-18 quantity=3`
+
+sam: looking. our internal ledger shows RC-9841 was mapped to two customer orders: CUST-221 and CUST-305. both are on reserved commits (monthly). We have 1 spare rack in west that could be swapped but would add cross-region routing ops.
+
+eddy: sales here — CUST-221 has an SLA clause for capacity in Feb. If we miss, penalty + credit. CUST-305 is more flexible but we promised a canary on dedicated infra for a launch. Need options list.
+
+lucy: legal — please flag the contract IDs and clauses. if SLA kicks in we need to know exact credit calc.
+
+ben: ops-bot dropped a follow-up from Orion: `manifest_change_id=mc-773, reason=logistics_realloc, supplier_note="stack allocation error"`. They offered a 5% marketplace credit for impacted customers, and expedited pick for the remaining 1 rack that still ships on original leadtime.
+
+maria: 5% won't cover SLA penalties. options I see: 1) swap 1 rack from west (sam) and move 2 racks to later with credits; 2) negotiate Orion to prioritize CUST-221 shipment + bigger credit; 3) short-term fallback to hosted for the canary (performance may differ). Thoughts?
+
+sam: technically we can do swap: `transfer_plan.sh` will need 12h maintenance window, bandwidth tests, and network policy updates. Risk: slightly higher latency during canary tests.
+
+katie: solutions-engineering — we can stand up hosted fallback for the canary in <24h, with a documented performance delta and a toggle for the customer. That avoids SLA breach for CUST-221 but we must get buy-in from the customer.
+
+jordan: can we bundle: prioritize 1 rack shipment from Orion to CUST-221, swap west->east for the second, and host fallback for the canary until we verify throughput? Who will negotiate Orion?
+
+maria: I'll own partner negotiation. @lucy please prepare the contractual impact summary. @sam and @katie coordinate the swap+fallback runbook. @eddy prep customer comms with both options and a recommended ask for Orion (expedited + 15% credit + one-month free dedicated hours).
+
+lucy: on it. need copies of CUST-221 contract ID (send offline).
+
+ops-bot: deploy-note: initiated ticket INF-4729 to schedule the west->east transfer; ETA for transfer start tentative in 18h pending approvals.
+
+ben: timeline note — if Orion doesn't move on expedited shipment within 48h, we escalate to marketplace partnerships for inventory reallocation or replacement vendor.
+
+eddy: I'll draft the comms now. rough line: "We're proactively rebalancing capacity to meet your committed timeline; temporary fallback may be used for verification. We'll offset any disruption with a targeted credit and a performance review." Sharing draft in #customer-commms for review. :thinking_face:
+
+maria: meeting in 30 to lock decision. agenda: partner ask, swap runbook, customer comms, legal calc.
+
+jordan: thanks. tagging this thread `priority:high` — please update with decisions.

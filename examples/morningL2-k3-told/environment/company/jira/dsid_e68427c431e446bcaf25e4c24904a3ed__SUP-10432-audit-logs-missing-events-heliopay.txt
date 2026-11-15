@@ -1,0 +1,34 @@
+HelioPay (Private): audit log missing events for RBAC/admin actions
+
+Issue summary:
+HelioPay reports missing audit log events in their Redwood Private (VPC) deployment. Specific admin actions (role assignment changes + API key creation) are not present in the exported audit log stream for ~2 hours.
+
+Impact:
+Customer compliance team cannot attest to complete audit trail. They are blocked on an internal access review.
+
+Environment:
+- Deployment: Redwood Private (VPC)
+- Region: us-east
+- Private control plane version: 1.14.3
+- Audit log sink: customer S3 via Redwood audit-log-exporter
+
+What was expected:
+Every RBAC/admin action in Console/API should emit an audit event within 60 seconds.
+
+What happened:
+Events appear to be dropped in bursts; later events resume without backfill.
+
+Steps to reproduce (customer):
+1) Create new API key in Console
+2) Modify a role binding
+3) Export audit logs from S3 prefix for the hour
+Observed: some actions missing from export
+
+Customer-provided evidence:
+Screenshots of Console activity log timestamps and corresponding gaps in S3 objects.
+Sofia Ivanova (Support) 2025-02-12: Acknowledged. Looping in Eng/SRE. Any chance you can share a specific admin action timestamp (UTC) + the audit log object path range you checked?
+External (HelioPay) 2025-02-12: Example: 2025-02-12T18:31Z created API key 'billing-bot'. Not present in audit export for 18:00-19:00Z. Similar gap around 18:20-18:45Z.
+Connor O'Brien (Eng Platform) 2025-02-13: Seeing ingestion backlog + drops on audit-event-router for a subset of private tenants after 1.14.3. Suspect queue ack bug when downstream sink is slow.
+Ethan Park (SRE) 2025-02-13: Created incident IR-2025-017. Mitigation: increased buffer + restarted audit-event-router; drops stopped. No backfill available for dropped events.
+Connor O'Brien (Eng Platform) 2025-02-14: We have at least one other private customer reporting similar 'audit trail gaps' this week; tracking under IR-2025-017. Drafting known-issue page with workaround.
+Sofia Ivanova (Support) 2025-02-19: Resolved for HelioPay after hotfix 1.14.4 rollout to their control plane + exporter. Confirmed no new gaps since 2025-02-14. Follow-up: customer requested formal incident summary for compliance; pointing them to postmortem once published.

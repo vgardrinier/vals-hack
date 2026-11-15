@@ -1,0 +1,69 @@
+USB dock enumeration loop causing provisioning timeouts and corrupting OneDrive placeholders on new W11 workstations
+
+Issue summary:
+Multiple new hires are getting machines that hang during OOBE/Autopilot provisioning when connected to the standard Dell USB-C docking station. The host goes into a repeated USB device add/remove cycle which eventually causes autopilot to time out and OneDrive Files On-Demand placeholders to become corrupted for the provisioning account.
+
+Impact:
+- Affects ~8/40 devices provisioned from the corp-provisioning-lab on 2026-03-09 through 2026-03-10.
+- Devices fail Autopilot step (Join + profile application) and show 'Completing setup' spinner for >30 minutes, then roll back to OOBE.
+- OneDrive placeholders for the provisioning account end up showing as 0-byte files or "file unavailable", requiring manual reset.
+
+Environment:
+- Dell Latitude 7430 and 9440 models, Windows 11 22H2 image, Intune + Autopilot corporate profile.
+- Dock model: Dell WD19TBS (firmware 1.3.0).
+- Provisioning network: corp-provisioning-lab VLAN (on-prem DHCP + proxy).
+
+Steps to reproduce:
+1) Connect laptop to WD19TBS dock via USB-C and boot.
+2) Start Autopilot OOBE flow (first-power-on or reset).
+3) Let device attempt AzureAD Join + Intune MDM + Company Portal provisioning.
+4) Observe device manager / event logs during setup.
+
+Observed behavior:
+- Within 2-4 minutes of network coming up, kernel logs show repeated USB device connect/disconnect for the dock's internal USB hub (Event ID 219 / Kernel-PnP).
+- Autopilot times out applying the provisioning profile after ~25-40 minutes.
+- OneDrive (provisioning account) reports placeholder files as 0 bytes; sync status shows "file placeholder lost" for many files.
+- Disconnecting the dock mid-flow allows provisioning to continue and complete normally (confirmed in 3 test cases).
+
+Expected behavior:
+- Dock enumerates once, remains stable during Autopilot.
+- Intune profile and Company Portal install without placeholder corruption.
+
+Logs / evidence:
+- Windows Event Viewer: repeated Kernel-PnP Event ID 219 with InstanceId referencing USB\Hub_#0.
+- USBView capture attached to ticket (usbview-INT12107-03-11.txt).
+- OneDrive logs indicate NTSTATUS
+- Provisioning screenshots attached (oobe-stuck-03-09.png).
+
+Initial hypothesis:
+- Dock firmware 1.3.0 exhibits edge-case USB hub reset under certain power negotiation sequences causing repeated re-enumeration.
+- The re-enumeration interrupts provisioning steps (token exchange / Company Portal registration) and leaves OneDrive in a partial placeholder state.
+
+Workarounds tried:
+- Disconnecting dock during OOBE allows provisioning to succeed.
+- Updating dock firmware to latest (1.3.2) in one case reduced frequency but did not fully resolve.
+- Swapping to alternative dock model (generic USB-C) eliminated issue for that machine.
+
+Attachments:
+- usbview-INT12107-03-11.txt
+- oobe-stuck-03-09.png
+- eventlog-snippet-219.txt
+
+Lab reproduction: reproduced on 3 different Latitude 7430 units using WD19TBS dock on firmware 1.3.0. USB trace shows hub resets ~every 45s. Captured PnP traces and kernel dumps for two instances; second dump shows KTHREAD wait on hub driver while hub appears to re-enumerate devices.
+
+Eng input (HW team): asked Dell rep for validation of hub power negotiation. Dell requested full USB protocol capture and UPS power isolation test.
+
+SRE/Provisioning notes: provisioning tokens (MS-Identity) are transient; repeated network stack resets while provisioning is active lead to token timeouts and partial OneDrive registration state. We see company portal service crash (ETW) in one instance around the time of the last hub reset.
+
+Next steps:
+- Get full USBPcap from provisioning lab for March 9 runs and upload to shared diagnostic bucket (action assigned to Marcus Li).
+- Request Dell field firmware debug from partner and test firmware 1.3.3 pre-release.
+- Create temporary provisioning runbook advising to disconnect docks during OOBE until fix is validated.
+
+2026-03-10 09:12 - Sofia Patel: Filed after 3 devices failed provisioning in morning batch. Marking as P2 since affects efficiency of provisioning day. Attached initial event logs.
+2026-03-10 10:05 - Marcus Li: Confirmed replication in corp lab. Repro rate ~75% with WD19TBS firmware 1.3.0. Temporary workaround: disconnect dock during first boot.
+Action: collect USB traces (usbpcap) and kernel dumps.
+2026-03-11 14:22 - Henry Alvarez (Hardware): Reproduced with similar timeline. Hub reset looks like a power negotiation fallback between dock and host. Sent request to Dell field engineer, they asked for usbpcap + power draw logs.
+2026-03-11 16:48 - Marcus Li: Uploaded usbpcap and event logs to s3://redwood-diagnostics/INT-12107/ (link in ticket). Noted CompanyPortal.exe crash around the time of the 3rd reset (crash id: CP-20260311-3).
+2026-03-12 09:01 - Elena Park (SRE): Ran provisioning with dock unplugged — flow completes in 9 minutes. Recommend adding 'dock unplug during OOBE' to onboarding checklist and notifying procurement/ops.
+In Progress - workaround (disconnect dock during OOBE) adopted in provisioning lab. Awaiting Dell firmware analysis and validation of 1.3.3 candidate. Follow-up: update procurement spec to prefer docks that passed extended hub stability test.

@@ -1,0 +1,109 @@
+Route decision: billing responsibility and co-sell routing for Marketplace vs Direct
+
+From: Maya Shah <maya.shah@procureops.com>
+To: Sofia Ivanova <sofia.ivanova@redwood.ai>
+Cc: Naveen Gupta <naveen.gupta@cloudpartner.co>
+Date: Tue, 2 Jun 2026 09:14:00 -0700
+Subject: Billing routing question — invoice owner / marketplace path
+
+Hi Sofia,
+
+Thanks for the demo yesterday — ProcureOps is excited about Redwood's latency profile. Our procurement team has two competing requests and I wanted to get your recommendation: they prefer to buy via AWS Marketplace private offer so the PO and invoice flow through Marketplace, which simplifies our internal AP controls. Our finance team also needs confirmation on co-sell crediting for our reseller partner (CloudPartner).
+
+Specifically:
+- If we purchase via AWS Private Offer, who is the seller-of-record on the invoice (Redwood or AWS)?
+- Will our reseller partner (CloudPartner) be eligible for co-sell credits if we purchase through Marketplace?
+- If we go direct (sign Redwood MSA + purchase invoice from Redwood), how does that affect co-sell attribution and timing for credits?
+
+I attached our vendor RFP and a short spreadsheet with our expected monthly consumption. Could you advise recommended routing (Marketplace private offer vs direct MSA) given our needs and whether there are billing or compliance tradeoffs we should flag?
+
+Appreciate any guidance and next steps.
+
+Best,
+Maya Shah
+Sr. Procurement Manager
+ProcureOps
+
+Attachments: vendor_rfp_questions.pdf (PDF, 240KB)
+
+From: Sofia Ivanova <sofia.ivanova@redwood.ai>
+To: Maya Shah <maya.shah@procureops.com>
+Cc: Naveen Gupta <naveen.gupta@cloudpartner.co>
+Date: Tue, 2 Jun 2026 10:03:00 -0700
+Subject: Re: Billing routing question — invoice owner / marketplace path
+
+Hi Maya — thanks for the clear questions and the RFP. Quick answers up front, and I can pull in our channel and finance leads if you’d like a short call:
+
+- Seller-of-record: On AWS Private Offers the invoice is issued through the Marketplace flow — typically the buyer sees "AWS Marketplace" on some invoice fields but the charge is remitted to Redwood (seller) under the private offer contract. There are nuances depending on whether we act as seller-of-record or use a reseller model.
+- Co-sell credits: Co-sell attribution depends on Marketplace listing setup and partner registration. CloudPartner can get credit if they are registered as the partner on the private offer or via a joint-sell agreement, but timing and paperwork (partner registration + evidence) matter.
+- Direct MSA: Buying direct (Redwood invoice under our MSA) is the most straightforward for attribution to Redwood and for any custom contractual terms; partner incentives are handled via separate partner invoicing/crediting rather than Marketplace attribution.
+
+Given your AP preference for PO+Marketplace invoice, the pragmatic recommendation is: try AWS Private Offer with seller-configuration that preserves Redwood as the economic seller while enabling CloudPartner registration for co-sell crediting. This keeps PO/invoice flow in Marketplace but preserves the partner/program eligibility.
+
+If that sounds useful, I’ll loop in our channel and finance leads and share a short one-pager with the pros/cons and timing for onboarding CloudPartner. I’ve attached a pricing matrix so you can see SKU/term mappings.
+
+Next steps?
+- Confirm whether ProcureOps needs Redwood explicitly listed as seller-of-record on the top-line invoice field, or if Marketplace flow is acceptable.
+- If acceptable, I’ll run internal checks on partner registration and send a short checklist for CloudPartner.
+
+Warm regards,
+Sofia Ivanova
+Commercial Lead, North America
+Redwood Inference
+
+Attachments: redwood_pricing_matrix.xlsx (Excel, 42KB)
+
+From: Sofia Ivanova <sofia.ivanova@redwood.ai>
+To: Jordan Blake <jordan.blake@redwood.ai>, Lauren Bishop <lauren.bishop@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Date: Tue, 2 Jun 2026 11:05:00 -0700
+Subject: Fwd: Billing routing question — advice needed (ProcureOps, CloudPartner)
+
+Team — forwarding ProcureOps question (below). Fast context: customer prefers Marketplace private offer for PO + AP workflow but wants CloudPartner to get co-sell credit. What’s the least-friction routing that preserves co-sell attribution and keeps their PO path intact?
+
+High-level asks:
+- Can finance/channel confirm any SOR (seller-of-record) implications for AWS private offers we should call out?
+- Any ops lead time for partner registration and evidence that would delay co-sell credits?
+- Recommended language or steps we should provide to ProcureOps to get CloudPartner credited without pushing them off Marketplace?
+
+I’ve attached a one-page summary I drafted (coa_seller_of_record_summary.pdf) and the pricing matrix they received. Would appreciate a quick recommendation — I plan to respond to Maya by EOD.
+
+Forwarded message:
+> From: Maya Shah <maya.shah@procureops.com>
+> To: Sofia Ivanova <sofia.ivanova@redwood.ai>
+> Cc: Naveen Gupta <naveen.gupta@cloudpartner.co>
+> Date: Tue, 2 Jun 2026 09:14:00 -0700
+> Subject: Billing routing question — invoice owner / marketplace path
+> 
+> [Original message content omitted]
+
+Thanks —
+Sofia
+
+Attachments: coa_seller_of_record_summary.pdf (PDF, 18KB), redwood_pricing_matrix.xlsx (Excel, 42KB)
+
+From: Jordan Blake <jordan.blake@redwood.ai>
+To: Sofia Ivanova <sofia.ivanova@redwood.ai>, Lauren Bishop <lauren.bishop@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Date: Wed, 3 Jun 2026 08:47:00 -0700
+Subject: Re: Fwd: Billing routing question — advice needed (ProcureOps, CloudPartner)
+
+Sofia / team — quick recommender from channel + finance POV:
+
+Option A — AWS Private Offer (recommended for ProcureOps AP needs):
+- Billing: Buyer receives Marketplace-style invoice; economic seller remains Redwood under the private offer. We should ensure the private offer is configured with Redwood as the seller and CloudPartner as the registered partner where relevant.
+- Co-sell: CloudPartner will be eligible for co-sell credit if they are registered in AWS Partner Network (APN) and documented on the private offer or in our partner portal. Evidence (signed partner addendum or email chain) should be captured during onboarding.
+- Tradeoffs: Slight operational lead time (1-2 business days to prepare private offer + partner evidence) and AWS billing fields may show "AWS Marketplace" in some places (customer AP teams sometimes flag this, confirm acceptable).
+
+Option B — Direct MSA + Redwood invoice (recommended if customer requires Redwood explicitly on every invoice):
+- Billing: Redwood issues invoices directly under our MSA; full control over invoice fields and remittance.
+- Co-sell: Partner crediting requires separate partner settlement; attribution is straightforward internally but not via AWS marketplace programmatic credits. Usually slower to reconcile and may require partner settlement paperwork.
+- Tradeoffs: Longer procurement cycle for customers who insist on Marketplace PO/flow.
+
+Recommended messaging to ProcureOps: Start with a Private Offer configured with Redwood as seller and include CloudPartner registration steps. Offer a one-week pilot private offer cadence: 1) ProcureOps confirms PO/Marketplace acceptability, 2) we draft private offer and partner evidence request, 3) ProcureOps signs PO and we submit to AWS. If PO path is impossible for ProcureOps, pivot to Direct MSA.
+
+I attached a short checklist that finance/channel can send them (see Drive link Sofia included). Laura / Lauren — I think we should prepare a canned checklist covering: AP fields ProcureOps may look for, Partner registration evidence required, and expected timelines. Happy to own outreach to AWS if needed.
+
+Jordan Blake
+Director, Channel Partnerships
+Redwood Inference
+
+Attachments referenced: coa_seller_of_record_summary.pdf (internal), redwood_pricing_matrix.xlsx (internal)

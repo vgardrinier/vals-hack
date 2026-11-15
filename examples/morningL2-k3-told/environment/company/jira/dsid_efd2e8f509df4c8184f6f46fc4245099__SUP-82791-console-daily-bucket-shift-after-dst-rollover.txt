@@ -1,0 +1,52 @@
+Daily metrics bucket shift after DST rollover causing hourly dashboards to misalign
+
+Issue summary:
+During the DST (daylight savings time) rollover on 2026-03-09 -> 2026-03-10, Medivault Health observed a one-hour shift in daily metrics buckets displayed in the Redwood Console. Hourly charts on several dashboards show data points shifted by +1 hour for the first 6 hours after the DST change.
+
+Impact:
+- Multiple production dashboards used by Medivault engineering and ops show misleading hourly usage and latency numbers for 2026-03-10 UTC-5.
+- Alert evaluations that use hourly rollups triggered false positives for a short window (several alerts evaluated above threshold).
+- Customer reported downstream confusion for billing reconciliation for the affected day.
+
+Environment:
+- customer_tier: enterprise
+- region: us-east-1
+- Console version: web-2026-03-08-build.5
+- Aggregation cluster: metrics-agg-prod-3
+
+Steps to reproduce (observed):
+1. Open Redwood Console > Dashboards > Medivault Production Overview (hourly timeseries, 24h window)
+2. Set timezone to America/New_York in user preferences
+3. Inspect the hourly series for 2026-03-10 (date of DST forward shift)
+4. Observe that bucket timestamps and labels are offset by +1 hour for buckets between 02:00 and 08:00 local time
+
+Observed behavior:
+- The ingestion pipeline appears to have produced hour-aligned buckets, but the console rollup/labeling layer applied a local-time shift incorrectly at DST boundary, causing displayed bins to be associated with the wrong hour.
+- Alert evaluations that use 'last complete hour' windows evaluated against misaligned buckets and produced several noise alerts.
+
+Expected behavior:
+- Hourly buckets and dashboard labels should reflect correct local time alignment across DST transitions; alerts should evaluate on correctly aligned buckets.
+
+Temporary workaround:
+- Support advised customer to switch dashboard timezone to UTC to view correct alignment for the affected date, and to silence specific alert rules for the 03-10 window until fix is applied.
+
+Investigation notes:
+- Initial hypothesis: time conversion code in console's rollup layer used fixed-offset logic instead of timezone-aware DST rules when mapping ingestion timestamps to display buckets.
+- Checked ingestion logs in metrics-agg-prod-3: raw event timestamps are correct and consistent (UTC-based).
+- Checked job metrics for the hourly rollup workers: two rollup workers (w-12 and w-13) reported a short period of retrying due to a transient clock-sync warning on 2026-03-10T07:00:12Z; retries did not drop data.
+- Reviewed recent PRs: redwood/metrics-ingest#1423 included a refactor to rollup indexing, and redwood/console#2098 updated timezone display code last week. Both PRs touched DST-sensitive code paths.
+- Reproduced locally by simulating America/New_York TZ with forward DST transition: console label function returned 'bucket_label = bucket_start + offset' using offset derived from server timezone instead of user's timezone.
+
+Next steps / action items:
+- Roll back the timezone-labeling change from redwood/console#2098 in a canary release and validate dashboards for Medivault (assigned to Console team, ETA: 2026-03-12).
+- Patch the labeling logic to use tz-aware libraries (moment-timezone -> tz-helpers) and add unit tests covering DST transitions (assigned to metrics UI owner).
+- Run targeted re-evaluation for alert rules that fired during the window and prepare a corrected incident summary for Medivault.
+- Postmortem and a short blameless runbook update for DST handling in rollups (link to Confluence page to be added).
+
+Customer note: Medivault flagged billing reconciliation as blocker for close; they requested confirmation that raw usage counts were not lost and only display/alerting was affected.
+2026-03-10 | Aisha Kapoor (Support): Ticket opened after customer report at 09:12 EDT. Customer provided dashboard screenshot and CSV export of hourly counts showing the apparent +1h shift.
+2026-03-10 | Evan Morales (SRE): Acknowledged. Kickoff investigation. Confirmed raw timestamps in ingestion show no gap or duplication. Focusing on console rollup/label path and recent UI PRs.
+2026-03-11 | Simone Li (Console Eng): Found that redwood/console#2098 changed label computation to use serverOffset in one branch. Preparing revert PR and unit test that simulates DST forward/back transitions.
+2026-03-11 | Evan Morales (SRE): Applied temporary alert suppression for affected rules for Medivault; notified customer of workaround (switch dashboard to UTC) and ETA for patch.
+2026-03-12 | Aisha Kapoor (Support): Customer confirmed they can view correct numbers in UTC and have paused billing reconciliation until we confirm full root cause and fix rollout plan. Customer asks for postmortem when available.
+2026-03-12 | Simone Li (Console Eng): Revert PR landed to canary (redwood/console#2104). Canaries in us-east-1 are being monitored; will promote to prod after 12h of green metrics. Next update by 2026-03-12 18:00 UTC.

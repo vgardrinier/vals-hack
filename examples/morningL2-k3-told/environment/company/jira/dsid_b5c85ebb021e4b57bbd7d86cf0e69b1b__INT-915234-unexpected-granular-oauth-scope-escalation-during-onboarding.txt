@@ -1,0 +1,39 @@
+Unexpected OAuth app scope escalation observed during vendor onboarding flow
+
+Issue summary: On 2026-03-12 at ~03:40 UTC automated anomaly detection flagged a surge of admin-scoped API requests originating from a freshly onboarded vendor OAuth app. The app had been granted only 'read:user' and 'email' scopes during onboarding, but tokens observed in logs were accepted for admin-level endpoints.
+
+Impact: Potential lateral privilege escalation allowing the vendor app to call internal admin APIs (user invite, service-token provisioning). Preliminary evidence indicates limited exploratory calls; no confirmed data exfiltration. Affected surface: internal admin API endpoints and service-account provisioning flows in prod-us-east.
+
+Initial detection: SRE alert (anomaly-score > 0.9) for elevated 401->200 pattern on /internal/admin/* endpoints linked to token issuer 'vendor-oauth-app-7b3'.
+
+Why this ticket: Centralize triage, coordinate token revocation, audits, and vendor coordination. Document timeline and remediation steps for potential IR and post-incident review.
+2026-03-12 03:12 UTC - New OAuth app onboarding completed via self-serve vendor portal.
+2026-03-12 03:40 UTC - Anomaly detection flagged unusual admin API success rate.
+2026-03-12 03:45 UTC - Support analyst (J. Patel) created temporary block for the app in the proxy layer.
+2026-03-12 04:05 UTC - Security Ops began live investigation; initial token revocation started.
+2026-03-13 09:10 UTC - Additional tokens from same app used in a different IP / ASN pair.
+2026-03-14 02:00 UTC - Forensics completed partial scope audit; evidence of scope mismatch between consent record and token introspection results.
+1) Simulate onboarding via vendor portal with scopes 'read:user' and 'email'.
+2) Exchange auth code for token via standard flow.
+3) Attempt to call /internal/admin/users - expected 403; observed 200 when token is used after service-side proxy handshake.
+Note: reproduction requires the exact onboarding flow and proxy headers used in prod; do not run in staging without coordination.
+Auth server introspection (2026-03-12T03:37:12Z): token_id=tok_7b3_abcd, client_id=vendor-oauth-app-7b3, scopes=read:user email, issued_at=2026-03-12T03:12:44Z
+Proxy access log (2026-03-12T03:39:18Z): src_ip=18.205.2.9, x-auth-client=vendor-oauth-app-7b3, request=/internal/admin/invite, status=200, backend_user=service-proxy
+IAM audit (2026-03-13T09:07:01Z): service_account_created by token=tok_7b3_abcd, target=svc-analytics-temp, role=admin.write
+Token introspection mismatch (2026-03-14T01:56:12Z): introspected_scopes=read:user email offline_access admin.write (introspection returned extra scope 'admin.write' that was not present in consent record).
+Hypothesis 1: Proxy header elevation bug - the proxy maps vendor client to an internal service identity when a specific header handshake occurs during onboarding, inadvertently granting broader permissions.
+Hypothesis 2: Consent-chaining vulnerability - incremental consent or a refresh exchange produced a token with aggregated scopes.
+Evidence so far: token introspection shows 'admin.write' present despite consent record; proxy logs contain a previously undocumented header 'x-internal-bridge: onboarding-step' correlated with successful admin calls.
+Next steps: replicate minimal repro in isolated env, capture full token exchange traces, review proxy header handling code path, patch to drop internal-bridge header for third-party clients.
+2026-03-12 04:20 - J. Patel (Support): Temporarily blocked client_id vendor-oauth-app-7b3 at API gateway. Customers using similar onboarding flow notified via #support-private.
+2026-03-12 05:10 - A. Singh (SRE): Collected gzip logs and uploaded to S3: s3://redwood-sec/forensics/INT-915234/production-logs-20260312.tar.gz
+2026-03-13 10:00 - L. Morales (Security Ops): Confirmed creation of a service_account with admin role using token tok_7b3_abcd. We rotated affected service tokens and disabled the vendor app in identity provider.
+Action: require vendor to re-auth and sign new consent after fix.
+2026-03-14 01:30 - R. Ortega (Assignee): Replication plan in place; spinning up isolated cluster to exercise onboarding handshake. Patch candidate to strip 'x-internal-bridge' header in proxy-next branch (PR forthcoming).
+2026-03-14 09:00 - M. Chen (Reporter): Notifying Legal and Compliance as per incident classification; preserving chain-of-custody for logs.
+Mitigations in progress: vendor app disabled in IDP, revoked active tokens tied to client_id vendor-oauth-app-7b3, rotated implicated service account credentials, applied temporary rule to drop 'x-internal-bridge' header at API gateway. Full code patch submitted to proxy-next to permanently enforce header stripping for third-party clients.
+Immediate: tokens revoked and app disabled (2026-03-12). Medium: proxy rule applied to drop internal-bridge header (2026-03-13). Long-term: code change (PR #4821) to enforce header hygiene + unit tests and a mandatory onboarding validation checklist for vendor apps. Post-incident: schedule blameless postmortem and vendor re-onboarding process updates. No confirmed data exfiltration observed; investigation continuing for scope of created service account actions.
+1) Deploy proxy-next patch to prod and monitor for similar anomalies for 72h.
+2) Update vendor onboarding runbook to require ephemeral onboarding tokens and deny persistence of offline_access by default.
+3) Add automated drift check comparing consent records to token introspection once per minute for new clients.
+4) Postmortem and update confluence page with timeline and remediation steps.

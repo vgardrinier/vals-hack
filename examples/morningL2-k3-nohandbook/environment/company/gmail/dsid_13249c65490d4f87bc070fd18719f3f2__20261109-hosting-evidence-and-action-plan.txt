@@ -1,0 +1,140 @@
+Hosting evidence & action plan — mapping HIPAA/SOC2 needs to Hosted vs Dedicated vs Private
+
+From: Rishi Malhotra <rishi.malhotra@redwood.com>
+To: Maya Patel <maya.patel@healthsync.io>, HealthSync Procurement <procurement@healthsync.io>
+Cc: Marissa Cole <marissa_cole@redwood.com>, Aditya Rao <aditya_rao@redwood.com>
+Date: 2026-11-07T15:10:00-08:00
+Subject: Hosting evidence & action plan — mapping HIPAA/SOC2 needs to Hosted vs Dedicated vs Private
+
+Hi Maya / HealthSync team,
+
+Thanks again for the demo today — great conversation and helpful context on your data flows. Quick recap and proposed next steps so we can converge on the right deployment mode.
+
+Recap from our call:
+- Primary requirement: processing PHI for clinical summarization; HIPAA compliance + signed BAA is mandatory.
+- Security gating: SOC 2 Type II report requested for vendor approval; redacted report acceptable for initial assessment.
+- Architectural preference: open to Hosted API if isolation + BAA + SOC2 evidence suffice, otherwise Dedicated capacity or Private VPC for stronger isolation and on-prem flexibility.
+- Audit expectations: vendor to provide artifact package (SOC2, KMS details, log retention, network diagrams) and point-of-contact for audit support.
+
+What I need from HealthSync to finalize recommendation:
+1) Estimated steady-state token throughput and concurrent requests (typical peak QPS).
+2) Number of patient records touched per month and data residency preference.
+3) Whether HealthSync requires on-prem deployment (air-gapped) or if VPC-hosted private deployment is acceptable.
+
+What Redwood can provide (next actions we propose):
+- We will share a redacted SOC 2 Type II and our standard BAA template for procurement review.
+- For Hosted: list of additional controls we can enable (customer keying via KMS, private inference keys, audit logs with configurable retention).
+- For Dedicated/Private: architecture checklist and timeline estimate (Dedicated: reserved capacity on our managed infra; Private: VPC or on-prem package + install window).
+
+Attachments: redwood-hosting-options-onepager.pdf (brief on differences & expected timelines).
+
+Proposed next steps:
+- HealthSync to confirm answers to the three items above by EOD Thu 11/12.
+- Redwood to circulate SOC2 redacted bundle and BAA draft by EOD Fri 11/08.
+- Schedule a 30-min follow-up next week to go through options and pick a preferred path.
+
+Thanks — I’m looping Marissa (CS) and Aditya (AM) so they can prep the deployment and commercial side.
+
+— Rishi
+Rishi Malhotra
+Senior Solutions Rep, Redwood Inference
+rishi.malhotra@redwood.com | +1 (415) 555-0134
+
+Attachments: redwood-hosting-options-onepager.pdf (1 page PDF)
+From: Maya Patel <maya.patel@healthsync.io>
+To: Rishi Malhotra <rishi.malhotra@redwood.com>
+Cc: HealthSync Procurement <procurement@healthsync.io>, Marissa Cole <marissa_cole@redwood.com>
+Date: 2026-11-08T09:22:00-05:00
+Subject: Re: Hosting evidence & action plan — mapping HIPAA/SOC2 needs to Hosted vs Dedicated vs Private
+
+Thanks Rishi — good summary. A few clarifying points from our security and procurement teams: 
+
+- HIPAA/BAA: absolutely required. Procurement will only engage with vendors where a signed BAA is possible and the vendor can commit to our minimum data retention and deletion SLAs.
+- SOC2: we need the Type II report for the most recent 12-month period; redacted copy is acceptable for initial review but procurement will want confirmation we can access the unredacted version under an NDA during contract review.
+- Audit: we run annual vendor audits and occasionally ad-hoc requests. Do you support on-demand audit evidence within 30 days?
+- Deployment preference: we'd prefer Hosted API if you can guarantee logical isolation and customer-managed keys. However, if that cannot be reconciled with our procurement requirements we will evaluate Dedicated or Private.
+
+I’m attaching our security intake (short) and a note from procurement describing the approval gating criteria.
+
+Can you confirm: 1) whether Redwood supports KMS integration for customer-managed keys across Hosted and Dedicated; 2) what logs/retention are available for audit (API logs, access logs, admin audit trail) and the retention windows we can configure?
+
+Thanks — happy to hop on another quick call.
+
+— Maya
+Maya Patel | Head of Platform Security, HealthSync
+maya.patel@healthsync.io
+
+Attachments: HealthSync_security_overview.docx (1 doc)
+From: Mina Haddad <mina_haddad@redwood.com>
+To: Maya Patel <maya.patel@healthsync.io>, Rishi Malhotra <rishi.malhotra@redwood.com>
+Cc: Marissa Cole <marissa_cole@redwood.com>, Aditya Rao <aditya_rao@redwood.com>
+Date: 2026-11-08T12:05:00-08:00
+Subject: Re: Hosting evidence & action plan — mapping HIPAA/SOC2 needs to Hosted vs Dedicated vs Private
+
+Hi Maya — I’m Mina from Redwood’s Security & Compliance team. Thanks for the clear asks. Short answers + attachments we can share immediately.
+
+1) KMS / customer-managed keys:
+- Hosted: we support customer-managed keys via major cloud KMS providers (AWS KMS, GCP KMS, Azure Key Vault) for encrypting data at rest; tokenization and inference keys can be scoped per-customer.
+- Dedicated: same KMS integration; you also get network isolation and can pair with customer VPC peering.
+- Private (VPC/on-prem): we support BYOK and HSM integrations for on-prem installs — we will provide guidance during architecture review.
+
+2) Available logs and retention:
+- API request/response audit logs (redacted request bodies on hosted unless requested), admin activity audit trail, billing/usage logs.
+- Default retention: 90 days. Configurable up to 24 months on Dedicated/Private with retention controls.
+- For audit: we can provide filtered exports and a read-only access window for auditors.
+
+3) SOC2 / BAA / audit support:
+- Attached: SOC2-2025-redacted.pdf (redacted Type II report) and BAA_draft_Redwood_v1.pdf (our standard BAA).
+- We can provide the unredacted SOC 2 under NDA for procurement review and support on-demand audit evidence; our standard SLA for on-demand artifact delivery is 14 days, though we’ll commit to 30 days for this engagement if needed.
+- For deeper audits (control-level walkthroughs), we schedule 2–4 weeks in advance — we’ll provide POA&M and architecture docs in advance.
+
+4) Quick recommendation based on your stated constraints:
+- If you can accept Hosted + customer-managed KMS + signed BAA + redacted SOC2 review, we can enable extra isolation controls and on-boarding is fastest (2–3 weeks).
+- If procurement insists on unredacted SOC2 on day 0 or stricter network isolation, Dedicated is recommended (4–6 weeks to Reserve + onboard).
+- For full on-prem or air-gapped requirement, Private deployment is possible but requires a multi-week install and security review (6–12 weeks).
+
+I’ve also attached a short checklist for Private deployment (Private-deploy-checklist.xlsx) showing required artifacts and timelines. I’ll make myself available to join any procurement calls.
+
+— Mina Haddad
+Director, Security & Compliance | Redwood Inference
+mina_haddad@redwood.com
+
+Attachments: SOC2-2025-redacted.pdf, BAA_draft_Redwood_v1.pdf, Private-deploy-checklist.xlsx
+
+> On Nov 7, 2026, at 3:10 PM, Rishi Malhotra <rishi.malhotra@redwood.com> wrote:
+> > Thanks again for the demo today — great conversation and helpful context on your data flows. Quick recap and proposed next steps so we can converge on the right deployment mode.
+> > ... (original message)
+
+From: Rishi Malhotra <rishi.malhotra@redwood.com>
+To: Maya Patel <maya.patel@healthsync.io>, HealthSync Procurement <procurement@healthsync.io>
+Cc: Marissa Cole <marissa_cole@redwood.com>, Aditya Rao <aditya_rao@redwood.com>, Mina Haddad <mina_haddad@redwood.com>
+Date: 2026-11-09T08:30:00-08:00
+Subject: Re: Hosting evidence & action plan — mapping HIPAA/SOC2 needs to Hosted vs Dedicated vs Private
+
+Morning Maya — following up with a short mutual action plan (MAP) and timeline now that we’ve shared the artifacts.
+
+Mutual Action Plan (proposed):
+1) HealthSync to confirm: preferred deployment option (Hosted with CMK / Dedicated / Private) and answers to throughput & data residency questions — target: 11/12 EOD.
+2) Redwood to provide: final SOC2 redacted bundle + BAA draft (sent), and for procurement: NDA template to enable access to unredacted SOC2 — target: 11/08 (sent).
+3) If Hosted selected: onboarding kickoff within 2–3 business weeks after BAA signature.
+4) If Dedicated selected: reserve capacity agreement and timeline estimate within 5 business days of intent; onboarding 4–6 weeks from agreement.
+5) If Private selected: schedule architecture workshop and onsite/install window; estimated 6–12 weeks from SOW signature.
+6) Audit support: Redwood to commit to artifact delivery within 14–30 days depending on scope; we’ll designate Mina as audit POC.
+
+Action items for this email thread: 
+- Maya/Procurement: please confirm deployment choice and provide peak concurrency numbers by EOD 11/12.
+- Rishi/Marissa: prepare pricing for Hosted with CMK and for Dedicated 2-node reserved pool.
+- Mina: hold tentative slots 11/16–11/19 for a procurement walkthrough if HealthSync picks Dedicated/Private.
+
+DocuSign link (BAA draft): https://docusign.com/tenant/abcd-HealthSync-BAA
+HubSpot deal: https://app.hubspot.com/contacts/1234567/deal/HS-2026-0042
+
+I’ll schedule the 30-min follow-up once we get your preference — thanks everyone, and happy to jump on a call to walk procurement/security through the artifacts.
+
+Best,
+Rishi
+Senior Solutions Rep, Redwood Inference
+
+> On Nov 8, 2026, at 12:05 PM, Mina Haddad <mina_haddad@redwood.com> wrote:
+> > Hi Maya — I’m Mina from Redwood’s Security & Compliance team. Thanks for the clear asks. Short answers + attachments we can share immediately.
+> > ... (see attached docs)

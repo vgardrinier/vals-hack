@@ -1,0 +1,110 @@
+Request: add additional audit log fields for Usage Insights CSV export downloads
+
+Requester: Security Engineering (Kevin Osei)
+Service/Area: Usage Insights export (CSV) + signed download URLs
+
+Background
+Security review for Usage Insights beta flagged that our existing audit events for downloads are missing required context to support:
+- Customer requests for “who exported what, when, from where”
+- Restricted workspace controls (cost visibility + exports)
+- Incident response / forensic workflows when a share link or signed URL is used
+
+Problem
+The current audit log entry for export downloads only records a generic “download” action and user identifier. We need additional fields and consistent event naming so that exported cost data can be traced and reconciled.
+
+Request
+Add/extend audit log events for Usage Insights exports with additional fields.
+
+Proposed event names
+1) usage_insights.export.created
+2) usage_insights.export.downloaded
+3) usage_insights.export.failed (optional but preferred)
+
+Required fields (minimum)
+- event_name
+- occurred_at
+- actor_user_id
+- actor_email (or actor_principal if SSO)
+- actor_type (user | api_key | service)
+- workspace_id
+- project_id (nullable)
+- environment (prod/staging)
+- export_job_id
+- export_type (route_model_breakdown | top_cost_drivers | other)
+- time_range_start, time_range_end (ISO-8601; timezone explicit)
+- filters (stringified, canonical order; see notes)
+- resource_scope (workspace | project)
+- rbac_decision (allowed | denied) + denied_reason (if denied)
+- request_ip
+- user_agent
+
+Strongly recommended fields
+- file_name
+- file_size_bytes
+- row_count (if available)
+- signed_url_ttl_seconds
+- download_method (console_ui | api | share_link)
+- share_link_id (if download initiated via share link)
+- region (where the export job executed / where the request was served)
+
+Notes / Constraints
+- Avoid logging raw prompt text or any customer content.
+- “filters” must not include high-cardinality user-provided strings (e.g., arbitrary route names pre-normalization). Prefer logging:
+  - route_template (normalized)
+  - model_family + model_version_bucket
+- If filters are logged as a single string, they should be stable and parseable (e.g., key=value pairs in sorted key order).
+
+Acceptance criteria
+- A successful export flow results in:
+  - created event on export job creation
+  - downloaded event on file retrieval (including when using signed URL)
+- A denied export attempt logs a denied audit event with rbac_decision=denied and denied_reason.
+- Audit fields are present in our central audit sink (same place other console security events land).
+- Fields validated with 2 test cases:
+  - user with Cost Viewer permission exports from console
+  - user without permission attempts export and is denied (audit logs show denial)
+
+Customer/Compliance drivers
+- Supports enterprise security questionnaires and audit requirements (Northstar Fintech-style asks)
+- Supports internal escalation path for discrepancies (ref: SUP-24811 - customer asked for export traceability when totals didn’t match invoice)
+
+Links
+- PR implementing export job + signed URLs: sources/github/redwood/pr-23148-export-csv-endpoint-and-signed-downloads.json
+- RBAC gating PR: sources/github/redwood/pr-23160-rbac-gating-for-cost-and-export.json
+
+---
+Comments
+
+2026-01-27 (Kevin Osei)
+Creating this as an internal support task from the security review thread. Current download audit events don’t include workspace/project, export_job_id, or IP/UA. We need this before enabling beta allowlist beyond the initial handful.
+
+2026-01-28 (Kaitlyn Nguyen)
+Ack. I’ll coordinate with Dylan/Chloe to ensure the export endpoints emit an audit event at both job creation and download. Question: is “filters” acceptable as a JSON blob? (We try to avoid nested payloads in audit sink.)
+
+2026-01-28 (Kevin Osei)
+Prefer a stable string field over nested JSON for now. Key ordering matters; we’ve had issues searching audit logs when the formatting varies. Also please include rbac_decision in the event so we can prove access control enforcement.
+
+2026-01-30 (Dylan Brooks)
+We can emit:
+- export.created when the async export job is queued
+- export.downloaded when the signed URL endpoint is minted (or when the object is fetched?)
+We currently mint URLs server-side; actual object GET happens on storage.
+
+2026-01-30 (Kevin Osei)
+For beta, minting the signed URL is acceptable as “downloaded” if we also include signed_url_ttl_seconds and file_name. Longer term we may add storage access logs correlation, but not required for this milestone.
+
+2026-02-01 (Kaitlyn Nguyen)
+Implemented audit payload additions in the export service. Added denied event for permission failures. Sent PR update request on pr-23148.
+
+2026-02-04 (Kevin Osei)
+Reviewed staging audit sink: events present with workspace_id, export_job_id, IP, UA, and rbac_decision. Filters are in canonical key order, looks good. One nit: actor_email empty for SSO users; can we populate actor_principal?
+
+2026-02-05 (Kaitlyn Nguyen)
+Updated to include actor_principal when email absent. Also added download_method=console_ui. Merged into pr-23148.
+
+2026-02-06 (Kevin Osei)
+Confirmed in prod-like environment. Closing.
+
+Follow-ups
+- Consider adding correlation ID between signed URL mint and storage GET (if/when required by enterprise customers).
+- Consider export.failed emission on warehouse timeouts (nice-to-have).

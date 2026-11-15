@@ -1,0 +1,124 @@
+Private deployment architecture review — scheduling technical deep-dive
+
+From: Vivek Kulkarni <vivek@redwood.com>
+To: Olivia Barnes <olivia.barnes@acmehealth.com>
+Cc: Marissa Cole <marissa@redwood.com>
+Date: Wed, 03 Dec 2025 15:02:00 -0800
+Subject: Private deployment architecture review — scheduling technical deep-dive
+
+Thanks again for the time today, Olivia — really helpful discovery call. Quick recap and proposed next steps so we can lock in a technical deep-dive focused on Private/VPC/on-prem options for Acme Health.
+
+Summary from discovery:
+- Goal: Pilot a private deployment (VPC-anchored) for controlled PHI-handling workloads in Q1.
+- Primary constraints: strict network egress rules, customer-managed KMS, and SOC2-compliant logging.
+- Key internal stakeholders you mentioned: Marcus (Network/Security) and procurement for legal/terms.
+
+Suggested attendees for the architecture review (60–75m):
+- From Acme Health: Olivia Barnes (PM), Marcus Lee (Net/Sec)
+- From Redwood: me (Sales), Marissa Cole (Customer Success), Hiro Tanaka (Solutions Architect), Alex Martinez (Install/Infra lead)
+
+Proposed time slots (PST):
+- Tue Dec 9 — 10:00–11:15
+- Wed Dec 10 — 13:00–14:15
+- Thu Dec 11 — 09:00–10:15
+
+Agenda (high level):
+1) 10 min — introductions & goals
+2) 25 min — proposed private deployment topology & controls
+3) 15 min — security/KMS/network requirements deep-dive
+4) 15–25 min — open questions & next steps (MVP scope + mutual action plan)
+
+Ask: can you confirm which slot works and whether we should add any additional Acme engineers (DBA, infra, compliance)? Also please share any current network diagrams, firewall egress rules, or an internal contact for procurement if NDA/POCs are required.
+
+I attached a short PDF with my discovery notes from today. If Wed Dec 10 at 13:00 PST works, I’ll put an invite on the calendar and include an initial mutual action plan.
+
+— Vivek
+Vivek Kulkarni
+Enterprise Sales
+Redwood Inference
+
+From: Olivia Barnes <olivia.barnes@acmehealth.com>
+To: Vivek Kulkarni <vivek@redwood.com>
+Cc: Marcus Lee <m.lee@acmehealth.com>
+Date: Thu, 04 Dec 2025 08:17:00 -0800
+Subject: Re: Private deployment architecture review — scheduling technical deep-dive
+
+Vivek — thanks for the thorough recap. Wed Dec 10 at 13:00 PST looks good on our side. I looped Marcus here; he'll be the main technical lead for the review.
+
+Couple notes before we lock the invite:
+- We need to confirm whether Redwood can support customer-managed KMS with BYOK in a VPC scenario. If you have a short reference doc, please include.
+- I attached a preliminary network diagram (internal) — blurred on some details for now — but it should help your arch team.
+- Procurement will want an NDA and a rough scope to evaluate before any on-site or long-term commitments. I can share a procurement contact after the call.
+
+If you can include the KMS notes and a one-page agenda in the invite, that would be very helpful. Otherwise, Wed 12/10 13:00 PST confirmed from us.
+
+— Olivia
+Olivia Barnes
+Product Lead, Integrations
+Acme Health
+
+On Wed, Dec 3, 2025 at 3:02 PM Vivek Kulkarni <vivek@redwood.com> wrote:
+> [original message quoted above]
+
+From: Marissa Cole <marissa@redwood.com>
+To: Vivek Kulkarni <vivek@redwood.com>, Hiro Tanaka <hiro@redwood.com>, Alex Martinez <alex@redwood.com>
+Date: Thu, 04 Dec 2025 09:05:00 -0800
+Subject: Fwd: Private deployment architecture review — scheduling technical deep-dive
+
+Looping you both in — Olivia confirmed Wed 12/10 at 13:00 PST. Hiro / Alex: please review the attached agenda I drafted (proposed-agenda.docx) and let me know who should own the KMS + network slides.
+
+Suggested internal ownership:
+- Hiro — end-to-end architecture and KMS patterns (BYOK flow + key rotation notes)
+- Alex — deployment automation, on-prem install considerations, and expected timeline for a pilot
+
+Also? Can we prepare a 1-pager on customer-managed KMS in VPC flows and an example network ACL list to send ahead of the call? Olivia requested KMS notes pre-meeting.
+
+— Marissa
+Customer Success Manager
+Redwood Inference
+
+---------- Forwarded message ---------
+From: Vivek Kulkarni <vivek@redwood.com>
+Date: Wed, Dec 3, 2025 at 3:02 PM
+Subject: Private deployment architecture review — scheduling technical deep-dive
+To: Olivia Barnes <olivia.barnes@acmehealth.com>
+Cc: Marissa Cole <marissa@redwood.com>
+
+[original message]
+From: Vivek Kulkarni <vivek@redwood.com>
+To: Olivia Barnes <olivia.barnes@acmehealth.com>, Marcus Lee <m.lee@acmehealth.com>
+Cc: Marissa Cole <marissa@redwood.com>, Hiro Tanaka <hiro@redwood.com>, Alex Martinez <alex@redwood.com>
+Date: Thu, 04 Dec 2025 09:26:00 -0800
+Subject: Re: Private deployment architecture review — scheduling technical deep-dive
+
+Thanks, Olivia — booking Wed 12/10 at 13:00 PST. Calendar invite: https://calendar.google.com/event?eid=acme-vpc-review-20251210-1300 (includes dial-in and Zoom). HubSpot meeting record created: https://hubspot.com/meetings/ACME-042
+
+Attachments included: mutual-action-plan.xlsx and a short KMS-byok-onepager.pdf for Marcus / procurement to review ahead of the call. Marissa/Hiro/Alex — please review the MAP and the one-pager; I assigned tentative owners in the MAP.
+
+Final attendee list on the invite:
+- Olivia Barnes (Acme)
+- Marcus Lee (Acme)
+- Vivek Kulkarni (Redwood)
+- Marissa Cole (Redwood)
+- Hiro Tanaka (Redwood)
+- Alex Martinez (Redwood)
+
+If Marcus wants a pre-brief with Hiro (15–20m) before the architecture review, we can schedule that as well — happy to do a quick sync.
+
+— Vivek
+Enterprise Sales
+Redwood Inference
+
+Attachments: mutual-action-plan.xlsx, kms-byok-onepager.pdf
+From: Olivia Barnes <olivia.barnes@acmehealth.com>
+To: Vivek Kulkarni <vivek@redwood.com>
+Cc: Marcus Lee <m.lee@acmehealth.com>
+Date: Fri, 05 Dec 2025 10:15:00 -0800
+Subject: Re: Private deployment architecture review — scheduling technical deep-dive
+
+Perfect — invite received and accepted. Marcus asked for the 15–20m pre-brief on Wed at 12:30 PST if your team has capacity; he wants to run through a few firewall/egress specifics before the larger session.
+
+I’ll also follow up with procurement to share an NDA and the PO template after our review. Looking forward to it.
+
+— Olivia
+

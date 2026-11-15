@@ -1,0 +1,66 @@
+sales
+
+Priya N: Heads-up: Sableline POC hit three enterprise blockers and theyre asking for exec help to keep the timeline. Need quick alignment.
+
+Mike C: what are the blockers? can you list them here so eng/legal/sales can triage?
+
+Priya N: 1) KMS throughput: they require HSM-backed envelope keys + ~600 req/s unseal for tokens
+2) SSO: their IdP only emits group names, not email attr, causing SAML mapping failures
+3) Pricing: they want a 30-day dedicated-seat pilot price with convert option to usage after POC
+
+Oliver G: adding color  CISO flagged KMS SLA, legal wants a crypto attestation and vendor confirmation. Customer timeline is tight  expects decision within 10 business days.
+
+Jenn P: Legal can draft a one-page attestation. Need engineering/security to confirm supported cipher suites and HSM vendors we can sign off on.
+
+Mike C: Tech notes: we support customer-managed KMS via mutual-TLS envelope flow. 600 rps is achievable but needs Dedicated with 2x nodes + autoscale thresholds tuned. Latency target they asked: <80ms median for generate/unseal. Provisioning lead time ~48-72h.
+
+Alicia S: CS will coordinate the SLA conversation with Sableline. Priya, can you get exact RPS distribution (burst vs steady), concurrency, and token size?
+
+Priya N: pasted the profile below: 
+``
+-rps: 600 (peaks to 900 for 30s every 5m)
+-concurrency: 40
+-avg payload: 1.2KB
+-prefetch KV cache: yes
+```
+
+Mike C: re: SSO, we can do attribute transforms in our SAML layer to map group -> email-like identifier as a stopgap. Example mapping snippet: 
+``
+SAML: memberOf -> local.groups
+SAML: uid -> user_id
+proxy: map memberOf to stable identifier for provisioning
+```
+This requires a quick config change and test with their IdP.
+
+Jenn P: I'll DM Legal required fields for attestation (HSM vendor, supported ciphers, cert chain, audit cadence). @Anoop can you confirm vendor compatibility and prepare a short attestation template?
+
+Anoop: Ill validate HSM vendor support and produce an attestation draft by EOD tomorrow. If customer insists on their HSM, we need certs and vendor docs. Alternative: temporary Redwood-managed HSM allocation for POC (faster).
+
+Oliver G: Commercial: can approve up to 20% pilot discount on dedicated commit. Deeper discounts need RevOps signoff. Priya, can sales propose a pilot price and conversion terms?
+
+Priya N: I'll propose: 30-day seat-based pilot at 15% discount, option to convert to usage billing at end of pilot. Will present in Thurs call.
+
+Alicia S: Scheduling: Ill book a 30-min architecture call Thurs 10am PT with Sableline. Will include engineering, security, legal, and sales.
+
+Mike C: I'll produce a tech one-pager with perf numbers, required infra bump, and fallback options (Redwood-managed KMS). Deliverable due tomorrow 11:59 PT.
+
+Jenn P: Legal will provide attestation field list and a draft by EOD tomorrow.
+
+Anoop: Security will confirm vendor list + compatibility matrix and attach any caveats. Also recommend we document telemetry and audit access for the POC.
+
+Priya N: Action items recap: 
+- Mike C: tech risk + perf numbers + fallback plan (due: tomorrow 11:59 PT)
+- Jenn P: legal attestation fields + draft (due: tomorrow EOD)
+- Anoop: HSM compatibility + attestation draft (due: tomorrow EOD)
+- Alicia S & Priya N: confirm load profile with customer + run Thurs call (invite sent)
+- Oliver G: pilot pricing proposal & exec ask (draft by Fri 9:00 PT)
+
+Oliver G: Ill draft an exec one-pager summarizing risk, timeline, and ask. Will tag VP-Sales and Head-of-Infra for quick signoff. Priya please +1 when I share.
+
+Priya N: +1. Also note customer prefers customer-managed KMS but will accept Redwood-managed HSM for the POC if it shortens the timeline. Add pros/cons to the one-pager.
+
+Anoop: FYI fallback pros: immediate throughput guarantee, simpler attestation, less dependency on customer ops. Cons: customer may not accept for final deployment. Need to document data separation controls.
+
+account-bot: CRM: Sableline POC start date set to 2026-04-01.
+
+Priya N: thanks everyone  will post meeting notes and next steps after Thurs call. :thumbsup:

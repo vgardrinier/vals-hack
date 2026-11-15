@@ -1,0 +1,76 @@
+sales
+
+Aisha (AE): FYI — Ripcord wants to replace CompetitorX with Redwood for their customer chat. They asked for a short POC to validate parity and cost impact. Main asks: token/cost mapping, prompt parity, and the usual security questionnaire. 3-week target. Need SE + SRE. Anyone available?
+
+Ben (SE): I can take the POC lead. Can you get us sample requests + a few expected outputs? Also need to know whether they use function-calling + streaming + stop-sequences.
+
+Dana (Presales): They do heavy function-calling and stream partial tokens to the client. Also use session-level deterministic prompts (system message pinned).
+
+Chao (SRE): CISO checklist: VPC peering or PrivateLink, SOC2 Type II evidence, KMS-backed keys, cert pinning, IP allowlist, and egress audit. We should confirm if Dedicated or Private is required to satisfy them.
+
+infra-bot: env created: ripcord-poc-staging (ephemeral). token: rip-ps-staging-XXXX (rotates). Access details posted to secure channel.
+
+Ben (SE): Parity plan sketch: build a tiny adapter that translates CompetitorX request shape -> Redwood /v1/chat/completions. Key diffs to watch: CompetitorX sends `passages` not `messages`; they stream chunked lines `data: <json>`; their function-calling schema nests arguments differently. We'll normalize these at the shim.
+
+Ben (SE): Sample mapping (pseudo):
+```
+# competitor -> redwood mapping (pseudo)
+POST /competitorx/generate
+{
+  "passages": [...],
+  "func_call": { "name": "get_price", "args": {...} }
+}
+map -> POST /v1/chat/completions
+{
+  "messages": [...mapped...],
+  "functions": [{"name":"get_price","parameters":...}],
+  "function_call": "get_price"
+}
+```
+
+Ben (SE): For streaming: CompetitorX emits chunked text frames. Redwood streaming returns incremental `delta` tokens. The shim will reframe Redwood events to competitor format.
+
+Chao (SRE): Billing note: CompetitorX rounds per-response and bills only response tokens; Redwood charges prompt+completion. Naive conversion: est_cost_redwood = competitor_tokens * 1.05 + 10 tokens overhead. Recommend running side-by-side collection for 48-72h to get accurate numbers.
+
+Dana (Presales): Heads-up: Ripcord will send a 40-50 page security questionnaire. Need someone to own answers and timeline. Also they asked about SAML SSO + SCIM + contractual data residency.
+
+Ben (SE): Eval harness plan: 1) get 200 canonical prompts from Ripcord; 2) run side-by-side requests to CompetitorX and Redwood; 3) compute semantic-similarity metrics (embedding cosine, BLEU-ish), and human accept rate; 4) flag responses >25% semantic delta for manual triage.
+
+Aisha (AE): Price guidance question: which is a better pitch — Hosted + enterprise add-ons or Dedicated for predictable cost/data isolation for them (1M tokens/day rough)?
+
+Chao (SRE): Dedicated is likely required for their network + cert requirements. Finance should provide hosted vs dedicated bucketed quoting. I'll ping finance for a ballpark.
+
+Dana (Presales): They also want IP allowlist + client cert auth for ingestion endpoints. Are those supported on Hosted?
+
+Ben (SE): Hosted supports IP allowlist and audit log export (S3). Client cert auth and PrivateLink require Dedicated/Private.
+
+Aisha (AE): Next steps & owners: Ben -> POC lead and eval harness; Chao -> staging infra, IPs, temp keys; Dana -> own questionnaire + SSO contact; Aisha -> NDA + customer coordination. Kickoff Monday, 3-week target. OK?
+
+Ben (SE): I'll DM Aisha for the S3 upload link for prompts. Also preparing a small smoke-run script.
+
+Chao (SRE): Staging IPs for allowlist: 34.198.123.45, 34.198.123.46. Staging key TTL 72h. Smoke test: `ncat 34.198.123.45 443 --ssl`.
+
+infra-bot: Deployment: ripcord-poc-canary deployed to dedicated-node-3. Logs: https://console.redwood.ai/logs/ripcord-poc-canary
+
+LegalBot: Please attach the security questionnaire here and ensure the mutual NDA is signed before they share any production PII.
+
+Aisha (AE): I'll send NDA and request a sanitized sample dataset. Assigning owners again: Ben (SE), Chao (SRE), Dana (Presales), Aisha (AE).
+
+Ben (SE): Quick smoke curl (streaming):
+```
+curl -N -H "Authorization: Bearer rip-ps-staging-XXXX" -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"system","content":"You are a helpful assistant."}],"stream":true}' \
+  https://api.redwood.ai/v1/chat/completions
+```
+
+Aisha (AE): :thumbsup: Thanks everyone — I'll update Ripcord and schedule the kickoff. If any blockers surface before Monday, drop them here.
+
+Ben (SE): On it — will push the runbook and smoke scripts to the shared S3 and ping this thread when ready.
+
+Chao (SRE): I'll standby for network peering window. If they need cert pinning, we'll require Private/On-prem.
+
+Dana (Presales): I'll post the security questionnaire template and a short FAQ for common answers.
+
+LegalBot: Reminder: any contract amendments (data processing, encryption, subprocessor list) should go through Legal.
+
+Aisha (AE): Great. Closing the loop after kickoff.

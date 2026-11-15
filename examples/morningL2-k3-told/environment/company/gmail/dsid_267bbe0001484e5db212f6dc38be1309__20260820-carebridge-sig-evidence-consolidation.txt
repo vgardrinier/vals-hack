@@ -1,0 +1,112 @@
+SIG questionnaire & evidence consolidation — CareBridge request
+
+From: Alex Miller <alex.miller@carebridge.com>
+To: evelyn.hart@redwood.ai
+Cc: procurement@carebridge.com
+Date: Fri, 14 Aug 2026 09:12:00 -0700
+Subject: SIG questionnaire & artifacts needed for security review
+
+Hi Evelyn,
+
+Thanks for taking this on. We're starting our vendor security review and the SIG (Standardized Information Gathering) questionnaire was assigned to your team. We need the following artifacts to complete our review:
+- SOC 2 Type II report (or SOC letter + summary)
+- Pen test executive summary (redacted OK)
+- ISO statements (27001/27701 if available)
+- High-level security deck covering incident response, data flows, and encryption
+- Completed SIG spreadsheet (we attached the latest version)
+
+Can you confirm which of these you can share and an ETA? Procurement would like everything consolidated in one secure folder. If there are any items that require an NDA/additional redaction, please call that out.
+
+Thanks — looking to close the review by the 28th.
+
+Alex Miller
+Security Engineer, CareBridge Health
+alex.miller@carebridge.com
+
+-----
+From: Evelyn Hart <evelyn.hart@redwood.ai>
+To: Alex Miller <alex.miller@carebridge.com>
+Cc: dylan.brooks@redwood.ai, rishi.malhotra@redwood.ai
+Date: Sat, 15 Aug 2026 10:03:00 -0700
+Subject: Re: SIG questionnaire & artifacts needed for security review
+
+Alex — thanks for the list and the SIG spreadsheet. We're happy to support. High-level plan below:
+
+- SOC 2 Type II: we can provide a redacted copy of the 2025 report and a short cover letter summarizing scope and most recent monitoring results. Target delivery: EOD Wed (2026-08-19).
+- Pen test: we have a 2026 pen test executive summary that needs minimal redaction. Dylan will handle that and produce a one-page summary plus the redacted PDF. Target delivery: Mon (2026-08-17).
+- ISO: we can provide our ISO27001 statement and certificate scan (if requested).
+- Security deck: I'll attach the current security overview deck; feel free to flag any gaps and we'll expand as needed.
+- SIG spreadsheet: we'll populate your spreadsheet and return with references to the artifact filenames (we'll include links to a secure Drive folder).
+
+Requests / notes:
+- We will place files in a secure Drive folder and share a link with view-only access. If you need an encrypted transfer or SFTP, let me know.
+- Anything that contains customer-identifying data will be redacted (we'll note redactions in the cover letter).
+
+Looping in Dylan (infra/security ops) and Rishi (compliance) to own the pen test and SOC2 uploads.
+
+Thanks,
+Evelyn Hart
+Head of Sales Ops, Redwood Inference
+evelyn.hart@redwood.ai
+(attachment: Redwood_Security_Overview_Deck_v3.pptx)
+
+-----
+From: Evelyn Hart <evelyn.hart@redwood.ai>
+To: dylan.brooks@redwood.ai, rishi.malhotra@redwood.ai
+Date: Sun, 16 Aug 2026 08:21:00 -0700
+Subject: FW: CareBridge SIG — artifacts needed (action items)
+
+Forwarding CareBridge request. Please see the asks and the timeline above. Action items:
+
+- Dylan: prepare the pen test executive summary, perform quick redaction pass, create one-page summary; upload to secure Drive folder and mark filenames exactly as in the SIG (see spreadsheet). Target: Mon 2026-08-17 EOD.
+- Rishi: prepare SOC2 redacted PDF and a two-paragraph cover letter describing scope and applicability; confirm ISO statement availability. Target: Wed 2026-08-19 EOD.
+
+Make sure the Drive folder has restricted sharing and expires in 30 days. Add a small README with notes about redactions and which documents are full vs. summary. If either of you foresee blockers (legal, NDA), call it out here.
+
+Evelyn
+
+-----
+From: Dylan Brooks <dylan.brooks@redwood.ai>
+To: alex.miller@carebridge.com
+Cc: evelyn.hart@redwood.ai, rishi.malhotra@redwood.ai
+Date: Tue, 18 Aug 2026 11:46:00 -0700
+Subject: Re: SIG questionnaire & artifacts needed for security review
+
+Alex — attaching the pen test exec summary (redacted) and the security deck per Evelyn's email. I've uploaded full artifacts to a secure Drive folder (view-only link below). Notes:
+
+- PenTest_Summary_2026_draft.pdf (redacted for test accounts and IPs) — one-page executive summary + attached redacted PDF.
+- Redwood_Security_Overview_Deck_v3.pptx — highlights IR runbook, data flows, and encryption controls.
+- SIG_CareBridge_completed.xlsx — I populated the spreadsheet with pointers to files in the Drive and short answers where the SIG asked for clarifications. Please review the "notes" column for redaction specifics.
+
+Drive (secure, view-only): https://drive.google.com/drive/folders/1aBcdExampleSecureLink
+
+If you need the pen test vendor report itself, we will need to confirm the redaction policy with legal — we can provide a redacted vendor report under an NDA.
+
+Attachments: PenTest_Summary_2026_draft.pdf (attachment stub), SIG_CareBridge_completed.xlsx (attachment stub), Redwood_Security_Overview_Deck_v3.pptx (attachment stub)
+
+Thanks,
+Dylan Brooks
+Senior Security Engineer, Redwood Inference
+dylan.brooks@redwood.ai
+
+-----
+From: Alex Miller <alex.miller@carebridge.com>
+To: dylan.brooks@redwood.ai, evelyn.hart@redwood.ai
+Cc: procurement@carebridge.com
+Date: Fri, 20 Aug 2026 15:04:00 -0700
+Subject: Re: SIG questionnaire & artifacts needed for security review
+
+Dylan, Evelyn — received everything, thanks. I spot-checked the spreadsheet and the drive contents. A few quick items:
+
+- Pen test exec summary looks good; procurement will flag if they need the vendor report (we'll advise on NDA expectations).
+- SOC2 redacted PDF and short cover letter would close the loop for our security review. Can you confirm delivery by EOD Wed (2026-08-25)?
+- We still need the ISO statement as a single-page confirmation for our binder.
+
+Procurement has created a HubSpot ticket for the engagement: https://app.hubspot.com/contacts/1234567/company/CB-2026-34 — I'll update the ticket with the Drive link and mark the items we've accepted.
+
+If you can confirm next steps/timeline in one line that helps our reviewers.
+
+Appreciate the quick turnaround.
+
+Alex
+Security Engineer, CareBridge Health

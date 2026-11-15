@@ -1,0 +1,19 @@
+Invoice STP-2026-0293 from Selbourne Talent Partners
+
+From: Selbourne Talent Partners Billing <billing@selbournetalent.com>
+To: finance@redwood.com
+Date: Fri, 13 Nov 2026 07:04:00 -0800
+Subject: Invoice STP-2026-0293
+
+Hello Redwood Inference finance team,
+
+Please find our invoice details below.
+
+Invoice number: STP-2026-0293
+Invoice date: 2026-11-11
+Due date: 2026-12-11
+Amount due: $4,106.90 USD
+
+Payment by ACH to the account on file. Thank you for your business.
+
+Selbourne Talent Partners billing

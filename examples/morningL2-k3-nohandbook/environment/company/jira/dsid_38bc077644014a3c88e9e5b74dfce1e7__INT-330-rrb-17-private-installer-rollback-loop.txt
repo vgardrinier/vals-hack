@@ -1,0 +1,30 @@
+RRB-17: Private installer rollback loop / stuck rollback during upgrade
+
+Issue summary:
+Customers upgrading Redwood Private 2.8.0 -> 2.9.0 can enter an infinite rollback retry loop. UI shows "Rollback in progress" and never completes.
+
+Impact:
+- Upgrade/rollback does not converge; customer cluster remains in degraded state.
+- Support load + customer trust risk.
+
+Environment:
+- Private installer 2.9.0
+- Kubernetes (various), observed in us-east + eu-west
+
+Suspected root cause:
+Rollback cleanup hook exits before clearing rollback lock (ConfigMap `installer-rollback-lock`), causing controller to retry indefinitely.
+
+Workaround (customer-safe):
+1) Confirm namespace `redwood-private`
+2) `kubectl -n redwood-private delete cm installer-rollback-lock`
+3) `kubectl -n redwood-private rollout restart deploy/installer-controller`
+
+Acceptance criteria / fix:
+- Always best-effort clear lock
+- Add TTL + loop detection to stop retries and surface actionable status
+- Add metric + alert when rollback retries >3 in 10m
+
+Comments:
+- 2026-02-12 Jordan Blake: Related to incident INC-2147. See Slack #incidents thread_ts=1770937323.
+- 2026-02-13 Priya Natarajan: Patch in progress; will land in 2.9.1. PR: redwood-private-installer#842.
+- 2026-02-14 Dev Patel: Added metric `installer.rollback.loop_detected` and proposed alert threshold.

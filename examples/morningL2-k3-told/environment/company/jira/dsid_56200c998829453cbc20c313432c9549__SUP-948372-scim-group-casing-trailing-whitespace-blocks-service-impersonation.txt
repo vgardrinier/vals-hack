@@ -1,0 +1,60 @@
+SCIM-provisioned group names with mixed-case and trailing whitespace prevent service-account impersonation to admin endpoints in private deployment
+
+Issue summary:
+Customer reports that service accounts in their private deployment are unable to impersonate tenant admins even though the service account's token contains the expected group claims from their SCIM provider. Admin API endpoints return 403 Forbidden when called with impersonation header.
+
+Impact:
+- Customer cannot run automated tenant admin tasks (rollouts, grant/revoke roles) from CI.
+- Several operator scripts failing, blocking a release pipeline for Neptune Analytics.
+- Affects only private deployment in us-east; hosted API unaffected.
+
+Environment:
+- Deployment: Private (customer-managed control plane)
+- Region: us-east (customer VPC)
+- Identity provider: Okta via SCIM push
+- Private agent version: 1.14.3
+
+Steps to reproduce (as provided by customer):
+1. Create SCIM group in Okta named "Neptune-Admins " (note trailing space) and add user/service-account to it.
+2. SCIM push syncs group to Redwood private control plane.
+3. Create service account and request token via customer-managed token exchange. Token contains groups claim: ["Neptune-Admins ", "ops-team"].
+4. Call admin endpoint /internal/admin/rollouts with header X-Redwood-Impersonate: sa-jenkins@neptune (service-account)
+5. Receive HTTP 403 with body: {"error":"authorization_failed","reason":"missing required role: tenant-admin"}.
+
+Observed logs (customer-provided, redacted):
+- authz: check_roles failure: subject=sa-jenkins@neptune groups=["Neptune-Admins ","ops-team"] required_role=tenant-admin binding_groups=["neptune-admins","ops-team"]
+- http: 403 /internal/admin/rollouts tenant=neptune principal=sa-jenkins@neptune
+
+Initial hypothesis:
+- SCIM provisioning from Okta includes group display names with trailing whitespace and mixed casing. The private agent's RBAC resolution performs a strict string equality against bindings which are normalized to lowercase and trimmed at bind-time (bindings show "neptune-admins"), but incoming group claims are not normalized (we see "Neptune-Admins "). Mismatch causes RBAC to deny impersonation.
+- Alternate possibility: SCIM connector stores group name as-is in identity store and role binding uses a canonicalized form; mismatch occurs during the claim-to-role mapping step.
+
+Workarounds tested by customer:
+- Manually created a role binding for the literal group name including trailing space (binding name set to "Neptune-Admins ") — impersonation succeeds.
+- Reprovisioned SCIM group without trailing whitespace and with lowercase name -> impersonation succeeds.
+
+Requested outcome from customer:
+- Permanent fix so SCIM-provisioned group names are handled robustly (trim and case-normalize) or role resolution accepts canonicalized variants to avoid fragile bindings.
+
+Attachments provided:
+- SCIM full push payload (redacted) showing group name with trailing-space in displayName.
+- Redacted auth logs.
+- Minimal repro curl commands.
+
+Priority justification:
+- Customer's CI/CD is blocked for tenant admin operations; manual workaround is possible but high operational overhead.
+
+Next steps (support):
+1) Capture full private-agent logs for the relevant time window and confirm the exact string seen by RBAC check. (Assigned)
+2) Reproduce locally in private-agent docker using a SCIM payload with trailing spaces to confirm mismatch. (ENG/SRE)
+3) Propose short-term guidance to customer: prefer canonical group names (no trailing whitespace) or add temporary role binding for the exact string.
+4) If confirmed, scope server-side fix: normalize incoming group claims (trim + lowercase) prior to RBAC evaluation and add unit/integration tests; add migration guidance for existing bindings.
+
+Investigation ETA: 48 hours
+
+2026-03-10 09:12 - Support (Aisha): Customer opened ticket; initial triage performed and asked for SCIM payload + redacted logs.
+2026-03-10 10:04 - Customer (Neptune SRE): Uploaded SCIM push JSON and auth logs. Provided repro steps and confirmed workaround (manual binding) works.
+2026-03-10 14:33 - Support (Aisha): Escalated to SRE/ENG with logs; asked for private-agent log capture and assigned to Rajat.
+2026-03-11 08:47 - Eng (Rajat): Reproduced locally in private-agent container with identical SCIM payload; confirmed group claim preserved trailing whitespace in token claim array and RBAC comparison used binding canonical form, causing mismatch. Filed PR for normalization: https://github.com/redwood-inference/platform/pull/6572
+2026-03-12 12:10 - Support (Aisha): Notified customer of findings and recommended temporary binding for exact string or reprovisioning of SCIM group without trailing whitespace. Customer acknowledged and applying reprovisioning this afternoon.
+Local repro confirms incoming group claim value retains whitespace and casing. RBAC bindings are stored in normalized form (lowercase, trimmed) at bind-time which is asymmetric with incoming claims. The simplest robust fix is to normalize claims at evaluation time (trim + lowercase) and add compatibility unit tests. PR #6572 implements claim-side normalization and adds an e2e that exercises SCIM payloads with whitespace and mixed-case. Need review/QA for private-agent 1.14.x patch and release notes for migration guidance.

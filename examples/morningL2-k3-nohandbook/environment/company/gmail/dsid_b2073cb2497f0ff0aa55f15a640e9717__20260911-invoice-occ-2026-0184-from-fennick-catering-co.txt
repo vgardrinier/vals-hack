@@ -1,0 +1,3 @@
+Invoice OCC-2026-0184 from Fennick Catering Co
+
+From: Fennick Catering Co Billing <billing@fennickcatering.com>\nTo: finance@redwood.com\nDate: Fri, 11 Sep 2026 07:29:00 -0700\nSubject: Invoice OCC-2026-0184\n\nHello Redwood Inference finance team,\n\nPlease find our invoice details below.\n\nInvoice number: OCC-2026-0184\nInvoice date: 2026-09-06\nDue date: 2026-10-06\nAmount due: $1,899.18 USD\n\nPayment by ACH to the account on file. Thank you for your business.\n\nFennick Catering Co billing

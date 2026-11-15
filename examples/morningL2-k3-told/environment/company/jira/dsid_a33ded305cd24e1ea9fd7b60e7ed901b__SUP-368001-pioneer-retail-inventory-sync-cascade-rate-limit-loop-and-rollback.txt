@@ -1,0 +1,41 @@
+PioneerRetail inventory-sync cascade: 5xx surge, rate-limit amplification and emergency model rollback
+
+Issue summary:
+PioneerRetail reported a severe outage during a scheduled inventory sync window where a subset of inference requests began returning 5xx errors and streaming connections reset mid-response. The customer's ingestion pipeline experienced retries that amplified load, pushing their Dedicated GPU pool into memory pressure and triggering autoscaler oscillation.
+
+Impact:
+- Affected approximately 80% of PioneerRetail's inference calls during the 23:40–00:30 UTC window on 2026-03-10.
+- Customer webhooks and streaming sessions experienced mid-stream disconnects; several webhook batches were retried leading to duplicate completions.
+- Business impact: lost inventory update batches, delayed user-visible catalog updates during the peak sync.
+
+Timeline (key events):
+- 2026-03-10 23:38 UTC: PioneerRetail began scheduled inventory sync (large fan-out of inference calls).
+- 2026-03-10 23:45 UTC: Support alerted to increased 5xx rate for customer on Dedicated pool (alert CID-8492).
+- 2026-03-10 23:52 UTC: Autoscaler began rapid scale-up but failed to stabilize due to repeated OOMs on a quantized kernel path.
+- 2026-03-10 00:00 UTC: Support and SRE engaged; initial mitigation attempts included temporary routing to hosted variants but encountered per-customer rate limits and retry amplification.
+- 2026-03-10 00:12 UTC: Emergency rollback to redwood-open-7b-quantized-v1 (previous kernel/version) performed; streaming stability returned and 5xxs subsided by 00:22 UTC.
+
+Steps to reproduce (approx):
+1) Simulate PioneerRetail sync: burst 6k short-sequence requests/second to model redwood-open-7b-quantized-v2 on Dedicated pool with per-request small token counts but high concurrency.
+2) Observe memstats and kernel allocation failures when multiple requests select a new quantized attention kernel under high concurrency.
+3) Trigger retry logic at client side to see amplification of load.
+
+Logs & traces (representative):
+- Error trace: serving-runtime ERR OOM kernel_select quantized_attention v2 at 2026-03-10T23:51:07Z (x-retry-id: r-8b41)
+- Proxy logs: 502 downstream reset connection to upstream: connection reset by peer
+- Dashboard link: https://observability.redwood.ai/d/alerts/INC-2026-0310-003
+
+Hypothesis: A recent kernel compatibility regression in the quantized_attention path (introduced v2) interacts poorly with high-concurrency short-sequence workloads, causing intermittent allocation failures and OOMs. Autoscaler observed the failures as poor utilization and oscillated, which prevented the pool from stabilizing. Customer-side retry/backoff settings amplified load (fan-out pattern), hitting hosted fallback and per-customer rate-limits which fed back into retries. Evidence: matching OOM stack traces from serving-runtime, memory growth patterns on affected GPUs, and increase in retry counters in customer telemetry.
+Actions taken during investigation: collected heap dumps from affected GPU instances, compared kernel selection paths between v1 and v2, replayed a redacted sample of customer's sync traffic in staging to reproduce OOM at ~5k rps. Linked PR to revert kernel change created (see related_github_prs).
+Mitigations applied: 1) Emergency rollback of redwood-open-7b-quantized-v2 -> redwood-open-7b-quantized-v1 for PioneerRetail on Dedicated pool (completed 2026-03-10 00:12 UTC). 2) Temporarily increased Dedicated GPU capacity for customer by +2 nodes and tuned autoscaler thresholds to be less aggressive during scale-up. 3) Granted temporary rate-limit exemptions for PioneerRetail during incident window to avoid hosted fallback 429 amplification. 4) Hotfix PR submitted to revert kernel selector change and add additional safety checks (https://github.com/redwood/serving-runtime/pull/2412). 5) Restored standard limits and capacity after validation window; confirmed 5xx rate returned to baseline by 2026-03-10 00:22 UTC.
+Customer confirmation: PioneerRetail Ops validated inventory sync and accepted temporary measures; no billing adjustments requested at this time but asked for follow-up remediation plan.
+2026-03-10 23:50 - Support (Maya Chen): Initial report from PioneerRetail CS — 5xxs and streaming resets during inventory window; customer reports duplicate completions from retries. Escalated to SRE oncall.
+2026-03-10 23:55 - SRE (Ruben Alvarez): Investigating kernel selection path for quantized models; observing OOMs correlated with new quantized attention kernel. Opening high-priority incident channel #inc-pioneer-retaill.
+2026-03-11 00:05 - Support (Maya Chen): Attempted routing customer to hosted-compatible variant; observed immediate rate-limit 429s on hosted side resulting in retry loop. Reversed routing.
+2026-03-11 00:14 - SRE (Ruben Alvarez): Performed emergency rollback to redwood-open-7b-quantized-v1 for PioneerRetail and temporarily increased Dedicated GPU pool by 2 nodes. Errors decreased; monitoring for stability.
+2026-03-11 01:02 - Customer (PioneerRetail - Ops lead, Elena Kaur): Confirmed inventory sync completed with retries but no data loss; requested written post-incident summary and request for temporary rate-limit exemptions while they validate pipeline.
+SRE: Complete formal revert PR and QA for quantized_attention kernel change (owner: Ruben, due: 2026-03-18)
+Product/Oncall: Add safety circuit to autoscaler to detect repeated OOM patterns and pause scale decisions during kernel-level OOM storms (owner: Priya Desai, due: 2026-03-24)
+DX/Support: Draft customer-facing post-incident summary and remediation timeline for PioneerRetail (owner: Maya Chen, due: 2026-03-12)
+Solutions Engineering: Review PioneerRetail's retry/backoff patterns and provide recommended SDK config and best-practice template (owner: Omar Khalid, due: 2026-03-20)
+Observability: Create a dedicated dashboard and alert for quantized kernel OOMs and per-customer retry amplification (owner: Sandeep Rao, due: 2026-03-16)

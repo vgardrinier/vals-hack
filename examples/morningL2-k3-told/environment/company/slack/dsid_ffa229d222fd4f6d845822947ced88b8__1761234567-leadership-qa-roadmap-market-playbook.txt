@@ -1,0 +1,13 @@
+all-hands
+
+Morgan: Follow-up from today's Q&A: folks asked for clarity on our market position and the immediate roadmap levers. Can leadership give a short, tactical plan we can act on this quarter?
+Asha: TL;DR: double down on what makes leaving costly (migration friction + billing clarity) and what makes staying valuable (predictable perf + ops guarantees).
+Riley: For comms, do we keep a single narrative or two audience-focused ones?
+Priya: Two narratives. Enterprise: "predictable unit economics + SLAs". Startups: "fast iteration + low dev cost". Keep assets separate but consistent.
+Diego: Engineering asks: what are the top 3 shipping priorities? I suggest: adapter for common vendor APIs, per-route cost breakdown in Console, and prefix/KV cache improvements. Low risk, high impact.
+Sam: Product metrics to watch this quarter?
+Morgan: Start with: conversion rate of Dedicated evals, median p95 latency for new customers, and % of support tickets flagged as "billing surprise". Add a migration completion count.
+June: I can run a quick homepage A/B with the two headlines this week.
+Asha: I'll draft the 90-day epic and owners. Priya+Sam will help with field and metrics.
+InfraBot: Note: follow-up doc + epic draft uploaded to Confluence https://confluence.redwood/ah/1761234567
+Morgan: Thanks all. Action owners: Asha (90-day epic), Diego (adapter + cache work), Sam (dashboards), June (A/B test). Reconvene in two weeks.

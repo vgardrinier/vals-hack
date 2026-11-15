@@ -1,0 +1,115 @@
+Licensing entitlement matrix + update timeline — RFI response
+
+From: Michael Hughes <michael.hughes@globex.com>
+To: lauren_bishop@redwood.ai
+Date: Tue, 14 Sep 2026 09:12:00 -0700
+Subject: RFI: licensing entitlements, compatibility matrix, and update cadence
+
+Hi Lauren,
+
+Thanks for taking this RFI — Globex is compiling a vendor comparison for model licensing and operational compatibility. We have a short set of asks to include in our procurement packet. Could you confirm the following items and return any supporting artifacts:
+
+1) Entitlement/permission matrix for common open-model licenses (Apache-2.0, MIT, BSD-3, CC-BY, GPL-3.0): what activities are permitted (serve via hosted API, redistribute, modify, relicense, ship derivative code with product).
+2) How your catalog encodes provenance and supply-chain evidence (origin URL, upstream commit/sha, checksum, SBOM-like manifest).
+3) Pinning and versioning policy: are pinned versions immutable? What is your deprecation/update notification cadence?
+4) Compatibility guidance for derivative-use cases (we need clarity on GPL-3.0 / copyleft concerns).
+5) Whether Redwood can support private hosting of otherwise-encumbered models (Dedicated or Private deployment) and any limitations (KMS, audit logs).
+
+If you can attach a completed entitlement matrix and a short timeline for how you manage updates/patches, that would be ideal. We'd like the response within 72 hours (by Fri 9/17).
+
+Thanks,
+Michael Hughes
+Sr. Manager, Procurement — Globex Corp
+procurement@globex.com
+
+
+From: Lauren Bishop <lauren_bishop@redwood.ai>
+To: Michael Hughes <michael.hughes@globex.com>
+Cc: Aditya Rao <aditya_rao@redwood.ai>, Rishi Malhotra <rishi_malhotra@redwood.ai>
+Date: Tue, 14 Sep 2026 11:03:00 -0700
+Subject: Re: RFI: licensing entitlements, compatibility matrix, and update cadence
+
+Hi Michael —
+
+Appreciate the clear list. High level answers below and attached artifacts (Licensing_Entitlement_Matrix_v1.xlsx, Model_Update_Timeline_v1.pdf). Aditya (legal) and Rishi (runtime) are looped for detailed follow-ups.
+
+Summary (short):
+- Entitlements: each catalog entry includes a standardized license field and an "entitlement_summary" that maps common activities to allowed/disallowed. For permissive licenses (Apache-2.0, MIT, BSD) serving via our hosted API, redistribution, and modification are generally allowed per the license; the matrix spells out exceptions (e.g., attribution requirements). For copyleft licenses (GPL-3.0), we mark redistribution/derivative commercial redistribution as potentially restricted.
+- Provenance: catalog records include origin URL, source archive checksum, upstream commit SHA when available, and a lightweight manifest (SBOM-style) that lists model files, tokenizer, and weight checksums. We also surface a provenance badge on the console.
+- Pinning/versioning: customers can pin exact model versions (catalog: model@2026-06-12) — pinned versions are treated as immutable snapshots in the catalog. We do support controlled rollforwards/rollbacks via rollout policies; these are explicit actions with audit logs and can be automated via the Console or API.
+- Deprecation/updates: standard notice is 30 days for non-critical updates; critical security patches are pushed with a 48–72 hour SLA and customers are notified via webhook + console banner.
+- Private hosting: Dedicated and Private deployments are supported for models with restrictive licenses provided the customer accepts applicable license terms. In Private mode (VPC / on-prem) you control keys (KMS/HSM), and we integrate with your audit/logging frameworks. Note: for hosted (multi-tenant) offering we do not host GPL-3.0 models for commercial redistribution without explicit review.
+
+Next steps we recommend:
+1) Review the attached entitlement matrix (worksheet per license).
+2) If Globex has specific models of interest (e.g., orca-13b-v2), tell us and we will provide the origin manifest and a per-model licensing note.
+3) If you require a signed attestation, we can provide a licensing-attestation PDF and a brief EULA addendum via DocuSign.
+
+Attaching: Licensing_Entitlement_Matrix_v1.xlsx, Model_Update_Timeline_v1.pdf
+
+Best,
+Lauren Bishop
+Director, Product — Redwood Inference
+lauren_bishop@redwood.ai
++1 415-555-0198
+
+
+From: Michael Hughes <michael.hughes@globex.com>
+To: lauren_bishop@redwood.ai
+Cc: procurement@globex.com
+Date: Wed, 15 Sep 2026 08:30:00 -0700
+Subject: Re: RFI: licensing entitlements, compatibility matrix, and update cadence
+
+Thanks Lauren — that was fast and helpful. A couple of clarifying questions before we mark this complete:
+
+1) GPL-3.0: your note says "potentially restricted" — can you be explicit whether using a GPL-3.0–licensed base model for inference-only (no redistribution of model weights) is acceptable via Redwood's hosted API? If we run inference in our product and never distribute weights, does copyleft apply?
+2) Can you provide the origin manifest for orca-13b-v2 and an example checksum for weights? We need to ingest that into our supply-chain registry.
+3) For Private/Dedicated hosting: do you allow customers to bring their own KMS keys (BYOK)? Are audit logs stored per-customer and retained for >= 12 months?
+4) When you say pinned versions are immutable: is immutability cryptographically enforced (checksum/archival) or policy-enforced (we mark as immutable but could replace on request)?
+
+If you can answer inline and attach the manifest, we'll include this in the legal packet.
+
+Regards,
+Michael
+
+
+From: Lauren Bishop <lauren_bishop@redwood.ai>
+To: Michael Hughes <michael.hughes@globex.com>
+Cc: Aditya Rao <aditya_rao@redwood.ai>, Rishi Malhotra <rishi_malhotra@redwood.ai>
+Date: Wed, 15 Sep 2026 13:45:00 -0700
+Subject: Re: RFI: licensing entitlements, compatibility matrix, and update cadence
+
+Michael —
+
+Answering point-by-point below (quoting your questions for clarity).
+
+> 1) "GPL-3.0: your note says 'potentially restricted' — can you be explicit whether using a GPL-3.0–licensed base model for inference-only (no redistribution of model weights) is acceptable via Redwood's hosted API? If we run inference in our product and never distribute weights, does copyleft apply?"
+
+Short answer: copyleft obligations depend on jurisdiction and the precise way the model is used. Practically: serving model inference (queries -> responses) without redistributing the model weights is generally *less likely* to trigger GPL-3.0 redistribution obligations, but it is not a legal guarantee. Our approach: we flag GPL-licensed models in the catalog and surface a compliance advisory. For customers requiring a legal opinion, Aditya's team can provide a written attestation or we can route to outside counsel.
+
+> 2) "Can you provide the origin manifest for orca-13b-v2 and an example checksum for weights? We need to ingest that into our supply-chain registry."
+
+Attached: origin-manifest-orca-13b-v2.json (stub). Example weight checksum (SHA256): b1946ac92492d2347c6235b4d2611184f2c3b1c9d5f6a7b8c9e0d1f2a3b4c5d6. Manifest fields included: origin_url, upstream_commit, tokenizer_sha256, weights_sha256, file_list, build_recipe, provenance_notes. If you need a fully expanded SBOM we can provide a richer export from our onboarding pipeline.
+
+> 3) "For Private/Dedicated hosting: do you allow customers to bring their own KMS keys (BYOK)? Are audit logs stored per-customer and retained for >= 12 months?"
+
+Yes — BYOK for Dedicated and Private deployments is supported. We integrate with customer KMS (AWS KMS, Azure Key Vault, and on-prem HSMs). Audit logs are per-customer and retention is configurable; default enterprise retention is 13 months, and we can extend via an add-on. Logs include request metadata, model version served, and rollout actions.
+
+> 4) "Is immutability cryptographically enforced (checksum/archival) or policy-enforced?"
+
+Both. Catalog snapshots are stored with checksums and immutable object storage (WORM) for pinned snapshots by default in Dedicated/Private customers. For hosted tenants we store archived snapshots with cryptographic checksums and a policy layer that prevents accidental replacement; any intentional replacement requires an audited override and will surface in the audit trail.
+
+We've attached: origin-manifest-orca-13b-v2.json and licensing-attestation-redwood-20260914.pdf. If Globex needs a signed corporate attestation on letterhead, we can arrange DocuSign.
+
+Action items:
+- Michael: confirm whether you want the full SBOM export for orca-13b-v2 and whether Legal would like the attestation signed.
+- Aditya/Rishi: please review and confirm the manifest payload and legal attestation draft (cc'd).
+
+Thanks — happy to hop on a 30-min sync if that helps review the artifacts.
+
+Regards,
+Lauren Bishop
+Director, Product — Redwood Inference
+lauren_bishop@redwood.ai
+
+Attachments: origin-manifest-orca-13b-v2.json (manifest stub), licensing-attestation-redwood-20260914.pdf (attestation stub)

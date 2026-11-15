@@ -1,0 +1,94 @@
+CPPO: CloudZone entitlement matrix & test-instance plan
+
+From: Markus Klein <markus.klein@redwood.inference>
+To: Nina Patel <nina@cloudzone.example>, Ben Carter <ben.carter@redwood.inference>, Irene Choi <irene.choi@redwood.inference>
+Cc: Vanessa Ortiz <vanessa.ortiz@redwood.inference>
+Date: Sat, 10 Jan 2026 15:22:00 -0800
+Subject: CPPO: CloudZone entitlement matrix & test-instance plan
+
+Nina / CloudZone team —
+
+Thanks for taking the call earlier. To keep momentum for the Channel Partner Private Offer (CPPO) we need to lock two things this week: 1) a per-entity entitlement mapping (which SKUs/entities will bill under CloudZone vs end-customer) and 2) short-lived test instances we can use to validate the listing and co-sell scripts in the AWS console.
+
+Attached is a starter entitlement-mapping.csv with columns for account entity, marketplace-sku, entitlement-type, and invoice-payor. Can you review and fill gaps for your three North American customers we discussed (Acme Retail, NWA Finance, and PilotEdge)? If you prefer, fill the sheet and we’ll import into our provisioning flow.
+
+Test-instance plan: we need one small test instance per customer (t3.medium equivalent) with test-keys and a simple usage example we can run end-to-end (signup -> provisioning -> first inference). Please provide SSH/key access instructions in a plain text stub (test-instance-access.txt). We only need these for 48 hours; we’ll coordinate snapshot+cleanup.
+
+Action items (owners):
+- Nina: fill entitlement-mapping.csv for the three customers by EOD Wed (2026-01-13) and upload signed MOU stub if required.
+- Ben: prep the automated provisioning script that consumes the mapping CSV and returns an entitlement report (Ben will attach a README to the ticket).
+- Irene: prepare security checklist for CPPO evidence (KMS usage, logs, data flow).
+- Vanessa: coordinate DocuSign / signature flow, track HubSpot deal CZ-2026-007.
+
+Attachments: entitlement-mapping.csv (text/csv), test-instance-access.txt (text/plain)
+
+Thanks — let’s keep this tight so we can hit AWS validation next week.
+
+—Markus
+Markus Klein
+Head of Partnerships, Redwood Inference
+markus.klein@redwood.inference
++1 415-555-0192
+
+From: Nina Patel <nina@cloudzone.example>
+To: Markus Klein <markus.klein@redwood.inference>, Ben Carter <ben.carter@redwood.inference>
+Cc: Irene Choi <irene.choi@redwood.inference>
+Date: Mon, 12 Jan 2026 09:11:00 -05:00
+Subject: Re: CPPO: CloudZone entitlement matrix & test-instance plan
+
+Markus, Ben —
+
+Thanks, this is clear. Quick updates from my side:
+- I’ve started populating the entitlement-mapping.csv; Acme and PilotEdge are done, NWA Finance needs final legal entity mapping (our procurement team is out until Wed).
+- For test instances we can provide temporary keys and a bastion host access pattern. I attached a short access stub (test-instance-access.txt) with expiry notes.
+- I also uploaded a signed MOU stub (cloudzone-signed-mou.pdf) — it’s preliminary but should be sufficient for AWS validation.
+
+We’re aligned to get everything by EOD Wed (13th) except the NWA legal mapping; I’ll escalate internally. Tom Briggs from AWS PMO is looped on the validation but not on this thread — he asked us to provide the mapping and instance details before they schedule the CPPO validation window.
+
+Nina Patel
+Head of Alliances, CloudZone
+N: +1 206-555-0145
+
+From: Ben Carter <ben.carter@redwood.inference>
+To: Markus Klein <markus.klein@redwood.inference>, Nina Patel <nina@cloudzone.example>
+Cc: Irene Choi <irene.choi@redwood.inference>, Vanessa Ortiz <vanessa.ortiz@redwood.inference>
+Date: Wed, 13 Jan 2026 08:35:00 -08:00
+Subject: Re: CPPO: CloudZone entitlement matrix & test-instance plan
+
+Perfect — thanks Nina. I ran a dry parse of the CSV and raised two mapping gaps (rows 7 and 12) where the marketplace SKU vs internal product name didn’t match our SKU catalog. I’ll attach a short README to the provisioning job that documents the normalization rules.
+
+Irene — can you confirm the minimal evidence items you need for the security checklist? I want to include them in the provisioning job so the test instances emit the right logs (CloudWatch + S3 retention) and KMS usage markers.
+
+Proposed follow-ups:
+- Quick 20-min sync tomorrow (Thu) to validate the normalized CSV and provisioning job runbook.
+- I’ll provision a sample test instance in our QA account first and share snapshot instructions so CloudZone can reproduce.
+
+Attachments referenced: provisioning-readme.md (stub) — will push to Drive and link in the ticket.
+
+—Ben
+Senior Solutions Engineer, Redwood Inference
+ben.carter@redwood.inference
+
+From: Irene Choi <irene.choi@redwood.inference>
+To: Ben Carter <ben.carter@redwood.inference>, Markus Klein <markus.klein@redwood.inference>, Nina Patel <nina@cloudzone.example>
+Cc: Vanessa Ortiz <vanessa.ortiz@redwood.inference>
+Date: Wed, 14 Jan 2026 11:05:00 -08:00
+Subject: Re: CPPO: CloudZone entitlement matrix & test-instance plan
+
+Thanks all — two quick security confirmations so the evidence package is AWS-ready: 
+1) KMS: test instances must use a customer-managed CMK (either CloudZone-owned or a shared CMK with an explicit key policy). Please indicate in the CSV whether the billing entity will own the CMK.
+2) Logs & retention: provisioning job must enable CloudWatch logs and push inference logs to a dedicated S3 bucket with 90-day retention and versioning disabled. We also need a short audit note (one paragraph) describing where token-level trace artifacts are stored and who has access.
+
+If Nina can mark the CMK ownership column in the CSV and Ben can ensure the provisioning job sets the CloudWatch->S3 export, we can package the evidence and request AWS’s CPPO validation window.
+
+I’ll compile the security checklist into a Drive doc and link it in the HubSpot deal.
+
+—Irene
+Security & Compliance, Redwood Inference
+irene.choi@redwood.inference
+
+
+--Forwarded attachments (stubs)--
+1) entitlement-mapping.csv (text/csv) — columns: entity_name, aws_account_id, marketplace_sku, invoice_payor, cmk_owner, notes
+2) test-instance-access.txt (text/plain) — contains temporary ssh/key instructions and expiry timestamps
+3) cloudzone-signed-mou.pdf (application/pdf) — signed agreement stub (first page only)

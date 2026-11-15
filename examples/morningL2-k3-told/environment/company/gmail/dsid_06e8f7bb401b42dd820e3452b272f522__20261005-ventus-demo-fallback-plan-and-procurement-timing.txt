@@ -1,0 +1,109 @@
+Ventus Health: demo fallback plan & procurement timing
+
+From: Aditya Rao <aditya@redwood.com>
+To: Alex King <alex.king@ventushealth.com>
+Cc: stephanie_nguyen@redwood.com, monica_patel@redwood.com
+Date: Mon, Oct 5, 2026 at 9:12 AM PDT
+Subject: Ventus Health - demo fallback plan (GCP outage + SE travel)
+
+Hi Alex,
+
+Quick heads-up: we saw the GCP regional maintenance yesterday (your team mentioned the incident) and our SE, Stephanie, just flagged an unavoidable travel commitment on 10/6–10/8. Between the platform instability and her travel, I want to propose a fallback plan so we don't lose momentum.
+
+Options I propose (short):
+- Option A (preferred): Split the session into two parts this week — a 30-min architecture + security review (remote) on Thursday 10/8 morning PT and a hands-on walkthrough (recorded or live with backup SE) the following week.
+- Option B: Keep a single 90-min session but move to Wed 10/7 afternoon PT; Monica can cover most hands-on bits if Stephanie is unavailable.
+- Option C: Record a focused demo and follow with a short live Q&A for the core stakeholders.
+
+Logistics / asks for your side:
+- Can procurement confirm PO timing? If PO/contracting takes 1–2 weeks, we can prioritize a short architecture session now and defer hands-on.
+- Will your security team need an on-call engineer present for the walkthrough? If so, please share any specific checklist items they want us to cover.
+
+I've attached a draft agenda and a mutual action plan (MA). If you prefer, I can send calendar hold suggestions once you tell me which option is best.
+
+Attachments: ventus-demo-agenda.pdf, ma-plan-v1.docx
+
+Thanks —
+Aditya Rao
+Account Executive | Redwood Inference
+aditya@redwood.com | (415) 555-0147
+
+From: Alex King <alex.king@ventushealth.com>
+To: Aditya Rao <aditya@redwood.com>
+Cc: contracts@ventushealth.com, security@ventushealth.com
+Date: Mon, Oct 5, 2026 at 10:02 AM PDT
+Subject: Re: Ventus Health - demo fallback plan (GCP outage + SE travel)
+
+Thanks Aditya — appreciate the proactive plan. Quick replies: 
+
+- Procurement: contracts@ventushealth.com here. We're aiming to have PO approval by 10/20 but need final SOW language clarified (a couple of custom terms). I'll escalate but cannot promise earlier than 10/20.
+- Security: we need a short checklist. Key items: data residency guarantees, audit log retention, and the VPC setup you support. We prefer the architecture review first so we can validate controls before any hands-on demos.
+
+So Option A (split session) sounds right to us. Can we do the architecture call Thu 10/8 10:00–10:30 AM PT? If Monica will cover hands-on, that works — otherwise we'll pause the hands-on until we have contracts in place.
+
+Alex King
+Engineering Manager, Ventus Health
+alex.king@ventushealth.com
+
+From: Stephanie Nguyen <stephanie_nguyen@redwood.com>
+To: Aditya Rao <aditya@redwood.com>, Alex King <alex.king@ventushealth.com>
+Cc: monica_patel@redwood.com
+Date: Mon, Oct 5, 2026 at 10:30 AM PDT
+Subject: Re: Ventus Health - demo fallback plan (GCP outage + SE travel)
+
+On Mon, Oct 5, 2026 at 9:12 AM, Aditya Rao <aditya@redwood.com> wrote:
+> Quick heads-up: ...
+
+Thanks for the context — I can confirm I'll be on travel 10/6–10/8 and will have limited connectivity midday on 10/7. I can run the architecture portion remotely on Thu 10/8 10:00 AM PT (happy to do the security walkthrough), but I won't be able to host an extended hands-on sandbox session that week.
+
+Monica — can you backfill the hands-on portion if we want to keep a live demo? If not, I recommend we record the hands-on (my laptop+sandbox) and schedule a 30-min Q&A the next week.
+
+Stephanie Nguyen
+Solutions Engineer | Redwood Inference
+stephanie_nguyen@redwood.com | (510) 555-0182
+
+From: Monica Patel <monica_patel@redwood.com>
+To: Alex King <alex.king@ventushealth.com>, Aditya Rao <aditya@redwood.com>
+Cc: stephanie_nguyen@redwood.com
+Date: Mon, Oct 5, 2026 at 3:05 PM PDT
+Subject: Re: Ventus Health - demo fallback plan (GCP outage + SE travel)
+
+On Mon, Oct 5, 2026 at 10:30 AM, Stephanie Nguyen <stephanie_nguyen@redwood.com> wrote:
+> Monica — can you backfill the hands-on portion if we want to keep a live demo?
+
+I can cover the hands-on for the live session on 10/7 afternoon PT if we go with Option B, but I want to set expectations: I won't be able to run the custom VPC walkthrough end-to-end without Stephanie in the loop (I can cover the app-level flows and the Redwood console operations).
+
+If Alex's team prefers the split approach (Option A), I'm fine to do the live Q&A the week after contracts are clearer. I'll attach the SE runbook we use for split sessions to make the hand-off easier.
+
+Attachment: runbook_steps.txt
+
+—Monica
+Monica Patel
+Customer Success / SE (on demo rotation)
+monica_patel@redwood.com
+
+From: Aditya Rao <aditya@redwood.com>
+To: Alex King <alex.king@ventushealth.com>
+Cc: stephanie_nguyen@redwood.com, monica_patel@redwood.com, contracts@ventushealth.com, security@ventushealth.com
+Date: Wed, Oct 7, 2026 at 8:20 AM PDT
+Subject: Re: Ventus Health - demo fallback plan (GCP outage + SE travel)
+
+Alex / team — consolidating next steps so we have a single plan: 
+
+1) Thu 10/8 10:00–10:30 AM PT — Architecture + security review (remote). Stephanie will lead the call.
+2) Hands-on walkthrough: tentatively the week of 10/19 (Monica to host live or we will send a recorded hands-on + 30-min live Q&A).
+3) Procurement: Aditya to follow up separately with contracts@ventushealth.com for SOW clarifications — Alex noted PO ETA ~10/20. If procurement can accelerate, we'll try to move the hands-on earlier.
+4) Action items: 
+   - Aditya: send calendar invite for 10/8 architecture call (will include agenda + security checklist link).
+   - Stephanie: prep a short security slide (data residency, audit logs, VPC options) for the 10/8 call.
+   - Monica: prepare hands-on runbook and flag any VPC items requiring Stephanie's presence.
+
+DocuSign: I'll include a link to the revised SOW once legal finishes edits: https://docusign.com/envelope/1234-ventus
+Redwood deal record: https://app.redwood.com/deals/VNT-2047
+
+If that all sounds good I'll send the invites and a single mutual-action checklist to track signoffs.
+
+Thanks —
+Aditya
+Aditya Rao | Account Executive, Redwood Inference
+aditya@redwood.com | (415) 555-0147

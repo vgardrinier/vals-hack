@@ -1,0 +1,53 @@
+Sudden elevation in 5xx after soft-throttle threshold caused hedged-retry amplification and runtime worker exhaustion
+
+Issue summary:
+During a mid-morning traffic spike for a dedicated customer (TextLoop Labs) we observed a rapid rise in 5xx responses from the API gateway beginning ~2026-03-09T10:12:00Z. Error rate climbed from baseline ~0.3% to ~7% within 6 minutes and remained elevated for ~45 minutes.
+
+Impact:
+- Customer saw failed requests for both chat and embeddings routes; several upstream calls returned 502/504 and streaming sessions were reset.
+- Affected customer workflows experienced degraded throughput and multiple retry storms.
+- Business impact: degraded SLA for dedicated tenant; support ticket opened by account team.
+
+Environment:
+- Dedicated pool: tenant pinned to a reserved GPU pod group in us-east-1.
+- API Gateway: fronting runtime with per-tenant soft rate-shedding configured at 450 rps.
+- Serving runtime: version rtx-2026-02-20 (threadpool v1.4).
+
+Steps to reproduce (observed pattern):
+1. Tenant ramps from steady 120 rps to ~600 rps over ~3 minutes initiating many concurrent short requests.
+2. API gateway hit soft rate-shedding threshold and began returning 429s to some callers while also issuing hedged retries for slow responses.
+3. Hedged retries amplified upstream load, driving serving-runtime thread saturation and watchdog timeouts; runtimes started soft-restarting (SIGTERM -> restart).
+4. Restarting runtimes caused in-flight KV/prefetch invalidations and transient failures which propagated as 502/504 back to API gateway.
+
+Observed logs/metrics (high level):
+- API gateway 5xx rate: spike to 7.1% (10:12–10:57 UTC).
+- Upstream runtime restarts: ~22 restarts across 5 pods between 10:14–10:30 UTC.
+- Thread pool utilization: sustained 98%+ during peak on affected pods.
+- Hedged retry rate: increased by 12x compared to baseline; retry latency dropped for some requests but net throughput reduced.
+- Error signatures: repeated watchdog timeouts, worker-thread-queue-overflow, and OOMKill absent (no OOM), NVML resets not observed; GPU driver logs clean.
+
+Initial mitigation implemented:
+- Support temporarily disabled hedged retries for the tenant at 10:22 UTC and increased soft-throttle ceiling to 900 rps to allow smoother ramp while engineering investigated.
+- This reduced hedged retries and stabilized runtimes; 5xx rate fell back to ~0.6% by 10:40 UTC.
+
+Notes on uniqueness of this incident:
+- Unlike classic prefetch or NVML reset incidents, this failure chain appears to be driven by a combination of soft-throttling behavior in the API gateway and hedged retry logic amplifying load to the serving runtime until threadpool saturation triggered watchdog restarts.
+
+Timeline reconstructed from traces and metrics: first gateway 429s at 10:12 -> hedged-retry scale at 10:13 -> runtime thread saturation at 10:14 -> restarts 10:14-10:30.
+Hedged-retry implementation (gateway v2) issues: retries are started on perceived latency rather than on explicit upstream errors which can double-request load if tens of outstanding requests exist.
+Serving runtime threadpool sizing: v1.4 uses fixed worker thread count configured by tenant profile. Under sustained concurrent short requests, queueing increased rather than shedding gracefully.
+No evidence of GPU driver resets or OOMs; crash pattern consistent with watchdog-triggered restart due to task queue starvation/timeouts.
+Staging reproduction: enabling hedged retries + rapid burst reproduced worker exhaustion at ~4x baseline concurrent short requests. Disabling retries prevented restart chain.
+Potential root cause: race between gateway soft-shedding + hedged-retries amplification + conservative threadpool behavior in serving runtime leading to exponential load amplification and watchdog kills.
+Related config artifacts: tenant has aggressive prewarm disabled; soft-throttle configured to 450 rps (default for the customer's Dedicated profile).
+2026-03-09 10:20 - Support (Alex Kim): Customer reports sudden increase in failed calls. Collected request IDs and initial API gateway traces. Escalating to SRE.
+2026-03-09 10:28 - SRE (Maya Patel): Identified upstream restart pattern correlated with hedged retry spikes. Applied temporary mitigation: disabled hedged retries for tenant and bumped soft-throttle limit. Monitoring impact.
+2026-03-09 10:45 - Customer (TextLoop Ops): Confirmed errors reduced and most clients recovered after mitigation. Still seeing occasional long tail failures for streaming sessions.
+2026-03-10 09:15 - Platform Eng (Ravi Singh): Collected thread dumps, heap profiles and gateway rate-limiter logs. Noticed threadpool queuing rising sharply when hedged retries active. Preparing hypothesis writeup.
+2026-03-10 14:02 - SRE (Maya Patel): Reproduced similar amplification in a staging harness by enabling hedged-retries under a controlled burst. Filing follow-up INT for rate-limiter behavior change.
+2026-03-11 11:10 - Support (Alex Kim): Notified account team of planned fix and ETA. Customer accepted temporary ramp protection and asked for postmortem.
+Workaround and fixes applied:
+- Short term: hedged retries remain disabled for the tenant until a safe rollout is available; soft-throttle ceiling adjusted. Customer confirmed recovery.
+- Medium term: platform engineering to land PR to change hedged-retry trigger to be adaptive (PR #3321) and add per-tenant amplification guardrails.
+- Long term: runtime to be updated to add queue-aware shedding (change threadpool behavior to expose queue metrics and early shedding) and better backpressure signals to gateway.
+Follow-ups: INT-8420 created to implement and test adaptive retry gating; schedule postmortem and customer-facing summary by 2026-03-15.

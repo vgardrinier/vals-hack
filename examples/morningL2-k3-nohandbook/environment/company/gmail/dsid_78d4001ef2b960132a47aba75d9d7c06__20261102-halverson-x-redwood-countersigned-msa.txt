@@ -1,0 +1,3 @@
+Halverson x Redwood: countersigned MSA
+
+From: Graham Teller <graham.teller@halversondatacenters.com>\nTo: Mireille Ashdown <mireille_ashdown@redwood.com>\nCc: finance@redwood.com\nDate: Mon, 02 Nov 2026 10:22:00 -0800\nSubject: Halverson x Redwood: countersigned MSA\n\nHi Mireille,\n\nAttached is the countersigned Master Services Agreement between Halverson Data Centers and Redwood Inference, effective today. Colocation, power and cross-connect pricing follow Schedule B, and we'll keep invoicing per service, net 30, to finance@redwood.com.\n\nGraham Teller\nAccount Director, Halverson Data Centers

@@ -1,0 +1,3 @@
+Invoice VUM-2026-0474 from Vantor Uptime Monitoring
+
+From: Vantor Uptime Monitoring Billing <billing@vantoruptime.com>\nTo: finance@redwood.com\nDate: Wed, 16 Sep 2026 07:26:00 -0700\nSubject: Invoice VUM-2026-0474\n\nHello Redwood Inference finance team,\n\nPlease find our invoice details below.\n\nInvoice number: VUM-2026-0474\nInvoice date: 2026-09-14\nDue date: 2026-10-14\nAmount due: $2,790.52 USD\n\nPayment by ACH to the account on file. Thank you for your business.\n\nVantor Uptime Monitoring billing

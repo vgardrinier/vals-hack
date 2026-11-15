@@ -1,0 +1,117 @@
+Buyer intake: vendor setup & PO routing — Brightline Materials
+
+From: Evelyn Hart <evelyn.hart@redwoodinference.com>
+To: Jenna Morales <jenna@brightline-mat.com>
+Cc: Markus Klein <markus.klein@redwoodinference.com>, Monica Patel <monica.patel@redwoodinference.com>
+Date: Tue, 12 May 2026 08:15:00 -0700
+Subject: Buyer intake: vendor setup & PO routing — Brightline Materials
+
+Hi Jenna,
+
+Thanks for the intro call today — great to meet you. We need to kick off vendor setup so Finance/AP can route POs and payments correctly. Short checklist of what we need to get you live: 
+
+- Completed Redwood Vendor Intake Form (attached)
+- Signed W-9 or equivalent tax form (legal entity exact name is important)
+- Remit-to address (billing email + physical remit address)
+- ACH authorization or wire instructions (bank name, account number, routing/IBAN, beneficiary name)
+- Entity legal name, tax ID/EIN, and business type (corp/LLC/etc.)
+- Primary AP contact and invoice submission method (email/API/vendor portal)
+- Any special PO routing requirements (PO prefix, GL mapping)
+
+Target timeline: if you can return the items above by end of day Friday (2026-05-15) we can aim to issue first PO the following week. I attached the Vendor Intake Form to this message.
+
+Please confirm who on your side will own providing bank docs and whether you need our vendor portal invite.
+
+Thanks,
+
+Evelyn Hart
+Sr. Procurement Lead
+Redwood Inference
+E: evelyn.hart@redwoodinference.com
+T: +1 415-555-0192
+
+Attachment: Redwood_Vendor_Intake_Form.pdf (2 pages - fillable)
+From: Jenna Morales <jenna@brightline-mat.com>
+To: Evelyn Hart <evelyn.hart@redwoodinference.com>
+Cc: Sam Rivera <sam.r@brightline-mat.com>
+Date: Tue, 12 May 2026 11:02:17 -0400
+Subject: Re: Buyer intake: vendor setup & PO routing — Brightline Materials
+
+Hi Evelyn,
+
+Thanks — and yes, Jenna here. Attaching our completed W-9 and a redacted bank authorization PDF (we can provide the full ACH form over a secure channel).
+
+Quick answers:
+- Legal name on W-9: Brightline Materials, Inc. (matches our tax ID)
+- Remit email: invoices@brightline-mat.com
+- Physical remit: 120 Harbor Ave, Suite 3B, Wilmington, DE 19801
+- AP contact: Sam Rivera (copied) — sam.r@brightline-mat.com, +1 302-555-2234
+- We invoice monthly; first invoice expected for the onboarding charge in early June.
+
+Question: do you require bank letterhead or just the signed ACH form? Also, what PO number format does Redwood expect? Do we need to include any specific fields on the invoice to ensure auto-apply?
+
+Attaching: W9_Brightline_20260512.pdf, bank_authorization_stub.pdf
+
+Best,
+Jenna Morales
+Head of Operations
+Brightline Materials
+jenna@brightline-mat.com
+
+> On Tue, May 12, 2026 at 08:15 AM Evelyn Hart <evelyn.hart@redwoodinference.com> wrote:
+> > Thanks for the intro call today — great to meet you. We need to kick off vendor setup so Finance/AP can route POs and payments correctly...
+From: Markus Klein <markus.klein@redwoodinference.com>
+To: Jenna Morales <jenna@brightline-mat.com>, Evelyn Hart <evelyn.hart@redwoodinference.com>
+Cc: Monica Patel <monica.patel@redwoodinference.com>
+Date: Tue, 12 May 2026 14:20:05 -0700
+Subject: Re: Buyer intake: vendor setup & PO routing — Brightline Materials
+
+Hi Jenna — thanks for the quick turnaround and the attachments. A few clarifications from Finance: 
+
+1) Legal entity verification
+- The vendor name on the W-9 must match the legal name we enter in the vendor master. If Brightline Materials, Inc. is correct, we'll proceed.
+
+2) ACH / Wire requirements
+- For ACH we need the signed ACH authorization form plus either a voided check or bank letterhead confirming account ownership. For wires, please include SWIFT and intermediary bank details if applicable.
+
+3) PO routing / invoice fields
+- Redwood PO format: RW-###### (we'll create the PO and include it in the email to your invoices@ address). Please include the PO number and our tax ID (visible on the PO) on the invoice for auto-apply.
+- Payment terms default to Net30 unless otherwise agreed — if you need earlier terms, flag it now.
+
+4) Next steps / timeline
+- Evelyn will upload the intake form to the vendor record once we receive the final ACH docs.
+- Finance will complete vendor master creation within 3 business days of receiving the bank letterhead + signed ACH.
+
+I've attached a short checklist (Vendor-setup-checklist.xlsx) for your AP team which maps each required doc to the intake field. Let me know if any of the fields are a blocker.
+
+Thanks,
+Markus Klein
+Finance Manager, Payments
+Redwood Inference
+markus.klein@redwoodinference.com
+
+Attachment: Vendor-setup-checklist.xlsx
+From: Evelyn Hart <evelyn.hart@redwoodinference.com>
+To: Jenna Morales <jenna@brightline-mat.com>
+Cc: Markus Klein <markus.klein@redwoodinference.com>, Monica Patel <monica.patel@redwoodinference.com>
+Date: Tue, 12 May 2026 16:05:10 -0700
+Subject: Re: Buyer intake: vendor setup & PO routing — Brightline Materials
+
+Thanks everyone — quick mutual action plan:
+
+- Jenna / Sam: Send bank letterhead or voided check (secure link or encrypted email) by EOD Thu 2026-05-14.
+- Jenna: Confirm whether invoices will be submitted as PDF to invoices@brightline-mat.com or via SFTP/API.
+- Markus: Create vendor master and share vendor ID once complete (target 3 business days after docs).
+- Evelyn: Create initial PO request and ping AP to expect onboarding invoice in early June.
+
+Jenna — could you confirm the expected invoice date and whether you need a supplier onboarding code for the invoice header? If you can sign and return the intake form attached earlier, I'll start the vendor record entry.
+
+Appreciate the quick turnaround — I pasted the HubSpot deal below for reference: https://app.hubspot.com/deals/9743
+
+Best,
+Evelyn Hart
+Sr. Procurement Lead
+Redwood Inference
+
+> On Tue, May 12, 2026 at 02:20 PM Markus Klein <markus.klein@redwoodinference.com> wrote:
+> > Hi Jenna — thanks for the quick turnaround and the attachments. A few clarifications from Finance...

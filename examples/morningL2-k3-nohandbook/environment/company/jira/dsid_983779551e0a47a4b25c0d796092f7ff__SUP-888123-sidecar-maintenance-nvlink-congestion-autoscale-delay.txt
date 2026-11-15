@@ -1,0 +1,49 @@
+Dedicated throughput collapse during autoscale: periodic sidecar maintenance jobs causing NVLink saturation and allocation delays
+
+Issue summary:
+BrightCart reported a sharp drop in steady-state throughput (p50/p95 token throughput down ~40%/60%) on their dedicated pool during nightly maintenance window. Impact: customer-facing inference pipelines experienced increased tail latency and several requests timed out.
+
+Impact:
+- Affected 3 production routes (checkout-reco, cart-summarizer, pricing-explain) with p99 latency spiking from ~220ms to ~2.3s.
+- Throughput drop caused queue growth and temporary 5xx errors for streaming endpoints.
+- Customer SLA risk: sustained for ~18 minutes across two autoscale events.
+
+Environment:
+- dedicated pool: brightcart-prod-reserved-1
+- region: prod-us-east
+- models: open-llama-7b (primary), gpt-neoxt-20b (backup)
+1) Route sustained chat inference traffic to dedicated pool with small multiplexed streams
+2) Observe autoscaler scale-up at ~02:15 UTC triggered by queue depth
+3) Immediately after scale event, noise appears from sidecar maintenance job runs on a subset of hosts
+4) Monitor p99 latency and NVLink utilization; latency spikes and token throughput drops within 1-2 minutes
+- p99 latency: baseline 220ms -> spike to 2.3s
+- token throughput: baseline 12k t/s -> drop to 4.5k t/s
+- NVLink bisection bandwidth utilization: short bursts to 96% across affected hosts
+- GPU allocation queue: mean wait increased from 30ms -> 1.1s
+2026-03-10 02:27 - BrightCart (support): We saw sudden timeouts and streaming disconnects coinciding with your autoscale activity. Can you confirm if any maintenance jobs ran?
+2026-03-10 02:35 - Support (Aisha): Investigating. Pulling metrics and host-level traces. Asked infra to check NVLink counters and sidecar schedules.
+2026-03-10 03:05 - SRE (Liam): Initial host logs show 'maintenance-sidecar: compaction' cron on 6 of 12 pool nodes starting within seconds of autoscale events. NVLink counters show repeated cross-GPU DMA bursts. Hypothesis: maintenance tasks contend with inference KV cache replication and force cross-GPU DMA, saturating NVLink and delaying allocations.
+2026-03-11 09:15 - Infra (Maya): Confirmed a recent sidecar rollout (rev 3.4.1) introduced opportunistic compaction that is not scheduling backoff during high inference load. Opened INT-4421 to track sidecar scheduler fix.
+2026-03-12 14:40 - Support (Aisha): Hotfix applied in prod for BrightCart pool: sidecar compaction throttled via feature-flag; autoscaler cooldown window extended. Request customer to validate; monitoring 48h.
+2026-03-12 16:05 - BrightCart: Observed throughput recovered to expected baselines, p99 latency returned to ~260ms. Will keep monitoring and report any regressions.
+Timeline and findings:
+- 02:12 UTC: queue depth crossed autoscale threshold; autoscaler requested +4 slots.
+- 02:14 UTC: new GPUs allocated and NVLink mesh created; immediately thereafter, sidecar compaction tasks started on a subset of nodes (6/12).
+- Compaction triggered high-volume NVLink DMA (memory shuffles) while serving runtime attempted KV cache warmup and KV replication across devices. NVLink utilization hit sustained ~90% for ~12 minutes causing allocation stalls and reduce effective batch execution throughput.
+- Correlated host metrics: dmesg traces show multiple 'gpu_dma_engine busy' messages; allocator logs show queue lock acquisition times increased by 800-1200ms.
+- Hypothesis validated by repro on staging with sidecar compaction enabled: enabling compaction during warmup reproduces throughput collapse.
+- Related fix: add backoff signals from autoscaler/allocator to sidecar and throttle compaction when inference load above threshold.
+Workaround and fix applied:
+1) Immediate mitigation: feature-flagged off opportunistic compaction on BrightCart pool and set sidecar job backoff during high inference CPU/GPU utilization.
+2) Autoscaler tuning: increased post-scale cooldown from 30s -> 180s to allow KV cache warmup before aggressive scheduling.
+3) Long-term change: INT-4421 created for sidecar scheduler to respect allocator load signals; GH-12567 submitted implementing compaction backoff and NVLink-aware job placement.
+4) Post-mortem actions: add NVLink saturation alerting to dedicated pools; add test to CI to prevent compaction during warmup; coordinate runbook update (see confluence link).
+5) Customer outcome: BrightCart confirmed recovery; monitoring remains in place for 48h.
+
+Follow-ups:
+- INT-4421 (owner: Maya) for scheduler patch and deployment timeline.
+- Add e2e test to ensure sidecars back off during warmup (owner: Platform QA).
+- Track INT-4421 to completion and share ETA with customer
+- Roll GH-12567 through canary and prod across all dedicated pools within 2 weeks
+- Add NVLink saturation dashboards to template alerts for Dedicated customers
+- Verify autoscaler cooldown does not negatively impact cold-start for other tenants

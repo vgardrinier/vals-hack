@@ -1,0 +1,124 @@
+Nebula Tech - Consumption snapshot + peak TPS / budget confirmation
+
+From: Ava Chen <ava_chen@redwood.ai>
+To: Samir Patel <samir@nebula.tech>
+Cc: Priya Ramesh <priya.r@nebula.tech>
+Date: Wed, 10 Jun 2026 15:12:00 -0700
+Subject: Quick recap + asks from today's call (consumption & peak TPS)
+
+Hi Samir / Priya —
+
+Thanks again for the time today. Quick write-up while it's fresh so we can lock the inputs for pricing and the MAP:
+
+Summary from our side:
+- Primary integration: normalized conversational assistant (NLP summarization + clarification flows).
+- Expected production traffic: ~8–15M tokens / month in steady state (initial pilot target ~6M for Q3).
+- Peak windows: batch notification hours plus morning surge — you estimated short bursts up to ~250–350 TPS for ~10–20 minute windows.
+- Critical asks: SLA for 99th latency, burst capacity for short windows, and a target $/1M token price to fit procurement bands.
+
+Open items we need you to confirm so I can lock commercial options:
+1) Confirm a 1–3 month ramp shape (flat vs front-loaded). If you expect a spike on day 1 of release, call that out.
+2) Confirm target $/1M tokens range you have in mind (you mentioned $75–$150 as an internal target on the call).
+3) Who will be the procurement lead and the timeline for an SOW (so we can align DocuSign + security checklist).
+
+Next steps from me: I'll assemble two pricing bands (conservative and aggressive) with explicit burst allowance and proposed MAP. Attaching a short draft proposal + MAP template for intake — feel free to redline.
+
+Attachments: Nebula_Proposal_2026-06.pdf (pricing bands + SLA), mutual_action_plan_nebula.xlsx (MAP template)
+
+If you can confirm items 1–3 above by tomorrow EOD I can send a formal quote and an option for a 30-day pilot.
+
+Thanks,
+Ava Chen
+Account Executive | Redwood Inference
+ava_chen@redwood.ai | +1 (415) 555-0124
+
+
+From: Samir Patel <samir@nebula.tech>
+To: Ava Chen <ava_chen@redwood.ai>
+Cc: Priya Ramesh <priya.r@nebula.tech>
+Date: Wed, 10 Jun 2026 15:27:00 -0700
+Subject: Re: Quick recap + asks from today's call (consumption & peak TPS)
+
+Thanks Ava — great summary. A few clarifications below: 
+
+1) Ramp: Pilot (Q3) will be front-loaded — we expect the first 2 weeks after release to be ~60% of the monthly pilot traffic as many users will discover the feature quickly. After that we see normalizing to the steady state. So plan for a short early spike.
+
+2) Target $/1M tokens: our internal target is in the $90–$130 / 1M range. We want to see options that get us toward the low end if possible (higher volume discounts / committed slab).
+
+3) Procurement lead: Priya Ramesh (cc'd) is the procurement lead — timeline: internal approvals by July 8, SOW signature target July 20. 
+
+Additional notes:
+- Peak TPS: our telemetry team reported simulated loads that hit ~320 TPS for two 12-minute windows during the beta run. We're comfortable with a short burst window (sub-20 minutes) but need explicit burst allowance in the SLA and a fallback model if you need to route to lower-cost models during sustained overload.
+- Security: we'll request the SOC2 + retention policy during procurement; can you share the links?
+
+Happy to hop on a 20-min call if you want to walk pricing bands.
+
+—Samir
+Director of Product, Nebula Tech
+samir@nebula.tech | (312) 555-0117
+
+
+From: Ava Chen <ava_chen@redwood.ai>
+To: Samir Patel <samir@nebula.tech>
+Cc: Priya Ramesh <priya.r@nebula.tech>, Marissa Cole <marissa_cole@redwood.ai>
+Date: Thu, 11 Jun 2026 08:44:00 -0700
+Subject: Re: Quick recap + asks from today's call (consumption & peak TPS)
+
+Samir — thanks for the clarifications and the procurement timeline. Short responses inline below and next steps: 
+
+- Ramp / spike: noted (front-loaded). I'll include a short-duration 'initial surge' allowance in the pricing scenarios (two options: one for normalized steady-state and one that includes a billed-but-guaranteed short burst pool for the first 14 days).
+
+- Pricing range: we'll target two offers that hit $95/1M (committed 6–12 month slab) and $125/1M (month-to-month with burst add-on). Both options will show unit economics and expected monthly invoice at 8M, 12M, and 15M token points.
+
+- SLA / burst handling: proposed approach — guaranteed burst pool covering up to +50% of provisioned 99th TPS for a 20-minute window, and automatic fallback to a compatible quantized model if sustained beyond the burst window with a notice-and-fallback policy. I'll document the fallback behavior clearly in the proposal.
+
+- Security docs: Marissa — can you paste the SOC2 + retention links below?
+
+Next steps (from Redwood):
+1) I'll send the formal proposal + MAP (attached) with two pricing bands by EOD today.
+2) If you'd like, schedule a 20-minute pricing walk-through next week (I have Tue/Wed morning slots PT).
+3) Marissa will attach SOC2 evidence and retention policy links.
+
+If that all looks good I'll prepare the quote for the July 20 SOW target.
+
+Thanks,
+Ava
+
+On Thu, Jun 10, 2026 at 3:27 PM Samir Patel <samir@nebula.tech> wrote:
+> Thanks Ava — great summary. A few clarifications below: 
+> 
+> 1) Ramp: Pilot (Q3) will be front-loaded — we expect the first 2 weeks after release to be ~60% of the monthly pilot traffic as many users will discover the feature quickly. After that we see normalizing to the steady state. So plan for a short early spike.
+> 
+> 2) Target $/1M tokens: our internal target is in the $90–$130 / 1M range. We want to see options that get us toward the low end if possible (higher volume discounts / committed slab).
+> 
+> 3) Procurement lead: Priya Ramesh (cc'd) is the procurement lead — timeline: internal approvals by July 8, SOW signature target July 20. 
+> 
+> Additional notes:
+> - Peak TPS: our telemetry team reported simulated loads that hit ~320 TPS for two 12-minute windows during the beta run. We're comfortable with a short burst window (sub-20 minutes) but need explicit burst allowance in the SLA and a fallback model if you need to route to lower-cost models during sustained overload.
+> - Security: we'll request the SOC2 + retention policy during procurement; can you share the links?
+> 
+> —Samir
+
+
+From: Ava Chen <ava_chen@redwood.ai>
+To: Marissa Cole <marissa_cole@redwood.ai>
+Date: Thu, 11 Jun 2026 09:03:00 -0700
+Subject: Fwd: Nebula Tech - consumption snapshot + peak TPS / budget confirmation — pricing ask
+
+Marissa — quick internal: forwarding Samir's confirmation and the procurement timeline. Key asks for your review:
+
+- Recommended commercial approach for approval:
+  * Option A (Committed slab): 12M token commit / month -> target $95 / 1M (NEB-2026-012-A). Includes 20-minute burst pool at +50% capacity for first 14 days and standard SLA.
+  * Option B (Flex month-to-month): 8–15M elastic -> $125 / 1M with burst add-on pricing and automatic fallback policy (NEB-2026-012-B).
+
+- Requested discount threshold for early-sign (before July 20): can we offer a 7% promotional credit applied to the first two invoices?
+- Attachments: proposal + MAP are attached for customer-facing delivery.
+- Security: Samir asked for SOC2 and retention policy links — can you paste them and confirm expected turnaround for any additional evidence (encryption, KMS notes)?
+
+Please advise if PO approval should go to standard AE discount matrix or sales leader exception. I want to have the formal quote ready by EOD so we can hit July 20.
+
+Thanks,
+Ava
+
+---
+Original attachments: Nebula_Proposal_2026-06.pdf, mutual_action_plan_nebula.xlsx

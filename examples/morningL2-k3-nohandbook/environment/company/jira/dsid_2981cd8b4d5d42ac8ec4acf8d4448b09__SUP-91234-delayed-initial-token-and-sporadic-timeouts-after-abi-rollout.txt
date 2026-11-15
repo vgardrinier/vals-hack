@@ -1,0 +1,61 @@
+Delayed initial token and sporadic request timeouts after runtime ABI + model variant handoff
+
+Issue summary:
+Customer IteraChat reports elevated time-to-first-token (initial token emission stalls of ~1.2s median, spike to 6-8s p95) and intermittent request timeouts (client sees 504) for chat completions after our 2026-03-11 runtime v1.9 rollout and associated model variant swap. Problem appears during session warmup and immediately after model handoff to quantized kernel variants.
+
+Impact:
+- Affected: IteraChat's dedicated pool (capacity-reserved) serving ~120 qps per cluster of rw-instruct-7b-v2-quant.
+- Customer-visible: delayed message appearance and occasional 504 for chat requests; user complaints and degraded UX for active enterprise users.
+- Business: Dedicated-tier SLA risk and support escalation from account team.
+
+Environment:
+- Deployment: Dedicated clusters in us-east-1 using runtime v1.9 (rolled 2026-03-11 02:00 UTC).
+- Models in use: rw-instruct-7b-v2-quant pinned by customer; routing policy allowed fallback to rw-chat-13b-compat.
+- Networking: Private tenant VPC with NAT egress through shared subnet.
+
+Steps to reproduce (customer-provided and verified):
+1) Start a chat session with prompt length ~80 tokens and system message.
+2) Send first user message that triggers generation with streaming enabled.
+3) Observe initial token emission latency and, intermittently, client-side timeout at 30s.
+
+Observed behavior:
+- Median initial-token latency increased from ~120ms to ~1.2s after rollout.
+- p95 initial-token latency up to 6-8s for a subset of sessions.
+- 504 rate increased from ~0.02% to ~1% for IteraChat cluster during the window.
+- Metrics show a spike in per-request cold-starts and a correlated increase in kernel-selection latency.
+
+Expected behavior:
+- First token emission ~<200ms for pinned models under normal load.
+- No increase in 504s attributable to runtime handoff.
+
+Workaround in place:
+- Support pinned IteraChat's cluster to runtime v1.8 and forced a warmup (pre-warming heads and KV cache); preliminary customer reports show normalization of first-token latency.
+
+Logs/metrics snippets (redacted):
+2026-03-11 05:30 UTC: Customer opened ticket and included flamegraph from client-side trace; indicated initial delay on first token after model handoff.
+SRE verified spikes in kernel-selection latency and higher KV cache miss rate for the dedicated pool during rollout window.
+Tracing shows long elapsed time in runtime's model cache warm path: worker process spends ~350-600ms in quantized kernel init for some hosts after handoff.
+Hypothesis A: new kernel selection heuristic in v1.9 defers preferred kernel initialization until first request, producing cold stalls for dedicated pools with variant handoff.
+Hypothesis B: a subtle ABI mismatch between compiled quant kernels and runtime 1.9 causes repeated microrestarts of kernel loader on subset of hosts, increasing cold latency and occasionally causing request to exceed client timeout.
+We observed a correlation between hosts that reported repeated kernel loader logs and elevated p95 TTFB.
+No evidence of increased network latency or NAT exhaustion from VPC flow logs; egress path healthy.
+Related PRs include runtime PR#2784 which changed kernel lazy-init policy and serving PR#890 which modified model handoff gating.
+2026-03-11 07:00 UTC: Scoped impact and applied immediate mitigation: pinned IteraChat's cluster to runtime v1.8 image (rollback) — customer reported improvement.
+2026-03-11 09:15 UTC: Deployed a temporary config flip to force eager kernel init on new hosts in the dedicated fleet (config: eager_kernel_init=true) for IteraChat; measured reduction in cold stalls.
+Opened hotfix PR to add defensive ABI compatibility checks and a fallback path to legacy kernel loader (runtime PR#2796).
+SRE scheduled a canary of hotfix to 3 hosts for 2026-03-14 14:00 UTC and will monitor kv_cache_miss and ttfb p95.
+2026-03-11 06:50 - Janine (CS): Customer reports slow chat starts and 504s after your 1.9 rollout; escalating to SRE/Runtime.
+2026-03-11 07:10 - Diego (SRE): Rolled back IteraChat to runtime v1.8 as a stopgap; asking eng to investigate kernel init paths.
+2026-03-12 11:20 - Priya (Runtime Eng): Reproduced locally with a dedicated-mode harness when kernel_lazy_init is enabled; observed similar 500ms stall per worker during first compilation step.
+2026-03-13 16:05 - Diego (SRE): Canary hotfix PR#2796 created; requesting expedited review for release gating.
+2026-03-14 09:02 - Ava (Support): Customer confirmed decreased latency after rollback; still wants permanent fix and postmortem. Account team requests restoration under SLA once root cause fixed.
+2026-03-14 10:30 - Priya (Runtime Eng): Plan is to land PR#2796, run extended canary, and then roll to Dedicated pools with staged ramp.
+Partial mitigation applied: customer cluster rolled back to runtime v1.8 and eager kernel init enabled for new hosts. Engineering hotfix PR added to add ABI compatibility guard and fallback loader. Change staged for canary and then wider rollout pending verification.
+Complete code review and unit/integration tests for PR#2796 (Priya).
+Execute canary deployment on 3 hosts and collect ttfb p50/p95, kv_cache_miss, and 504 rate over 24h (SRE).
+If canary stable, coordinate staged rollout to Dedicated pools and update customer timeline (Support/Product).
+After rollout, produce a short postmortem describing root cause, timeline, and follow-up actions including improved pre-warm gating and telemetry.
+request_id=6f3a1c9f ttfb_ms=1200 p95_window=2026-03-11T03:20Z cluster=iterachat-ded-03
+5xx_count_window=12 -> 5xx_source=upstream-proxy time_window=2026-03-11T02:00-05:00
+kernel_select_latency_ms p50=40 p95=480 observed_after_1.9_rollout
+kv_cache_miss_rate increased from 3% to 18% for rw-instruct-7b-v2-quant

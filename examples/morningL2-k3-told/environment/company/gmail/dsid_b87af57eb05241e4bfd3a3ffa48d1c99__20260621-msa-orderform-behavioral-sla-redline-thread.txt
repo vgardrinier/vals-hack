@@ -1,0 +1,114 @@
+Order Form & SOW: additional capacity + behavioral SLA redlines
+
+From: Aisha Narang <a.narang@clearskies.ai>
+To: Vanessa Ortiz <vanessa.ortiz@redwoodinference.com>
+Cc: Procurement <procurement@clearskies.ai>
+Date: Mon, 21 Jun 2026 09:12:00 -0700
+Subject: Order form + SOW redlines — additional capacity and SLA ask
+
+Vanessa,
+
+Thanks for the quick demo last week — the team is ready to move forward but we have a few redlines on the Order Form and one SOW tweak we'd like to get agreed before legal signs. Attaching our tracked changes (ClearSkies_OrderForm_v2.docx). High level:
+
+- We need to add an incremental reserved capacity block: +50 reserved GPU-hours / month for the initial 3 months (to pilot burst traffic).
+- We requested a behavioral SLA addendum that measures 95th percentile inference latency per region and a limited credit bucket (rather than full termination rights).
+- A minor request to harmonize data residency language with our internal policy (EU data must remain within EU region when routed).
+
+Can you confirm Redwood can accept the capacity block and provide an estimated delta to monthly fees? Procurement is asking for a finalized Order Form by end of week (Friday 25th). If it helps, we can do a quick call to walk through the tracked changes.
+
+Attachments: ClearSkies_OrderForm_v2.docx (redlined)
+
+Thanks,
+Aisha Narang
+Head of Cloud Operations
+ClearSkies AI
+
+From: Vanessa Ortiz <vanessa.ortiz@redwoodinference.com>
+To: Aisha Narang <a.narang@clearskies.ai>, procurement@clearskies.ai
+Cc: Karthik Iyer <karthik.iyer@redwoodinference.com>, Laura Bennett <laura.bennett@redwoodinference.com>, Jonas Weber <jonas.weber@redwoodinference.com>
+Date: Mon, 21 Jun 2026 10:03:00 -0700
+Subject: Re: Order form + SOW redlines — additional capacity and SLA ask
+
+Aisha — thanks, received and read through your redlines. Appreciate the clear asks. Internal plan and actions below so we can keep momentum: 
+
+Open items (summary):
+- Capacity: +50 reserved GPU-hours / month for months 1–3 (Pilot) — pricing impact needed (Karthik).
+- Behavioral SLA: define metric (95th pct latency), measurement window, and credit cap (legal + product to confirm).
+- Data residency: confirm routing guarantee for EU traffic (Jonas to confirm infra routing).
+- MSA harmonization: check indemnity carveouts and termination language if credit-only SLA is accepted (Laura).
+
+Proposed timeline:
+- Today (EOD): Redwood provides pricing delta + proposed amendment language and an internal redline consolidation.
+- Tue 22 Jun: Legal exchange — we can either exchange tracked changes or use DocuSign for amendments.
+- Thu 24 Jun: Final sign path to allow Procurement to sign by Fri 25 Jun.
+
+Karthik — can you share a short note with the price delta (monthly/ARR impact) and a suggested credit structure we can propose back?
+Laura — if you can scan the MSA sections 4.2 / 7.1 (indemnity / SLA) and flag any no-go positions on a credit-only SLA, that would be great. Jonas — quick check on EU routing feasibility?
+
+I attached a brief internal summary for your review. I can host a 30-min call this afternoon if we need to walk the redlines with ClearSkies.
+
+Attachment: internal_redline_summary.pdf
+
+Best,
+Vanessa Ortiz
+Enterprise Account Executive | Redwood Inference
+vanessa.ortiz@redwoodinference.com | +1 415-555-0132
+
+From: Karthik Iyer <karthik.iyer@redwoodinference.com>
+To: Vanessa Ortiz <vanessa.ortiz@redwoodinference.com>, Aisha Narang <a.narang@clearskies.ai>
+Cc: Laura Bennett <laura.bennett@redwoodinference.com>, Jonas Weber <jonas.weber@redwoodinference.com>
+Date: Mon, 21 Jun 2026 13:15:00 -0700
+Subject: Re: Order form + SOW redlines — additional capacity and SLA ask
+
+Vanessa / Aisha — quick pricing and proposed amendment language below. Numbers are conservative to avoid surprise for procurement.
+
+Pricing delta (monthly):
+- Baseline: existing Order Form monthly fee = $28,400
+- Pilot: +50 reserved GPU-hours / month (months 1–3) at $35 / reserved GPU-hour = +$1,750 / month (one-time pilot months)
+- Proposal: offer a blended pilot credit of $2,250 applied to first invoice (to smooth procurement optics)
+- Estimated ARR impact (run-rate if converted to ongoing): +$21,000 annualized (if customer keeps capacity after pilot).
+
+Proposed amendment snippet for Order Form: 
+"Schedule 1 — Capacity Addendum: For an initial pilot term of three (3) months commencing on execution, Customer will receive an additional block of fifty (50) reserved GPU-hours per month. The monthly fee for the Pilot Block shall be $35 per reserved GPU-hour. Upon mutual agreement to continue the Pilot Block beyond the initial three (3) months, pricing shall convert to Customer's standard reserved rate as reflected in the applicable price schedule. Redwood will apply a one-time invoice credit of $2,250 to Customer's first invoice following execution of this amendment."
+
+Behavioral SLA (suggested language):
+- Metric: 95th percentile inference latency measured daily per region for production traffic (excluding maintenance windows).
+- Remedy: Service credit equal to 5% of monthly charges for each calendar month where the 95th percentile exceeds agreed thresholds, capped at 25% in any month. No termination right solely for latency breaches during the Pilot.
+
+I attached a cleaned orderform with the capacity block tracked (proposed_orderform_v3.docx). If the customer accepts the credit/cap structure, we can move to legal redlines and DocuSign.
+
+Karthik Iyer
+Head of Sales Operations | Redwood Inference
+karthik.iyer@redwoodinference.com
+Attachment: proposed_orderform_v3.docx
+
+On Mon, 21 Jun 2026 at 10:03 Vanessa Ortiz <vanessa.ortiz@redwoodinference.com> wrote:
+> Aisha — thanks, received and read through your redlines. Appreciate the clear asks. Internal plan and actions below so we can keep momentum:...
+From: Laura Bennett <laura.bennett@redwoodinference.com>
+To: Vanessa Ortiz <vanessa.ortiz@redwoodinference.com>, Karthik Iyer <karthik.iyer@redwoodinference.com>
+Cc: Jonas Weber <jonas.weber@redwoodinference.com>, Aisha Narang <a.narang@clearskies.ai>
+Date: Mon, 21 Jun 2026 16:03:00 -0700
+Subject: Re: Order form + SOW redlines — additional capacity and SLA ask
+
+Team / Aisha — I reviewed ClearSkies' tracked changes plus Karthik's suggested amendment language. High-level legal position and recommended edits below.
+
+MSA / SLA notes: 
+- We can accept a credit-only behavioral SLA for the Pilot provided we tighten the measurement window and exclude known maintenance/upgrade windows. Recommend specifying exact measurement tooling (Redwood telemetry) and an appeal window for disputed months.
+- Indemnity: ClearSkies added a broad carveout in their redline. We should preserve Redwood's existing indemnity scope and add a clarifying sentence limiting customer obligations to direct third-party claims arising from Customer data misuse. See attached Redline_MSA_Clearskies.pdf (annotations).
+- Termination: If we agree to credit-only SLA for Pilot, we must retain termination rights for repeated material breaches (e.g., 3 consecutive months exceeding the 95th pct threshold AND failure to remediate). I propose adding a remediation cure period of 30 days.
+- Data residency: Jonas, please confirm whether EU routing can be guaranteed for the pilot. If not, we should add a mitigation clause that routes EU-labeled traffic to Redwood EU regions within 24 hours of detection.
+
+Next steps and proposed workflow: 
+1) Redwood will consolidate edits into a single redline bundle (MSA + Order Form + SOW) and upload to the shared Drive by Tue EOD.
+2) ClearSkies legal can review and either: (a) accept tracked changes; or (b) provide counter-redlines.
+3) If edits are limited to Order Form and SOW (no MSA change), we can proceed via DocuSign; if MSA text changes are needed, we exchange PDFs and require signatory approval from both sides' legal teams.
+
+I attached annotated redlines for Redwood's proposed changes. I recommend we keep the DocuSign path as the default to meet the procurement deadline on Fri, but we should flag any MSA edits as potential blocker. Please confirm if ClearSkies is okay with DocuSign for Order Form + SOW only.
+
+Laura Bennett
+Senior Counsel | Redwood Inference
+laura.bennett@redwoodinference.com | +1 646-555-0199
+Attachments: Redline_MSA_Clearskies.pdf, Redline_OrderForm_annotated.docx
+
+On Mon, 21 Jun 2026 at 13:15 Karthik Iyer <karthik.iyer@redwoodinference.com> wrote:
+> Vanessa / Aisha — quick pricing and proposed amendment language below. Numbers are conservative to avoid surprise for procurement...

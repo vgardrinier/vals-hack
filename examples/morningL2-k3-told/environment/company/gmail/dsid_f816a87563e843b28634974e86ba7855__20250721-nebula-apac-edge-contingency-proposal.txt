@@ -1,0 +1,126 @@
+APAC + tri-geo dedicated capacity — Nebula Labs estimates & contingency lanes
+
+From: Leah Chen <leah.chen@nebulalabs.com>
+To: Jordan Blake <jordan.blake@redwood.ai>
+Date: Mon, 21 Jul 2025 09:14:00 -0700
+Subject: Initial capacity estimate for APAC pilot
+
+Hi Jordan,
+
+Thanks again for the demo last week. We ran some internal traffic simulations and want to share very rough estimates for our APAC pilot and a potential tri-geo fallback plan. High level: 10k concurrent inference sessions at 8k tokens per minute peak, steady-state 2.5k concurrent.
+
+Attached is a simple XLSX with daily token forecasts per region (APAC-heavy) and an initial ask for a dedicated pool in Singapore + a warm fallback in EU. Can you confirm what a recommended starting dedicated SKU would look like (node count / expected sustained throughput)? We also want to understand cost and a short SOW for procurement.
+
+Would be great if you could loop in the capacity/ops person who handles regional onramps.
+
+Leah Chen
+Director, Platform Engineering
+Nebula Labs
+
+Attachment: nebula_capacity_estimates_v2.xlsx
+From: Jordan Blake <jordan.blake@redwood.ai>
+To: Leah Chen <leah.chen@nebulalabs.com>
+Cc: Karthik Iyer <karthik.iyer@redwood.ai>
+Date: Mon, 21 Jul 2025 11:02:00 -07:00
+Subject: Re: Initial capacity estimate for APAC pilot
+
+Hi Leah — thanks for the file and the numbers.
+
+Quick read: those peaks map to a sustained token QPS that suggests a mix of reserved dedicated nodes + burst lanes. Before I propose an exact SKU, two quick asks:
+- Can you confirm peak concurrency distribution by hour (we got the daily aggregate but hourly spikes change the batching profile)?
+- Any hard residency/compliance constraints for Singapore vs Frankfurt?
+
+I'll loop in our regional onramp lead and capacity planner to size a recommended starting pool and contingency fallback. Target: sizing proposal + SOW sketch by end of day tomorrow.
+
+Best,
+Jordan Blake
+Senior Account Exec — Dedicated Capacity
+Redwood Inference
+
+From: Leah Chen <leah.chen@nebulalabs.com>
+To: Jordan Blake <jordan.blake@redwood.ai>
+Cc: Tom Hsu <tom.hsu@nebulalabs.com>
+Date: Mon, 21 Jul 2025 18:30:00 -07:00
+Subject: Re: Initial capacity estimate for APAC pilot
+
+Thanks Jordan — two quick clarifications inline:
+
+- Hourly distribution: attached sheet tab "hourly" has the 95th percentile hourly concurrency for the first 90 days (APAC 70% of peak during their working hours).
+- Data residency: core customer data must remain in Singapore for APAC; EU can be used for model inference for non-personalized pieces.
+
+We also have a procurement lead, procurement@nebulalabs.com, who will want a clear SOW and a commit band (monthly expected spend).
+
+Leah
+
+Attachment: nebula_capacity_estimates_v2.xlsx
+From: Jordan Blake <jordan.blake@redwood.ai>
+To: Irene Choi <irene.choi@redwood.ai>, Karthik Iyer <karthik.iyer@redwood.ai>
+Cc: Leah Chen <leah.chen@nebulalabs.com>, rishi.malhotra@redwood.ai
+Date: Tue, 22 Jul 2025 08:15:00 -07:00
+Subject: Fwd: Initial capacity estimate for APAC pilot — need sizing + fallback lanes
+
+Irene / Karthik — forwarding Nebula's estimates. Key asks:
+- Primary: Singapore dedicated pool that satisfies 10k concurrent peak (70% APAC during local hours) with steady-state ~2.5k.
+- Fallback: warm EU pool to absorb 20% overflow and short-term US burst for cross-region failover.
+- Residency constraint: customer data must stay in SG for APAC traffic.
+
+Tentative timeline: pilot start in Q4; procurement wants SOW and monthly commit bands. Leah, Karthik and I propose we supply:
+  1) a recommended node mix (SKU & count) for initial commit,
+  2) fallback/warm buffer sizing and expected failover latency,
+  3) cost band (reserve + burst).
+
+Can you take a pass on a sizing spreadsheet and a short SOW draft? I attached the customer XLSX to this thread for reference.
+
+— Jordan
+
+> On Mon, Jul 21, 2025 at 11:02 AM Jordan Blake <jordan.blake@redwood.ai> wrote:
+> > Quick read: those peaks map to a sustained token QPS that suggests a mix of reserved dedicated nodes + burst lanes...
+
+From: Irene Choi <irene.choi@redwood.ai>
+To: Jordan Blake <jordan.blake@redwood.ai>, Karthik Iyer <karthik.iyer@redwood.ai>
+Cc: Leah Chen <leah.chen@nebulalabs.com>, Rishi Malhotra <rishi.malhotra@redwood.ai>
+Date: Tue, 22 Jul 2025 10:40:00 -07:00
+Subject: Re: Fwd: Initial capacity estimate for APAC pilot — sizing proposal attached
+
+Jordan / Karthik — taking the lead here. Attached is a first-pass sizing workbook and a 1-page SOW template (SOW highlights + optional burst clauses). Summary of the sizing pass:
+
+- Recommended starting footprint (SG): 12 dedicated rA120 nodes (sustained target ~3.2k concurrent per node with batching & KV cache), which provides headroom for the 95th percentile daily spikes with expected latency SLAs.
+- Warm EU fallback: 4 rA120 nodes kept warm (pre-warmed KV caches + queueing policy) to absorb ~20% overflow.
+- US short-burst lane: use shared burst capacity with guaranteed minimum tokens during launch weeks (no dedicated nodes initially).
+- Expected failover latency: 150–400ms additional routing + cache warm-up for cold keys (we recommend a short prefix caching strategy to reduce impact).
+- Cost: estimate (monthly reserved + expected burst) included in the workbook — see tab "cost_estimate".
+
+Attachments: redwood_sow_template_v1.pdf, nebula_capacity_estimates_v2.xlsx
+
+Action items I propose:
+1) Leah: confirm you can accept the suggested warm EU sizing and US burst approach.
+2) Jordan/Karthik: approve SOW language and commit band ranges so procurement can review.
+
+I can refine the workbook with per-hour queueing simulations if they want a tighter SLA/cost tradeoff.
+
+— Irene
+Capacity Planning Lead
+Redwood Inference
+From: Jordan Blake <jordan.blake@redwood.ai>
+To: Leah Chen <leah.chen@nebulalabs.com>, procurement@nebulalabs.com
+Cc: Irene Choi <irene.choi@redwood.ai>, Karthik Iyer <karthik.iyer@redwood.ai>, Rishi Malhotra <rishi.malhotra@redwood.ai>
+Date: Wed, 23 Jul 2025 14:05:00 -07:00
+Subject: Re: APAC pilot sizing & SOW — next steps for procurement
+
+Hi Leah / Procurement team —
+
+Thanks — Irene's sizing + the SOW template are attached for your review (see redwood_sow_template_v1.pdf). Next steps to move procurement forward:
+
+- Leah / procurement: Could you confirm the expected monthly commit band (ballpark: $200k–$400k/mo) and preferred billing cadence? That lets us lock SKU counts and pricing.
+- Procurement: if you want a standard track SOW vs. a data-residency annex, tell us and we will produce both.
+- Internal: Karthik / Rishi, please prepare a short one-pager on outage/fallback SLA behavior and a procurement-friendly cost table (reserve vs. burst) so procurement can sign off quickly.
+
+Irene, can you circulate the per-hour simulation update by end of day Friday if Leah asks for it?
+
+Thanks all — feel free to reply with redlines.
+
+Jordan Blake
+Senior Account Exec — Dedicated Capacity
+Redwood Inference
+
+Attachments: redwood_sow_template_v1.pdf, nebula_capacity_estimates_v2.xlsx

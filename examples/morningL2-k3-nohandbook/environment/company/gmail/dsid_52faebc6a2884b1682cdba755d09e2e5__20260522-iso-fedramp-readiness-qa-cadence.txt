@@ -1,0 +1,135 @@
+ISO & FedRAMP readiness: evidence cadence, SIG/CAIQ asks, and audit-window dependencies
+
+From: Alice Monroe <alice.monroe@acmebank.com>
+To: marissa.cole@redwood.com
+Cc: secure-audit@brightcompliance.com
+Date: Fri, 22 May 2026 11:13:00 -0400
+Subject: Re: Getting our timelines aligned for ISO+FedRAMP pre-assessment
+
+Hi Marissa,
+
+Thanks for the quick sync yesterday. We wanted to consolidate asks from our internal risk team ahead of the pre-assessment with FedAssess. Two quick things:
+
+1) Are you able to provide a weekly cadence for SIG/CAIQ evidence uploads? Our intake window opens June 8 and the assessor asked for an initial evidence dump two weeks beforehand.
+
+2) For ISO 27001 control testing, can you confirm which control owners will be available for interviews during the audit window (Aug 2–6)? We need names and a rough availability matrix by next Monday.
+
+We also attached the Acme evidence template — if you can map Redwood artifacts to the SIG rows that will save time.
+
+Best,
+Alice
+Alice Monroe
+Sr. Information Risk Manager, Acme Bank
+
+--
+Attachment: acme-evidence-template.xlsx (spreadsheet stub)
+From: marissa.cole@redwood.com
+To: Alice Monroe <alice.monroe@acmebank.com>
+Cc: priyom.das@redwood.com, kimberly.park@redwood.com, grace.oconnor@redwood.com
+Date: Fri, 22 May 2026 11:45:00 -0400
+Subject: Re: Getting our timelines aligned for ISO+FedRAMP pre-assessment
+
+Hi Alice — thanks for the clear ask. Looping in Priyom (compliance lead) and Kimberly (audit manager).
+
+Short answers up front:
+- Weekly SIG/CAIQ uploads: yes, we can do a Wednesday cadence starting June 3 (so first upload June 3, final pre-assessment package June 17). We will mark rows with "submitted / pending / partial" for clarity.
+- ISO interview availability: we will provide a control-owner grid by Monday (May 25). Preliminary owners: Priyom (controls governance), Kimberly (change management), Marissa (vendor boundary and contracts), Grace (privacy policy). I'll confirm exact blocks in the grid.
+
+Attaching our evidence-index snapshot and a revised SIG template mapping as a starter.
+
+Next steps: Priyom — can you confirm the owners and whether we should keep interviews to 45-minute blocks?
+
+Thanks,
+Marissa
+Marissa Cole
+Head of Compliance Programs, Redwood Inference
+Phone: (415) 555-0132
+
+--
+Attachments: evidence-index-snapshot-20260521.csv; SIG-questionnaire-v2.xlsx
+From: priyom.das@redwood.com
+To: marissa.cole@redwood.com, Alice Monroe <alice.monroe@acmebank.com>
+Cc: kimberly.park@redwood.com
+Date: Fri, 22 May 2026 13:02:00 -0400
+Subject: Re: Getting our timelines aligned for ISO+FedRAMP pre-assessment
+
+Thanks Marissa / Alice. A few details from the controls side:
+
+- Interview length: 45 minutes is ideal; 30 min for SMEs where the scope is narrow is OK.
+- Owners & tentative availability (will finalize Monday):
+  * Priyom Das — Controls governance & logging (Aug 2–3 mornings)
+  * Kimberly Park — Configuration/change controls (Aug 4–5 afternoons)
+  * Marissa Cole — Procurement/vendor boundary & contracts (Aug 2 afternoon)
+  * Grace O'Connor — Data classification & privacy controls (Aug 3 all day)
+
+- Evidence cadence: We'll snapshot the evidence index each Tuesday and push package uploads to the shared Drive on Wednesdays. Bright Compliance will handle ingest and metadata tagging.
+
+Questions for Acme:
+1) For SIG: Do you want our control narratives inline in the spreadsheet or as separate PDFs linked in the SIG row? Inline keeps everything in one file; PDFs make versioning easier.
+2) For FedAssess: do you require raw logs for a 30-day window or sampled extracts? We can do either but need to know in advance for extraction timing.
+
+I'll own coordinating the uploads and the interview schedule.
+
+-Priyom
+Priyom Das
+Security & Compliance Manager, Redwood Inference
+
+--
+Quoted-by: "On Fri, 22 May 2026 11:45:00 -0400, marissa.cole@redwood.com wrote:
+> Hi Alice — thanks for the clear ask. Looping in Priyom..."
+From: Alice Monroe <alice.monroe@acmebank.com>
+To: priyom.das@redwood.com, marissa.cole@redwood.com
+Cc: secure-audit@brightcompliance.com
+Date: Mon, 25 May 2026 09:08:00 -0400
+Subject: Re: Getting our timelines aligned for ISO+FedRAMP pre-assessment
+
+Thanks — this helps. Quick clarifications:
+
+- SIG narrative format: please include the short control narrative inline (1–3 sentences) in column G and attach a PDF with screenshots or config extracts in the row link. That hybrid approach works best for us.
+- Logs: FedAssess wants 30 days of raw syslog (UTC) for the period June 1–June 30 for baseline sampling. If you can provide extracts in the CSV format they shared that would speed validation.
+- Interview blocks: can you make the morning blocks start at 9am ET to accommodate our east-coast SMEs?
+
+We'll plan to consume the first SIG upload the week of June 8. Bright Compliance will confirm ingestion once they see the Drive folder.
+
+Appreciate the coordination — looking forward to the grid on Monday.
+
+Best,
+Alice
+From: marissa.cole@redwood.com
+To: Alice Monroe <alice.monroe@acmebank.com>
+Cc: priyom.das@redwood.com, kimberly.park@redwood.com, grace.oconnor@redwood.com
+Date: Mon, 25 May 2026 09:37:00 -0400
+Subject: Re: Getting our timelines aligned for ISO+FedRAMP pre-assessment
+
+Alice — noted and thank you. Action items captured below and attachments included:
+
+Action items:
+- Priyom: produce interview availability grid by EOD Monday (May 25) with 9am ET start times for morning blocks.
+- Priyom: prepare CSV extracts for June 1–30 syslog window and confirm retention/PII redaction plan by May 28.
+- Marissa: finalize SIG inline narratives for the first 50 rows and attach PDFs for the critical system screenshots (will upload Wed).
+- Kimberly: confirm change control artifacts (ticket exports + approval logs) for the SIG mapping.
+
+Attachments uploaded to Drive and attached to this thread: evidence-index-snapshot-20260521.csv, SIG-questionnaire-v2.xlsx, encryption-architecture-diagram.png
+
+If anything changes on Acme's side (e.g., different log window or interview day restrictions), flag it in the Drive comments and we'll adjust. Otherwise we'll aim for the June 3 first upload and June 17 final bundle for FedAssess intake.
+
+I'll schedule a 30-minute working session for Wednesday to walk through the SIG mapping (calendar invite to follow).
+
+Thanks —
+Marissa
+Head of Compliance Programs, Redwood Inference
+
+--
+Attachments: evidence-index-snapshot-20260521.csv; SIG-questionnaire-v2.xlsx; encryption-architecture-diagram.png
+From: marissa.cole@redwood.com
+To: Alice Monroe <alice.monroe@acmebank.com>, priyom.das@redwood.com
+Cc: kimberly.park@redwood.com, grace.oconnor@redwood.com
+Date: Mon, 25 May 2026 09:37:00 -0400
+Subject: Fwd: calendar: SIG mapping working session (invite)
+
+Forwarding the invite — 30 minutes on Wed 2026-06-03 at 09:00 ET. Agenda in the invite: walk SIG rows 1–50, confirm inline narratives vs PDF links, assign owners for outstanding rows.
+
+Marissa
+
+--
+Forwarded message header: From: marissa.cole@redwood.com; Original invite attached as calendar.

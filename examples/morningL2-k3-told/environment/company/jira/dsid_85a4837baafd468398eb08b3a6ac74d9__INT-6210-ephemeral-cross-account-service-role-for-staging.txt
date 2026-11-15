@@ -1,0 +1,52 @@
+Provision ephemeral cross-account service role for staging environment access (AWS & GCP)
+
+Issue summary:
+Request to create an ephemeral, auditable cross-account service role (AWS AssumeRole and GCP service account impersonation) that on-call SREs and designated engineers can assume to reproduce customer issues in staging. This is intended to replace ad-hoc SSH/key sharing and manual account switches.
+
+Impact:
+- Improves reproducibility for customer-facing incidents by enabling safe, time-limited access to staging resources.
+- Reduces security risk from long-lived shared credentials.
+
+Request / goals:
+1) AWS: Create a cross-account IAM role in the 'redwood-staging' org that external Redwood principal accounts (redwood-devops and redwood-oncall) can assume via STS. Role must:
+   - Be assumable only via SAML/MFA or Workload Identity (where applicable).
+   - Grant scoped permissions: s3:GetObject/list on s3://redwood-staging-logs, secretsmanager:GetSecretValue for secrets with tag 'staging-access', ec2:Describe*, eks:Describe*/List, sts:GetCallerIdentity.
+   - Have a maximum session duration of 1 hour by default, configurable to 4 hours with Security approval.
+
+2) GCP: Provide a short-lived service account impersonation path in the staging GCP project that allows 'redwood-oncall' group to impersonate a dedicated ephemeral SA. Permissions scoped to: storage.objects.get/list on staging buckets, container.clusters.get on GKE clusters, secretmanager.versions.access on staged secrets.
+
+Requirements / controls:
+- Access requires enforced MFA for user principals and must be auditable in CloudTrail/Cloud Logging with a distinct audit label (ephemeral-assume:INT-6210).
+- Creation must include automated tag/labels and log sink to central observability (so access instances show up in the Console + SIEM).
+- No direct write privileges to production resources; deny statements or SCPs where necessary to enforce staging-only access.
+- On assumption, an ephemeral tag must be attached to activity (e.g., session name containing ticket key).
+
+Acceptance criteria:
+- Engineers in 'redwood-oncall' can assume the role/impersonate the SA and access only the scoped staging resources for 1 hour.
+- CloudTrail/Cloud Logging shows assume events enriched with INT-6210 tag.
+- Documentation page (Confluence) updated with step-by-step assume instructions and escalation path.
+
+Background/context:
+- Frequent incidents require engineers to jump between multiple cloud accounts. Previous approaches used long-lived keys or shared bastion keys which were insecure. Similar work was discussed in INT-4982 (credential rotation) and INT-5341 (role access groups), but this ticket builds a short-lived cross-account pattern for staging only.
+
+Notes:
+- If a custom OIDC/Short-lived credential broker is preferred, design should be minimal and follow the security playbook.
+- Security review required before enabling 4-hour session limit.
+
+1) From an oncall engineer account in redwood-oncall, follow Confluence assume-role steps to assume the INT-6210 role / impersonate the staging SA.
+2) Run aws sts get-caller-identity and verify session name contains INT-6210.
+3) Attempt allowed actions: aws s3 ls s3://redwood-staging-logs, kubectl get pods --context staging-gke (expect read-only).
+4) Attempt disallowed actions (e.g., write to production S3 bucket) and confirm access denied.
+5) Check CloudTrail/Cloud Logging for assume events and verify labels/tags present.
+- Enforce MFA for user principals.
+- CloudTrail/Cloud Logging must emit assume/impersonation events to central SIEM.
+- Deny policies preventing production writes must be attached or enforced via SCP.
+- Require ticket key in session name.
+- Periodic review: add INT-6210 role to quarterly access review list.
+2026-03-10 10:12 — Aisha Khan: Opening request — need ephemeral cross-account role for staging so oncall can reproduce a recent customer issue that only manifests in staging GKE cluster.
+2026-03-10 14:01 — Security (Maya Patel): Please confirm allowed scopes and whether secrets access needs approval per Secrets Access Policy. Recommend limiting SecretsManager access to secrets tagged 'staging-access'.
+2026-03-11 09:23 — Cloud Ops (Liam O'Connor): Can implement AssumeRole with 1h session length. Need a list of exact ARNs for S3 buckets and GKE clusters. Also proposing to add an explicit Deny for arn:aws:s3:::redwood-prod-* to be safe.
+2026-03-12 16:45 — Aisha Khan: Provided bucket ARNs and cluster names in Confluence. Agreed to 1h default, file for security approval for 4h. Added link to incident reproducer gist.
+2026-03-13 08:30 — Security (Maya Patel): Quick risk review complete, ok to proceed with controls above. 4h extension requires an Ops lead sign-off when used.
+2026-03-14 11:02 — Cloud Ops (Liam O'Connor): Role created in AWS staging account and a staging impersonation path established in GCP. Pending final verification steps and Confluence updates.
+Work in progress — AWS role and GCP impersonation created; final verification and documentation updates pending security-approved session policy.

@@ -1,0 +1,61 @@
+SSE trailing chunk suppressed when connection priority shifts during idle probe
+
+Issue summary:
+Customer InsightMaps reports intermittent truncated streaming responses (final paragraph or punctuation missing) when long-running SSE sessions are idle and the edge load-balancer elevates connection priority for health probes. Impact: user-facing summaries occasionally drop the last sentence, producing malformed JSON arrays for batched choices and missing 'end' delimiter.
+
+Impact:
+- ~12% of streaming requests from a single customer fleet experienced a missing terminal chunk in the last 24 hours.
+- Consumers see incomplete JSON arrays or missing closing punctuation, requiring clients to retry or re-request the full response.
+
+Environment:
+- Production, us-east cluster behind corporate ALB + vendor http2 offload (observed on dedicated pool for InsightMaps).
+- Model: redwood/open-7b-v2 pinned for this customer; fallback configured to redwood/compat-fallback-small.
+
+Steps to reproduce (observed reliably under load):
+1) Create a long streaming SSE request that yields >1200 tokens over ~18s.
+2) Let client idle for ~9–12s during midstream (simulate user backgrounding).
+3) Trigger ALB health probe heavy-priority bump or short connection preemption (we reproduced using probe schedule change).
+4) Resume client; observe final chunk missing in ~2–3 of 10 runs.
+
+Observed behavior:
+- Final SSE boundary or closing JSON element is absent. Chunk logs show server emitted final fragment but ALB performed a priority shift and HTTP/2 stream reset during the last keepalive window; the final fragment appears in upstream worker logs but not in the stream delivered to client (gap at socket handoff).
+
+Expected behavior:
+- Final fragment should be delivered or, at minimum, the stream should be deterministically terminated with an end marker so client can fall back safely.
+
+Logs / evidence:
+- Customer-provided client logs attached (truncated_payload_20260312.log).
+- Upstream worker logs show final write with timestamp 2026-03-12T14:03:21.342Z and flush success metric.
+- ALB traces show PRIORITY_BUMP event at 2026-03-12T14:03:21.365Z and an HTTP2 STREAM_RESET for the affected stream id 0x1f.
+- Tracing correlation: trace id trace-9931 linked to request id r-7f4b2c.
+
+Workaround (customer-facing):
+- Temporary: pin the customer to a provisioned Dedicated pool behind a simpler L4 path to avoid ALB http2 priority probing.
+- Client-side mitigation: detect missing terminal JSON token and auto-request a short completion retry.
+
+Initial hypothesis:
+- ALB priority elevation while a worker is mid-flush can cause stream rebind that drops the last TCP/HTTP/2 frames when using HTTP/2 proxy with idle-probe aggressive scheduling.
+- The serving runtime marks the fragment as sent, but edge-level preemption cancels deliverability during socket handoff.
+
+Next steps / Runbook actions taken so far:
+- Support repro on staging with identical ALB config (done, reproduced 3/5 runs).
+- Captured pcap at edge and worker (stored as artifacts/pcaps/SUP-909101/).
+- Eng assigned: Miguel Torres and Erika Nguyen. Eng to validate whether adding a final flush-and-close handshake or delaying priority preemption for streaming-affinity sessions prevents loss.
+- Temporary routing change executed for the customer to bypass ALB HTTP/2 pasthrough (scheduled 2026-03-13 02:00 UTC).
+
+SLA / Timeline:
+- First response SLA met (2026-03-12). Customer informed of mitigation (routing change) 2026-03-13. Root cause ETA: 2026-03-18 pending kernel-level confirmation and ALB vendor follow-up.
+2026-03-12 15:02 — Asha Patel: Customer reported truncated summaries after backgrounding the app; they attached sample trace and client logs.
+2026-03-12 17:30 — Miguel Torres: Reproduced on staging with identical ALB config; capture attached. Hypothesis: ALB priority bump collides with last-frame flush.
+2026-03-13 03:10 — Erika Nguyen: Confirmed ALB STREAM_RESET coincides with worker flush; filing vendor support ticket with ALB. Escalating to infra for L4 bypass for affected tenant.
+2026-03-14 09:45 — Miguel Torres: Performed controlled test with final-flush handshake (send finish marker, then close after ack) — reduced loss from 40% to 5% in staging. Need perf review before prod rollout.
+2026-03-14 12:00 — Customer Success (Rohit Malhotra): Customer accepted temporary L4 routing while fix is validated; monitoring metrics show improved success rate.
+2026-03-14 13:20 — Miguel Torres: Creating follow-up INT ticket for vendor kernel-mode investigation and scheduler tweak.
+
+Captured worker write timestamps vs ALB events — final write timestamp precedes ALB priority event by ~23ms, but ALB appears to drop last frames during rebind.
+HTTP/2 GOAWAY not present; instead we see STREAM_RESET (REFUSED_STREAM) originating from ALB path. Possible ALB behavior under high probe pressure.
+Serving runtime uses non-blocking socket with flush-on-demand; adding explicit drain-and-close handshake likely to increase reliability at cost of micro-latency.
+Reproduction includes a narrow timing window (7–30ms) which explains intermittent nature across customers with different network stacks.
+Related tickets: SUP-314200 (sse-final-frame-dropped-after-http2-graceful-shutdown) — similar symptom but root cause differs (shutdown vs priority preemption).
+Draft patch: add final-ack handshake in runtime for SSE streaming sessions when ALB http2 proxy detected; perf bench required.
+

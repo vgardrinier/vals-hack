@@ -1,0 +1,128 @@
+Consolidation RFP: Intercom / Zendesk / Gainsight — next steps
+
+From: Karthik Iyer <karthik_iyer@redwood.ai>
+To: Marissa Cole <marissa_cole@redwood.ai>, Ben Carter <ben_carter@redwood.ai>
+Cc: Laura Bennett <laura_bennett@redwood.ai>
+Date: Tue, 27 Oct 2026 09:12:00 -0700
+Subject: RFP for support tooling consolidation (Intercom/Zendesk/Gainsight)
+
+Team —
+
+As we discussed in last week's ops review, it's time to evaluate a consolidation strategy for our support & CS stack. Current drivers: rising seat/license spend, inconsistent routing (Intercom for chat, Zendesk for tickets), and limited account health visibility in Gainsight.
+
+Attached is a draft RFP that outlines scope: agent seats, chat routing, enterprise SSO/KMS, integration cadence with our data warehouse, and a 12‑month cost comparison. Please review the sections relevant to your teams and flag any must-have items by EOW (Friday).
+
+Key asks:
+- Marissa: operational requirements and escalation playbook
+- Ben: integrations & webhooks (what will break if we consolidate?)
+- Laura: procurement/finance constraints and preferred contracting terms
+- Evelyn: data residency/KMS + SOC2 gaps we must call out to vendors
+
+I'll coordinate vendor calls next week (Zendesk/Intercom/Gainsight + our partner integrator).
+
+Thanks,
+Karthik
+Senior Sales Operations Manager
+Redwood Inference
+
+Attachment: 20261027-support-tools-rfp.pdf
+From: Marissa Cole <marissa_cole@redwood.ai>
+To: Karthik Iyer <karthik_iyer@redwood.ai>, Ben Carter <ben_carter@redwood.ai>
+Cc: Laura Bennett <laura_bennett@redwood.ai>, Evelyn Hart <evelyn_hart@redwood.ai>
+Date: Wed, 28 Oct 2026 11:03:00 -0700
+Subject: Re: RFP for support tooling consolidation (Intercom/Zendesk/Gainsight)
+
+Thanks Karthik — reviewed the RFP. A few ops notes inline:
+
+- Must have: unified SLA-based routing for enterprise customers (>=99.5% first response for platinum).
+- We need a funnel for async support handoffs (chat->ticket->CS) with preserved conversation context (including attachments).
+- Reporting: daily SLA exceptions for L2 on-call, and a shared incident timeline export for SEs.
+
+Ben: I'm going to add a short doc with the webhook events we rely on — please confirm if any are non-negotiable.
+
+Marissa
+VP, Customer Support
+Redwood Inference
+
+On Wed, Oct 28, 2026 at 09:12, Ben Carter <ben_carter@redwood.ai> wrote:
+> Karthik — will dig into integrations. Quick flag: our live transcript exporter calls Intercom v2 webhooks and Zendesk's ticket import is used by the ingestion pipeline. If we standardize on one vendor we'll need a migration window and attachment rehydration plan.
+>
+> —Ben
+From: Ben Carter <ben_carter@redwood.ai>
+To: Zendesk Sales <sales@zendesk.com>, Intercom Renewals <renewals@intercom.com>, Gainsight Solutions <solutions@gainsight.com>
+Cc: Karthik Iyer <karthik_iyer@redwood.ai>, Marissa Cole <marissa_cole@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>
+Date: Thu, 29 Oct 2026 08:45:00 -0700
+Subject: Request for capability confirmation + short discovery call (Redwood Inference)
+
+Hi team —
+
+We're running a short RFP to evaluate consolidation options across chat, ticketing, and CSM tooling. Attached is a one‑page summary (also shared in Drive). Can you confirm the following by EOD Mon: 1) Support for incremental agent license migration, 2) Attachment rehydration APIs, 3) SAML SSO + SCIM provisioning SSO, and 4) Data export formats for customer health exports?
+
+We'd like to schedule 45m discovery calls next week (Nov 2–3). Please propose slots.
+
+Thanks,
+Ben Carter
+Support Integrations Engineer
+Redwood Inference
+
+Attachment: vendor_comparison_sheet.xlsx
+From: Zendesk Sales <sales@zendesk.com>
+To: Ben Carter <ben_carter@redwood.ai>, Karthik Iyer <karthik_iyer@redwood.ai>
+Cc: Marissa Cole <marissa_cole@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>
+Date: Fri, 30 Oct 2026 13:18:00 -0700
+Subject: Re: Request for capability confirmation + short discovery call (Redwood Inference)
+
+Hi Ben — great to connect on this. Quick answers inline:
+
+1) Incremental license migration: supported via staged seat activation (we can map Intercom agents to Zendesk roles).
+2) Attachment rehydration: yes — we provide an attachments API and migration partner guides (we've done 3 migrations in the past 18 months).
+3) SAML + SCIM: supported; we also offer a dedicated SSO onboarding specialist for enterprise plans.
+4) Customer health exports: we can deliver CSV/JSON dumps; Gainsight connector exists for account signals.
+
+Proposed slots for discovery call (Nov 2): 10:00–10:45 PT or 15:00–15:45 PT.
+
+Attached our enterprise pricing summary; note license tiers vary by seat type.
+
+Best,
+Priya Anand
+Enterprise Sales, Zendesk
+
+Attachment: zendesk-pricing-proposal.pdf
+From: Intercom Renewals <renewals@intercom.com>
+To: Ben Carter <ben_carter@redwood.ai>, Karthik Iyer <karthik_iyer@redwood.ai>
+Cc: Marissa Cole <marissa_cole@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>
+Date: Mon, 02 Nov 2026 09:21:00 -0700
+Subject: Re: Request for capability confirmation + short discovery call (Redwood Inference)
+
+Thanks Ben — we can support staged migration but some features (e.g., rich message routing by user segments) are platform‑specific. We do offer a migration toolkit; attachments are supported but vendor migration is typically handled via our partners.
+
+We have a slot Nov 2, 11:00–11:45 PT if that works.
+
+—Samir Khan
+Renewals, Intercom
+
+From: Karthik Iyer <karthik_iyer@redwood.ai>
+To: Zendesk Sales <sales@zendesk.com>, Intercom Renewals <renewals@intercom.com>, Gainsight Solutions <solutions@gainsight.com>
+Cc: Marissa Cole <marissa_cole@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>, Evelyn Hart <evelyn_hart@redwood.ai>
+Date: Mon, 02 Nov 2026 16:04:00 -0700
+Subject: Re: Request for capability confirmation + short discovery call (Redwood Inference)
+
+Thanks everyone for the quick responses — appreciate the clarity.
+
+Next steps on our side:
+- Marissa, Ben, Laura, Evelyn and I will run an internal discovery on Nov 3 to map must-haves vs nice-to-haves.
+- Kicking off vendor calls Nov 4–5 (we'll confirm exact times).
+- Procurement ask: pricing must include a 90‑day migration SLA, step-up seats for the first 3 months, and a written data export guarantee.
+
+Evelyn — please flag any legal/contract items we should surface before calls (data retention, KMS integration notes).
+
+Posting the consolidated RFP and vendor slots to the Drive now.
+
+Karthik
+Senior Sales Operations Manager
+Redwood Inference
+
+On Mon, Nov 02, 2026 at 11:21, Samir Khan <renewals@intercom.com> wrote:
+> Thanks for the quick turnaround — looking forward to the discovery call.
+
+Attachment: none

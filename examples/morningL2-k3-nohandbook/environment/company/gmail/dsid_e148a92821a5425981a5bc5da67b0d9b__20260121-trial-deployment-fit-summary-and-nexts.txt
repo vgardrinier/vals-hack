@@ -1,0 +1,141 @@
+Trial infrastructure fit — recap & proposed PoC options
+
+From: Tessa Morgan <tessa_morgan@redwood.ai>
+To: Avery Stone <avery@healthlytics.com>
+Cc: Neha Kapoor <neha_kapoor@redwood.ai>, Marcus Lin <marcus_lin@redwood.ai>
+Date: Sun, 18 Jan 2026 14:05:00 -0800
+Subject: Recap: trial infrastructure needs & next steps
+
+Hi Avery —
+
+Thanks again for the call earlier. Quick recap and proposed next steps so we have a shared reference.
+
+Summary of what you shared:
+- Primary goal: reduce inference latency for document-scoped search + summarization (real-time web UI).
+- Expected steady-state qps: ~120 requests/minute with occasional bursts to ~350 qps for 2–3 minutes.
+- Data residency: PHI-adjacent data, must remain in US and not be persisted outside customer-controlled storage; audit logs required.
+- Primary concern: predictable tail latency (95th percentile under 300ms) and cost predictability as usage scales.
+
+Deployment considerations you flagged:
+- Hosted API (fastest path) — good for early evaluation but concerned about data residency/audit controls.
+- Dedicated capacity — attractive for throughput and predictable unit cost; you liked idea of a reserved GPU pool.
+- Private VPC/on-prem — likely overkill for this first PoC unless compliance requires onsite-only processing.
+
+Proposed PoC options (two paths):
+1) Quick Hosted trial (2 weeks) — Redwood hosted, synthetic load + subset of production data (anonymized). Goal: validate latency and end-to-end integration quickly.
+2) Dedicated trial (4 weeks) — reserved capacity (1–2 GPU nodes), live-ish traffic replay, full KV/cache tuning for your user flows. Goal: validate 95th percentile latency under load and unit-cost models for scale.
+
+Success criteria (provisional — please confirm):
+- 95th percentile latency < 300ms for summary endpoint at 120 qps baseline, and < 450ms during bursts up to 350 qps.
+- Throughput stability: <5% error rate under sustained load for 2 hours.
+- Cost estimate produced for steady-state and 3x scale.
+- Audit log availability and evidence that PHI-adjacent data remains in your AWS account (for dedicated or private paths).
+
+Next steps I recommend:
+- You confirm preferred PoC path (Hosted quick trial vs Dedicated trial).
+- If Dedicated: share preferred kickoff window in Feb and a point of contact for your infra/procurement.
+- I’ll circulate a short PoC scope doc and a checklist for security items (SOC2 artifacts, network requirements).
+
+Attachment: Redwood_PoC_Scope_v1.pdf (draft scope + timelines)
+
+Thanks — I’ll stand up internal resources as soon as you confirm which path you want to pursue.
+
+— Tessa Morgan
+Sr. Solutions Manager | Redwood Inference
+mailto:tessa_morgan@redwood.ai | +1 415-555-0124
+
+
+From: Avery Stone <avery@healthlytics.com>
+To: Tessa Morgan <tessa_morgan@redwood.ai>
+Cc: Neha Kapoor <neha_kapoor@redwood.ai>
+Date: Mon, 19 Jan 2026 09:12:00 -0800
+Subject: Re: Recap: trial infrastructure needs & next steps
+
+Hi Tessa —
+
+Appreciate the clear recap and two PoC options. Based on the compliance team and our expected traffic profile, we are leaning toward the Dedicated trial path. A few clarifications from our side before we lock dates: 
+
+Priority success criteria (from HealthLytics):
+- Latency: 95th percentile < 300ms at baseline (120 qps) — must be met.
+- Data handling: logs and model inputs cannot leave our AWS account; any persisted artifacts must be stored in our S3.
+- Auditability: we need sample audit logs and evidence of access controls for the duration of the PoC.
+
+Operational asks:
+- What minimum GPU footprint do you recommend for the Dedicated trial to reproduce burst behavior?
+- Can we test KV/prefix caching and see cache-hit metrics?
+- High-level cost: estimate for the 4-week Dedicated trial including reserved nodes + ingress egress assumptions.
+
+Stakeholders and schedule:
+- Procurement / Ops: Brenda Cho (brenda.cho@healthlytics.com) — she handles trial contracts.
+- Infra / SRE: Aaron Patel (aaron@healthlytics.com) — will coordinate networking and VPC peering if needed.
+
+We can target kickoff week of Feb 9 if that works; please confirm internal availability and what you need from our infra/security teams up front.
+
+Thanks — Avery
+Head of Product | HealthLytics
+avery@healthlytics.com | +1 617-555-0981
+
+From: Tessa Morgan <tessa_morgan@redwood.ai>
+To: Avery Stone <avery@healthlytics.com>
+Cc: Neha Kapoor <neha_kapoor@redwood.ai>, Marcus Lin <marcus_lin@redwood.ai>
+Date: Tue, 20 Jan 2026 11:30:00 -0800
+Subject: Re: Recap: trial infrastructure needs & next steps
+
+Thanks Avery — that all makes sense and the Feb 9 kickoff window should be workable. Below is an actionable PoC proposal for the Dedicated path so you can share with Brenda and Aaron: 
+
+Proposed Dedicated PoC (4 weeks) — high level
+- Timeline: Feb 9 kickoff, 4-week active testing window (Feb 9–Mar 6), 1 week of analysis + debrief.
+- Footprint recommendation: 2 x A100-equivalent GPUs to start (we can scale to 4 for burst sims). This is what our benchmarks suggest for the 120 qps baseline with <300ms 95p for your model family.
+- Networking: private peering to your VPC or customer-hosted NAT for ingress (we will not persist model inputs outside your S3).
+- Observability: per-token latency, KV cache hit rate, 95/99p latency dashboards, and sample audit logs delivered daily.
+
+PoC tasks and owners
+- HealthLytics: provide sample anonymized dataset, procurement signature, infra contacts for peering (Brenda, Aaron).
+- Redwood: provision dedicated pool, set up load-replay from your traces, enable KV caching and performance tuning, deliver daily dashboard and final cost model.
+
+Success criteria (finalized before kickoff)
+- 95th percentile latency < 300ms at 120 qps baseline (measured over 1 hour sustained tests).
+- Error rate <5% during two 30-minute burst windows up to 350 qps.
+- Cache hit rate > 60% for prefix caching scenario.
+- Audit artifacts and evidence of S3-only persistence provided.
+
+Required pre-kickoff items from HealthLytics (please share these by Feb 2):
+1) Procurement contact and PO/contract contact (Brenda).
+2) SRE contact for networking (Aaron) and CIDR ranges for peering.
+3) Sample trace file or anonymized dataset (S3 link).
+4) Any non-negotiable compliance docs (SOC2 questions) — we’ll attach our security pack.
+
+Attachment: HealthLytics_Security_Reqs.xlsx (please review and flag any gaps)
+
+If that looks good I’ll draft a formal SOW/PoC agreement for Brenda and loop our infra lead (Marcus) to schedule the provisioning timeline.
+
+— Tessa
+
+From: Marcus Lin <marcus_lin@redwood.ai>
+To: Tessa Morgan <tessa_morgan@redwood.ai>, Neha Kapoor <neha_kapoor@redwood.ai>
+Cc: Avery Stone <avery@healthlytics.com>
+Date: Wed, 21 Jan 2026 09:40:00 -0800
+Subject: Re: Recap: trial infrastructure needs & next steps
+
+Looping in a couple technical notes from our infra side (for the SOW and provisioning):
+
+- Starting configuration (2 x A100-equivalent) should be sufficient to validate baseline, but to simulate burst behavior we will provision an additional hot pool that can be turned on for two planned burst tests. That avoids overcommitting cost for the full 4 weeks.
+- We will enable KV prefix caching and expose cache-hit metrics and per-request KV latency in the dashboard. Need to confirm the keyspace pattern from HealthLytics trace to tune TTLs.
+- For audit and data-residency: we propose writing model inputs and logs to a presigned S3 bucket in HealthLytics account via a short-lived role. This meets the requirement that artifacts remain in your AWS account while still allowing Redwood to orchestrate the trial.
+
+Ask for procurement: can Brenda share a short trial addendum (two-page) that covers data handling and limited liability for the dedicated trial? If procurement needs a template, we can provide our standard trial addendum.
+
+Proposed internal owners and ETA to provision:
+- Marcus Lin (infra lead) — provision dedicated pool and dashboards (ETA: 5 business days after SOW sign).
+- Neha Kapoor (eng programs) — PoC coordinator and daily sync lead.
+- Tessa Morgan — commercial lead and customer liaison.
+
+If everyone agrees, I’ll draft a provisioning checklist and drop it into the shared drive link.
+
+Best,
+Marcus
+Senior Infra Engineer | Redwood Inference
+marcus_lin@redwood.ai
+
+> On Tue, 20 Jan 2026 at 11:30, Tessa Morgan <tessa_morgan@redwood.ai> wrote:
+> > Thanks Avery — that all makes sense and the Feb 9 kickoff window should be workable. Below is an actionable PoC proposal for the Dedicated path so you can share with Brenda and Aaron: ...

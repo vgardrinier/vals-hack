@@ -1,0 +1,121 @@
+SummitGrid — on-site visitor onboarding and security requests
+
+From: Patrick Noble <patrick.noble@summitgrid.com>
+To: Marissa Cole <marissa_cole@redwood.com>
+Cc: Claire Zhou <claire.zhou@summitgrid.com>
+Date: 2026-09-30T15:12:00Z
+Subject: SummitGrid — on-site visitor onboarding and security requests
+
+Marissa —
+
+Thanks again for coordinating our executive workshop on Oct 12. Before we finalize logistics, I need to confirm SummitGrid's site-entry and badging controls so we can clear attendees and vendors. High level asks: 
+
+- Can Redwood provide a pre-authorized badge list and QR pre-clear to speed pickup?
+- Our campus requires vendor KBA for any AV contractors. We need confirmation that Grayline AV (ops@grayline-av.com) has been vetted or that Redwood will escort them at all times.
+- Are there any restrictions on corporate laptops vs. personal devices in the secure lab where demos will run?
+- Badge pickup window preferred: Oct 12, 07:15–08:30 local. Can Redwood host a pickup kiosk?
+
+I've attached our site_badging_instructions.pdf and a preliminary visitor_manifest.csv. Please advise what additional documentation you need from us.
+
+Best,
+Patrick Noble
+Senior Program Manager, SummitGrid Technologies
+patrick.noble@summitgrid.com
++1 415-555-0189
+From: Marissa Cole <marissa_cole@redwood.com>
+To: Patrick Noble <patrick.noble@summitgrid.com>
+Cc: Ben Carter <ben_carter@redwood.com>, Laura Bennett <laura_bennett@redwood.com>
+Date: 2026-10-01T09:15:00Z
+Subject: Re: SummitGrid — on-site visitor onboarding and security requests
+
+Patrick —
+
+Thanks — this is helpful. Quick confirmation below and a proposed run-of-show for access ops: 
+
+Summary answers:
+- Pre-authorized badges: yes. We can push QR codes and pre-registration for all redwood attendees and guests listed on the manifest. Please provide full legal names, DOB (for vendor KBA only), and government ID type for contractors — we will not store IDs, only hash and retention metadata per our policy.
+- Grayline AV: we require either a) Grayline to provide a vendor insurance & staff list for a light check, or b) Redwood escorts for the demo setup window (recommended if they need network access).
+- Devices: corporate laptops with company-managed EDR are permitted in demo zones. Personal devices are allowed only in public reception areas; no unmanaged devices in the secure lab.
+- Badge kiosk: Redwood can staff a check-in kiosk in the lobby 07:15–08:30; we will print temporary badges with photo if needed.
+
+Proposed access run-of-show (high level):
+07:00 — Redwood onsite security and kiosk setup (Ben & Security Ops)
+07:15–08:30 — Badge pickup and verification (pre-registered QR scan or ID check)
+08:30–09:00 — Escort to demo lab for guests requiring escorted access
+09:00 — Workshop start
+16:30 — Demo teardown, Grayline AV declined/unescorted staff must depart by 17:00
+
+Next steps from your side: send final guest list (names/email/company/phone), vendor staff list for Grayline if you want them unescorted, and any SLA/exception requests. Laura — looping you in for any additional controls we should require.
+
+Cheers,
+Marissa Cole
+Customer Solutions Manager, Redwood Inference
+marissa_cole@redwood.com
+Attachment: visitor_manifest.csv (received)
+From: Ben Carter <ben_carter@redwood.com>
+To: Marissa Cole <marissa_cole@redwood.com>
+Cc: Patrick Noble <patrick.noble@summitgrid.com>, Laura Bennett <laura_bennett@redwood.com>
+Date: 2026-10-01T12:30:00Z
+Subject: Re: SummitGrid — on-site visitor onboarding and security requests
+
+Marissa / Patrick —
+
+I'll own kiosk setup and staffing. Quick notes:
+- Headcount: Redwood side bringing 6 (2 SREs, 2 Sales, 1 Product, 1 Ops).
+- Will confirm travel ETA for the SREs by EOD tomorrow so we can schedule badge printing.
+- We'll bring two badge printers and a laminated clipboard sign-in for overflow.
+
+Ben Carter
+Sales Operations Lead, Redwood Inference
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Marissa Cole <marissa_cole@redwood.com>, Ben Carter <ben_carter@redwood.com>
+Cc: Patrick Noble <patrick.noble@summitgrid.com>
+Date: 2026-10-01T15:10:00Z
+Subject: Re: SummitGrid — on-site visitor onboarding and security requests
+
+Marissa / team —
+
+Security checklist and minimal controls we will enforce for the demo area: 
+
+1) Identity verification
+- All external vendor staff must present government ID at kiosk for KBA cross-check. If vendor refuses, they must be escorted at all times.
+
+2) Device hygiene
+- Only corporate-managed laptops with our approved EDR/MDM profile will be permitted inside the secure demo lab. Personal phones are allowed but must remain on visitor guest VLAN with restricted access.
+
+3) Network segmentation & creds
+- No credentials or secret material stored on demo devices. If a vendor must connect equipment to the network, it will land on a segregated VLAN and be blocked from internet egress except to specific IPs we pre-authorize.
+
+4) Physical escorting
+- Escorts must be Redwood staff that have completed visitor escort training. Escort list will be provided to SummitGrid so you know who will be with vendor staff.
+
+5) Exceptions & after-hours
+- Any after-hours access or SLA exceptions require a signed security-exception-form.docx submitted 48 hours in advance and an on-site badge sponsor.
+
+Please supply vendor staff DOB (for KBA only) and insurance evidence if you want Grayline unescorted. Otherwise we will plan to escort them for setup and teardown.
+
+Laura Bennett
+Head of Security, Redwood Inference
+laura_bennett@redwood.com
+Attachment: security-exception-form.docx
+From: Patrick Noble <patrick.noble@summitgrid.com>
+To: Marissa Cole <marissa_cole@redwood.com>
+Cc: Claire Zhou <claire.zhou@summitgrid.com>, Ben Carter <ben_carter@redwood.com>, Laura Bennett <laura_bennett@redwood.com>, Grayline AV <ops@grayline-av.com>
+Date: 2026-10-02T08:05:00Z
+Subject: Re: SummitGrid — on-site visitor onboarding and security requests
+
+Marissa —
+
+Appreciate the clarity and the run-of-show. We will: 
+- Send a finalized guest list with DOB (vendor staff only) and vendor insurance by EOD Oct 6.
+- Request Grayline AV to submit vendor insurance and staff roster; if they miss the cutoff, we accept Redwood escort for setup.
+- Complete the security-exception-form only if we need after-hours access for demo teardown.
+
+One last ask — our CISO has asked for an on-site contact for audit questions during the day; can Laura or a designee be reachable at a single number? If so, please provide a contact name and on-site mobile.
+
+Thanks all — looking forward to a smooth day.
+
+Patrick Noble
+Senior Program Manager, SummitGrid Technologies
+patrick.noble@summitgrid.com
+Attachment: visitor_manifest_v1.csv

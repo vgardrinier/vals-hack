@@ -1,0 +1,142 @@
+Duplicate billing / token miscount reported by Greenfield Analytics
+
+From: Sasha Lin <sasha@greenfield.ai>
+To: priyom_das@redwood.ai
+Date: Sun, 28 Jun 2026 09:05:00 -0700
+Subject: Unexpected duplicate charges on June usage
+
+Hi Priyom,
+
+We noticed a significant uptick on our June invoice — roughly twice the expected token usage for several hours on the 26th. Tom and I dug through our side and we don't see anything that would explain the jump. Can you confirm whether Redwood had any incidents that could have caused duplicate token counts or double billing? This is material for our finance team and we need an ETA on investigation and remediation.
+
+Thanks,
+Sasha Lin
+Head of Platform Engineering
+Greenfield Analytics
+
+--
+Greenfield Analytics
+443-555-0199
+
+From: priyom_das@redwood.ai
+To: Sasha Lin <sasha@greenfield.ai>
+Cc: Tom Park <tom.park@greenfield.ai>
+Date: Sun, 28 Jun 2026 09:27:00 -0700
+Subject: Re: Unexpected duplicate charges on June usage
+
+Hi Sasha — thanks for flagging this. I'm really sorry to hear about the spike. I want to acknowledge receipt and confirm we're looking into it right away. Can you send the invoice number (or the billing date range) and a few example request IDs if you have them? That will help us correlate logs faster.
+
+I'll escalate to our billing and infra teams and follow up with a proposed credit plan within 24 hours.
+
+--
+Priyom Das
+Enterprise Account Executive, Redwood Inference
+priyom_das@redwood.ai | +1 415-555-0112
+
+From: priyom_das@redwood.ai
+To: marissa_cole@redwood.ai, markus_klein@redwood.ai, jordan_blake@redwood.ai
+Cc: neha_kapoor@redwood.ai
+Date: Sun, 28 Jun 2026 10:12:00 -07:00
+Subject: URGENT: Greenfield duplicate billing — triage + provisional credit
+
+Team,
+
+Customer: Greenfield Analytics (GF-3249) reported a ~2x token/charge spike on 2026-06-26 between 03:40-04:25 UTC. Sasha provided invoice range 2026-06-01 to 2026-06-30; no request IDs yet.
+
+Ask: Can infra confirm whether any serving incident, prefix-cache replay, or worker retry pattern could have emitted duplicate tokens in that window? If logs aren't sufficient, we may need to run a token-recount job on the customer's canonical usage.
+
+Marissa: propose provisional credit (50% of the delta) to immediately reduce customer impact; final credit pending infra audit. Markus: can you pre-authorize up to $8k in provisional credits on GF-3249? Jordan: please flag any support tickets and collect request-level traces if possible. Neha: please include compliance note if audit evidence will be needed.
+
+I'll draft external comms once we have confirmation. Time sensitivity: Sasha wants ETA for finance this morning.
+
+Thanks,
+Priyom
+
+From: markus_klein@redwood.ai
+To: priyom_das@redwood.ai, marissa_cole@redwood.ai, jordan_blake@redwood.ai
+Date: Sun, 28 Jun 2026 11:03:00 -07:00
+Subject: Re: URGENT: Greenfield duplicate billing — triage + provisional credit
+
+Priyom / Marissa — pre-authorized provisional credit up to $8,000 for GF-3249. Please document in Finance ticket FIN-2026-0873 and include the pro-forma credit note. We'll reconcile after the infra audit.
+
+-Markus
+Head of Finance, Redwood Inference
+
+From: priyom_das@redwood.ai
+To: Sasha Lin <sasha@greenfield.ai>
+Cc: Tom Park <tom.park@greenfield.ai>, marissa_cole@redwood.ai, markus_klein@redwood.ai
+Date: Mon, 29 Jun 2026 08:45:00 -07:00
+Subject: Re: Unexpected duplicate charges on June usage
+
+Hi Sasha — quick update and next steps. First, I'm sorry for the disruption; we understand how disruptive unexpected charges are.
+
+What we found so far: our infra team has identified an internal retry loop that, under a narrow sequence-length and batched-requests condition, caused a subset of streaming responses to be reprocessed and counted twice for roughly 45 minutes on 2026-06-26. The root cause is an edge condition in the KV-cache invalidation path during a rolling kernel swap.
+
+Immediate remediation taken: the retry guard was deployed at 05:12 UTC the same day and we have a long-running job performing a canonical recount of your tokenized requests. Preliminary delta: ~1,920,000 tokens over the window (approx $4,600 at your rate).
+
+Provisional remediation we are offering today:
+- Immediate provisional credit of $4,600 issued against the June invoice (attached provisional credit note).
+- Final reconciliation after the recount; we will either adjust up or down and issue any additional credit or invoice correction.
+- Full postmortem and technical summary available by 2026-06-30 (link will be shared).
+
+Attachments: redwood_credit_note_GF3249.pdf (provisional credit).
+
+If that plan works for you, we'll mark this as in-progress and loop in Finance for the credit application. Again, apologies — we'll include copies of the recount audit evidence in the postmortem.
+
+Best,
+Priyom Das
+Enterprise Account Executive, Redwood Inference
++1 415-555-0112
+
+From: Sasha Lin <sasha@greenfield.ai>
+To: priyom_das@redwood.ai
+Cc: Tom Park <tom.park@greenfield.ai>, marissa_cole@redwood.ai
+Date: Tue, 30 Jun 2026 16:28:00 -07:00
+Subject: Re: Unexpected duplicate charges on June usage
+
+Thanks Priyom — we appreciate the quick triage and the provisional credit. Confirming that Greenfield accepts the $4,600 provisional credit and we'd like the final recount evidence and postmortem link for our records.
+
+One ask: please include a short statement we can share with Finance that this was an internal Redwood serving incident and that Redwood is handling the reconciliation and crediting. That makes our internal approval smoother.
+
+Looking forward to the postmortem link.
+
+Regards,
+Sasha
+
+--
+On Tue, Jun 29, 2026 at 08:45 AM Priyom Das <priyom_das@redwood.ai> wrote:
+> Hi Sasha — quick update and next steps. First, I'm sorry for the disruption; we understand how disruptive unexpected charges are.
+> 
+> What we found so far: our infra team has identified an internal retry loop that, under a narrow sequence-length and batched-requests condition, caused a subset of streaming responses to be reprocessed and counted twice for roughly 45 minutes on 2026-06-26. The root cause is an edge condition in the KV-cache invalidation path during a rolling kernel swap.
+> 
+> Immediate remediation taken: the retry guard was deployed at 05:12 UTC the same day and we have a long-running job performing a canonical recount of your tokenized requests. Preliminary delta: ~1,920,000 tokens over the window (approx $4,600 at your rate).
+> 
+> Provisional remediation we are offering today:
+> - Immediate provisional credit of $4,600 issued against the June invoice (attached provisional credit note).
+> - Final reconciliation after the recount; we will either adjust up or down and issue any additional credit or invoice correction.
+> - Full postmortem and technical summary available by 2026-06-30 (link will be shared).
+> 
+> Attachments: redwood_credit_note_GF3249.pdf (provisional credit).
+> 
+> If that plan works for you, we'll mark this as in-progress and loop in Finance for the credit application. Again, apologies — we'll include copies of the recount audit evidence in the postmortem.
+> 
+> Best,
+> Priyom Das
+> 
+From: priyom_das@redwood.ai
+To: marissa_cole@redwood.ai, markus_klein@redwood.ai, jordan_blake@redwood.ai, neha_kapoor@redwood.ai
+Date: Tue, 30 Jun 2026 17:05:00 -07:00
+Subject: Closure: Greenfield billing echo — postmortem published and customer acceptance
+
+Team,
+
+Status update: Sasha confirmed acceptance of the provisional $4,600 credit and requested a short statement for their finance team. I uploaded the postmortem and recount artifacts to the team Drive folder: https://drive.google.com/drive/folders/1a2b3c-greenfield-postmortem. Attached is the public-facing postmortem summary file postmortem-summary-2026-06-30.pdf.
+
+Action items still open: Finance to apply credit FIN-2026-0873; Jordan to attach recount logs to the support ticket and upload to the Drive folder; Marissa to send the one-paragraph statement for Greenfield's Finance to share internally (suggested text below).
+
+Suggested finance statement (please edit before sending to customer):
+"Redwood Inference confirmed an internal serving incident on 2026-06-26 that resulted in duplicate token counts for a subset of requests. Redwood has issued a provisional credit of $4,600 while we complete our recount and reconciliation. Final adjustments will be communicated following the completion of the audit."
+
+Thanks all — great cross-team work on a tight timeline.
+
+Priyom

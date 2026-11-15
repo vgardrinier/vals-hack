@@ -1,0 +1,106 @@
+Pin request and interim routing plan for Magellan-2X onboard
+
+From: Karthik Iyer <karthik_iyer@redwood.ai>
+To: Marissa Cole <marissa_cole@redwood.ai>, Priyom Das <priyom_das@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>, Maria Torres <maria@novacorp.com>
+Cc: Novacorp Procurement <procurement@novacorp.com>
+Date: Mon, 3 Aug 2026 09:14:00 -0700
+Subject: Pin request and interim routing plan for Magellan-2X onboard
+
+Hi all —
+
+Novacorp is ready to move to Magellan-2X for a subset of their assistant queries next week. They asked for a short-term guarantee that the variant we serve for them won’t change mid-rollout while we validate runtime behaviour. From product: they want consistency for A/B analysis and procurement needs the model name locked for the initial purchase order.
+
+Ask: I’d like to request a provisional version pin (magellan-2x:v1.0-lock) for Novacorp’s tenant for up to 30 days while we run a fast compatibility/stability window. This would be a provisional pin that can be lifted with 48h notice after sign-off.
+
+Requirements I need from infra/serving:
+- Quick runtime compatibility check (kernels, tokenizer parity, and kv-cache behavior).
+- Canary routing plan (us-west1 canary with 5% traffic, fallback to magellan-2x-compat if any telemetry anomaly).
+- Telemetry contract: top-line latency P50/P95, tokenization mismatch rate, and failure/error spike triggers.
+
+Owners: Marissa (serving ops) — runtime checks and canary config.
+Priyom (product) — will own acceptance criteria and evaluation prompts.
+Laura (intake/rollout) — ingress routing and rollout window coordination.
+
+Timeline: Please respond with feasibility and estimated ETA by EOD Tuesday (2026-08-04). Novacorp is targeting a staged rollout starting 2026-08-10.
+
+Thanks —
+Karthik
+Sr. PM, Model Intake & Deployment
+Redwood Inference
+[Attachment: intake_form_magellan-2x.pdf (pdf)]
+
+From: Marissa Cole <marissa_cole@redwood.ai>
+To: Karthik Iyer <karthik_iyer@redwood.ai>, Priyom Das <priyom_das@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>, Maria Torres <maria@novacorp.com>
+Date: Mon, 3 Aug 2026 11:02:00 -0700
+Subject: Re: Pin request and interim routing plan for Magellan-2X onboard
+
+Thanks Karthik — quick readout from the runtime side after a morning pass.
+
+Short answer: feasible with conditions.
+
+Notes:
+- Tokenizer: Magellan-2X uses a slightly different BPE seed compared to Magellan-1. That produces a ~0.7% tokenization divergence on our eval suite for English. We can work around it by serving a tokenizer shim for the tenant during the provisional pin, but it requires a short-lived sidecar and extra CPU.
+- Kernels: there is one kernel path (fused-attn-v2) that triggers on long-contexts (>=2048). Our current stable runtime has that kernel behind a flag. Enabling it for the canary will require a targeted kernel rollout on the dedicated pool.
+- KV-cache: no API surface changes, but observed a small memory pressure increase on 16GB GPUs in our integration runs; recommend canary on 40GB or higher instance sizes.
+
+Proposed immediate actions:
+1) We run the compatibility checklist (I attached the checklist) and a short smoke test against Novacorp ingress (25k tokens, representative prompts).
+2) Canary plan: us-west1 dedicated pool, 5% traffic, 72h steady-state window, auto-revert on >3x error rate or >20% increase in latency P95.
+3) Temporary tokenizer shim for Novacorp only — sidecar CPU cost estimate: +8 vCPU.
+
+ETA: I can get the checklist run and canary config finished by Tue morning (2026-08-04 10:30 PT) if product confirms acceptance criteria.
+
+Attachments: magellan-2x-compat-checklist.xlsx
+
+—Marissa
+Principal SRE, Serving Runtime
+Redwood Inference
+
+From: Maria Torres <maria@novacorp.com>
+To: Karthik Iyer <karthik_iyer@redwood.ai>
+Cc: Novacorp Procurement <procurement@novacorp.com>, Priyom Das <priyom_das@redwood.ai>
+Date: Tue, 4 Aug 2026 08:21:00 -07:00
+Subject: Re: Pin request and interim routing plan for Magellan-2X onboard
+
+Thanks Karthik and Marissa — this is helpful. A few quick clarifications from Novacorp:
+
+- Procurement needs the model identifier in the PO. If you provisionally pin to magellan-2x:v1.0-lock, we can include that exact string.
+- For the tokenizer shim: please include the incremental cost estimate so we can model TCO.
+- Can you confirm SLO targets we should expect for the initial 5% canary (P50, P95 token latency) and what visibility we’ll have into the telemetry? We’ll need read-only access to the canary dashboards during the 72h window.
+
+If you can send a one-page summary for procurement items (model id, canary dates, cost delta, rollback conditions), we’ll route the PO.
+
+—Maria Torres
+Director, AI Integrations
+Novacorp
+
+From: Karthik Iyer <karthik_iyer@redwood.ai>
+To: Maria Torres <maria@novacorp.com>, Marissa Cole <marissa_cole@redwood.ai>, Priyom Das <priyom_das@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>
+Date: Wed, 5 Aug 2026 16:42:00 -07:00
+Subject: Re: Pin request and interim routing plan for Magellan-2X onboard
+
+Summary and next steps (decision record):
+
+Decision: Provisional pin granted for Novacorp: magellan-2x:v1.0-lock. Pin duration: 30 days from 2026-08-10 with 48h lift notice. This is provisional and scoped to Novacorp tenant only.
+
+Action items and owners:
+- Marissa: complete compatibility checklist and run smoke tests by Tue 2026-08-04 10:30 PT (confirmed). Provide telemetry thresholds and dashboard link. (Attachment: magellan-2x-canary-runbook.md)
+- Priyom: define acceptance criteria and evaluation prompt set by EOD 2026-08-05.
+- Laura: configure routing rules for canary (us-west1, 5% traffic) and verify instance sizing (>=40GB) by 2026-08-07.
+- Karthik: produce procurement one-pager for Novacorp (model id, cost delta, rollback conditions) and circulate to procurement by 2026-08-06.
+
+SLO commitments for canary (informal for the 72h window):
+- P50 token latency: <= 10ms
+- P95 token latency: <= 35ms
+- Error spike threshold: >3x baseline error rate triggers auto-revert
+- Tokenization divergence: alert if >1.5% on eval prompts
+
+Telemetry & access: read-only dashboard link and short-lived Grafana token will be created for Novacorp on day 1 of the canary.
+
+If anyone expects pushback on CPU cost for the tokenizer shim, call it out in replies and we’ll add it to the procurement one-pager.
+
+Thanks everyone — please treat this thread as the canonical intake record; I’ll file INF-8932 and attach this trail.
+
+Karthik
+Sr. PM, Model Intake & Deployment
+Redwood Inference

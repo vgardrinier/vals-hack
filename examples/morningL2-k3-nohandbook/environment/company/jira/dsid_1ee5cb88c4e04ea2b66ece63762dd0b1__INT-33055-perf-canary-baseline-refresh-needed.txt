@@ -1,0 +1,67 @@
+Perf canary baseline refresh needed (tiered batching SLO gates) after legitimate improvements
+
+Request: Refresh perf-canary baselines for tiered batching SLO gates.
+
+Context
+- Since enabling workload signals + fast-tier admission control, perf canary is failing on 'regression' checks despite overall latency improving.
+- Current baseline appears stale vs latest runtime behavior, causing noisy blocks on unrelated PRs.
+
+Impact
+- CI gating failures blocking runtime + scheduler PRs.
+- Risk: teams may start bypassing perf checks / treating failures as expected.
+
+What changed (suspected legit improvements)
+- Scheduler wait-budget + admission control tuning for fast tier.
+- Mixed-workload scenario updates in benchmark-lab.
+
+Requested outcome
+- Establish new baselines for affected scenarios (fast tier p99, standard tier p95 gates) and document sign-off.
+
+Scope
+- Top models and configs used in perf-canary today (see perf-canary config), with tier labels enabled.
+- Regions/rigs: gpu-perf-ci runners only (not production).
+
+Non-goals
+- Do not change SLO targets or pass/fail thresholds in this ticket; only baseline refresh + approvals.
+
+Owner
+- Perf suite / scheduler: Marcus Reed
+- CI reliability: Sahana Iyer
+
+Approvals required before landing
+- Runtime scheduling lead: Sofia Ivanova
+- SRE (gating owner): Sean Gallagher
+- Applied ML/Evals (sanity check on prompt sets): Claire Dubois (FYI only)
+
+Proposed process (baseline refresh playbook)
+1) Freeze inputs
+   - Pin benchmark-lab revision and perf-canary revision for the baseline run.
+   - Confirm prompt set version IDs used by tier scenarios.
+2) Run baseline jobs
+   - Run 10 iterations per scenario (fast tier p99, standard tier p95; include mixed streaming/non-streaming where applicable).
+   - Collect variance stats and confirm no outliers from runner instability.
+3) Generate candidate baseline update
+   - Update baseline JSON/artifacts in perf-canary repo.
+   - Include a diff summary: old vs new p50/p95/p99 + throughput.
+4) Review + approvals
+   - Sofia: confirm improvements align with expected scheduler change behavior (no hidden trade-off).
+   - Sean: confirm thresholds remain meaningful and alerting/rollback expectations unchanged.
+5) Merge + monitor
+   - Merge baseline update.
+   - Monitor 48 hours of perf-canary signal: failure rate, flakiness, and expected sensitivity.
+
+Acceptance criteria
+- Perf-canary passes for mainline/runtime PRs with no code changes (sanity).
+- New baseline artifacts committed with documented run metadata (runner type, commit SHAs, timestamp).
+- Approvals captured in comments from Sofia + Sean.
+- Follow-up created if flakiness > 2% (CI instability) or if sensitivity becomes too low (fails to catch known-bad changes).
+2026-02-20 10:14 - Sahana Iyer (Reporter): Seeing repeated perf-canary failures flagged as 'regressions' on fast-tier p99. Quick look at dashboards suggests latency is actually better than baseline. Opening INT to refresh baselines so we stop blocking unrelated runtime PRs.
+2026-02-20 13:02 - Marcus Reed (Assignee): Acknowledged. I’ll re-run the baseline pipeline on gpu-perf-ci with the pinned benchmark-lab + perf-canary commits and post diff. Plan: 10x runs per scenario to get variance bounds.
+2026-02-21 09:47 - Marcus Reed: Baseline run complete for: mixed_workload_fast_tier (p99 gate) and mixed_workload_standard_tier (p95 gate). Improvements are consistent run-to-run; variance within historical range. Candidate baseline diff (summary): fast tier p99 improved ~8–12% across the two top scenarios; standard tier p95 improved ~5–7%. No throughput regressions observed. Preparing PR in perf-canary with updated baseline artifacts + run metadata.
+2026-02-21 11:26 - Sofia Ivanova: Reviewed the diff summary + run metadata. This matches expected effect from admission control + wait budget changes in runtime. No red flags. Approved baseline refresh (does not change thresholds).
+2026-02-21 12:10 - Sean Gallagher: Approved. Please ensure PR notes explicitly state: thresholds unchanged, only baseline updated; include link to run logs. Also: after merge, let’s watch flake rate for 48h and open a follow-up if we see instability.
+2026-02-22 16:03 - Marcus Reed: PR opened in perf-canary for baseline artifact refresh + metadata. Added run logs link and pinned SHAs for benchmark-lab/perf-canary/runtime used during baseline generation. Tagging Sahana for CI monitoring after merge.
+2026-02-24 09:18 - Sahana Iyer: Baseline PR merged. Watching perf-canary for flakiness: last 24h shows 0 unexpected failures on mainline. No runner instability alerts.
+2026-02-27 15:40 - Sahana Iyer: 48h monitoring complete. Failure rate back to expected (only real regressions). Closing INT as resolved.
+Baselines refreshed in perf-canary using pinned benchmark-lab/perf-canary revisions after legitimate latency improvements from tiered batching scheduler changes. Approvals obtained from Scheduling (Sofia Ivanova) and SRE gating owner (Sean Gallagher). Monitored 48h post-merge with no increased flakiness.
+If perf-canary sensitivity becomes too low (fails to catch known-bad scheduler changes), propose adding an additional mixed streaming scenario or tightening variance handling; otherwise no action.

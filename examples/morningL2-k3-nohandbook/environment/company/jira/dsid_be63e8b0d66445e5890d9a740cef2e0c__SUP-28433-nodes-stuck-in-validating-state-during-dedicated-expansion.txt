@@ -1,0 +1,104 @@
+Nodes stuck in "Validating" during Dedicated pool expansion (post-provision validations failing/timeouting)
+
+Customer: HelioLogic (Dedicated)
+
+Issue summary
+- During a planned Dedicated pool expansion in us-east (A100), newly provisioned nodes were successfully allocated and joined the Kubernetes cluster but remained in readiness state "Validating" for >45 minutes, preventing them from joining the serving pool.
+- Fleet readiness showed repeated post-provision validation failures/timeouts for the NCCL smoke test step and (in a smaller subset) perf canary step.
+
+Impact
+- Capacity shortfall during expansion window; temporary drop in available throughput on the customer’s Dedicated pool.
+- No full outage, but elevated queueing/latency as autoscaling could not add the new nodes.
+
+Customer-reported symptoms
+- "Pool scale-up initiated but new nodes never become Ready; console shows Validating for an hour+".
+- Noted increased p95 latency and occasional request timeouts during peak.
+
+Environment
+- prod / us-east
+- Dedicated pool: helio-logic-dedicated-a100 (internal pool id: dp-7c1f)
+- Image channel at time of failures: candidate (gpu-worker-2025.10.10-candidate)
+
+Timeline (UTC)
+- 2025-10-11 16:22: Customer opened ticket reporting expansion delay.
+- 2025-10-11 16:34: Support acknowledged; SRE looped in (#incidents, #eng-infra).
+- 2025-10-11 17:10: Initial triage: nodes stuck in "Validating" with repeated postflight NCCL failures/timeouts.
+- 2025-10-12 00:40: Workaround applied: reimage affected nodes to stable channel + re-run validations.
+- 2025-10-13: Engineering root-caused validation agent timeout behavior + flaky NCCL invocation.
+- 2025-10-16: Fix merged (PR-18481) and rolled to us-east validation agent.
+- 2025-10-18: Ticket resolved after successful expansion retry; no further stuck nodes observed.
+
+Triage notes / Investigation
+- Fleet readiness service showed nodes progressing through:
+  Allocated -> Provisioning -> JoinedCluster -> Validating
+  then repeatedly failing: postflight.nccl_smoketest
+
+- Observed failure modes:
+  1) NCCL smoke test: timeout / hang leading to repeated retries without a clear terminal failure reason.
+  2) A small subset: perf canary failed due to missing warmup and network jitter (single-digit occurrences; not the majority).
+
+- Dashboards used:
+  - Provision-to-ready dashboard: "Step breakdown" for us-east + A100 (Validating step tail latency spike)
+  - Failure heatmap by step: postflight.nccl_smoketest dominated failures
+
+- Per-runbook guidance:
+  Followed Confluence runbook "Provision-to-ready failures triage" sections:
+  - "Validating stuck > 20m"
+  - "NCCL smoke test failures"
+  - "Safe remediation order: drain -> quarantine (if needed) -> reimage"
+
+Log excerpts (sanitized)
+- Validation agent (node-validation-agent) logs:
+  2025-10-11T16:58:12Z INFO  step=postflight.nccl_smoketest attempt=1 timeout_s=300 cmd="/opt/redwood/bin/nccl-smoke --allreduce --min-bytes=256M --max-bytes=1G"
+  2025-10-11T17:03:13Z WARN  step=postflight.nccl_smoketest result=timeout elapsed_s=301 exit_code=124
+  2025-10-11T17:03:13Z INFO  step=postflight.nccl_smoketest attempt=2 backoff_s=5
+  2025-10-11T17:08:20Z WARN  step=postflight.nccl_smoketest result=timeout elapsed_s=305 exit_code=124
+  2025-10-11T17:08:20Z ERROR step=postflight.nccl_smoketest message="timeout; retrying" node=ip-10-44-18-203
+
+- Fleet readiness state summary (API):
+  state=Validating
+  last_failed_step=postflight.nccl_smoketest
+  failure_reason=VALIDATION_TIMEOUT
+  artifacts=s3://redwood-internal-readiness/us-east/dp-7c1f/<node-id>/postflight.nccl_smoketest.log
+
+- Perf canary (subset):
+  2025-10-11T18:11:09Z ERROR step=postflight.perf_canary message="p95 > threshold" observed_p95_ms=410 threshold_ms=300 model=llama-3.1-70b
+
+Workaround applied (customer-impact mitigation)
+- For nodes stuck in Validating > 20 minutes:
+  1) Drain node from k8s (if scheduled)
+  2) Reimage to stable image channel: gpu-worker-2025.10.12-stable
+  3) Re-run provisioning validations (orchestrator retry)
+  4) Only then allow node to join serving pool
+
+- Result:
+  Reimaged nodes passed validation and became Ready within ~18 minutes (P95) after reimage.
+
+Root cause
+- Validation agent behavior under NCCL test hang/timeout was insufficiently defensive:
+  - timeouts were applied, but retries could re-enter the same condition with minimal backoff
+  - failure reporting was not consistently persisted, making nodes appear "Validating" rather than failing fast to Quarantined/terminal state
+
+Fix
+- Engineering shipped updated validation agent timeouts/retry behavior and improved log bundling and terminal failure signaling:
+  - GitHub: PR-18481 ("harden validation agent timeouts and retries")
+  - Also leveraged ongoing work to record validation artifacts and failure reasons centrally (PR-18429)
+
+Resolution
+- After rolling PR-18481 to us-east and pinning the pool image channel back to stable for expansion, the next expansion attempt completed successfully.
+- No new nodes remained stuck in Validating beyond the expected window; NCCL smoke test failure rate returned to baseline.
+
+Customer communication (external)
+- We confirmed this was an internal provisioning validation issue impacting scale-up time, not an application-side configuration problem.
+- We recommended (and executed on our side) a reimage of affected nodes and a stable image channel pin for the remainder of the expansion.
+
+Follow-ups / Action items
+- (Eng) Tune NCCL smoke test parameters for us-east A100 to reduce flakes and avoid long hangs (captured in Linear backlog; referenced in #eng-infra).
+- (SRE) Alerting: ensure "Validating stuck" pages only when it correlates with capacity impact; otherwise ticket-only during rollout.
+- (Infra) Staged rollout guardrails: keep candidate image channel off for customer expansions unless explicitly approved.
+
+Comments (highlights)
+- 2025-10-11 (Support -> SRE): "Seeing 12/20 new nodes stuck in Validating; last_failed_step is NCCL. Any known issue with candidate image?"
+- 2025-10-12 (Infra): "Proceeding with reimage to stable; will quarantine repeat offenders after 2 attempts per runbook."
+- 2025-10-16 (Eng): "PR-18481 merged; rollout to us-east validation agent tonight, then retry expansion." 
+- 2025-10-18 (Support): "Customer confirmed expansion completed; closing ticket."

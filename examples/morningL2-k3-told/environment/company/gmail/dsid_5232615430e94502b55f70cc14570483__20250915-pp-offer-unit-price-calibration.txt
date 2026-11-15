@@ -1,0 +1,138 @@
+Private Offer / Marketplace unit-price calibration for BrightLayer
+
+From: Sergio Alvarez <sergio.alvarez@redwood.com>
+To: Michael Carr <michael.carr@brightlayer.com>, Aisha Malik <aisha.malik@amazon.com>
+Cc: Jordan Blake <jordan.blake@redwood.com>
+Date: 2025-09-12T14:08:00-07:00
+Subject: Follow-up on private offer mapping & target $/1M tokens (BrightLayer)
+
+Michael / Aisha — thanks again for the discovery earlier today. Quick recap and what we need to get to the marketplace private offer: 
+
+Summary of BrightLayer ask:
+- Production inference for analytics product (real-time enrichment + batch scoring).
+- Target committed throughput: 450M inference tokens/month (peak bursts to 2k rps).
+- Primary region: us-east-1.
+- Goal: lock a private offer that maps marketplace unit price to an equivalent $ / 1M tokens for forecasting and chargeback.
+
+Open items for pricing calibration / next steps:
+1) AWS marketplace mapping: we need Aisha’s guidance on how a SaaS Private Offer SKU maps to a per-token unit for our quoting. Is the recommended approach a per-1000-inference-token unit or a per-vCPU-hour equivalent?
+2) BrightLayer budget range & commitment: Michael, you mentioned a preferred annualized spend band — can you confirm $350k–$650k ARR or a monthly budget target?
+3) Target unit economics: BrightLayer wants to target ~$120–$160 per 1M tokens initially (post-discount). We’ll test with quantized Llama-style models; Redwood will provide optimizations to reduce effective tokens (KV cache, partial prompt caching).
+4) Required artifacts: procurement contact, PO window, and whether BrightLayer wants Marketplace Private Offer (AWS) or a direct vendor invoice.
+
+Attachments: I’ll share a usage forecast spreadsheet and a redline-friendly draft of the PO terms (for internal review).
+
+Request: Aisha — can you confirm the SKU mapping approach and whether AWS can issue a Private Offer that embeds an equivalent per-1M-token price (or point us to the recommended conversion methodology)? Michael — please confirm the budget band and procurement timeline so we can calibrate pricing.
+
+Thanks — Sergio
+Sergio Alvarez
+Sr. Partner Solutions, Redwood Inference
+sergio.alvarez@redwood.com
++1 415-555-0123
+
+--
+Attachment: BL_usage_forecast_Q4Q5.xlsx (spreadsheet, 18KB)
+Attachment: redwood_po_terms_draft.pdf (PDF, 22KB)
+From: Aisha Malik <aisha.malik@amazon.com>
+To: Sergio Alvarez <sergio.alvarez@redwood.com>, Michael Carr <michael.carr@brightlayer.com>
+Cc: Jordan Blake <jordan.blake@redwood.com>
+Date: 2025-09-12T16:45:00-07:00
+Subject: Re: Follow-up on private offer mapping & target $/1M tokens (BrightLayer)
+
+Sergio / Michael — great meeting. Short answers from AWS side: 
+
+- Marketplace Private Offer model: AWS Private Offers are usually expressed as custom pricing for Marketplace listings (either usage-based or subscription). We can support usage-based pricing tied to a Marketplace product that bills per unit.
+- Recommended unitization: for metering tokens, teams typically expose a custom usage dimension (e.g., "redwood_tokens") and meter per 1,000 tokens. That keeps invoicing simple. We can then convert requested $/1M tokens into $ per 1,000 tokens for the SKU.
+- Conversion: $ / 1M tokens -> $ per 1k = (target $/1M) / 1000. So $150 / 1M => $0.15 per 1k tokens. Note that AWS marketplace and partner margins/fees may alter final vendor payout; we’ll model that.
+
+What we need from BrightLayer: an expected monthly usage profile (hourly distribution if you have it) and any constraints on commit period (12 vs 36 months). If you’re open to a 12-month commit we can often secure a more predictable private offer price.
+
+I’ll loop in the Marketplace billing specialist if you want us to draft the actual private offer SKU and price point.
+
+— Aisha
+Aisha Malik
+Marketplace BD, AWS
+aisha.malik@amazon.com
+
+--
+On 2025-09-12 14:08, Sergio Alvarez wrote:
+> Michael / Aisha — thanks again for the discovery earlier today. Quick recap and what we need to get to the marketplace private offer: ...
+
+From: Michael Carr <michael.carr@brightlayer.com>
+To: Sergio Alvarez <sergio.alvarez@redwood.com>, Aisha Malik <aisha.malik@amazon.com>
+Cc: Jordan Blake <jordan.blake@redwood.com>, Procurement Team <procurement@brightlayer.com>
+Date: 2025-09-13T09:21:00-07:00
+Subject: Re: Follow-up on private offer mapping & target $/1M tokens (BrightLayer)
+
+Thanks — quick clarifying details from BrightLayer: 
+
+- Confirmed monthly baseline: 450M tokens/month (this is after prompt length normalization). Expected ramp: 350M in month 1 -> 450M by month 3 -> 800M by month 9 depending on feature rollout.
+- We can commit to a 12-month PO if price falls within $110–$160 per 1M tokens. Procurement prefers Marketplace Private Offer to consolidate billing, but legal needs a draft term sheet.
+- Procurement contact: procurement@brightlayer.com (cc’d).
+
+Requested from Redwood: please provide a proposed per-1k SKU price that maps to the $/1M bands above and an example monthly invoice simulation (3 scenarios: conservative, expected, upside).
+
+— Michael
+VP Product, BrightLayer Analytics
+
+--
+On 2025-09-12 16:45, Aisha Malik wrote:
+> Sergio / Michael — great meeting. Short answers from AWS side: ...
+
+From: Sergio Alvarez <sergio.alvarez@redwood.com>
+To: Aisha Malik <aisha.malik@amazon.com>, Michael Carr <michael.carr@brightlayer.com>
+Cc: Jordan Blake <jordan.blake@redwood.com>, Procurement Team <procurement@brightlayer.com>
+Date: 2025-09-13T10:05:00-07:00
+Subject: Re: Follow-up on private offer mapping & target $/1M tokens (BrightLayer)
+
+Michael — thanks for the precise ramp and procurement contact. Attached is the quick mapping and a sample invoice simulation per your request. Short summary: 
+
+Unit price conversions we propose (to be expressed as per-1k tokens in AWS SKU):
+- Target band $110 / 1M => $0.11 per 1k tokens
+- Target band $135 / 1M => $0.135 per 1k tokens
+- Target band $160 / 1M => $0.16 per 1k tokens
+
+Example invoice simulation (expected month = 450M tokens):
+- At $0.135 / 1k => 450,000 (1k units) * $0.135 = $60,750 / month (~$729k annualized)
+- At $0.11 / 1k => $49,500 / month (~$594k annualized)
+
+Notes / assumptions:
+- We are billing tokens as the sum of input + generated tokens after prompt normalization. If BrightLayer uses heavy on-device prefiltering or compresses prompts, token counts change materially.
+- We’ll work with Redwood Optimize to identify 15–25% token reductions via prefix caching and quantization; those savings flow directly to spend.
+
+Attachments: updated BL_usage_forecast_Q4Q5.xlsx (adds scenario columns) and redwood_po_terms_draft.pdf (clean copy).
+
+Next steps: 
+1) Aisha — if AWS can create a Marketplace Private Offer with a custom per-1k token metering dimension, please initiate the Marketplace SKU draft using $0.135 as the mid-band starting point.
+2) BrightLayer procurement to review the draft PO terms and indicate legal turnaround time.
+3) Redwood to share a short runbook documenting how metered events map to tokens to include in the offer.
+
+Thanks — Sergio
+
+> On 2025-09-13 09:21, Michael Carr wrote:
+> > Thanks — quick clarifying details from BrightLayer: ...
+
+From: Procurement Team <procurement@brightlayer.com>
+To: Sergio Alvarez <sergio.alvarez@redwood.com>, Aisha Malik <aisha.malik@amazon.com>
+Cc: Jordan Blake <jordan.blake@redwood.com>, Michael Carr <michael.carr@brightlayer.com>
+Date: 2025-09-15T09:30:00-07:00
+Subject: Draft private offer and next steps
+
+Sergio / Aisha — attached is BrightLayer’s procurement note and tentative private offer terms. We’ll proceed with the marketplace route provided the SKU maps to per-1k token billing and the final net price (after Marketplace fees) is within the $110–$160 / 1M target.
+
+Key items and timeline:
+- We are able to move forward with a 12-month PO. Target signature window: by 2025-09-30.
+- Requested initial unit: $0.135 per 1k (BrightLayer legal will request a 60-day review for commercial + security).
+- Please generate a DocuSign envelope with the draft terms; procurement prefers the marketplace Private Offer be attached to the DocuSign for traceability.
+
+DocuSign link (draft): https://docusign.com/envelope/ABC-1234
+Marketplace SKU (for AWS team): https://aws.amazon.com/marketplace/marketplace-sku/rdw-inference-private-offer
+
+We’ll wait on the formal Marketplace Private Offer draft and the Redwood runbook. If Redwood can provide an example meter payload (how you’ll publish the token usage to AWS meter) that will accelerate legal + billing sign-off.
+
+Regards,
+BrightLayer Procurement
+procurement@brightlayer.com
+
+--
+Attachment: brightlayer_po_note.pdf (PDF, 14KB)

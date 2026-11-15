@@ -1,0 +1,69 @@
+support
+
+maya_support: FYI incoming priority from ACME — they've been seeing spikes in p99 latency for EU requests and intermittent 401s. Started ~08:05 UTC. They also reported a surprise billing uptick. customer-repro attached.
+
+sam_oncall: 
+Can you paste the minimal curl repro and any headers they send? Also tiny ask: did they enable regional pinning or custom routing on their account?
+
+maya_support: 
+curl -H \"Authorization: Bearer <token>\" -H \"X-Region: eu-west-1\" \"https://api.redwood.ai/v1/generate\" -d '{\"prompt\":\"hello\"}'
+
+Response sometimes 200 after 4-6s, often 401 with body:
+{\"error\":\"unauthorized\",\"reason\":\"token_scope_mismatch\"}
+I pulled a short server-side trace from their request id 01AF23: 
+```
+[08:06:12] route_decision: prefer=eu-west-1, capacity=0.0 -> action=detour->us-east-1 reason=region_capacity_exhausted queue_wait=128.2s
+[08:06:12] outbound_auth: token_swap_required=false session_scope=eu-only target_region=us-east-1 -> auth_check=failure (scope mismatch)
+[08:06:12] response: 401 body={\"error\":\"unauthorized\",\"reason\":\"token_scope_mismatch\"}
+```
+
+maya_support: customer says they never requested detour; they expect EU only. They also saw tokens invalid when routed to us-east.
+
+lee_infra: I see the same patterns in infra logs — our detour policy kicks in when region queue_wait > 60s (config: routing.detour.threshold=60s). The fallback path is to route to nearest available region; we don't currently perform a token scope translation. That explains the 401s.
+
+deploy-bot: [automated] autoscaler event: eu-west-1 pool exhausted at 08:05:58, pending_queue=312, avg_wait=134s. fallback-routing enacted for tenants with routing.policy=auto-detour.
+
+irene_prodops: Important: ACME is on the default tenant policy (auto-detour enabled). Billing note: cross-region detours count against destination region compute and egress in billing metering, which likely caused the surprise charge.
+
+sam_oncall: Quick mitigation options for ACME:
+- advise them to enable tenant-level region_pin (immediate) OR
+- set routing.policy=prefer_local_no_detour to force 503s instead of detours while we fix capacity
+- We can also issue temporary credits for unexpected egress — check with Billing.
+
+maya_support: I told customer to enable region_pin=true and shared these steps:
+1) Console > Org > Routing > toggle \"Pin requests to origin region\"
+2) Or via API: PATCH /orgs/:id/routing {\"region_pin\":true}
+They flipped it and confirmed fewer detours, but they still hit 503s when EU is saturated.
+
+lee_infra: Root cause plan:
+1) investigate why scaling didn't keep up (probe autoscaler logs + gpunode drain events)
+2) evaluate detour threshold (60s) vs observed tail latencies — maybe too aggressive for some tenants
+3) implement token-scope aware detour guard: if token.scope != target_region_scope then avoid detour
+
+irene_prodops: Can we quickly add a temporary guard: do not detour if outbound_auth would fail? Even a config flag per-tenant would work.
+
+sam_oncall: I'll open an ENG ticket and assign to eng-infra with priority P1. Please include metric links and request ids. Also cc billing for credits evaluation.
+
+maya_support: ENG ticket: https://redwood.internal/issue/INF-4728 — added logs, autoscaler events + example request id 01AF23, customer contact.
+
+billing-bot: [automated] Billing alert created for tenant ACME (acct_42) — potential unexpected cross-region egress. Ticket BL-1109.
+
+lee_infra: Quick diagnostic snippets I ran:
+- kubectl logs -l pool=eu-inference --since=15m | grep \"drain\"
+- aws cloudwatch get-metric-statistics --metric-name GPUUtilization --start-time 2026-03-17T07:50:00Z --end-time 2026-03-17T08:10:00Z
+Findings: two nodes entered NotReady around 07:58 due to host-level OOM kill on runtime; autoscaler added nodes but launch time ~70s, so queue grew.
+
+irene_prodops: Short-term action items:
+- ops: add token-scope check to detour decision (hotfix toggle) — target <12h
+- infra: investigate OOM root cause on eu nodes + ensure faster scale-up or warm standby
+- billing: reach out to ACME for credits and confirm acceptability of mitigation (they prefer pinning)
+
+sam_oncall: Thanks. Maya — please share the customer's account id and ask them to confirm region_pin set. I'll update INF-4728 with next steps and owners.
+
+maya_support: Account id: acct_42. Customer confirmed region_pin=true and is OK with temporary 503s while we fix capacity. They asked for ETA; I'll tell them ~12-24h for hotfix + follow-up on credits.
+
+lee_infra: I'll start on the token-scope guard and the OOM postmortem, will update the ticket in the next 2 hours.
+
+irene_prodops: tagging here: @sam_oncall @lee_infra please also check routing.detour.threshold; we may want to bump from 60->120s for multi-tenant workloads while we address scaling.
+
+sam_oncall: noted. Keeping INF-4728 open. Thanks everyone. :white_check_mark:

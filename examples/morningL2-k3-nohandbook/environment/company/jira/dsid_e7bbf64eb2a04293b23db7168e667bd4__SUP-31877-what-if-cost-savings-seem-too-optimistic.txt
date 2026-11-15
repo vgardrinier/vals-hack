@@ -1,0 +1,70 @@
+Optimize what-if ROI estimates show unrealistically high savings (cache warm-rate assumed ~100%)
+
+Customer reports that Optimize "Enable prefix caching" recommendation shows 65–80% cost savings for their chat workload, which they believe is not achievable given their prompt variability and low cache hit rate.
+
+Issue summary:
+- Optimize UI what-if ROI for caching shows very large savings.
+- Customer believes actual cache hit rate is low (~10–25%) and that estimates should reflect warm-up / low reuse.
+
+Impact:
+- Customer questions credibility of Optimize ROI and Redwood cost methodology.
+- Risk: sales cycle slowdown and additional CS time.
+
+Customer context:
+- Arcadia LegalTech is evaluating Optimize for a regulated workload with heavy system prompts + per-user context. They report high prompt diversity (low expected prefix reuse).
+
+Observed behavior:
+- Optimize ROI card shows large delta in "cache savings" with little/no downside.
+- When customer runs A/B manually, realized savings are materially lower.
+
+Suspected root cause (initial triage):
+- Cache warm-rate / cache re-use assumptions in what-if projection appear to be effectively set to 1.0 (100% warm), even when workload is not warm.
+- Potential mismatch between Optimize input field naming and Cost Model API what-if parameter semantics.
+
+Example (from customer screenshot and our reproduction in prod via internal tooling):
+- Baseline: ~2.1M tokens/day, p95 latency steady, no caching enabled.
+- What-if: caching enabled; estimated savings ~72%.
+- Request appears to omit an explicit cache warm-rate / warmness parameter; backend defaults to a best-case assumption.
+
+Requested outcome:
+1) Correct the default assumptions so what-if projections are conservative unless provided workload measurements.
+2) Clarify schema semantics and document which fields are required vs optional for cache what-if accuracy.
+3) Provide customer-facing explanation and updated estimate using their real cache hit/warm-rate.
+
+Internal notes:
+- This ticket is specifically about what-if ROI estimates being optimistic, not invoice mismatch. See SUP-31844 for Console vs invoice discrepancies.
+2026-02-18 09:14 PT — Marissa Cole (Reporter): Customer (Arcadia) says Optimize caching recommendation claims 70% savings. They expect ~10–25% cache hit rate due to varied user context. They’re asking if our what-if assumes a warm cache / perfect reuse. Requesting Eng/Optimize to confirm assumptions + provide revised estimate we can share.
+2026-02-18 10:02 PT — Aditya Rao (Assignee): Acknowledged. Looping in Hassan (caching ROI) + Ethan (cost-model API). We recently switched ROI calcs to the standard cost model outputs; might be a default value issue in the what-if payload. Will reproduce with the same model + workload profile.
+2026-02-18 11:26 PT — Hassan Mirza: Repro’d in staging with similar workload summary: if cache warmness is missing, projection uses optimistic warm cache assumption (effectively warm_rate=1.0 and stable prefix reuse). That is not appropriate for first-time/low-reuse workloads. We need to either (a) force the caller to provide a warm-rate/hit-rate or (b) default to a conservative range and show CI/uncertainty.
+2026-02-18 12:05 PT — Ethan Park: Confirmed Cost Model API v1 what-if has an optional field for cache warmness but semantics are not explicit in schema docs. When omitted, the service currently treats it as 'steady-state warm' (historical reason: Optimize prototypes used steady-state comparisons). That’s likely the source of inflated ROI.
+Action: propose changing default to 'unknown' => returns a bounded range + requires Optimize to pass a workload-derived estimate when available. We also need to avoid breaking Console callers (Console shouldn’t be using what-if today).
+2026-02-18 13:40 PT — Jada Williams: +1 on default behavior being dangerous. From an API standards perspective, what-if should be deterministic, but returning a confidence interval (min/max/expected) is acceptable as long as bounded and documented. If the field is optional, omitting it should not silently become best-case.
+2026-02-19 09:08 PT — Nadia Rahman: From telemetry, Arcadia’s prefix cache hit rate last 7d looks like ~0.18 (18%) with high variance by route. If we plug 0.15–0.25 warm/hit into the model, savings are closer to 12–22% (ballpark), not 70%. We can provide this range to Support for customer comms.
+2026-02-19 10:22 PT — Aditya Rao: Proposed customer message: "Earlier ROI assumed steady-state warm cache; using your measured hit rate, estimated savings are ~15–25% depending on route" + note that Optimize will be updated to ask for/workload-estimate cache warmness and display a range.
+Also filing internal follow-up to update schema docs + UI defaults.
+2026-02-19 12:47 PT — Marissa Cole: Shared preliminary explanation with customer (no numbers yet) that our projection assumed warm cache steady-state and we’re recomputing using their hit-rate. Customer asked for written clarification we can share with finance stakeholders (what counts, what assumptions).
+2026-02-20 09:31 PT — Ethan Park: Engineering plan:
+1) Cost Model API what-if: change omission behavior from best-case to conservative-default (e.g., warm_rate defaults to 0.2 unless caller supplies, or returns an error/warning requiring explicit input). Prefer returning 'warnings' in response + range.
+2) Update schema docs to explicitly define 'cache_warm_rate' and whether it represents (a) probability of warm cache at request start vs (b) expected prefix reuse/hit probability.
+3) Add validation guardrails to reject warm_rate > 0.95 unless workload explicitly claims stable prefixes.
+
+Need signoff from Optimize + PM for behavior change (may change numbers).
+2026-02-20 11:18 PT — Jonas Weber: For what-if methodology, recommend response includes:
+- assumptions_used: list (as a string list in our logs; for API can return warnings)
+- confidence: low/med/high
+- savings_range: [min,max] (we can encode as string fields if needed)
+Even if v1 doesn’t support full CIs, we should at least surface 'assumed_warm_cache=true' in the response so UI can communicate it.
+2026-02-21 14:02 PT — Aditya Rao: Optimize change: UI currently sends warm_rate=1.0 by default when user doesn’t edit the advanced field (historical default). That’s the smoking gun. We should default to 'unset' and let API decide conservative behavior, or compute from telemetry when available.
+I’ll coordinate a hotfix to set default to null/unset and show "Using measured cache hit rate" when available.
+2026-02-22 16:50 PT — Marissa Cole: Customer update sent with revised range using telemetry-derived hit rate (18% avg; 10–25% range). Customer response: "This is much more believable." They asked for ETA on product change so future recs don’t show best-case. They’re OK if UI says "steady-state" explicitly.
+2026-02-24 09:10 PT — Aditya Rao: Resolution:
+- Optimize hotfix merged to stop defaulting warm_rate to 1.0; now omitted unless user explicitly sets it, and when telemetry-derived estimate exists we pass that value.
+- Cost Model API team to clarify schema semantics (doc update) and add a response warning when warm-rate is omitted (tracked separately).
+Closing this support ticket since customer is unblocked and understands the corrected estimate.
+2026-02-24 09:12 PT — Marissa Cole: Closing as resolved/closed. Customer satisfied with corrected projection + explanation. Follow-ups captured below.
+Optimize what-if ROI was inflated due to a misconfigured default cache warm-rate assumption (UI defaulted warm_rate=1.0). Customer was provided corrected estimates using telemetry-derived cache hit rate (~18% avg; ~10–25% range). Optimize updated to omit warm-rate unless explicitly set or derived from telemetry; schema/semantics documentation to be clarified by platform.
+Until the UI fix rolled out, support recommended setting cache warm-rate explicitly to a conservative value (0.1–0.25) in the advanced what-if configuration and interpreting results as steady-state only if the workload is known to be warm.
+Update Cost Model API schema docs to explicitly define cache warm-rate semantics and omission/default behavior (owner: Ethan Park).
+Add Cost Model API what-if response warnings/assumptions so Optimize can display them (owner: Ethan Park / Jonas Weber).
+Add guardrails to prevent best-case defaults in what-if paths and require explicit user intent for warm_rate > 0.9 (owner: Platform team; aligns with policy guardrails work).
+Add a small QA test fixture for caching what-if with warm_rate omitted to prevent regression (owner: Leila Farouk).

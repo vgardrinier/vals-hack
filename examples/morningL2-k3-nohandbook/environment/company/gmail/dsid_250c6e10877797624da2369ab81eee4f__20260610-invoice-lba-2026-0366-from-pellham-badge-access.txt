@@ -1,0 +1,3 @@
+Invoice LBA-2026-0366 from Pellham Badge & Access
+
+From: Pellham Badge & Access Billing <billing@pellhambadge.com>\nTo: finance@redwood.com\nDate: Wed, 10 Jun 2026 07:23:00 -0700\nSubject: Invoice LBA-2026-0366\n\nHello Redwood Inference finance team,\n\nPlease find our invoice details below.\n\nInvoice number: LBA-2026-0366\nInvoice date: 2026-06-04\nDue date: 2026-07-04\nAmount due: $307.67 USD\n\nPayment by ACH to the account on file. Thank you for your business.\n\nPellham Badge & Access billing

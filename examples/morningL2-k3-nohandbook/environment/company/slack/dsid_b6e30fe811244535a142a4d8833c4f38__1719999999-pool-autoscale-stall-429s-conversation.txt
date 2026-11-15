@@ -1,0 +1,40 @@
+support
+
+Sophie (ACME): Hey team — our reserved pool reserved-eu-3 started returning 429s around 03:15 UTC after the quota import yesterday. Latency also spiked.
+Maya (Support): Thanks Sophie — sorry about that. We're looking. Can you paste tenant id + pool id and a rough 429 rate?
+Sophie (ACME): tenant=acme-prod, pool=reserved-eu-3. Seeing ~600-800 429s/min at peak, traffic pattern unchanged on our end.
+Maya (Support): @Jordan fyi infra check please. OpsBot: creating incident.
+OpsBot: Incident created INC-2024-4532 for reserved-eu-3 429 spike.
+Jordan (Infra): I'm seeing router rejects correlated with quota checks. Grabbing logs now.
+Jordan (Infra): log sample:
+```
+router: tenant=acme-prod pool=reserved-eu-3 status=429 rate_used=950 max_allowed=900
+```
+Alex (Runtime): Hmm — billing importer ran last night to convert legacy plan units. There's a script that maps plan_units -> rate_units_per_minute. Could be a conversion error (per-hour vs per-minute).
+Maya (Support): Sophie — did your legacy plan historically report per-hour limits?
+Sophie (ACME): Yes, legacy plan was documented as 36k/hour on the old portal. Billing said they'd migrate to per-minute during the import.
+Jordan (Infra): Found it — importer set rate_units_per_minute = plan_units instead of dividing by 60. For acme-prod that made the enforcement threshold 60x lower than intended when used as-is by the router. Also noticed autoscaler was paused for this pool due to a migration flag. Combined they caused sustained 429s.
+Jordan (Infra): Bad config snippet that came through:
+```
+quota {
+  rate_units: 36000
+  burst_window_seconds: 60
+}
+# importer treated 36000 as per-minute instead of per-hour -> enforcement too strict
+```
+Alex (Runtime): Confirmed the autoscaler flag: pause_after_migration=true so min_nodes stayed at 1. No scale-out even under load.
+Maya (Support): Immediate mitigations: 1) bump acme-prod quota in pool to emergency level, 2) unpause autoscaler. I'll apply now and monitor.
+Jordan (Infra): Applying hotfix patch now:
+```
+PATCH /admin/pools/reserved-eu-3/tenants/acme-prod
+{"rate_units_per_minute":600, "pause_after_migration":false}
+```
+OpsBot: Hotfix applied to reserved-eu-3 for tenant acme-prod (INC-2024-4532).
+Sophie (ACME): 429s dropped to ~2/min in the last 10m, latency back to normal — thank you! 🙏
+Maya (Support): Great. Post-mortem actions: add conversion unit-test for importer, add pre-migration autoscale smoke test, and create runbook for emergency quota bump.
+Alex (Runtime): Action items (rough):
+- PR to rollback/fix importer conversion (Jordan)
+- Autoscale smoke test + alert (Alex)
+- Customer credit & communication (Maya)
+Jordan (Infra): I'll open the PR and link INC-2024-4532.
+Maya (Support): Marking this thread resolved for now — will follow up with the billing team retro. Thanks all :thumbsup:

@@ -1,0 +1,150 @@
+Reserved capacity commitment — pricing contingency request
+
+From: Anne Zheng <anne.zheng@cloudsphere.com>
+To: Rishi Malhotra <rishi.malhotra@redwood.ai>
+Cc: procurement@cloudsphere.com
+Date: Tue, 29 Sep 2026 14:03:00 -0700
+Subject: Reserved capacity commitment — pricing contingency request
+
+Hi Rishi,
+
+Thanks again for the demo last week. We’re close on technical fit and want to move to committed capacity, but procurement has raised a concern: GPU spot and supply prices have been volatile and our CFO asked for some protection in the pricing if market GPU costs spike during the term.
+
+Specifically they asked whether Redwood can:
+- Add a capped indexation clause (e.g., +/- X% band tied to market GPU index)
+- Offer a short-term corridor where discounts are protected if GPU prices rise beyond a threshold
+
+Can you share what contractual options we have for a 12–24 month reserved commitment (we’re leaning to 24 months) and how discounts would be impacted if GPU costs move materially? I can share a template procurement schedule if helpful.
+
+Attached: procurement-requirements-20260929.pdf
+
+Looking forward —
+Anne
+Anne Zheng
+Head of Procurement, CloudSphere
+anne.zheng@cloudsphere.com
+
+From: Rishi Malhotra <rishi.malhotra@redwood.ai>
+To: Anne Zheng <anne.zheng@cloudsphere.com>
+Cc: Marcus Lin <marcus.lin@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Date: Tue, 29 Sep 2026 16:10:00 -0700
+Subject: Re: Reserved capacity commitment — pricing contingency request
+
+Anne —
+
+Appreciate the clarity. We can definitely structure a commitment that mitigates CloudSphere’s exposure while keeping unit economics sane for both sides. High-level options (I’ve attached a short overview):
+
+Option A — 12-month fixed-commit (no indexation)
+- Firm SKU pricing for the term
+- Higher up-front discount than on-demand; limited flexibility for changes
+- Best if you prioritize price predictability and shorter contract length
+
+Option B — 24-month tiered commit with GPU-cost collar
+- Base discount applied to committed SKUs; quarterly GPU-market index review
+- If the GPU index rises > 8% vs baseline, Redwood and customer trigger a price-collar mechanism: either a capped pass-through of delta (up to 4%) or an agreed credit schedule
+- Includes right to resize SKUs at 6-month intervals (subject to reallocation fee)
+
+Option C — 24-month hybrid (tiered + overage protection)
+- Similar to B but adds a limited credit buffer for a single market shock event in the first 12 months
+
+Next steps I propose: I’ll loop in Marcus (finance/infra) and Laura (sales ops) for a sensitivity run and recommended approval path. If you’re happy, I’ll come back with two clean contract options and a DocuSign-ready summary.
+
+Attachment: commit-options-v1.pdf
+
+—Rishi
+Rishi Malhotra
+Enterprise Account Executive, Redwood Inference
+
+From: Marcus Lin <marcus.lin@redwood.ai>
+To: Rishi Malhotra <rishi.malhotra@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Cc: Monica Patel <monica.patel@redwood.ai>
+Date: Wed, 30 Sep 2026 10:25:00 -0700
+Subject: Re: Reserved capacity commitment — pricing contingency request
+
+Rishi / Laura —
+
+Quick sensitivity notes after modeling CloudSphere’s proposed bands. See attached CSV with scenario outputs. Key takeaways: 
+
+- Baseline (no market movement): 24-mo commit at 22% net discount vs hosted list looks acceptable and preserves margin.
+- Moderate GPU uptick (+8% index): If we adopt full pass-through, Redwood margin compresses by ~6ppt. A capped pass-through (max 4%) preserves ~3–4ppt margin, reasonable if we secure a volume-based make-good (credit schedule) tied to usage thresholds.
+- Severe shock (+25%): Any pass-through would be painful; better to handle as a pre-negotiated exceptional event with a 30-day re-opener clause and one-time credit on the contract.
+
+Operational asks for contract language:
+- Define the GPU index (public vendor index or Redwood internal blended index) and update cadence (quarterly recommended).
+- Put hard caps on pass-through percentage and include maximum annualized impact.
+- Include an approval gate for rebalancing SKUs at 6 months (sales ops sign-off).
+
+Attachment: fleet-sensitivity-model.csv
+
+If legal signs off on a collar + one-time shock clause, I’m comfortable recommending Option B with capped pass-through (4%) and credit buffer.
+
+—Marcus
+Marcus Lin
+Director, Infrastructure Finance, Redwood Inference
+
+From: Laura Bennett <laura.bennett@redwood.ai>
+To: Rishi Malhotra <rishi.malhotra@redwood.ai>, Marcus Lin <marcus.lin@redwood.ai>
+Date: Wed, 30 Sep 2026 13:40:00 -0700
+Subject: Re: Reserved capacity commitment — pricing contingency request
+
+Adding Sales Ops perspective —
+
+I recommend we present two firm proposals to CloudSphere:
+1) 12-month fixed (Option A) — fast to close, lower discount, no indexation. Approval: AM + Sales Ops.
+2) 24-month collar (Option B) — better discount, capped pass-through (4%), one-time buffer credit up to 2% of committed spend for a single qualifying shock. Approval: AM + Finance (Marcus) + VP Sales.
+
+Practical notes:
+- Keep SKU change windows at 6 months with a nominal reallocation fee (covers rescheduling and capacity churn).
+- Require a 60-day notice period for invoking the collar review so we can pre-plan capacity and avoid sudden fleet reshuffles.
+- Prepare a short executive memo for VP Sales and CFO explaining bucketed risk & proposed mitigation.
+
+If Rishi is comfortable, I’ll draft the contract terms to push to legal. We’ll need VP Sales and CFO sign-off for the 24-month collar.
+
+—Laura
+Laura Bennett
+Head, Sales Operations, Redwood Inference
+
+From: Rishi Malhotra <rishi.malhotra@redwood.ai>
+To: Anne Zheng <anne.zheng@cloudsphere.com>, Tariq Ahmed <tariq.ahmed@cloudsphere.com>
+Cc: Marcus Lin <marcus.lin@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>, Monica Patel <monica.patel@redwood.ai>
+Date: Thu, 01 Oct 2026 09:02:00 -0700
+Subject: Re: Reserved capacity commitment — pricing contingency request
+
+Anne / Tariq —
+
+Thanks for the patience while we ran sensitivity and approval checks. Below are the two proposal tracks we can send to legal and procurement today. I’ve attached a concise offer summary (PDF) for your team.
+
+Proposal 1 — 12-month fixed commit (Quick Close)
+- Committed SKUs: 50 x A100-equivalent units (reserve pool)
+- Term: 12 months
+- Discount: 18% off hosted list
+- No indexation clause; price locked for term
+- Resize: one window at month 6 with reallocation fee
+
+Proposal 2 — 24-month collar commit (Recommended for volume savings)
+- Committed SKUs: 50 x A100-equivalent units (reserve pool)
+- Term: 24 months
+- Discount: 22% off hosted list base
+- GPU indexation: quarterly review vs baseline; if index > +8% then capped pass-through up to +4% to the per-token price OR customer elects a credit schedule (customer choice)
+- One-time buffer credit: up to 2% of committed spend if a single qualifying shock (>= +20%) occurs in first 12 months
+- Resize windows at months 6, 12 (subject to ops lead approval)
+- 60-day notice for invoking indexation review
+
+Next steps:
+1) Tell me which proposal you prefer and any small redlines.
+2) If you want Proposal 2, I’ll route the term sheet to Legal + VP Sales + CFO for sign-off and produce a DocuSign-ready contract.
+
+Attachment: redwood-cs-proposal-20260930.pdf
+Related: https://hubspot.redwood/deals/RDW-DEAL-8921
+
+—Rishi
+Rishi Malhotra
+Enterprise Account Executive, Redwood Inference
+Phone: +1 (415) 555-0182
+Redwood Inference
+
+On Wed, Sep 30, 2026 at 10:25 AM Marcus Lin <marcus.lin@redwood.ai> wrote:
+> Rishi / Laura —
+> 
+> Quick sensitivity notes after modeling CloudSphere’s proposed bands. See attached CSV with scenario outputs. Key takeaways: ...
+>

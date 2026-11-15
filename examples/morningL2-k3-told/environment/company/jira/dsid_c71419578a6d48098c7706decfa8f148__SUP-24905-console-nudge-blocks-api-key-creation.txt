@@ -1,0 +1,63 @@
+Console onboarding nudge intermittently blocks API key creation (Create API key button unclickable)
+
+Issue summary:
+Customer reports they cannot create an API key in the Console. The "Create API key" button appears, but is not clickable / click does nothing.
+
+Impact:
+- Blocks activation milestone (API key creation → first request).
+- Customer unable to complete onboarding and send first API call.
+- Support volume risk during lifecycle growth experiments rollout (console nudges).
+
+Customer context:
+- Company: DevFlow AI
+- Plan: self-serve Hosted API
+- User report: "The onboarding checklist is telling me to create a key, but I can't click the button. It looks like something is on top of it."
+
+Environment:
+- Console: app.redwoodinference.com
+- Observed in: prod (us-east)
+- Browser: Chrome 121 / macOS (also reproduced on Arc)
+- Feature flags: lifecycle growth console nudges enabled for cohort (holdout = false)
+
+Steps to reproduce (internal repro):
+1) Use a user in cohort with console onboarding nudges enabled.
+2) Navigate to Console → Settings → API Keys.
+3) If the "Next best action" nudge state is "create_api_key" and the nudge is rendered as a sticky banner, attempt to click "Create API key".
+4) Result: button is visually enabled but click does not fire; cursor indicates underlying element is blocked.
+
+Expected:
+User can always create an API key. Nudges must not intercept pointer events on primary onboarding CTAs.
+
+Actual:
+In some states, the nudge container overlays the API key creation header/CTA region. Because the nudge wrapper has an incorrect z-index/pointer-events configuration, it captures clicks (and for some window sizes, overlaps the CTA entirely).
+
+Notes / suspected cause:
+- Regression likely introduced with the reusable nudge component rollout.
+- Seems sensitive to viewport height and whether the checklist is expanded.
+- Potential state mismatch: after dismissal, the nudge component re-renders on API Keys route with stale step state and keeps overlay position.
+
+Workaround (until fix):
+- Reduce zoom to 90% or collapse the checklist panel (if visible) and hard refresh.
+- Alternatively create API key via the Redwood CLI (shared with customer) while we hotfix Console.
+
+Requested outcome:
+Hotfix in Console to ensure onboarding nudges never block API key creation flow. Validate across common viewports and keep behind the lifecycle-growth experiment flag.
+2026-01-24 09:18 PT — Ben Carter (Reporter): Flagging from #support escalation. DevFlow AI cannot create API key; seems like the new onboarding nudge is sitting on top of the CTA. This is directly impacting activation funnel for the sprint cohorts.
+2026-01-24 09:42 PT — Support (triage) (Ben Carter): Acknowledged to customer. Requested screenshot + browser/OS. Shared CLI workaround to unblock them for today. Set priority P1 due to activation blocker.
+2026-01-24 10:05 PT — Kenji Nakamura (Design): Looked at current banner layout; on smaller viewports the sticky nudge bar can overlap the page header. Suggest we make the banner non-sticky on Settings routes or enforce a safe top offset. Also ensure pointer-events is only on buttons inside the nudge, not on the container.
+2026-01-24 10:31 PT — Dylan Brooks (Assignee): Reproduced in prod with a test cohort user. Root cause: NudgeContainer wrapper has pointer-events:auto and spans full width with transparent background; z-index > header. Clicking CTA is intercepted. Implementing CSS fix + route-specific layout guard.
+
+Action: patch NudgeContainer to pointer-events:none, enable pointer-events:auto only for interactive children; reduce z-index; add e2e check for API Keys route.
+2026-01-24 11:12 PT — Chloe Martin: Confirmed route-level placement logic is using a generic header anchor; Settings pages have different stacking context. Suggest use dedicated mount point for Settings pages or disable this nudge placement on /settings/* until mount point ships.
+2026-01-24 12:03 PT — Dylan Brooks: Hotfix proposal:
+1) CSS pointer-events change as above (safe and low risk).
+2) Add placement rule: do not render sticky nudge on /settings/api-keys; render inline below page title instead.
+Shipping behind existing lifecycle growth flag; will ramp from 10% to 100% of flagged cohort after QA.
+2026-01-24 13:26 PT — Leila Farouk (QA): Validated fix on Chrome/Safari, 100%/110% zoom, laptop viewport. Confirmed "Create API key" clickable in all tested variants. Also verified nudge dismiss persists and does not re-overlay on navigation back to API Keys.
+2026-01-24 14:10 PT — Ben Carter: Customer updated: shared ETA (today) + workaround until confirmed. Requested they retest after we notify.
+2026-01-24 16:02 PT — Dylan Brooks: Patch merged and deployed to prod behind flag. Ramp plan: 10% cohort for 1 hour monitoring console errors → 50% → 100% if clean. Monitoring: console route errors + click-through event to API key modal open.
+
+Notes: no backend change; purely console layout / interaction fix.
+2026-01-25 09:07 PT — Allison Grant (Observability): No spike in console JS errors post-deploy. Funnel event "api_key_modal_opened" recovered for the flagged cohort segment compared to prior hour. Looks stable.
+2026-01-25 11:18 PT — Ben Carter: Confirmed with DevFlow AI: they can now create an API key and completed first request. Closing the loop; keeping ticket open until full ramp completes.
+2026-01-29 15:40 PT — Dylan Brooks: Full ramp complete for lifecycle-growth cohorts. Added regression test coverage for Settings → API Keys route. Marking Resolved.

@@ -1,0 +1,60 @@
+Edge proxy defers flush during repeated small client-chunks and rotated metadata; long streaming completions drop with 499/504
+
+Issue summary:
+Customer (AcmeAI, dedicated) reports intermittent stream terminations during long completions. Sessions frequently end with client-side 499 or server-side 504/502 after ~65–120s. This started after the customer rolled a telemetry agent that attaches rotating X-Baggage headers every 10s and issues repeated small chunked POST uploads from their SDK.
+
+Impact:
+- Customer sees ~8–12% of long streaming responses fail after ~1–2 minutes.
+- Affects production inference for mid-long completions (context lengths >2k).
+- User-facing: truncated outputs, retries, and higher token cost.
+
+Environment:
+- Redwood hosted endpoint: prod us-east-1, api-gateway -> ALB -> edge-proxy -> serving pool.
+- Customer using dedicated capacity pool behind private routing.
+- Observed on models: open/ggml-transformer-xl-13b and redwood/llm-internal-compat.
+
+Steps to reproduce (customer-provided):
+1) Start a streaming generate request with a long prompt (approx 2k tokens context).
+2) From the client, send the request body in many small chunked writes (client flush every 20–60ms).
+3) Every 8–12s the client rotates a large instrumentation header (X-Inst-Baggage ~1.2kB each, cumulative on path due to proxy sticky connection).
+4) Wait for streaming completion; intermittently fail between 65–120s with client 499 or server 504.
+
+Observed behaviour / logs (excerpts):
+- Edge proxy logs (us-east-edge-22) show repeated Nagle/coalescing behavior and large header frame growth; many connections show "deferred_flush=true" and "idle_write_timeout=65s" annotations.
+- ALB access logs: several requests show status_code=504, target_status_code=-1, elapsed_time ~72.45s.
+- Customer SDK trace: socket hangup after long silence then immediate reconnect.
+- Serving runtime shows no obvious backend OOM; KV-cache warmup completed for affected sessions.
+
+Initial hypothesis:
+- The edge proxy (sidecar) is coalescing small client writes into larger buffers and deferring flushes to optimize TCP throughput. When header baggage rotates, the proxy's per-connection header table grows or triggers additional internal buffering which increases time-to-first-byte (TTFB) on warm streams. This interacts with ALB/edge idle-send timeouts and results in mid-stream resets once an idle threshold is hit.
+- Alternatively, ALB/NGINX connection-level write stalls due to header/table growth (HTTP/2 HPACK pressure) cause the upstream to consider the connection idle and close it.
+
+Investigation performed so far:
+- Reproduced a failure in staging using a synthetic client that mimics small-chunk writes + header rotation; saw similar 504 after ~68s.
+- Capture of tcpdump and http2 frames at edge-proxy showed long periods of no outgoing bytes from proxy toward ALB despite incoming client chunks being accepted.
+- Increased ALB timeouts in a test harness prevented the 504, confirming timeout sensitivity.
+- Temporary mitigation via customer SDK: batching client writes into larger chunks eliminated the failure in repro.
+
+Workarounds suggested to customer:
+- Short-term: batch client-side flushes to reduce coalescing artifacts (send at least 2–4KB per write).
+- Reduce frequency/size of rotating instrumentation headers; send them as a single stable header if possible.
+- If on dedicated, request routing to a different edge pool (we rotated the pool for one session and saw improvement).
+
+Next steps / action items:
+- SRE to review edge-proxy flush heuristics and evaluate disabling deferred flush for streaming endpoints. (Assignee: Jared Collins)
+- Infra to add a short-lived ALB timeout increase test across a sample of affected customers and monitor for regressions. (Assignee: Ops)
+2026-03-12 Maya Singh: Opened with customer logs attached. Customer reports spike starting 2026-03-09 after deploy of instrumentation agent.
+2026-03-12 Jared Collins: Reproduced locally in staging using synthetic client. Observed idle stalls between proxy->alb even though client is streaming. Hypothesis: proxy deferred flush + header growth triggers ALB idle timeout.
+2026-03-13 Support (Maya): Applied temporary routing to alternate edge pool for customer. They reported immediate reduction in failures from ~10% to ~1% for an hour.
+2026-03-13 SRE (Linh Tran): Collected tcpdump and http2 frame captures; pushing captures to /mnt/ci/artifacts/2026-03-13-edge-buf.tgz and linked in ticket. Noted multiple "PADDING" frames and HPACK table churn.
+2026-03-14 Jared Collins: Drafting change to edge-proxy config to remove deferred flush behavior for endpoints flagged as streaming. Will run A/B test on canary nodes. PR: github.com/redwood/release/pull/4387
+2026-03-14 Customer (AcmeAI - Todd Rivera): We've applied client batching and reduced header churn; will monitor for 48 hours and report back. Thank you for the quick rotation to alternate pool.
+Repro in staging confirms timing window ~65–75s before ALB emits 504 when proxy defers writes.
+HPACK table growth and repeated header rotations increase internal proxy memory accounting and appear to delay actual wire writes to ALB.
+No evidence of backend model OOM or serving-runtime CPU starvation during repro.
+Increasing ALB idle timeout alleviates but does not address root cause; will need proxy change to guarantee streaming liveness.
+SRE to coordinate with infra/network to test edge-proxy config toggle on canary set first.
+In progress: temporary mitigation is client batching and header stabilization. Pending edge-proxy config change and canary rollout. Follow-up: add streaming endpoint tag to bypass deferred flush optimization; monitor for throughput regressions post-rollout.
+ENG-Infra: implement edge-proxy toggle to disable deferred flush for streaming endpoints (owner: Jared Collins)
+SRE: run 48h canary with 5% of nodes toggled, measure TTFB and overall throughput (owner: Linh Tran)
+DX: update SDK guidance about batching and header size for streaming clients (owner: Priya Menon)

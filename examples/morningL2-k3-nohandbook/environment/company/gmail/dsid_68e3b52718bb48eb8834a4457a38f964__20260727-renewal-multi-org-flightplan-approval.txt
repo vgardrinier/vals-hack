@@ -1,0 +1,106 @@
+Renewal + roadmap demo — multi-org flightplan approval
+
+From: Ben Carter <ben.carter@redwood.ai>
+To: Liam O'Reilly <liam.oreilly@medisync.com>, Anita Shah <anita.shah@medisync.com>
+Cc: Grace O'Connor <grace.oconnor@redwood.ai>, Karthik Iyer <karthik.iyer@redwood.ai>
+Date: Mon, 27 Jul 2026 16:12:00 -0700
+Subject: Renewal + roadmap demo: proposed flightplan & mutual action plan
+
+Hi Liam / Anita —
+
+Thanks again for the time last week — excited to get the QBR + renewal demo on the calendar. Attached: a compact agenda (MediSync_MVP-agenda.pdf) and a first-pass mutual action plan (MAP-draft.xlsx). High-level ask:
+
+- Target: 90-minute live session to cover executive roadmap + technical deep-dive (split 45/45)
+- Preferred week: Aug 9–13 (we're proposing Aug 12, 10:00 AM PT as a primary slot)
+- Outcomes: executive alignment, technical acceptance criteria for staging, procurement milestones in MAP (PO, SOW, contract signing)
+
+Can you confirm:
+1) Whether Aug 12, 10:00 AM PT works for your exec + engineering leads?
+2) If you prefer two short sessions (exec only + tech lab) instead of a single 90-min block?
+3) Any procurement timeline constraints we should reflect in the MAP?
+
+If you confirm the slot we will: (a) lock an internal dry-run with CS and SEs, (b) update the MAP with your procurement dates, and (c) send a DocuSign pre-fill for the renewal term.
+
+Thanks —
+Ben Carter
+Enterprise AE | Redwood Inference
+ben.carter@redwood.ai | +1 (415) 555-0192
+
+Attachments: MediSync_MVP-agenda.pdf (PDF), MAP-draft.xlsx (Excel)
+From: Liam O'Reilly <liam.oreilly@medisync.com>
+To: Ben Carter <ben.carter@redwood.ai>
+Cc: Anita Shah <anita.shah@medisync.com>
+Date: Tue, 28 Jul 2026 09:40:00 -0700
+Subject: Re: Renewal + roadmap demo: proposed flightplan & mutual action plan
+
+Ben —
+
+Appreciate the clear plan. Aug 12 at 10:00 AM PT should work for execs (I will confirm with our CTO and confirm seats by EOD Wednesday). A couple of notes from our side:
+
+- We prefer a two-part structure: 30–40 minutes for the executive roadmap/ROI discussion, followed by a 50–60 minute technical lab with our infra lead and two engineers.
+- Can the technical session include a short hands-on sandbox (we'll need a stable staging endpoint and a short prompt set)?
+- Procurement: we need the MAP to show a target PO submission date (we're aiming for Aug 20) and an internal legal review window (Aug 16–19). If you can mirror those dates that helps expedite approvals.
+- DocuSign: can you send a draft or pre-filled link before the demo? That allows our procurement to start early.
+
+Also a quick ask: will you record the technical lab? Our engineers like to rewatch the walkthroughs.
+
+Thanks,
+Liam
+VP Product Operations | MediSync
+liam.oreilly@medisync.com
+
+On Mon, Jul 27, 2026 at 4:12 PM Ben Carter <ben.carter@redwood.ai> wrote:
+> [original message attached]
+
+From: Ben Carter <ben.carter@redwood.ai>
+To: Grace O'Connor <grace.oconnor@redwood.ai>, Karthik Iyer <karthik.iyer@redwood.ai>, Jordan Blake <jordan.blake@redwood.ai>
+Date: Tue, 28 Jul 2026 10:05:00 -0700
+Subject: Internal: MediSync slot confirmed tentatively (Aug 12 10:00 AM PT) — ops checklist
+
+Team — quick internal note; please treat as internal planning only. Liam tentatively confirmed Aug 12, 10:00 AM PT and asked to split into exec (30–40m) + tech lab (50–60m) with a recording of the lab. Action items: 
+
+- Grace: plan CS dry-run on Aug 11, 11:00 AM PT (30–45 min). Please include runbook owner and scribe.
+- Karthik: can you confirm sandbox staging availability and the dataset subset we can use for a ~20-min hands-on lab? Need a stable endpoint and confirm max token limits.
+- Jordan: can you own the executive 35-min ROI walkthrough if Ben needs cover? Also prepare a one-slide license/pricing summary for execs.
+- Ben: I'll update the MAP with PO target Aug 20 and internal legal window Aug 16–19 (per Liam). Attachments: updated MAP to follow.
+
+Goal: convert to a single HubSpot plan and a pre-filled DocuSign by Aug 3 so procurement can pre-queue review.
+
+Ben
+
+On Tue, Jul 28, 2026 at 9:40 AM Liam O'Reilly <liam.oreilly@medisync.com> wrote:
+> [Liam's reply attached]
+
+From: Ben Carter <ben.carter@redwood.ai>
+To: Liam O'Reilly <liam.oreilly@medisync.com>, Anita Shah <anita.shah@medisync.com>
+Cc: Grace O'Connor <grace.oconnor@redwood.ai>, Karthik Iyer <karthik.iyer@redwood.ai>, Jordan Blake <jordan.blake@redwood.ai>
+Date: Thu, 29 Jul 2026 23:02:00 -0700
+Subject: Re: Renewal + roadmap demo: proposed flightplan & mutual action plan — confirmed and next steps
+
+Liam / Anita —
+
+Great — thanks for confirming the two-part format. Finalizing below and attaching the updated MAP (MAP-draft_v2.xlsx) and the compact agenda we will use for invites.
+
+Confirmed slot: Aug 12, 2026 — 10:00 AM PT (30–40m exec + 50–60m tech lab).
+Pre-demo ops: CS dry-run scheduled Aug 11, 11:00 AM PT (Grace to run). SE lab prep: Karthik to provide staging endpoint and a sample prompt pack by Aug 6.
+Procurement plan (per MAP): PO submission target Aug 20; legal review window Aug 16–19. I've created the HubSpot deal and pre-filled DocuSign packet (links below). Please note: we'll record the technical lab unless you opt out; recording helps with internal knowledge transfer.
+
+DocuSign (pre-fill): https://docuSign.fake/ds/notify/txn-7751
+HubSpot deal: https://hubspot.com/deal/9842
+Drive (agenda & MAP): https://app.redwood.com/s/DEAL-9842/MAP
+
+Next steps (for you):
+- Confirm exec attendee list and the two engineers who will join the lab (reply-all with names).
+- If you want the technical lab unrecorded, tell us now.
+
+I'll send calendar invites and a runbook (short checklist) once we have attendee names.
+
+Best,
+Ben Carter
+Enterprise AE | Redwood Inference
+ben.carter@redwood.ai
+
+Attachments: MAP-draft_v2.xlsx, MediSync_MVP-agenda_v2.pdf
+
+On Tue, Jul 28, 2026 at 10:05 AM Ben Carter <ben.carter@redwood.ai> wrote:
+> [internal ops note]

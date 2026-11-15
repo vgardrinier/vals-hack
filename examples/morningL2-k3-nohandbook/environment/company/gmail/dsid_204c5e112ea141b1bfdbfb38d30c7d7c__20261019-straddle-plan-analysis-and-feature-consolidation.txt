@@ -1,0 +1,116 @@
+Straddle Health — Tier transition analysis and feature consolidation
+
+From: Sara Lin <sara.lin@straddlehealth.com>
+To: Rafael Mendes <rafael@redwood.com>
+Cc: Tom Nguyen <tom@straddlehealth.com>
+Date: Sun, 18 Oct 2026 09:03:00 -0700
+Subject: Tier move + feature consolidation questions
+
+Hi Rafael,
+
+Thanks for the quick intro earlier this week — Tom and I dug into our Q2 usage and we have a few concrete questions as we consider moving some services off our current Mid tier into a higher-throughput pool. I attached our usage extract (Straddle_Usage_Report_Q2.csv).
+
+High-level asks:
+- Can you outline pros/cons for a straight tier upgrade vs. a hybrid (keep some features on Mid, move inference-heavy routes to Throughput)?
+- Any recommended feature-bundling approaches to avoid regressions when we consolidate entitlements?
+- What discount/commit thresholds would apply if we committed to a 12-month Dedicated capacity window for steady traffic?
+
+Our main concerns are: migration disruption, preserving latency SLAs for the routing-heavy endpoints, and not overpaying for features we won't use. We can do a 30–45 minute call next week to walk through the usage and your recommendations.
+
+Appreciate the help — attached the CSV and a short internal note.
+
+Best,
+Sara Lin
+Head of Partnerships, Straddle Health
+(415) 555-0192
+
+Attachment: Straddle_Usage_Report_Q2.csv (CSV, 72 KB)
+From: Rafael Mendes <rafael@redwood.com>
+To: Sara Lin <sara.lin@straddlehealth.com>
+Cc: Ben Carter <ben@redwood.com>, Kimberly Park <kimberly@redwood.com>, Tom Nguyen <tom@straddlehealth.com>
+Date: Sun, 18 Oct 2026 12:27:00 -0700
+Subject: Re: Tier move + feature consolidation questions
+
+Hi Sara — thanks for the data and context. I reviewed the CSV quickly and have a proposed framework below; happy to walk through on a call and tailor the numbers.
+
+Short takeaway: a hybrid approach usually gives the best cost/latency balance for customers with spiky reranking/generation routes. Move the top 20% token-volume routes to Throughput (reserved) and leave interactive admin/low-volume actions on Mid.
+
+Suggested framework (high level):
+- Migration phasing: 2–3 week pilot (10% traffic to Throughput, end-to-end latency tests), 4 week ramp to 50%, then full shift if SLOs met.
+- Feature stitching: create a single entitlement bundle for inference-heavy flows (Model Rerank + Streaming) and keep non-critical features decoupled (Analytics, Export). That minimizes entitlement churn during rollouts.
+- Discounts/commits: standard committed corridor gives 8-12% discount at $75k+/month committed spend; add-on reserved GPU credits can reduce unit cost further. For a 12-month Dedicated commit we can discuss a stepped discount (10% at T1, 12% at T2) depending on sustained throughput.
+
+I'll loop in Ben and Kim to confirm the exact concession bands and SLA implications. If you're available Tue or Wed afternoon PT, I'll schedule 30 minutes and bring a migration checklist.
+
+Proposed next steps:
+1) Quick sync to align on goal metrics (latency p95, token budget)
+2) We run a pilot config and share telemetry for 2 weeks
+3) Draft amendment with commit/discount options for approval
+
+—Rafael
+Rafael Mendes
+Account Executive, Redwood Inference
+rafael@redwood.com | (650) 555-0147
+
+Attachment referenced: Proposed_Amendment_v2.docx (will circulate after internal confirmation)
+From: Rafael Mendes <rafael@redwood.com>
+To: Ben Carter <ben@redwood.com>, Kimberly Park <kimberly@redwood.com>
+Date: Mon, 19 Oct 2026 09:14:00 -0700
+Subject: RE: Tier move + feature consolidation questions — internal ask
+
+Ben/Kim — forwarding Sara's note (below) and my initial framing. Need your confirmation on concrete concession structure and whether we can offer a one-time migration credit to offset the customer's integration work.
+
+Quoted original:
+> From: Sara Lin <sara.lin@straddlehealth.com>
+> Date: Sun, 18 Oct 2026 09:03:00 -0700
+> Subject: Tier move + feature consolidation questions
+>
+> (see attached CSV)
+
+Questions for you:
+- Ben: do we have latitude to offer a 10% migration credit + stepped commit discount (10% year 1, 6% year 2) if they commit $900k ARR on Dedicated capacity? If not, what is the minimum we can approve without legal signoff?
+- Kim: are there any SLA carve-outs we should be aware of for the hybrid routing approach (cross-region fallback, model-variant degrade)? Will that trigger any extra support/ops cost?
+
+My recommended concession (preliminary):
+- One-time migration credit equal to 3 months of average committed spend (applied as a credit on invoice)
+- 12-month commit with 10% discount on token/embedding units + reserved GPU credit pool priced at 15% below on-demand equivalent
+- Pilot term: 2 weeks telemetry + formal go/no-go
+
+Please reply with redlines today so I can finalize Proposed_Amendment_v2.docx and send to the customer.
+
+Thanks,
+Rafael
+From: Rafael Mendes <rafael@redwood.com>
+To: Sara Lin <sara.lin@straddlehealth.com>
+Cc: Tom Nguyen <tom@straddlehealth.com>, Ben Carter <ben@redwood.com>, Kimberly Park <kimberly@redwood.com>
+Date: Tue, 20 Oct 2026 16:42:00 -0700
+Subject: Straddle Health — Proposed upgrade path and consolidation plan
+
+Hi Sara — thank you again for the data and the concise goals. Per our internal review (Ben/Kim included), please find the recommended path below and the next steps to move forward. I attached the draft amendment (Proposed_Amendment_v2.docx) with the exact pricing bands.
+
+Executive summary:
+- Recommended approach: Hybrid throughput model. Move inference-heavy routes (approx. 18–22% of token volume) to a Dedicated throughput pool and keep control-plane features on Mid tier. This minimizes latency risk and reduces monthly token spend by ~12% compared to a full upgrade.
+- Discounts & credits offered: 12-month Dedicated commit with 10% off unit rates + one-time migration credit equal to 3 months of committed spend (applied as invoice credit). We can structure a mid-contract review at 6 months to validate usage and adjust reserved credit sizes.
+- Feature bundling: we will create a separate entitlements bundle for High-Throughput endpoints (Rerank + Streaming + KV cache) and export Analytics as an optional add-on. That keeps your ability to toggle features during ramp.
+
+Attachments: Proposed_Amendment_v2.docx, Straddle_Usage_Report_Q2.csv (you previously shared).
+Actionable next steps:
+1) Review the draft amendment and call out any edits by EOD Fri PT (I'll collect edits and send a final DocuSign link).
+2) Approve pilot start date — we suggest Nov 1 as a pilot kickoff (2 weeks).
+3) Kick off a short architecture call with our Ops lead to map routing rules and fallback policy.
+
+Doc link: https://hubspot.com/deals/STRD-482 (proposal and redlines), Drive: https://drive.google.com/drive/folders/1A2bStraddlePlan
+
+If that sounds good I can send the DocuSign for the amendment and schedule the pilot planning call.
+
+Best,
+Rafael Mendes
+Account Executive | Redwood Inference
+rafael@redwood.com | (650) 555-0147
+
+Attachment: Proposed_Amendment_v2.docx (draft)
+
+On Mon, Oct 18, 2026 at 12:27 PM Rafael Mendes <rafael@redwood.com> wrote:
+> Hi Sara — thanks for the data and context. I reviewed the CSV quickly and have a proposed framework below; happy to walk through on a call and tailor the numbers.
+>
+> [summary omitted for brevity]

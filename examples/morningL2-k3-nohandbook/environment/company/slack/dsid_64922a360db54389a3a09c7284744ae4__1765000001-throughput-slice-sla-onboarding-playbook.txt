@@ -1,0 +1,48 @@
+product
+
+Olivia Chen: heads-up — Acme Finance wants a "throughput slice" SLA: guaranteed baseline throughput per-tenant plus short burst windows and a documented onboarding acceptance criteria.
+Sam Patel: can we get their concrete numbers? e.g., target latency & burst multiplier?
+Olivia Chen: they wrote p99 <= 350ms for text-gen at peak, and want 10m bursts at 2x baseline. Contract-bound per-tenant.
+Kevin Li: 2x for 10m is feasible if we either reserve headroom or classify bursts as on-demand. tradeoffs for capacity planning and billing.
+Maya Rodriguez: product needs to expose three knobs: baseline (guaranteed), burst (soft allowance), and preempt policy (soft vs hard). also clear onboarding gates.
+Anya Bhat: infra: require perf validation with their realistic prompt mix and a minimum commitment (e.g., 3mo) before enabling SLA.
+Sam Patel: propose implementation: baseline = guaranteed slots (units of tokens/sec), burst implemented as token-bucket with window_seconds and multiplier, and preempt = soft deprioritization until global spill threshold.
+Kevin Li: launch gating checklist draft:
+- perf validation with customer prompts
+- agreed baseline sizing and units
+- signed burst policy (factor & window)
+- fallback variant configured (quantized/hosted)
+- telemetry & dashboards in Console
+- ops runbook for preempt scenarios
+Sam Patel: telemetry must include per-tenant token/sec, p99 latency by route, burst budget remaining, and queue depth.
+Maya Rodriguez: we should include a small Console + API example config for customers and sales.
+Sam Patel: example config:
+```
+{
+  "mode": "dedicated",
+  "baseline_tokens_per_sec": "1000",
+  "burst": {
+    "multiplier": "2.0",
+    "window_seconds": "600",
+    "billing": "on_demand"  
+  },
+  "preempt": "soft",
+  "fallback_model": "gpt-small-int8"
+}
+```
+Olivia Chen: on billing: two main choices — have bursts consume reserved quota (predictable) or bill bursts as premium on-demand. sales will push for included bursts.
+Sam Patel: I recommend a hybrid: small included burst allowance (e.g., 10% monthly carryover) + premium pricing for overages. reduces reserved headroom needs and keeps sales happy.
+Anya Bhat: infra asks for a simulation to estimate cross-tenant tail coupling. I'll run a stress job mixing baseline and randomized burst events and share results.
+Kevin Li: timeline suggestion: sprints 1-2 prototype policy and perf runs, sprint 3 Console toggles and telemetry, sprint 4 docs + legal wording + runbook. Launch criteria = perf validation pass + runbook + legal signoff.
+Maya Rodriguez: action items:
+- Anya: perf simulator and initial metrics by EOW
+- Kevin: PR for autoscale & preempt policy design doc
+- Sam: pricing options (reserve-consume vs premium) by next Wed
+- Olivia: update onboarding checklist and coordinate with Acme
+Ops-bot: created INF-8123 assigned to Anya, Kevin, Sam for "throughput-slice SLA: sim & rollout".
+Olivia Chen: schedule sync Monday 10am to review sim and pricing. :thumbsup:
+Sam Patel: +1 Monday 10.
+Maya Rodriguez: noted.
+Anya Bhat: will upload sim logs here before the sync.
+Kevin Li: include fail-open fallback to hosted variants for critical traffic during catastrophic preemption.
+Olivia Chen: add that to the runbook and host fallback playbook.

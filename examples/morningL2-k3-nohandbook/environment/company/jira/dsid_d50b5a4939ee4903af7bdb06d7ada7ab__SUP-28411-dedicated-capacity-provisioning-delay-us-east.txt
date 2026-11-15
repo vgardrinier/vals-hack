@@ -1,0 +1,89 @@
+Dedicated Capacity (us-east) provisioning delay: new nodes taking 2–4+ hours to reach Ready
+
+Issue summary
+Customer reports slower-than-expected Dedicated pool expansion in us-east. Newly allocated nodes are taking multiple hours to become Ready (join cluster + pass validations), causing delayed scale-up and customer-visible throughput constraints.
+
+Customer impact
+- Customer: HelioSearch (Dedicated)
+- Workload: chat + reranking pipeline, pinned model llama-3.1-70b-instruct
+- Impact window: 2025-10-06 14:20–19:05 UTC (primary), recurring smaller delays on 2025-10-07
+- Customer symptoms: scale-up requested via Dedicated pool expansion; capacity not available for several hours; elevated queueing and intermittent 429s from their app-side limiter (not Redwood API 429s)
+
+Environment / pool details
+- Region: us-east
+- Pool type: Dedicated GPU pool
+- GPU: A100 (80GB)
+- Cluster: ded-us-east-3 (customer-dedicated)
+- Image channel requested: stable
+- Notes: customer is in a planned capacity expansion after a product launch.
+
+Expected behavior
+- Dedicated expansion nodes should reach Ready within ~45–60 minutes (historical average for this pool).
+
+Actual behavior
+- Multiple nodes remained in Provisioning / JoiningCluster for 2–4+ hours; some required manual remediation (reimage) to succeed.
+
+Customer-provided timeline (UTC)
+- 2025-10-06 14:20: Customer requested +8 GPUs added to dedicated pool.
+- 2025-10-06 14:35: Fleet shows nodes Allocated (cloud instances running).
+- 2025-10-06 16:10: Only 2/8 nodes reached Ready.
+- 2025-10-06 18:40: 6/8 nodes reached Ready after retries.
+- 2025-10-06 19:05: Remaining 2 nodes reached Ready after manual reimage.
+
+Redwood investigation (internal)
+Primary finding: delays concentrated in node join + post-provision readiness checks, with a subset failing driver/toolkit parity (image mismatch) and entering repeated retry cycles.
+
+What we checked
+1) Provision-to-ready dashboards (internal)
+- Dashboard: Provision-to-ready step breakdown (us-east, A100)
+- Observation: P95 time-to-ready spiked; step breakdown showed elevated time in:
+  - "kubelet join" / "node registration" step (timeouts + retries)
+  - "driver parity" validation (fail -> retry)
+  - Post-provision smoke test queued behind reimage attempts
+- Correlation: nodes on a specific image version had disproportionately high failure rate.
+
+2) Fleet readiness state / failure reasons
+- Common failure reasons observed:
+  - DRIVER_PARITY_MISMATCH: expected driver/CUDA minor did not match golden image policy for stable channel
+  - KUBELET_JOIN_TIMEOUT: repeated retries; node eventually joined after reimage
+
+3) Logs and runbook guidance
+- Followed: confluence:eng-infra/runbooks/provision-to-ready-failures-triage-runbook
+- Validation agent logs indicated driver install drift (suspected partial bake / stale cache layer) for a subset of nodes.
+
+Mitigation / actions taken
+- Immediate: Infra (Fleet) manually quarantined and reimaged the 2 worst offenders (nodes repeatedly failing DRIVER_PARITY_MISMATCH).
+- Immediate: Temporarily reduced retry backoff for kubelet join on affected nodes (operator override) to speed convergence while we investigated.
+- Short-term: Confirmed stable image channel pin for us-east/A100 and prevented candidate promotion until failure rate normalized.
+
+Root cause (best current)
+A subset of newly provisioned us-east A100 nodes were built from an image that passed initial bake but contained inconsistent driver/CUDA minor versions relative to the cluster’s expected stable matrix. This caused validation failures and prolonged retry loops in the provision-to-ready workflow; remediation required reimage.
+
+Resolution
+- 2025-10-06: Reimage completed for affected nodes; pool reached expected capacity.
+- 2025-10-07: Monitored for recurrence; failure rate returned to baseline after stable pin verified.
+
+Customer-facing response (what we told them)
+- Acknowledged provisioning delays in us-east Dedicated expansion.
+- Confirmed capacity was ultimately restored and provided a mitigation path if it recurs (we can trigger reimage/quarantine faster).
+- Committed to follow-up once automation rollout reduces time-to-ready variance and improves detection.
+
+Follow-ups / next steps
+- Track under ENG-4821 (SLO/metrics) + ENG-4829 (staged rollout us-east A100) for enforcing validated readiness gates and reducing manual remediation.
+- Consider adding an early "image provenance" check before kubelet join retries to avoid long loops on bad images.
+
+Links
+- Provision-to-ready SLOs: confluence:eng-sre/reliability-initiatives/provision-to-ready-slo-and-error-budget
+- Dashboards: confluence:eng-platform/dashboards-and-alerts/provision-to-ready-dashboards
+- Golden image process: confluence:eng-infra/gpu-fleet-and-capacity/golden-gpu-image-build-and-rollbacks
+- Triage runbook: confluence:eng-infra/runbooks/provision-to-ready-failures-triage-runbook
+2025-10-06 14:48 UTC — Harish Reddy (Support Ops): Ticket opened from customer email. Customer reports dedicated expansion is "stuck"; requesting ETA. Asked for pool ID, timestamps, and whether they changed pinned model/version recently.
+2025-10-06 15:02 UTC — HelioSearch (Customer): Provided pool name (ded-us-east-3), requested +8 A100s. No model changes; pinned llama-3.1-70b-instruct. Shared that instances show as allocated but not serving; they’re seeing queueing on their side.
+2025-10-06 15:20 UTC — Harish Reddy: Pulled internal dashboards. Seeing time-to-ready spike for us-east/A100. Looping in Fleet/Infra (Vanessa Ortiz) + SRE on-call for verification; setting expectation that some nodes may require reimage.
+2025-10-06 16:05 UTC — Vanessa Ortiz (Infra/Fleet): Confirmed nodes are allocated but failing post-provision validations intermittently. Several retries on kubelet join; 2 nodes repeatedly failing driver parity. Starting quarantine + reimage for the repeated offenders.
+2025-10-06 16:42 UTC — Rafael Mendes (SRE): Noted this aligns with baseline measurement work; capturing timestamps for "Allocated" vs "Ready" for SLI. Suggested we avoid paging alerts until metric tag/cardinality is verified for this rollout window.
+2025-10-06 18:10 UTC — Vanessa Ortiz: Reimage complete for 2 nodes; they joined and began validations. Remaining nodes progressing; ETA 30–60 minutes for full Ready if no additional driver parity mismatches occur.
+2025-10-06 19:12 UTC — Harish Reddy: Confirmed 8/8 nodes Ready and pool capacity restored. Updated customer and offered to monitor for 24 hours; asked them to confirm app-level queueing returns to normal.
+2025-10-07 09:30 UTC — HelioSearch (Customer): Confirmed queueing resolved once capacity came online. Asked if this is expected to recur during future expansions this week.
+2025-10-07 10:05 UTC — Harish Reddy: Explained this was a provisioning/validation delay affecting a subset of nodes; we’ve pinned stable image channel and added extra monitoring. If they plan another expansion, we can pre-check readiness and intervene faster if any nodes fail validations.
+2025-10-10 17:25 UTC — Vanessa Ortiz: Post-check: us-east/A100 failure rate normalized. No further driver parity mismatches observed on stable channel after pin verification. Closing support ticket; follow-ups tracked in ENG tickets.

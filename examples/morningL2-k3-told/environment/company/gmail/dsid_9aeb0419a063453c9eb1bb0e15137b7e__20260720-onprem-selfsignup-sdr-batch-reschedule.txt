@@ -1,0 +1,135 @@
+On-prem pilot inquiry - HealthSys (Private/VPC)
+
+From: Sasha Ramirez <sasha@healthsys.io>
+To: Ben Carter <ben@redwood.ai>
+Date: 2026-07-20T09:12:22-07:00
+Subject: On-prem pilot inquiry - HealthSys (Private/VPC)
+
+Hi Ben,
+
+We signed up via the private deployment form and are interested in a short technical + procurement walkthrough to validate an on-prem pilot. A few details up front:
+
+- Organization: HealthSys (hospital IT)
+- Primary use: patient-matching & triage assistant in an air-gapped environment
+- Compliance: HIPAA + internal SOC-like controls, will need SOC2 summary and data retention controls
+- Preferred weeks: Aug 2–6 or Aug 9–13, mornings (US/Eastern)
+- Attendees (tentative): me (SRE lead), Rebecca (procurement)
+
+Can someone from Redwood confirm availability and what evidence you usually need before a demo? Also happy to share a short intake doc if that helps.
+
+Thanks,
+Sasha Ramirez
+SRE Lead, HealthSys
+sasha@healthsys.io
++1 415 555 0123
+From: Ben Carter <ben@redwood.ai>
+To: Sasha Ramirez <sasha@healthsys.io>
+Cc: Vivek Kulkarni <vivek@redwood.ai>, Priyom Das <priyom@redwood.ai>
+Date: 2026-07-20T09:35:10-07:00
+Subject: Re: On-prem pilot inquiry - HealthSys (Private/VPC)
+
+Hi Sasha — thanks for the details and for signing up. Quick note to say we can support an on-prem pilot; we'll want to split the initial engagement into two short sessions to keep things efficient: 30 minutes technical (network, kernel/infra requirements, data flow) + 30 minutes procurement/compliance.
+
+Two asks from our side to help us come prepared:
+- Can you confirm the timezone of the attendees (you listed Eastern) and a few concrete windows (we can block mornings ET)
+- Could Rebecca or your procurement team share any purchasing timeline or PO rules (net30, vendor setup) so we can bring the right folks?
+
+I've attached our quick intake checklist and a proposed calendar slot file. Priyom will handle the ops preflight (network ports, image distribution) and Vivek will run the technical session if that works.
+
+Proposed slots (all ET):
+- Tue Aug 3, 09:30–10:30 (tech + procurement back-to-back)
+- Wed Aug 11, 10:00–11:00 (split into two 30-min blocks if preferred)
+
+If those don't work, send two windows and we'll adapt.
+
+Attachments: RDW-Private-intake-checklist.pdf, proposed-calendar.ics
+
+Best,
+Ben Carter
+Senior SDR, Redwood Inference
+ben@redwood.ai | +1 650 555 0102
+Redwood Inference — developer-first inference for production
+
+----
+On Tue, 2026-07-20 at 09:12 AM, Sasha Ramirez <sasha@healthsys.io> wrote:
+> Hi Ben,
+>
+> We signed up via the private deployment form and are interested in a short technical + procurement walkthrough to validate an on-prem pilot. A few details up front:
+>
+> - Organization: HealthSys (hospital IT)
+> - Primary use: patient-matching & triage assistant in an air-gapped environment
+> - Compliance: HIPAA + internal SOC-like controls, will need SOC2 summary and data retention controls
+> - Preferred weeks: Aug 2–6 or Aug 9–13, mornings (US/Eastern)
+> - Attendees (tentative): me (SRE lead), Rebecca (procurement)
+>
+> Can someone from Redwood confirm availability and what evidence you usually need before a demo? Also happy to share a short intake doc if that helps.
+>
+> Thanks,
+> Sasha
+From: Vivek Kulkarni <vivek@redwood.ai>
+To: Sasha Ramirez <sasha@healthsys.io>, Ben Carter <ben@redwood.ai>, Priyom Das <priyom@redwood.ai>
+Date: 2026-07-20T13:02:45-07:00
+Subject: Re: On-prem pilot inquiry - HealthSys (Private/VPC)
+
+Thanks for the ping — looping in ops and putting a practical plan together.
+
+Ben is correct that splitting the session keeps things crisp. Proposed agenda:
+- 09:30–10:00: Technical deep-dive (networking, image/airgap strategy, KV cache persistence, quantization/latency expectations)
+- 10:00–10:30: Procurement & security (SOC2 controls we can share, evidence required for an on-prem EULA/license)
+
+Prep items we'll need from HealthSys before the technical session:
+1) A simple network diagram or: outbound allowlist for image pull endpoints and NTP (we can provide a minimal list)
+2) Whether you require an airgapped installer vs. pull images from a customer-approved registry
+3) Point of contact for procurement (Rebecca?) and any mandatory contractual clauses (e.g., data residency, indemnity thresholds)
+
+I attached our SOC2-summary.pdf and a short ops checklist with the ports and image sizes. For scheduling: I can take Tue Aug 3 at 09:30 ET. If that works for Rebecca and Sasha, I'll send a calendar invite and split the event into two adjacent blocks so we can have the right people join the second half.
+
+Attachments: SOC2-summary.pdf
+
+—
+Vivek Kulkarni
+Solutions Engineer, Redwood Inference
+vivek@redwood.ai | +1 415 555 0199
+
+----
+On Tue, 2026-07-20 at 09:35 AM, Ben Carter <ben@redwood.ai> wrote:
+> Hi Sasha — thanks for the details and for signing up. Quick note to say we can support an on-prem pilot; we'll want to split the initial engagement into two short sessions to keep things efficient: 30 minutes technical (network, kernel/infra requirements, data flow) + 30 minutes procurement/compliance.
+>
+> Two asks from our side to help us come prepared:
+> - Can you confirm the timezone of the attendees (you listed Eastern) and a few concrete windows (we can block mornings ET)
+> - Could Rebecca or your procurement team share any purchasing timeline or PO rules (net30, vendor setup) so we can bring the right folks?
+>
+> I've attached our quick intake checklist and a proposed calendar slot file. Priyom will handle the ops preflight (network ports, image distribution) and Vivek will run the technical session if that works.
+>
+> Proposed slots (all ET):
+> - Tue Aug 3, 09:30–10:30 (tech + procurement back-to-back)
+> - Wed Aug 11, 10:00–11:00 (split into two 30-min blocks if preferred)
+>
+> If those don't work, send two windows and we'll adapt.
+>
+> Best,
+> Ben
+From: Sasha Ramirez <sasha@healthsys.io>
+To: Ben Carter <ben@redwood.ai>
+Cc: Rebecca Ortiz <rebecca@healthsys.io>
+Date: 2026-07-21T08:45:00-07:00
+Subject: Re: On-prem pilot inquiry - HealthSys (Private/VPC)
+
+Hi Ben, Vivek — thanks for the quick responses and for the checklist & SOC2 summary. Rebecca and I confirmed our calendars: we can do Tue Aug 3 but need to shift it 30 minutes later (10:00–11:00 ET) because Rebecca is in back-to-back procurement reviews that morning.
+
+That later time still works for a two-block approach (10:00–10:30 tech, 10:30–11:00 procurement). Rebecca will join the procurement half; I'll handle the technical half plus our SRE. I've attached a brief intake note from our side with a high-level network diagram (pdf).
+
+Can you send a calendar invite with dial-in + a list of required outbound endpoints for our network team to pre-approve? Also, we prefer a short pre-demo ops call if Priyom needs to validate any firewall rules — 15 minutes sometime next week would be fine.
+
+Thanks,
+Sasha Ramirez
+SRE Lead, HealthSys
+sasha@healthsys.io
+
+----
+> From: Vivek Kulkarni <vivek@redwood.ai>
+> Date: Tue, 20 Jul 2026 at 13:02
+> Subject: Re: On-prem pilot inquiry - HealthSys (Private/VPC)
+> To: Sasha Ramirez <sasha@healthsys.io>, Ben Carter <ben@redwood.ai>, Priyom Das <priyom@redwood.ai>
+>
+> Thanks for the ping — looping in ops and putting a practical plan together.

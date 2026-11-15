@@ -1,0 +1,80 @@
+incidents
+
+incident-bot: Pager: SEV2 autoscaler-degradation detected for inference-router across eu-west and us-central. Affected pools: eu-west-gpu, us-central-gpu. Triggered 2026-09-14T03:36:07Z. Runbook: https://runbooks.redwood/internal/autoscaler-degradation
+
+alex (SRE): I'm oncall — looking at the HPA logs, seeing rapid up/down events. looks like scale-downs outrunning stabilisation. :eyes:
+
+maria (Infra): Cloud shows a spike in preemptions in us-central and transient host failures in eu-west around the same time. might be correlated to maintenance windows from provider.
+
+jun (ML Infra): App logs show frequent OOMs from KV cache growth on a subset of models, which cause pod restarts that confuse the autoscaler metrics.
+
+tasha (PM): Any immediate customer impact?
+
+sam (Support): Two customers reported increased 5xx rate and latency spikes since ~03:40 UTC, one on eu-west. I'm collecting request IDs.
+
+alex (SRE): Mitigation plan: 1) increase min replicas for inference HPA, 2) temporarily relax aggressive scale-down, 3) divert traffic to dedicated reserve for the most affected tenants. Applying now.
+
+alex (SRE): Executed commands:
+```
+# raise min replicas to avoid oscillation
+kubectl patch hpa inference-hpa -n inference --type=merge -p '{"spec":{"minReplicas":2}}'
+# bump cooldown to 300s
+kubectl -n inference set env deployment/autoscaler COOLDOWN=300
+```
+
+incident-bot: Action: automated fallback applied — route policy updated to send high-latency tenants to dedicated-reserve-eu-west for 30m. (automation-id: auto-fallback-1951234567)
+
+maria (Infra): Provisioned +4 reserved GPUs in eu-west and started draining the most impacted nodes to reduce noisy-neighbor effects.
+
+jun (ML Infra): Pushed a temporary debounce to the autoscaler metric aggregator to ignore restart bursts shorter than 45s. Patch snippet:
+```yaml
+metric_debounce_ms: 45000
+window: 60s
+ignore_transient_restarts: true
+```
+
+alex (SRE): Metrics look better after these changes — error rate down to baseline and latency recovering. Keeping monitoring for another hour.
+
+tasha (PM): OK—please capture remediation steps and owners so we can do a blameless postmortem and customer comms.
+
+leila (SRE): Creating action items now. Posting tracker here for visibility.
+
+leila (SRE): ACTION ITEMS (initial):
+- A1: Investigate root cause of OOMs/KV growth — owner: jun (ML Infra) — due: 2026-09-17
+- A2: Autoscaler tuning: add debounce and a more robust cooldown strategy — owner: alex (SRE) & maria (Infra) — due: 2026-09-20
+- A3: Increase reserved capacity policy thresholds for eu-west during maintenance windows — owner: maria (Infra) — due: 2026-09-18
+- A4: Postmortem doc + customer-facing summary — owner: tasha (PM) & sam (Support) — draft due: 2026-09-15
+- A5: Add regression test in staging to simulate KV cache pressure spike — owner: jun (ML Infra) — due: 2026-09-22
+
+sam (Support): I'll draft a short customer notification (non-technical) and share for review by EOD.
+
+jun (ML Infra): Early note: workload pattern that grew KV cache looks like a new model rollout from a partner tenant; I'll correlate deployments.
+
+alex (SRE): Postmortem meeting scheduled: 2026-09-16 16:00 UTC. Calendar: https://calendar.redwood.com/meet/pmr-1951234567. Doc: https://docs.redwood.com/postmortems/1951234567-autoscale-degrade
+
+leila (SRE): I'll own tracking. Will update this thread as tasks progress. Please use the postmortem doc for detailed notes and mark items in Asana (project: infra-remediation).
+
+maria (Infra): Quick follow-up: provider confirmed a maintenance event in us-central during the window; asking for mitigation report. Filed ticket with provider: https://cloudvendor.status/INC-98765
+
+alex (SRE): Temporary config rollback after stabilisation: restored minReplicas to previous (1) at 04:50 UTC after steady metrics for 45 minutes. Automation rollback id: auto-rollback-1951234567.
+
+sam (Support): Customer draft shared: https://docs.redwood.com/summaries/1951234567-customer-draft — please review.
+
+tasha (PM): Reviewed and sent to two affected customers at 07:12 UTC. No escalations so far.
+
+leila (SRE): CHECK-IN (2026-09-15): A1 in progress (jun) — root cause points to cache growth triggered by model change; Jun to propose preventive limit and eviction policy. A2 (alex/maria) — debounce merged behind feature flag in staging. A3 (maria) — increased reserve thresholds, waiting on billing sign-off. A4 (tasha/sam) — customer summary sent. A5 (jun) — regression test spec drafted.
+
+jun (ML Infra): Proposed fix for A1: implement a soft cap on KV cache per-model and eviction LRU that prioritises cold keys. Proposal link: https://docs.redwood.com/infra/kv-cache-limits. Will ship to staging this week.
+
+alex (SRE): Proposed autoscaler changes for A2: adjust scale-down multiplier, add cooldown jitter, and require 2 datapoints before a downscale. Patch in PR #548.
+
+leila (SRE): POSTMORTEM: Meeting completed 2026-09-16. Owner: alex (SRE). Summary and timeline in doc above. Severity classification: SEV2. Blameless conclusions: interacting factors — provider maintenance + KV cache behavior + aggressive scale-down settings.
+
+leila (SRE): FINAL STATUS (2026-09-20):
+- A1: Done (jun) — KV soft caps + eviction in prod.
+- A2: Done (alex/maria) — autoscaler debounce and cooldown improvements rolled out and monitored.
+- A3: Done (maria) — reserve policy updated and automated for maintenance windows.
+- A4: Done (tasha/sam) — customer comms sent; customers acknowledged.
+- A5: Done (jun) — regression test added to staging and scheduled in CI.
+
+leila (SRE): Closing out thread. If anything else is discovered, file a follow-up in postmortem doc. :white_check_mark:

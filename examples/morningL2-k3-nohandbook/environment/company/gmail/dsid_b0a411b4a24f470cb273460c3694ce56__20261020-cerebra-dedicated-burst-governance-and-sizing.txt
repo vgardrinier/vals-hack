@@ -1,0 +1,123 @@
+Cerebra Dedicated: sizing, burst credits, and autoscale governance
+
+From: Elena Rodriguez <elena.rodriguez@cerebra.ai>
+To: Ben Carter <ben.carter@redwood.inference>
+Cc: Manny Lopez <manny.lopez@cerebra.ai>
+Date: 2026-10-20T08:12:00-07:00
+Subject: Dedicated capacity for Q1 launch - burst and billing questions
+
+Hi Ben,
+
+Thanks again for the call yesterday. We're mapping out the Dedicated sizing for our Q1 product launch and need to lock down a few things before procurement can issue a PO:
+
+- How does Redwood handle ephemeral burst above committed GPUs (pricing and guaranteed credits)?
+- What autoscale policies would you recommend for low-latency chat workloads (mostly 2k token span, heavy concurrency spikes)?
+- Any constraints around cross-region failover or preemption we should know for SLAs?
+
+Attached is a rough forecast (3-week ramp) and the model types we expect to serve. Can you provide a recommended commit + burst profile and an ops runbook we can include in our SOW?
+
+We need procurement guidance by next Friday (2026-10-27) to hit our timeline.
+
+Best,
+Elena
+--
+Elena Rodriguez
+Head of Platform
+Cerebra AI
+
+From: Ben Carter <ben.carter@redwood.inference>
+To: Elena Rodriguez <elena.rodriguez@cerebra.ai>
+Cc: Manny Lopez <manny.lopez@cerebra.ai>
+Date: 2026-10-20T09:05:00-07:00
+Subject: Re: Dedicated capacity for Q1 launch - burst and billing questions
+
+Elena — thanks for the clear summary. High level answers and a recommended commit profile below; detailed workbook attached (Cerebra_Dedicated_Modeling.xlsx) and a short PDF with policy options.
+
+Summary (recommendation):
+- Baseline reserved capacity: 8 GPUs (NVIDIA A10-equivalent) sized for steady-state throughput.
+- Shoulder reserve (soft committed buffer): 4 GPUs — billed at a discounted reserved rate, available to absorb short spikes.
+- Ephemeral burst pool: up to 12 GPUs (preemptible/ephemeral) for transient spikes beyond shoulder; burst usage charged at usage rates with monthly burst-credit allotment.
+- Guaranteed monthly burst credits: propose 1,200 GPU-hours included (can be negotiated in SOW).
+
+Autoscale policy suggestion for chat-heavy workloads:
+- Scale-up trigger: sustained GPU utilization > 70% for 30s or queue depth > 60 requests for 60s.
+- Scale-down: maintain for 120s after below-threshold; include minimum hold of 5 minutes to avoid oscillation.
+- Prewarm window: 5 minutes for predicted scheduled ramps (customer-initiated or forecast API).
+
+Operational constraints and fallbacks:
+- Cross-region failover: supported but will count against reserved pool in target region; recommend reserving small standby capacity in secondary region if cross-region SLA is required.
+- Preemption: ephemeral GPUs are preemptible; we commit to draining in-flight requests and failing over to nearest compatible model variant if eviction occurs.
+- SLA: Reserved capacity covered by SLA (99.9) — ephemeral pool is best-effort.
+
+Next steps: I can draft the SOW language around "burst credits" and attach the ops runbook. Do you want guaranteed monthly burst hours included in the initial contract or as an add-on clause? Also, what's the procurement timeline and who will sign the SOW?
+
+Attachments: Cerebra_Dedicated_Modeling.xlsx; redwood-dedicated-burst-options.pdf
+
+Cheers,
+Ben Carter
+Enterprise Sales
+Redwood Inference
+
+From: Ben Carter <ben.carter@redwood.inference>
+To: Karthik Iyer <karthik.iyer@redwood.inference>, Monica Patel <monica.patel@redwood.inference>
+Cc: ops_capacity@redwood.inference
+Date: 2026-10-20T13:22:00-07:00
+Subject: FWD: Cerebra Dedicated: sizing, burst credits, and autoscale governance
+
+Team — forwarding Elena's ask and my proposed profile above. Key asks from procurement: they want a clear SOW line for "guaranteed monthly burst credits" and firm autoscale governance so finance can model committed costs. Can ops validate feasibility and provide SKU mapping + a quick cost delta for 1,200 included burst hours vs pay-as-you-go?
+
+A few specifics we need confirmation on from infra/ops:
+- Map the recommended "A10-equivalent" to our current fleet SKUs in us-west-2 and confirm availability for ephemeral bursts.
+- Eviction behavior: how long to drain KV caches / in-flight tokens on preemption for long-context models (2k tokens)? Any additional latency impact to expect during failover?
+- Crediting cadence: do we credit burst hours daily or monthly? What fraction of unused burst credits can roll over?
+- Autoscale knobs: confirm safe thresholds (I suggested 70% util / 30s uplift); provide guidance if we should raise/lower thresholds for multi-tenant noisy neighbors.
+
+I'll add the proposed SOW language once you confirm. Hoping to have numbers back by end of day so I can push SOW to procurement Friday morning.
+
+Thanks — Ben
+
+From: Karthik Iyer <karthik.iyer@redwood.inference>
+To: Ben Carter <ben.carter@redwood.inference>, Monica Patel <monica.patel@redwood.inference>
+Cc: ops_capacity@redwood.inference
+Date: 2026-10-20T15:01:00-07:00
+Subject: Re: FWD: Cerebra Dedicated: sizing, burst credits, and autoscale governance
+
+Ben/Monica — quick ops read and recommendations below. I ran this with capacity planning and runtime teams; attaching the small SKU mapping (capacity-mapping-v2.csv).
+
+Feasibility/ops notes:
+- SKU mapping: A10-equivalent maps to our T4-heavy slab for compatibility; availability in us-west-2 for ephemeral pool is feasible but limited in mornings (local peak). Recommend we place ephemeral pool on mixed-sku (A10 + A2) to increase headroom and avoid single-sku contention.
+- Eviction/drain model: runtime will attempt graceful drain for 60s on preemption for typical 2k contexts; if eviction happens during sampling-heavy workloads we expect tail latency spikes ~200-400ms while failover to variant occurs. Mitigation: enable small per-request retry with jitter + fallback to a compact model variant.
+- Crediting: monthly allotment with 3-month rollover of unused credits (cap at 25% of monthly allotment). Billing will show burst usage separately; finance prefers monthly reconciliation.
+- Autoscale knobs: the suggested 70% / 30s is a reasonable starting point. For multi-tenant noisy neighbors, increase scale-up trigger to 75% and use more conservative prewarm (7m). For Cerebra — since they are latency-sensitive — keep 70% but add a hard cap on concurrent queued requests to protect p95 latency.
+- SLA language: confirm reserved capacity SLA 99.9; add fallback clause to route to hosted models with equivalent semantics if Dedicated pool is exhausted (customer opt-in).
+
+Operational asks for SOW:
+- Include guaranteed monthly burst hours (we can do 1,200 GPU-hours as proposed).
+- Define credit rollover and reconciliation cadence (monthly statement, 3-month rollup cap at 25%).
+- Maintenance windows: request 12 hours' advance notice for scheduled maintenance; emergency maintenance to be escalated with 2-hour notice where possible.
+
+I'll hand off final cost delta for 1,200 GPU-hours vs pay-as-you-go in a separate note (ops_capacity will produce). Once we have costs, Ben you can finalize SOW language.
+
+-Karthik
+
+From: Elena Rodriguez <elena.rodriguez@cerebra.ai>
+To: Ben Carter <ben.carter@redwood.inference>
+Cc: Manny Lopez <manny.lopez@cerebra.ai>, procurement <procurement@cerebra.ai>
+Date: 2026-10-21T08:32:00-07:00
+Subject: Re: Cerebra Dedicated: sizing, burst credits, and autoscale governance
+
+Ben — thanks for the quick turnaround and to Karthik for the ops details. This looks workable. Two quick items before procurement will issue the PO:
+
+1) Please include guaranteed monthly burst hours (1,200 GPU-hours) with the 3-month rollover cap described. We want that in the SOW so finance can amortize.
+2) Add the maintenance notice clause (12-hour scheduled notice). Emergency maintenance is OK as described.
+
+If you can add the SOW snippet and send the DocuSign link, I will get our procurement to sign this week and route the PO. I've attached our PO template (Cerebra_PO_20261021.pdf).
+
+Looking forward to getting this live — team is excited.
+
+Best,
+Elena
+--
+Elena Rodriguez
+Head of Platform, Cerebra AI
+

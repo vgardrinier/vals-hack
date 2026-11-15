@@ -1,0 +1,29 @@
+customer-success
+
+Lina (AM): Heads-up — GreenGrid wants to renew but asks to split payment: 60% by EU entity (GreenGrid EU) via PO and 40% by US subsidiary via card. They want services live next Mon.
+Omar (CS): mixed payers + split invoices — weare about accounting reconciliation. Has customer done this with us before?
+Lina (AM): first time. They said legal/finance on both sides approved it internally. Contract signer remains HQ (US).
+Tasha (RevOps): we can do split invoices but need clear mapping: which seats/subscriptions go to which payer, and two billing references. Also need signed payment allocation form from HQ.
+Evan (Legal): if multiple payers, we need an amendment specifying allocation percentages, payment responsibility, and which entity is the contracting party. Also a clause that the contract signer remains liable for full amount if a payer defaults. Can draft short amendment.
+Priya (Finance): Finance will accept split invoices if we get: (1) signed allocation form, (2) PO from EU entity for 60% and (3) card auth + payer confirmation for US 40%. Also need tax IDs for invoice recipients.
+billing-bot: Invoice previews generated: invoice_2026-1101 (60% EU - €28,800) & invoice_2026-1102 (40% US - $19,200) - https://billing.redwood/invoice/preview/2026-1101 & https://billing.redwood/invoice/preview/2026-1102
+Omar (CS): timeline: they like provisioning Monday morning. Can we do provisional access for seats tied to paid invoices only?
+Tasha (RevOps): yes — we can gate by invoice status. For EU PO path, we can provision after PO acceptance and invoice issuance. For card path, after capture. We should offer a brief 72-hr provisioning window if EU PO is delayed.
+Lina (AM): @Evan can you paste the amendment draft? need both parties to sign today ideally.
+Evan (Legal): Draft: "Amendment: The parties agree to allocate renewal charges as follows: 60% to GreenGrid EU (billing details ...), 40% to GreenGrid US (billing details ...). GreenGrid US (contract signatory) remains ultimately responsible for payment in event of nonpayment by allocated payers."
+Priya (Finance): Add: "Invoices will be issued in local currency to each payer. Late payment remedies apply per standard terms and may be enforced against the contract signatory."
+Evan (Legal): Added. Final attached.
+Tasha (RevOps): For EU PO we need PO number + net terms request. For US card we need card auth and matching billing email. Also flag for tax handling (VAT reverse charge?).
+Priya (Finance): Please collect VAT registration numbers and remit instructions. If EU entity is VAT-registered, invoice should be net of VAT and we record reverse charge.
+Lina (AM): Sent amendment + allocation form to procurement@greengrid across both entities. They replied: EU PO incoming, US card on file but cardholder name differs from contract signer.
+Evan (Legal): If cardholder != signer, require payer authorization + indemnity language. See previous thread template.
+Tasha (RevOps): created temp payment method "greengrid_us_split" and set manual hold pending docs.
+billing-bot: Temporary payment method created: greengrid_us_split by Tasha. Manual hold applied.
+Priya (Finance): Received EU PO and US card auth. Running VAT checks and fraud check on card now. ETA ~4 hrs.
+Omar (CS): tagging renewal risk = "medium" in Gainsight until both invoices clear. Will keep provisioning plan paused for US seats.
+Priya (Finance): Verification complete. EU PO approved, VAT details validated. US card cleared after phone verification. Capturing $19,200 now.
+billing-bot: Invoice invoice_2026-1101 status -> APPROVED (scheduled). Invoice invoice_2026-1102 status -> PAID (txn tx_mn1x2).
+Lina (AM): awesome. provisioning to start for EU seats on schedule; US seats unlocked now. Closing risk -> low.
+Omar (CS): updated onboarding plan and added billing notes to customer record.
+Evan (Legal): saved signed amendment and allocation form to contract repo; cc legal@redwood.
+Lina (AM): thanks team — closing thread. If anything else, ping me.

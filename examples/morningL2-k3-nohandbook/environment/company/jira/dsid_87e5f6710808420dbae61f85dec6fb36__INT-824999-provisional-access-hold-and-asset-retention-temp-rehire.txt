@@ -1,0 +1,49 @@
+Provisional access hold & asset retention for 30-day temp rehire pending probation review
+
+Issue summary:
+HR has requested a temporary rehire for a former engineer (internal candidate) under a 30-day probation. HR needs a controlled, time-bound access posture: the employee should have only minimal service accounts and read-only console access during the probation window, and their previously issued company laptop must be retained in a secure hold state (not returned to circulation) until the probation completes and audit clearance is confirmed.
+
+Impact:
+- Candidate cannot start work until access posture is confirmed (delays go-live by an estimated 3 business days).
+- Risk of overprivilege if previous access is reinstated without remediation (previous offboarding was performed but there are known lingering service accounts).
+
+Background:
+- Employee: former full-time SWE, rehired as contractor for 30 days pending probation review.
+- Offboarding completed 2025-11-12; assets inventoried and laptop returned to inventory record #INV-2025-11-12-319.
+- HR request asks to place the laptop on hold (don’t reassign) and to re-enable a minimal set of accounts only after manual approval.
+
+Requested actions (HR):
+1) Re-enable corporate email and SSO identity but keep membership in all privileged groups removed.
+2) Recreate a scoped service account for CI read-only triggers only (no write permissions).
+3) Place laptop INV-2025-11-12-319 into an "Evidence/Hold" tag in asset-management and lock assignment.
+4) Do not reissue sudo or elevated IAM roles; block VPN until MFA re-enrollment and manager approval.
+5) Schedule an access review at day 14 and day 28 of the probation window.
+
+Constraints and policy questions:
+- Does Redwood policy permit holding hardware out of circulation for a probationary rehiring period longer than the standard 14-day quarantine window? HR prefers 30 days to allow audit and manager sign-off.
+- If we retain the old laptop on hold but re-enable SSO, do we need to rekey associated KMS/HSM-managed secrets or rotate service-account credentials to avoid potential continuity risks from previous deprovisioning?
+
+Acceptance criteria:
+- Identity re-enabled with explicit list of allowed groups and audit events are being emitted to the security log.
+- Service account created with explicit deny-write scope and PR created documenting permissions.
+- Asset-management entry marked "hold-for-probation" and locked from reassignment.
+- Access review reminders scheduled and linked to this ticket.
+
+Next steps requested from assignee:
+- Confirm feasibility and provide estimated time to complete each action.
+- Call out any policy blockers (KMS rotation, asset-hold duration) and recommended exception process if needed.
+Checked asset history: laptop INV-2025-11-12-319 last assigned to user in 2025-11; device sanitized per offboarding notes. Inventory entry exists and device is in secure storage (Rack B3).
+IAM audit: previous user identity was deactivated; several long-lived service tokens were archived. Need to identify tokens tied to user email aliases before re-enabling SSO.
+Preliminary security recommendation: perform service-account credential rotation on re-creation; do not reuse archived tokens. Consider ephemeral short-lived creds for the 30-day window.
+Identified linked asset tag mismatch: inventory shows asset-tag 'RWI-319' but HR email references 'INV-319'—confirm canonical ID before asset hold action.
+Opened a hold request with asset-management and physically placed a retention sticker on Rack B3 bin. (Pending confirmation from warehouse lead.)
+Flagged identity in IdP (Okta) as 'pending-reactivation' to prevent auto-provisioning of group memberships until manual approval.
+Created placeholder scoped service account 'ci-readonly-INT-824999' with zero privileges; awaiting least-privilege ACL to be applied by infra owner.
+2026-03-01 09:14 - Aisha Malik: HR requests a conservative approach for rehire. Please advise on asset hold policy for 30 days.
+2026-03-01 11:02 - Ethan Park: Acknowledged. I'll validate inventory ID and start a scoped service-account template. Need security input on KMS/key rotation.
+2026-03-02 08:27 - Lena Ortiz (Security): Recommend rotating any keys associated with the previous identity. If the device was sanitized properly, we can keep it in hold state but re-enabling SSO without rotation is a no-go.
+2026-03-03 14:13 - Warehouse Lead (Tom Hsu): Physical hold confirmed on Rack B3; will not issue device unless we get an explicit release note from this ticket.
+2026-03-04 10:05 - Ethan Park: Created PR with proposed ACL for ci-readonly-INT-824999: PR: https://github.com/redwood-inference/infra/pull/13752
+2026-03-04 10:18 - Aisha Malik: HR approves ACL proposal conditionally; wants confirmation that VPN blocked until MFA re-enroll.
+If policy prevents 30-day hold, HR requests a 14-day hold with a documented exception: asset retained on-site and candidate starts with fully virtual-only work (no VPN or on-prem access).
+In progress — Security approved conditional approach: rotate/issue new service-account credentials and require KMS key rotation only if any archived keys are present. Asset to remain on hold for 30 days pending HR sign-off; warehouse will not reassign. Follow-up: schedule final access review on 2026-03-15 and 2026-03-29.

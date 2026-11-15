@@ -1,0 +1,124 @@
+Post-demo: deployment routes, migration constraints, and next steps
+
+From: Hannah Schmitt <hannah@redwood.com>
+To: Maya Collins <maya@acmehealth.com>
+Cc: Laura Bennett <laura@redwood.com>, Aditya Rao <aditya@redwood.com>
+Date: Mon, 07 Jun 2026 15:12:00 -0700
+Subject: Post-demo: deployment routes, migration constraints, and next steps
+
+Hi Maya — thanks again for the demo time today. Quick recap and suggested next steps so we stay aligned while you evaluate hosting options.
+
+TL;DR: Acme's primary constraints are PHI/data residency and procurement timeline. From our conversation, the most likely fit is Dedicated capacity or Private (VPC / on-prem) rather than our hosted public API, but we'd like to validate a few migration details.
+
+What we covered (summary):
+- Current objective: move production chat assistant to a platform with predictable latency, clear audit logs, and contractual controls for PHI.
+- Options we discussed: Hosted API (fastest), Dedicated/reserved GPU pools, Private VPC or on-prem (for strict PHI/controls).
+- Migration sources you mentioned: short-term: existing OpenAI hosted integration; longer-term: internal self-hosted GPU cluster for larger models.
+
+Open questions for your team (helps inform architecture recommendation):
+1) Do you need full on-prem (air-gapped) for any workloads, or will VPC with customer-managed keys suffice?
+2) What models are you currently using on the self-hosted cluster (family and approximate size)?
+3) Peak and sustained QPS targets / concurrency during business hours and at peak?
+4) Required retention/audit window for logs and KV cache snapshots (days/months)?
+5) Any specific procurement or certification must-haves beyond SOC 2 (e.g., HITRUST, BAAs)?
+
+Proposed next steps:
+- Technical deep-dive with Aditya to run a quick capacity and compatibility check (30–45 minutes).
+- Security call to review SOC 2 scope + key management (we can share a concise evidence packet).
+- Joint migration plan draft: cutover approach from OpenAI-hosted -> Dedicated (interim) -> Private (if chosen).
+
+If the above looks right, Maya, can you confirm which slots this week work for the aditya deep-dive and whether security should join? I'm attaching the demo recording and the SOC2 scope doc for your review.
+
+Attachments: demo-recording.mp4 (link), acme-soc2-scope.pdf
+
+Thanks — Hannah
+Hannah Schmitt
+Senior Solutions Lead, Redwood Inference
+hannah@redwood.com | +1 415-555-0147
+
+On Mon, Jun 7, 2026 at 09:30 AM Maya Collins <maya@acmehealth.com> wrote:
+> Thanks again — forward of our internal notes below.
+
+From: Maya Collins <maya@acmehealth.com>
+To: Hannah Schmitt <hannah@redwood.com>
+Cc: Acme Health Security <security@acmehealth.com>
+Date: Mon, 07 Jun 2026 17:03:00 -0700
+Subject: Re: Post-demo: deployment routes, migration constraints, and next steps
+
+Hannah — great recap and appreciate the clarity. Confirming a few points from our side:
+
+- We are PHI-bound for the clinical assistant pathways. Anything touching PHI needs to be either in our VPC with customer-managed keys or fully on-prem. Public hosted APIs are acceptable only for anonymized / non-PHI workloads.
+- Short-term: we are using OpenAI-hosted endpoints for prototyping (cost/latency acceptable for small scale).
+- Parallel stack: we operate a modest on-prem GPU cluster (4x A100 equivalents) where we run open-source LLMs for batch/large-model experiments. The plan is to keep batch/large-model training on-prem but move low-latency inference to a secure hosted/dedicated service.
+- Procurement: security/compliance review starts next week; budget window Q3. Vendor lock and data egress are top concerns.
+
+Answers to your questions:
+1) We likely will not need an air-gapped workflow immediately, but VPC + KMS is preferred. If we find a regulatory need later, on-prem options must be available.
+2) On-prem models: mostly Llama-2 variants (13B) and a mix of fine-tuned smaller models for experiments.
+3) Peak QPS estimate: 80–120 QPS for the chat assistant during surge events; sustained 20–30 QPS.
+4) Retention: audit logs for 1 year; request/response storage limited to 30 days for debugging (we prefer configurable retention).
+5) Certifications: SOC 2 coverage is essential; HITRUST may be evaluated later. We will send a security questionnaire during the review.
+
+We'll take the demo recording and SOC2 doc into our security review. Please have Aditya on standby for the technical deep-dive — available slots Thursday 10–11am PT or Friday 1–2pm PT.
+
+Thanks — Maya
+Maya Collins
+Head of AI Platforms, Acme Health
+maya@acmehealth.com | +1 212-555-0202
+
+On Mon, Jun 7, 2026 at 03:12 PM Hannah Schmitt <hannah@redwood.com> wrote:
+> 
+
+From: Aditya Rao <aditya@redwood.com>
+To: Maya Collins <maya@acmehealth.com>
+Cc: Hannah Schmitt <hannah@redwood.com>, Laura Bennett <laura@redwood.com>
+Date: Tue, 08 Jun 2026 09:10:00 -0700
+Subject: Re: Post-demo: deployment routes, migration constraints, and next steps
+
+Thanks Maya — helpful context. A couple of technical follow-ups to make the deep-dive productive:
+
+1) Model compatibility: you mentioned Llama-2 13B on-prem. Are you planning to use the exact same model for low-latency inference, or a distilled / quantized variant? If you want us to run a compatibility check we'll need the exact model artifact or an equivalent spec (layers, dtype).
+2) Sequence lengths: what max token lengths do you expect per request (typical and worst-case)? That affects KV cache sizing and memory footprint on Dedicated hosts.
+3) Tokenization differences: do you already have a tokenizer/version alignment step in your pipeline when moving models between OpenAI-hosted and self-hosted?
+4) Peak concurrency: Maya's 80–120 QPS estimate — is that single-request concurrency or user sessions with long-running streams?
+5) Encryption & KMS: are you using AWS KMS, Azure Key Vault, or an HSM provider today? We have patterns for all three and can share our HSM integration notes.
+
+Suggested agenda for the 30–45 minute deep-dive:
+- Quick infra sketch (10 min): current routing (OpenAI -> self-hosted), desired cutover behavior.
+- Compatibility & perf knobs (15 min): quantization, batching, latency SLOs.
+- Migration approach (10 min): hybrid burst to Dedicated, canary cutover, rollback plan.
+
+I can run a quick back-of-the-envelope capacity estimate if you share model artifact details and expected average sequence length. For compliance, we have an evidence packet (SOC2 artifacts + architecture diagrams) — Hannah attached the SOC2 scope but we can send a full packet to security once we have an NDA/POC agreement in place.
+
+Available slots (PT): Thu 10–11, Fri 1–3. Thoughts on which to lock?
+
+— Aditya
+Aditya Rao
+Principal Solutions Engineer, Redwood Inference
+aditya@redwood.com
+
+On Tue, Jun 8, 2026 at 09:10 AM Aditya Rao <aditya@redwood.com> wrote:
+> 
+
+From: Laura Bennett <laura@redwood.com>
+To: Maya Collins <maya@acmehealth.com>
+Cc: Hannah Schmitt <hannah@redwood.com>, Aditya Rao <aditya@redwood.com>
+Date: Tue, 08 Jun 2026 11:22:00 -0700
+Subject: Re: Post-demo: deployment routes, migration constraints, and next steps
+
+Maya — thanks for confirming. I'll coordinate booking the deep-dive for Thursday 10–11am PT and loop in our Security PM and Solutions Engineering.
+
+Action items from Redwood side:
+- Book Thu 2026-06-10 10:00–11:00 PT for technical deep-dive (calendar invite pending).
+- Share full SOC2 evidence packet after NDA confirmation (Hannah will surface next steps on NDA/POC language).
+- Prep a short migration playbook (Hosted -> Dedicated -> Private) tailored to Acme's environment and send before the deep-dive.
+
+Maya — can you confirm whether Acme prefers us to route demo & evidence sharing via an NDA or are you ok with the standard POC MSA template? Also confirming HubSpot: https://hubspot.com/deals/ACME-2026-023 (for our tracking).
+
+Thanks — Laura
+Laura Bennett
+Account Executive, Redwood Inference
+laura@redwood.com | +1 415-555-0168
+
+--
+Redwood Inference | https://www.redwoodinference.com

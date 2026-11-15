@@ -1,0 +1,93 @@
+Request: current SOC 2 Type II and reissue clarification
+
+From: Tom Blake <tom.blake@finbank.com>
+To: Grace O'Connor <grace_oconnor@redwood.com>
+Cc: security+vendors@finbank.com
+Date: Thu, 1 Jul 2026 09:12:00 -0700
+Subject: SOC 2 Type II - which is current?
+
+Hi Grace,
+
+We were reviewing the SOC 2 files you uploaded to the vendor portal and noticed two documents: one labeled as a June 2026 reissue and another older report from 2025. Our compliance team is confused about which report covers the current audit period for FinBank's vendor review.
+
+Can you confirm:
+- Which document is the authoritative, current SOC 2 Type II we should reference?
+- If a reissue was published, did the audit period or scope change (any services removed/added)?
+- Do you have a short bridge letter or statement we can include in our evidence packet that explains the gap (if any)?
+
+We have a vendor intake call next Wednesday and would like to include accurate files; if you can get back to us today or tomorrow that would be great.
+
+Thanks,
+Tom Blake
+Senior Information Security Manager
+FinBank Analytics
+
+--
+Tom Blake
+FinBank Analytics
+
+From: Grace O'Connor <grace_oconnor@redwood.com>
+To: Tom Blake <tom.blake@finbank.com>
+Cc: Rishi Malhotra <rishi_malhotra@redwood.com>, Soojin Lee <soojin_lee@redwood.com>
+Date: Thu, 1 Jul 2026 10:03:00 -0700
+Subject: Re: SOC 2 Type II - which is current?
+
+Hi Tom — thanks for flagging this. Short answer: the June 30, 2026 PDF is the reissued Type II. Longer explanation below and I've looped in Rishi (Security) and Soojin (Compliance) to confirm exact wording for the evidence packet.
+
+What happened: during final packaging our auditor corrected a minor control identifier and reissued the report with a new report ID; the underlying audit period and scope are unchanged (services: Redwood inference API, control groups: CC1-CC7 as listed). We did not remove services.
+
+What to use: please reference the 2026-06-30 reissue PDF we uploaded. We will provide a short bridge letter clarifying that the reissue is administrative (report ID update) and that the audit period remains Jan 1, 2025 — Jun 30, 2026.
+
+I'll follow up with the bridge letter and the signed reissue copy by end of day. If your intake call is sooner and you need interim wording, say so and I can send a one-paragraph note you can attach.
+
+Best,
+Grace O'Connor
+Director, Customer Security
+Redwood Inference
+
+--
+Grace O'Connor
+Director, Customer Security
+Redwood Inference
+
+From: Rishi Malhotra <rishi_malhotra@redwood.com>
+To: Tom Blake <tom.blake@finbank.com>, Grace O'Connor <grace_oconnor@redwood.com>
+Cc: Soojin Lee <soojin_lee@redwood.com>
+Date: Fri, 2 Jul 2026 11:45:00 -0700
+Subject: Re: SOC 2 Type II - which is current?
+
+Hi Tom — adding the short bridge wording below which you can include in your evidence packet immediately; attached are the final reissued report and the signed bridge letter.
+
+Attachment stubs: 2026-06-30-Redwood-SOC2-TypeII-REISSUE.pdf (PDF, 2.1 MB); Redwood-SOC2-bridge-Jan-Jun-2026.pdf (PDF, 120 KB)
+
+BRIDGE LETTER (excerpt you can paste):
+Redwood Inference confirms that the SOC 2 Type II report reissued on June 30, 2026 (Report ID: RW-SOC2-2026-R1) is an administrative reissue. The audit period covered by the reissued report remains January 1, 2025 through June 30, 2026, and the scope of services assessed is unchanged. No substantive control testing or coverage changes were made in the reissue.
+
+If your team requires the auditor signature page or an auditor transmittal note in a specific format for your intake system, let us know — we can request it from our auditor and push back if needed.
+
+Also to confirm: there is no gap in attest coverage for the listed audit period. The previous 2025 report remains archived for historical reference only.
+
+Happy to hop on a 15-min call if you'd like to go over the language live.
+
+Thanks,
+Rishi Malhotra
+Head of Security Operations
+Redwood Inference
+
+From: Tom Blake <tom.blake@finbank.com>
+To: Rishi Malhotra <rishi_malhotra@redwood.com>, Grace O'Connor <grace_oconnor@redwood.com>
+Cc: security+vendors@finbank.com
+Date: Tue, 20 Jul 2026 15:30:00 -0700
+Subject: Re: SOC 2 Type II - which is current?
+
+Thanks Rishi and Grace — that wording is perfect and matches what our intake team needs. We attached the bridge excerpt and reissued PDF to the intake record. A couple quick follow-ups:
+
+- Can you confirm the exact Report ID (you listed RW-SOC2-2026-R1 above) and the auditor firm name for our inventory?
+- Do you have a URL-safe copy (signed) we can reference rather than downloading and re-uploading to our internal system? A DocuSign link or secure S3 URL would be ideal.
+
+If you can drop those two items into the HubSpot record or reply here, we should be good for the scheduled vendor review on Thursday. Appreciate the quick responses.
+
+Best,
+Tom
+Senior Information Security Manager
+FinBank Analytics

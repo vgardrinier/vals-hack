@@ -1,0 +1,19 @@
+Invoice OCC-2026-0214 from Fennick Catering Co
+
+From: Fennick Catering Co Billing <billing@fennickcatering.com>
+To: finance@redwood.com
+Date: Fri, 13 Nov 2026 07:21:00 -0800
+Subject: Invoice OCC-2026-0214
+
+Hello Redwood Inference finance team,
+
+Please find our invoice details below.
+
+Invoice number: OCC-2026-0214
+Invoice date: 2026-11-11
+Due date: 2026-12-11
+Amount due: $1,422.80 USD
+
+Payment by ACH to the account on file. Thank you for your business.
+
+Fennick Catering Co billing

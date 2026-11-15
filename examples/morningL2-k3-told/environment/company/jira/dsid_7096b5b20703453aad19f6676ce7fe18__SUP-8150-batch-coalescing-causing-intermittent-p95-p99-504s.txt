@@ -1,0 +1,28 @@
+Intermittent p95/p99 latency spikes and 504s traced to batch coalescing on customer's dedicated pool
+
+Issue summary: Customer NexusAI reports intermittent high tail latency (p95/p99) and occasional request timeouts (504) from endpoints served by their dedicated GPU pool. Impact: Elevated p95/p99 causing model-backed features in production to time out for a subset of requests; several user-facing flows fail intermittently, increasing error rate and customer alerts. Observed start: 2024-11-05 10:20 UTC in us-west pool. Hypothesis: spikes correlate with the serving runtime's batch coalescing/window feature under bursty request patterns—small numbers of short requests are being delayed while the batcher waits to fill a batch, producing head-of-line blocking and long tail waits. This ticket captures investigation, mitigation steps, and next actions.
+1) Send ~5-10 concurrent short chat generation requests (50-150 tokens) to NexusAI's prod endpoint within 10–30ms bursts.
+2) Repeat bursts every 1–2 seconds to mimic customer traffic pattern.
+3) Observe p95/p99 latency and occasional 504 responses in the endpoint logs and Console per-route SLO dashboard.
+4) Compare with disabled batch coalescing or reduced max_batch_delay to confirm reduction in tail latency.
+2024-11-05T10:21:12.732Z serving-runtime WARN batcher: waited 12ms for batch fill (max_batch_delay=15ms) pool=dedicated-us-west pool_id=dp-7a3
+2024-11-05T10:21:12.745Z api-gateway ERROR request_handler: downstream timeout status=504 request_id=rcx-9f1a
+2024-11-05T10:21:12.746Z serving-runtime INFO kvcache: hit_ratio=0.12 request_id=rcx-9f1a model=llama-2-70b-instruct token_latency_ms=4.8
+Initial triage (Aisha): customer reported p99 spikes ~400–800ms above baseline; p50 unaffected. Error spikes coincide with small bursts of low-latency requests (microbursts).
+SRE (Marco): pulled batcher metrics from dp-7a3: observed periodic increases in batch wait time and higher batch sizes variance; batch composition logs show mixed short+long requests being coalesced causing head-of-line blocking.
+Hypothesis: default batch coalescing window (15ms) combined with request arrival jitter and KV cache miss variance leads to occasional added queuing. When a short request is placed at the front of a coalesced batch containing a long request, overall latency for that request spikes (head-of-line blocking).
+Confirmed reproduction: disabling coalescing or lowering max_batch_delay to 2–3ms on a canary pool eliminated p99 spikes in test harness.
+Related config: NexusAI's dedicated pool uses aggressive batch aggregation (max_batch_size=64, max_batch_delay=15ms) tuned for throughput; this increases susceptibility to microburst-induced tail latency.
+Checked autoscaler and GPU utilization: no GPU starvation or OOMs; autoscaler stable. No recent model rollouts during incidents.
+2024-11-05 12:10 UTC: Applied temporary mitigation on dp-7a3: reduced batch coalescing window from 15ms -> 3ms for NexusAI's pool via runtime flag (safe rollback available).
+2024-11-05 12:14 UTC: Observed immediate drop in p95/p99 and elimination of 504s for 30-minute observation window in prod metrics. Noted small throughput reduction (~3%) but within SLA for NexusAI.
+Added temporary alert to SRE dashboard to monitor batcher wait_time and head_of_line_count, threshold p99>250ms.
+Opened engineering follow-up to evaluate adaptive coalescing: add request-size-aware coalescing and prioritize short requests to prevent head-of-line blocking.
+Aisha Patel (Support) 2024-11-05: Customer first reported increased errors on morning release; provided request IDs and sample payloads. Customer impact: intermittent feature degradation for ~6% of sessions.
+Marco Ruiz (SRE) 2024-11-05: Investigating batcher metrics, reproducing locally with NexusAI request pattern. Early signal points at batch coalescing window + mixed request lengths.
+NexusAI-SRE (customer) 2024-11-05: We can accept minor throughput loss if it stabilizes latency — please advise rollback plan before config changes.
+Marco Ruiz (SRE) 2024-11-05: Applied temporary config to lower max_batch_delay to 3ms for your pool (dp-7a3). Monitoring now. If stable in 1 hour we'll consider keeping as a safety profile while we build adaptive coalescing.
+Short term: keep reduced coalescing window for NexusAI pool and monitor for 24–48 hours; communicate with customer about tradeoffs (throughput vs tail latency).
+Medium term: implement adaptive coalescing algorithm in serving-runtime - prioritize short/interactive requests and cap per-request wait time; track PR https://github.com/redwood-inference/serving-runtime/pull/3342.
+Long term: expose batch coalescing profile as part of Dedicated pool config in Console and add recommend presets (low-latency, balanced, high-throughput).
+Engineering owners: Marco Ruiz (SRE) and Priya Das (serving-runtime) to own follow-up; target scope: design spec by 2024-11-14.

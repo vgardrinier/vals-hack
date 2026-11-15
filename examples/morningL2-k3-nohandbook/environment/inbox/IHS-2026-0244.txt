@@ -1,0 +1,19 @@
+Invoice IHS-2026-0244 from Ironwood Hardware Supply
+
+From: Ironwood Hardware Supply Billing <billing@ironwoodhardware.com>
+To: finance@redwood.com
+Date: Fri, 13 Nov 2026 07:36:00 -0800
+Subject: Invoice IHS-2026-0244
+
+Hello Redwood Inference finance team,
+
+Please find our invoice details below.
+
+Invoice number: IHS-2026-0244
+Invoice date: 2026-11-11
+Due date: 2026-12-11
+Amount due: $13,912.48 USD
+
+Payment by ACH to the account on file. Thank you for your business.
+
+Ironwood Hardware Supply billing

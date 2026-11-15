@@ -1,0 +1,127 @@
+Re: Regional GPU sourcing & onboarding playbook for Stratalytics commitment
+
+From: Anna Moreno <anna@stratalytics.ai>
+To: Stephanie Nguyen <stephanie@redwood.com>
+Date: Mon, 20 Jul 2026 09:14:00 -0700
+Subject: Dedicated pools across US/EU/APAC — initial ask and timeline
+
+Hi Stephanie,
+
+Thanks again for the demo last week. We're finalizing the SOW and there is a hard requirement from our infra team to get dedicated GPU pools in US, EU, and APAC with predictable throughput and a documented onboarding timeline. High level asks: 
+
+- Start: provisioning window for initial pools by 2026-09-15
+- Capacity: ~120 A100-equivalent GPUs in US, 80 in EU, 40 in APAC to start; ability to burst +20% for 3 months.
+- Compliance: SOC2 evidence and KMS integration for EU data at rest
+- Pricing: committed monthly baseline with clear overage rates
+
+Could you send a short playbook for how Redwood would source, reserve, and onboard these pools (including lead times, AZ placement, and acceptance criteria)? Procurement wants a single page they can include with the PO.
+
+Anna
+Anna Moreno
+Head of Infra, Stratalytics
+anna@stratalytics.ai
+
+From: Stephanie Nguyen <stephanie@redwood.com>
+To: Anna Moreno <anna@stratalytics.ai>
+Cc: Marcus Lin <marcus@redwood.com>, Laura Bennett <laura@redwood.com>
+Date: Tue, 21 Jul 2026 10:02:00 -0700
+Subject: Re: Dedicated pools across US/EU/APAC — initial ask and timeline
+
+Anna — appreciate the clear asks. Taking a run at a concise playbook and acceptance checklist; attaching a capacity worksheet so we can capture utilization assumptions and preferred AZs.
+
+Quick answers up front:
+- Lead times: US ~4–6 weeks, EU ~6–8 weeks (KMS + contract reviews add slack), APAC ~8–10 weeks (region setup + partner validation)
+- Burst: we can provide +20% burst for the first 90 days via reserved burst nodes, subject to commit thresholds
+- Compliance: will attach SOC2 evidence bundle and outline KMS options (customer-managed or Redwood-managed)
+
+I'll loop Marcus for technical sizing and Laura for procurement language. Can we target a short call Friday to walk the PO language?
+
+Thanks,
+Stephanie Nguyen
+Head of Enterprise Sales, Redwood Inference
+
+From: Marcus Lin <marcus@redwood.com>
+To: Stephanie Nguyen <stephanie@redwood.com>, Anna Moreno <anna@stratalytics.ai>
+Cc: Vivek Kulkarni <vivek@redwood.com>, Neha Kapoor <neha@redwood.com>
+Date: Wed, 29 Jul 2026 14:38:00 -0700
+Subject: Re: Dedicated pools across US/EU/APAC — initial ask and timeline
+
+Anna / team — attaching the filled capacity worksheet (capacity-worksheet-v2.xlsx). Notes from the sizing run: 
+
+- Baseline assumptions: median seq len 256, avg tokens/sec 12 for generation workloads; p95 latency target 150ms on A100-equivalent SKUs.
+- US pool: 120 GPUs maps to 6x24-GPU nodes (NVIDIA A100-80GB equivalent) to support sharded KV cache and high QPS.
+- EU pool: recommend skew to 16-GPU nodes for AZ diversity (5 nodes ~= 80 GPUs).
+- APAC pool: start with 4x10-GPU partner instances (40 GPUs) behind a regional gateway; verify container image signing and registry access during onboarding.
+
+Onboarding milestones we typically include in the runbook:
+1) PO & contract signed
+2) Capacity reservation & AZ placement confirmed (T+7 business days)
+3) Network peering & KMS setup (T+14–21)
+4) Staging cluster smoke tests & perf validation (T+28–35)
+5) Migration run & production cutover (T+42–60)
+
+Open items: preferred AZs for EU (for data locality), whether Stratalytics will use customer-managed KMS, and any egress restrictions. If you can confirm, we will finalize the onboarding-runbook-draft.
+
+—Marcus
+Senior Solutions Engineer, Redwood Inference
+
+From: Anna Moreno <anna@stratalytics.ai>
+To: Marcus Lin <marcus@redwood.com>, Stephanie Nguyen <stephanie@redwood.com>
+Cc: Vivek Kulkarni <vivek@redwood.com>
+Date: Mon, 04 Aug 2026 08:21:00 -0700
+Subject: Re: Dedicated pools across US/EU/APAC — initial ask and timeline
+
+Thanks Marcus — that breakdown is helpful. A few clarifications: 
+
+- EU AZs: prefer eu-west-1a and eu-west-1b for latency to our Dublin fleet.
+- KMS: we will use customer-managed KMS for EU and US; for APAC, we can use Redwood-managed until our HSM certs are in place.
+- Burst: the +20% is acceptable but we need a 72-hour notice window for scheduled bursts; on-demand bursts are okay up to 5% without notice.
+
+Procurement will draft the PO this week. Can Laura own the billing terms? Also attaching a procurement contact for CloudOps (procurement@cloudops.io) who will be copied into the PO.
+
+Anna
+
+From: Laura Bennett <laura@redwood.com>
+To: Anna Moreno <anna@stratalytics.ai>, Procurement <procurement@cloudops.io>
+Cc: Stephanie Nguyen <stephanie@redwood.com>, Marcus Lin <marcus@redwood.com>, Vivek Kulkarni <vivek@redwood.com>
+Date: Thu, 06 Aug 2026 11:05:00 -0700
+Subject: Re: Dedicated pools across US/EU/APAC — initial ask and timeline
+
+Hi Anna and CloudOps team — Laura here (Billing & Contracts). Attaching a PO template (po-template-stratalytics.pdf) and a short one-page summary you can include with the PO describing lead times, acceptance criteria, and overage terms. Highlights: 
+
+- Commit: monthly baseline and committed instance-hours; 30-day invoicing; prorated first month.
+- Overage: billed at 1.5x baseline unit rate after burst quota consumed.
+- SLA credits: per-node availability target 99.5% per month; credits limited to monthly service fees.
+- Contract exceptions: KMS key custody language (we will accept customer-managed keys for EU/US).
+
+Please let me know if the PO needs alternate billing contact or any additional fields.
+
+Best,
+Laura Bennett
+Manager, Billing & Contracts, Redwood Inference
+
+From: Stephanie Nguyen <stephanie@redwood.com>
+To: Anna Moreno <anna@stratalytics.ai>, Laura Bennett <laura@redwood.com>, Marcus Lin <marcus@redwood.com>, Vivek Kulkarni <vivek@redwood.com>, Neha Kapoor <neha@redwood.com>
+Date: Fri, 14 Aug 2026 16:50:00 -0700
+Subject: Re: Regional GPU sourcing & onboarding playbook (final)
+
+Team — quick status update to close the loop before the PO lands: 
+
+- Attachments: capacity-worksheet-v2.xlsx, onboarding-runbook-draft.md, po-template-stratalytics.pdf (all attached).
+- Agreed timelines: US (T+4–6 weeks), EU (T+6–8 weeks, customer KMS steps required), APAC (T+8–10 weeks).
+- Burst behavior: +20% for 90 days with 72-hour scheduled notice; 5% on-demand without notice.
+- Next steps for Stratalytics: send signed PO, confirm EU AZ preferences (eu-west-1a/1b confirmed), provide KMS ARN(s).
+
+Vivek — could you validate partner instance types in APAC and flag any supplier lead-time risk? Neha — can you prep SOC2 package and a short checklist we can share with procurement?
+
+Anna — happy to jump on a 30-min call next week if you want to run the PO and timeline together.
+
+Thanks,
+Stephanie Nguyen
+Head of Enterprise Sales, Redwood Inference
+
+-----Original Message-----
+On Thu, 6 Aug 2026 at 11:05, Laura Bennett <laura@redwood.com> wrote:
+> Hi Anna and CloudOps team — Laura here (Billing & Contracts). Attaching a PO template...
+> 
+> [attachment: po-template-stratalytics.pdf]

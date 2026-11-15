@@ -1,0 +1,3 @@
+Invoice WCS-2026-0201 from Wrenfield Creative Studio
+
+From: Wrenfield Creative Studio Billing <billing@wrenfieldcreative.com>\nTo: finance@redwood.com\nDate: Fri, 01 May 2026 07:10:00 -0700\nSubject: Invoice WCS-2026-0201\n\nHello Redwood Inference finance team,\n\nPlease find our invoice details below.\n\nInvoice number: WCS-2026-0201\nInvoice date: 2026-04-29\nDue date: 2026-05-29\nAmount due: $1,865.80 USD\n\nPayment by ACH to the account on file. Thank you for your business.\n\nWrenfield Creative Studio billing

@@ -1,0 +1,51 @@
+Advice requested: configure separate burst pools for embedding pipeline and low-latency chat traffic
+
+Issue summary:
+DataWeave Labs is migrating an offline embedding import pipeline into a mixed cluster that already serves low-latency chat traffic. They want guidance on configuring separate burst/budget pools so large bulk embed jobs do not cause 429s or deprioritize chat.
+
+Impact:
+During evening bulk imports the customer reported an increase in 429s for short chat sessions (P95 latency-sensitive flows). Business impact: degraded UX for paying end users; embeddings import can be deferred but needs throughput guarantees overnight.
+
+Environment:
+- Dedicated pool (customer-dedicated) in us-east
+- Ingress via customer API keys, routed through shared gateway
+- Model set: redwood-embed-6.1 for embeddings; open-llama-7b for chat
+
+Steps to reproduce (customer-reported):
+1) Start 40 parallel workers performing chunked embedding uploads (multipart) with small chunks (~128KB) over 3 hours.
+2) Concurrently send low-qps interactive chat requests (~20 qps short-lived sessions).
+3) Observe increased 429s on chat route after ~15 minutes; embedding jobs continue but with slower throughput.
+
+Observed behavior:
+- Chat route shows 5-10% 429s during high embedding activity; token headers show tenant-level window exhausted.
+- Support console shows shared token bucket usage spike, no per-route separation configured.
+- Customer sees no route-level quota in console (only tenant-level).
+
+Expected behavior:
+- Customer expects dedicated configuration that isolates a small sustained allocation for chat with a separate burst credit pool for embeddings or at least a weighted priority so chat maintains low-latency SLO.
+
+Attached logs/headers (redacted):
+- X-RateLimit-Remaining: 0 (for tenant window)
+- X-Route-Quota: not present
+- Sampling traces: chat requests hit gateway queueing and then 429s while background embedding requests are long-running and consume refill credits.
+
+Customer asks:
+1) Is there a recommended pattern to carve out a steady low-latency allocation for chat while allowing overnight bulk embedding bursts?
+2) What configuration changes are safe on a dedicated pool (without service interruption) to avoid chat 429s?
+3) Any recommended monitoring/console settings to detect this earlier?
+2026-03-10 | Sofia Patel (customer): We can delay the embed jobs but need at least 10k embeddings/hour overnight while keeping under 1% chat 429s. Embedding workers are orchestration-managed and can't be trivially rate-limited without slowing downstream pipelines.
+2026-03-10 | Liam O'Connor (Support): Thanks — forwarding to infra to validate tenant bucket and route config. Can you share request samples and the API keys used for both flows (we only need metadata, not raw data)?
+2026-03-11 | Infra-SRE (system): We verified the dedicated pool is using only tenant-level quota. No per-route isolation is enabled. Observed refill smoothing window set to 60s. Proposed options: (A) carve a route-level steady allocation for chat with higher priority, (B) create a secondary route for embeddings with separate token bucket and lower priority, (C) configure conservative burst cap on embeddings route and enable pre-warm scheduling during off-peak.
+2026-03-11 | Liam O'Connor (Support): Provided configuration recipe and console steps to create a route-level quota. Asked customer to schedule a 30-min maintenance window to apply non-disruptive route binding for a test route.
+2026-03-12 | DataWeave Eng (customer): Tried the test binding for chat route and observed P99 latency stabilized but still saw occasional 429s when embed workers spawn new multipart uploads. We captured additional traces and shared them in the ticket.
+Tenant-level token bucket is physical source of exhaustion; no per-route buckets exist on this dedicated allocation.
+Embedding workers use many short-lived connections which accelerate token consumption due to per-connection preflight counting.
+Refill smoothing 60s means sudden parallel worker fanout can overwhelm short-window burst credits; reducing smoothing or increasing base steady allocation helps.
+Gateway logs show embeddings route had no priority weight; chat route lacked route-specific quota or a guaranteed minimum share.
+We reproduced a similar pattern in staging by spinning up 30 parallel multipart clients and observed tenant window exhaustion within 10 minutes.
+Possible mitigations ranked: 1) route-level guaranteed share + lower-weight embeddings; 2) separate token bucket for embeddings route; 3) client-side sharding with rate-limiter; 4) scheduled pre-warm bursts with explicit burst reservation.
+In progress — applied a non-disruptive route binding in prod that creates a guaranteed 12% steady allocation for chat (route-level quota) and a lower priority for embedding route. Recommended follow-ups: (1) customer to throttle embed workers to <= 30 concurrent chunk uploads per worker; (2) enable console alert on tenant-token-remaining < 20% for early detection; (3) consider creating a dedicated 'bulk-embed' route with its own bucket for large imports. If chat 429s persist after 48h we will open a Sev1 and schedule an infra change to add a secondary burst pool.
+Customer action: throttle embedding worker concurrency and introduce jittered backoff on multipart retries.
+Support action: monitor tenant and route quota dashboards for 48 hours and capture traces when 429s occur.
+Infra action: draft RFC for secondary burst pools on dedicated customers to be reviewed by 2026-03-20.
+Product action: add UI affordance to visualize per-route steady allocations and burst credits (tracked in product-board entry).

@@ -1,0 +1,30 @@
+finance
+
+Noah Rivera: Heads up — LumosAI says their April invoice looks ~20% high. they sent client-side telemetry showing ~450k embeds, our export shows 380k. they suspect duplicates after a spike + retries on 2026-04-08.
+Priya Singh: Do we have a diff of request_ids vs exported rows? Are retries deduped at ingestion?
+Jules Moreno: Our billing pipeline dedupes on `request_id` if present. older SDK sent `X-Req-Id`; new internal retrier (kafka-retry) sometimes strips that header when batching. sample server log excerpt:
+```
+2026-04-08T03:02:11Z INFO ingest_received customer=lumosai req_id=rid-1234
+2026-04-08T03:02:11Z WARN retry_dispatch dropped_header=X-Req-Id
+2026-04-08T03:02:12Z INFO ingest_received customer=lumosai req_id=rid-1234
+```
+Noah Rivera: so same req_id appears twice but first time header dropped then re-ingested — does dedupe miss one?
+Jules Moreno: yes if header missing the second event gets a generated req_id and won't be deduped. we have a known edge where batch-retries set `X-Retry` and remove `X-Req-Id`.
+Alejandra (Revenue Ops): Rough impact? LumosAI is on standard embed pricing $0.0005/emb.
+Priya Singh: delta ~70k rows => est $35. But they claim 90k duplicates. need reconciled counts.
+Jules Moreno: Ops can backfill by joining raw kafka offsets to generated ids and collapse by original client fingerprint (client_timestamp + payload_hash). can run backfill for 2026-04-08 window. but retention of raw kafka payloads is 30 days; we're at day 12 so ok.
+Noah Rivera: can we do a safe provisional credit while backfill runs? customer is on a month-end renewal and wants quick resolution.
+Alejandra (Revenue Ops): I can approve provisional credit up to $50. If final backfill >$50 we escalate. Please attach customer logs to FIN-4899.
+Billing Bot: FIN-4899 created: LumosAI potential duplicate embeds after retry spike. Ticket owner: Priya Singh.
+Priya Singh: Next steps: (1) Ops to run a collapse-by-fingerprint backfill for 2026-04-08 -> produce reconciled count (2) Finance issues provisional credit $50 and notes on invoice (3) if backfill reduces exports, issue credit memo and reverse provisional. Ops @eng-ops can you confirm ETA on backfill?
+Jules Moreno: ETA 18 hours to run backfill and validate. I'll include the SQL used and checksums. sample planned SQL snippet:
+```sql
+-- pseudocode
+WITH raw AS (SELECT offset, payload, customer, client_ts, payload_hash FROM kafka_raw WHERE customer='lumosai' AND partition_time BETWEEN '2026-04-08T00:00:00Z' AND '2026-04-09T00:00:00Z')
+SELECT count(DISTINCT COALESCE(request_id, concat(customer,'|',client_ts,'|',payload_hash))) AS effective_embeddings FROM raw;
+```
+Noah Rivera: thanks. I'll send LumosAI a short note: provisional $50 credit, investigating, ETA 2 business days.
+Alejandra (Revenue Ops): label FIN-4899 "provisional-credit-applied" and add internal note about escalation threshold $100.
+Priya Singh: acked. I'll prepare the invoice adjustment template.
+Jules Moreno: starting backfill job now, will post results in FIN-4899 and here when done. :hourglass_flowing_sand:
+Noah Rivera: appreciate it everyone.

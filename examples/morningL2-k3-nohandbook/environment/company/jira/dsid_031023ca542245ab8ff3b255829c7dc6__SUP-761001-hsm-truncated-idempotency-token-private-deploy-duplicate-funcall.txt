@@ -1,0 +1,52 @@
+HSM-signed idempotency token truncated by edge proxy on Private deployment causing duplicate function-call executions across SDKs
+
+Issue summary:
+Customer running Redwood Private behind a customer-managed edge proxy + HSM for signing idempotency tokens reports duplicate external tool/function executions originating from function-calling requests. The idempotency token is produced by the customer's HSM-signing flow and attached as X-Idempotency-Sig header.
+
+Impact:
+- Duplicate function calls (webhook/post) observed intermittently for high-value payments related workflows.
+- Duplicates occur across both Go and Python SDK clients used by the customer.
+- Customer is on a Private deployment with an on-prem edge proxy that performs header processing.
+
+Environment:
+- Redwood Private (customer-managed control plane) deployed in us-east
+- Customer HSM: Vault HSM-backed transit/signing
+- SDKs: go-sdk v1.8.2, python-sdk v2.1.0
+- Customer edge proxy: Envoy v1.28 with custom header sanitizer filter
+
+Steps to reproduce (as provided by customer):
+1) Client generates idempotency payload: JSON blob (request_id, ts, action, args).
+2) Customer code signs payload with HSM (RSASSA-PSS, signature length ~512 bytes) and base64url-encodes signature.
+3) Signature is sent in X-Idempotency-Sig header to Redwood Private endpoint via Envoy.
+4) On occasional requests, the downstream Redwood runtime receives a truncated header value (first ~256 chars) and treats it as a distinct idempotency token, allowing duplicate tool invocation when client retries.
+
+Expected behavior:
+- Signed idempotency tokens should be treated as opaque strings and never truncated by proxies or any inline middleware. SDKs and server should use the full header value for deduplication.
+
+Observed behavior:
+- Envoy filter appears to truncate/normalize long header values (observed limit ~256 characters) when forwarding requests to backend.
+- When truncated, the token no longer matches the original HSM-signed value; server records a different idempotency key and executes the function call again.
+- Duplicates are reproducible when customer forces long signatures by switching from RS256 to RSASSA-PSS (longer output).
+
+Relevant logs (customer-provided):
+- Client send: X-Idempotency-Sig: AAAAB3NzaC1yc2EAAAADAQABAAABAQC3...<512-char base64url>
+- Backend received: X-Idempotency-Sig: AAAAB3NzaC1yc2EAAAADAQABAAABAQC3...<truncated to ~256 chars>
+- Redwood runtime trace: dedup lookup miss -> function.exec id=fn-7623 created -> webhook POST sent -> external system processed twice
+
+Attachments provided by customer: edge proxy config snippet, HSM signing config, request/response HAR samples.
+
+Initial hypothesis and notes:
+- Likely root cause: customer-managed Envoy header sanitization and/or internal header size limits on the proxy. Could also be an HTTP/2 header compression/continuation framing bug when large header values are present.
+- Possible mitigation: recommend switching to short deterministic idempotency keys (e.g., HMAC-SHA256 of payload truncated to 64 chars) or pass signature in request body rather than header. However, customer requires header approach for routing.
+
+Next steps (in-progress):
+- SRE to reproduce locally with Envoy + HSM-signed long header values (INT-2022).
+- Confirm server side will treat X-Idempotency-Sig as opaque and not perform internal normalization/truncation.
+- Provide guidance to customer on Envoy config to allow long headers and ensure HTTP/2 continuation frames preserved.
+- If Envoy behavior is unavoidable in their environment, propose SDK guidance and code samples to produce shorter canonical idempotency tokens that still provide collision resistance.
+2026-03-10 09:12 - Priya (Support): Thanks Alex, I can confirm duplicates in the HAR you attached. Forwarding configs to SRE for reproduction. Logged INT-2022. First response provided to customer: we're actively investigating and will follow up within SLA.
+2026-03-10 13:47 - Diego (SRE): Repro attempt locally with Envoy v1.28 + http2: saw header value chopped in the envoy access log when header exceeded 256 char threshold. Reproduces with both go-sdk and python-sdk. Creating a small test harness to iterate on filter config.
+2026-03-11 08:02 - Engineering (Runtime): Confirmed runtime has no enforced truncation on X-Idempotency-Sig. Runtime stores the header verbatim for dedupe key calculation. Strongly suspect proxy-side limit or a middleware filter configured by the customer that canonicalizes headers.
+2026-03-11 11:30 - Customer (FinNova - L. Chen): We can change proxy config; please provide explicit Envoy settings to accept long headers. We prefer not to change signing algorithm quickly due to compliance. Requested recommended config and test steps.
+2026-03-12 10:00 - Diego (SRE): Sent Envoy config snippet to customer to increase header size limits (envoy.headers_with_underscores_action, max_request_headers_kb, http2 settings). Also provided a short reproducible script that signs with HSM and posts to a test endpoint. Customer acknowledged and plan to test tonight.
+2026-03-12 16:20 - Priya (Support): Customer will test config changes in staging and report back. Provided SDK guidance for fallback: derive a compact idempotency key (HMAC-SHA256(payload) base64url then first 64 chars) as a temporary workaround if proxy limits persist.

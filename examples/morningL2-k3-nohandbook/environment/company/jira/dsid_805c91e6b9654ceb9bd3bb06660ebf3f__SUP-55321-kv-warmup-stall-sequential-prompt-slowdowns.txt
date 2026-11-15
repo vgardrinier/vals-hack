@@ -1,0 +1,51 @@
+KV cache warmup stall causing increased latency for rapid repeated prompts
+
+Issue summary:
+Customer reports that when they replay short conversational prompts in quick succession (5–10s intervals), observed tail latency for repeat requests increases ~2x after the first two requests. This appears specific to repeat prompts that should hit the prefix/KV cache.
+
+Impact:
+- PromptlyAI production customers are experiencing slower-than-expected responses on multi-turn quick-replay flows (chat previews and autosave previews).
+- Error rate is not elevated (no 5xx at API layer) but p95/p99 latency degrade from ~180ms to ~380ms on affected replicas.
+
+Environment:
+- Redwood hosted (dedicated pool) in us-east-1, tenant PromptlyAI (dedicated).
+- Model: gptx-14b-instruct pinned to v2026-02-28.
+
+Steps to reproduce (customer supplied):
+1) Send short prompt sequence (seed prompt + 2 repeat prompts) with streaming enabled and short inter-request gap (6s).
+2) Observe normal latency for first two requests.
+3) On subsequent rapid repeats, latency increases and streaming buffers appear to flush slower, sometimes triggering client-side timeout at 10s.
+
+Observed logs/metrics (customer and support):
+- Replica-level trace shows cache miss/partial-hit patterns on prefix lookup followed by synchronous KV fetch (~50–120ms additional).
+- Serving-runtime metrics show an increase in kv_cache_prefetch_stalls and kv_lookup_sync_reads on the affected nodes.
+- No corresponding CPU/GPU pressure spikes; memory utilization normal.
+
+Workaround provided so far:
+- Temporarily routed PromptlyAI traffic to warm pool (warmed replicas) which reduced latency back to baseline.
+- Customer can also increase inter-request gap to >20s to avoid stall triggering.
+
+Initial hypothesis: a race in the prefix-KV prefetching path causes subsequent requests to wait for a background warmup task that previously was fast. Evidence: kv_cache_prefetch_stalls metric correlates tightly with p99 latency spikes.
+
+What we checked:
+- Dashboard (Grafana) panels for kv cache hit ratio, prefetch latency, and request routing (link: https://grafana.redwood.ai/d/kv/kv-prefetch?orgId=1).
+- Replica logs for the timeframe: search for 'kv_prefetch_block' and 'cache_index_mismatch'. Found intermittent 'cache_index_mismatch' warnings on 3 replicas.
+- Compared two model variants: v2026-02-28 (affected) and v2026-02-14 (older). Older variant did not show same prefetch_stalls.
+
+Hypotheses under validation:
+1) Index regeneration TTL mismatch causes prefetch to fall back to synchronous disk/KV store reads for entries that looked cached but require rehydration.
+2) A scheduler change last week (scheduler PR 8001) adjusted background prefetch concurrency, exposing a contention window under rapid repeated short contexts.
+3) Eviction policy change caused high-churn prefixes (short repeated prompts) to thrash across KV shards leading to extra network hop latency.
+
+Next steps planned:
+- Reproduce internally with PromptlyAI sample trace using a dedicated replay harness (SRE assigned).
+- Add extra logging around kv index lifetime and prefetch task handoff.
+- Roll back scheduler concurrency tweak on a small canary pool if reproduction succeeds.
+
+Support (Maya Chen) 2026-03-10: Customer reported p95/p99 increase from 180ms -> ~380ms on replay flows. They provided request IDs and a small replay script. Asked for full trace and tenant routing info.
+Customer (PromptlyAI - Rajiv Sinha) 2026-03-10: Provided request IDs and mentioned issue started after model pin v2026-02-28 rollout. Notified they cannot increase inter-request gap in their UX flow.
+SRE (Liam O'Connor) 2026-03-11: Correlated kv_cache_prefetch_stalls with the timestamps. Observed 'cache_index_mismatch' warnings on 3 nodes. Spun up a warmed replica set and routed traffic -> latency normalized.
+Engineering (Sofia Martinez) 2026-03-11: Noted scheduler PR 8001 changed prefetch worker pool size from 8 -> 4 to reduce background load. Suggest reverting on canary. Opened PR to add more robust index TTL checks.
+Support (Maya Chen) 2026-03-12: Informed customer of temporary routing workaround and asked to approve canary rollback test during low traffic window. Customer approved.
+SRE (Liam O'Connor) 2026-03-12: Canary rollback scheduled for 2026-03-13 02:00 UTC. Will monitor kv_prefetch_stalls, p99 latency, and error budgets.
+Workaround applied: traffic routed to warmed replica pool which restored baseline latency. Root cause under validation; likely regression in prefetch concurrency + index TTL handling. Canary rollback of scheduler concurrency change planned. Permanent fix will include TTL consistency checks and fallback cold-read batching to avoid synchronous stalls.

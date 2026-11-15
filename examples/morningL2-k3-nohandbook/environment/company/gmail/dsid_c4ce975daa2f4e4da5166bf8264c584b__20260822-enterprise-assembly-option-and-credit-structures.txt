@@ -1,0 +1,136 @@
+Enterprise assembly options & credit structures
+
+From: Evan Burke <evan.burke@orbishealth.com>
+To: Priya Natarajan <priya@redwood.com>
+Cc: Procurement Team <procurement@orbishealth.com>, Maya Singh <m.singh@orbishealth.com>
+Date: Sat, 22 Aug 2026 09:12:00 -0700
+Subject: Enterprise assembly options & credit structures
+
+Hi Priya,
+
+Thanks again for the demo last week. The execs liked the latency and multi-environment story — we're evaluating Redwood for a phased rollout across three product lines. Before we engage procurement (they're copied), we need a clearer view on two things:
+
+1) Mixing tiers: our teams will not all buy the same tier initially. Can we have a clean example of how seat/throughput tiers can be mixed on a single contract and how billing looks (per-seat vs committed vCPU/GPU)?
+
+2) Credit / seat swap mechanics: if we purchase an annual committed pool but later want to reassign seats or swap feature bundles between teams, what credits or repricing apply? Procurement wants a deterministic credit schedule — e.g., 6-12 month window partial refunds, seat credits for unused commitments, or only forward-looking reallocations.
+
+Also attached is a feature priority matrix from our product team — can you review and recommend which features should be included in a Core vs Enablement bundle for Orbis?
+
+Goal is to get a formal quote + MA (mutual action plan) and close internal approvals by end of next month.
+
+Cheers,
+Evan Burke
+Head of Platform Strategy
+Orbis Health
+
+Attachments: feature-priority-matrix.xlsx (referenced)
+From: Priya Natarajan <priya@redwood.com>
+To: Evan Burke <evan.burke@orbishealth.com>
+Cc: Procurement Team <procurement@orbishealth.com>, Ben Carter <ben@redwood.com>, Rishi Malhotra <rishi@redwood.com>
+Date: Sat, 22 Aug 2026 10:05:00 -07:00
+Subject: Re: Enterprise assembly options & credit structures
+
+Hi Evan — thanks for the clear ask and the matrix. Quick summary below and next steps. I'll loop in Rishi and Ben to confirm pricing mechanics.
+
+Mixing tiers
+- Contract model: we typically do a single master subscription with line-item allocations per team. Each line item can be a seat tier (developer seats) or a dedicated capacity allocation (Committed GPUs). Billing shows both a monthly amortized commit plus usage overages per line item.
+- Example: 50 Developer seats (Tier A), 2 Dedicated pools (Medium / High). Each seat has a per-seat monthly rate; dedicated pools are committed throughput priced monthly.
+
+Seat/feature swaps and credits
+- Within first 90 days: we can provide prorated transfer credits when moving commitments between teams (same fiscal year).
+- Between 90 and 270 days: swaps are supported but credits are reduced to 50% of prorated value to reflect provisioning costs.
+- After 270 days: swaps are allowed but treated as forward reallocation (no cash refunds; seat credits only).
+- For downgrades: we offer one-time downgrade credit equal to unused prepaid months for the downgraded component; this is capped at 25% of the annual commit for large deals (> $250k).
+
+Feature bundling recommendation (based on your matrix)
+- Core bundle (recommended for product line A): hosted API access, standard observability, 1 low-priority dedicated pool for burst.
+- Enablement bundle (product lines B/C): private deployment options, increased retention for observability, priority support.
+
+Proposed next steps
+1) I'll ask Ben to produce a sample quote & seat-mix scenarios.
+2) Rishi will confirm discount bands for the annual commit levels you might consider.
+3) We will include the credit schedule in the MA.
+
+I'll attach a template quote and a suggested MA draft by EOD today.
+
+Best,
+Priya Natarajan
+Director, Strategic Accounts | Redwood Inference
+
+Attachments: none (will follow)
+From: Ben Carter <ben@redwood.com>
+To: Priya Natarajan <priya@redwood.com>, Rishi Malhotra <rishi@redwood.com>
+Date: Sat, 22 Aug 2026 11:30:00 -07:00
+Subject: Fwd: Enterprise assembly options & credit structures — sample quote inputs
+
+Priya / Rishi — forwarding Evan's note. Initial numbers below that I'll put into RW-Quote-Orbis-assembly-v1.pdf:
+
+Assumptions used in quote (examples):
+- 100 dev seats distributed across 3 product teams: 40 / 35 / 25
+- Two committed GPU pools: 1 x medium (8 A100-equivalent hours), 1 x high (32 A100-equivalent hours)
+- Annual commit: $420,000 list
+- Standard PLG discount schedule applied: 12% for commit >= $250k, 18% for commit >= $400k; special case can bump another 3% for multi-year.
+
+Credit schedule we recommend including in the quote doc:
+- Prorated seat credit window: 90 days full, 180 days half value, 270+ no cash refund (seat credits only).
+- Transfer fee: 5% admin fee on transferred commitment to cover provisioning/ops overhead.
+
+I'm attaching a feature matrix (feature-matrix-orbis.xlsx) and the draft quote. If Procurement needs a tightened refund schedule we can narrow the 180-day band, but that will tighten pricing.
+
+— Ben
+Account Executive | Redwood Inference
+
+Attachments: RW-Quote-Orbis-assembly-v1.pdf (draft), feature-matrix-orbis.xlsx
+From: Maya Singh <m.singh@orbishealth.com>
+To: Priya Natarajan <priya@redwood.com>, Ben Carter <ben@redwood.com>
+Cc: Evan Burke <evan.burke@orbishealth.com>, Procurement Team <procurement@orbishealth.com>
+Date: Sat, 22 Aug 2026 13:02:00 -07:00
+Subject: Re: Enterprise assembly options & credit structures
+
+Thanks — the sample quote helps. A few clarifying items from procurement/product: 
+
+1) The procurement team will not accept a cash refund policy beyond 120 days for committed spend; they want a maximum 120-day prorate for any cash-back. Can you confirm whether seat credits can be used across product lines and for future purchases?
+
+2) We have a compliance constraint: any private deployment feature in the Enablement bundle must have a separate billing line so we can track costs in our ledger. Can the MA reflect line-level invoices?
+
+3) Would Redwood consider a 15% upfront discount on the $420k commit if we sign a 2-year term (instead of applying tiered discounts)? Procurement says a 2-year certainty helps their forecast.
+
+We can do a quick call Monday morning if helpful.
+
+—Maya
+Senior Procurement Manager
+Orbis Health
+
+On Sat, Aug 22, 2026 at 10:05 Priya Natarajan <priya@redwood.com> wrote:
+> Hi Evan — thanks for the clear ask and the matrix. Quick summary below and next steps. I'll loop in Rishi and Ben to confirm pricing mechanics.
+>
+> [quoted for context]
+From: Rishi Malhotra <rishi@redwood.com>
+To: Priya Natarajan <priya@redwood.com>, Ben Carter <ben@redwood.com>
+Cc: Evan Burke <evan.burke@orbishealth.com>, Maya Singh <m.singh@orbishealth.com>, Laura Bennett <laura@redwood.com>
+Date: Sat, 22 Aug 2026 16:48:00 -07:00
+Subject: Re: Enterprise assembly options & credit structures — internal sign-off + reply draft
+
+Team — drafting an internal-aligned reply to Maya that balances procurement asks and our economics. Key points to include in the external reply (suggested):
+
+1) 120-day cash-back concession: we can accept the 120-day max cash refund window if Orbis commits to a two-year term at a 14% up-front discount on the initial annual commit (we can round to 15% if legal approves standard indemnity language in the MA).
+
+2) Seat credits reuse: yes, seat credits can be applied across product lines and toward future purchases under the same master subscription; we will explicitly allow cross-line redemption in the MA and list transfer admin fee (5%) for bookkeeping.
+
+3) Line-level invoicing for private deployments: we can expose separate line items in the invoice for any private deployment features (Enablement bundle) so Orbis can allocate costs to their ledger. We'll produce sample invoice templates.
+
+4) Operational guardrails: include a 30-day notice window for reassignments > 20% of committed seats for capacity planning; short-notice bulk swaps may be delayed and handled as forward credits.
+
+Next steps (internal): Ben to update the PDF quote (apply 14% 2-yr discount draft), Priya to propose MA language with explicit cross-line credit, Laura to confirm finance/invoicing feasibility. I'll propose the reply below for your sign-off before sending to Orbis.
+
+Proposed reply for Orbis (short):
+> Hi Maya / Evan — we can accept your 120-day cash refund constraint if Orbis signs a two-year term. In return we will provide a 14% upfront term discount on the initial annual commitment (we can finalize to 15% pending legal approval). Seat credits will be reusable across product lines and line-level invoices for private deployment features will be provided. We will include the full credit schedule and transfer fee in the MA and share sample invoices.
+>
+> Would you be available for a 30-min call Monday 9:00–10:00 PT to finalize numbers?
+
+Please review and flag anything I missed.
+
+—Rishi
+Head of Customer Success | Redwood Inference
+
+Attachments referenced: RW-Quote-Orbis-assembly-v1.pdf, feature-matrix-orbis.xlsx

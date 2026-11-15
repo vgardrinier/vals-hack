@@ -1,0 +1,61 @@
+Windows fast LAN switch triggers WireGuard interface metric flip and intermittent access to internal services
+
+Issue summary:
+Windows clients moving between wired dock and Wi-Fi (fast LAN switching / NIC preemption) intermittently lose access to internal services (k8s cluster APIs, internal console) while external traffic continues to function. Affected clients show WireGuard interface re-binding to a different route metric after the NIC change, and split-tunnel routes bound to the old interface remain in kernel routing table for ~30–90s. This causes TCP connections to internal IPs to blackhole until routes are reconciled or the WG interface is restarted.
+
+Impact:
+- ~7% of office staff and hybrid workers in US region have reported transient failures to reach internal dashboards and services when docking/undocking or switching networks.
+- Automated jobs (dev laptops running local test harnesses with port-forwarding to cluster) occasionally fail and require manual restart.
+
+Environment:
+- Platform: Corporate Windows 11 (22H2) with corporate Dock USB-C and 802.11ax Wi‑Fi.
+- VPN: WireGuard-based Zero-Trust agent configured as split-tunnel (internal CIDR routes pushed locally).
+- DNS: Internal suffixes are pushed via DHCP/WPAD; Windows sometimes retains old DNS suffix search order after NIC changes.
+
+Steps to reproduce (observed):
+1) Connect laptop to Ethernet via dock (WireGuard establishes, routes for 10.0.0.0/8 installed with metric 50).
+2) Undock or disable Ethernet (fast LAN switch), client moves traffic to Wi‑Fi; WireGuard interface remains up but kernel route metrics change (WG route moves to metric 300).
+3) Split-tunnel routes referencing internal CIDRs remain attached to previous NIC route (metric 50) and are no longer reachable, causing internal TCP flows to hang.
+4) After ~30–90s routes are reprogrammed or user restarts WireGuard agent and connectivity restores.
+
+Observed logs and metrics:
+- System event logs: network profile change events (NetworkListManager) at switch times.
+- WireGuard agent logs: interface stays listed UP; agent reports same endpoint/peer state. No obvious tunnel re-establish.
+- Routing table snapshot: duplicate internal route entries for same CIDR with different interface indices and metrics.
+- Endpoint traces to internal k8s API show SYN retransmits; external https flows succeed.
+
+Hypothesis:
+1) Windows fast NIC preemption changes interface metrics before the agent updates split-tunnel routes, leaving stale per-interface routes in the table.
+2) WireGuard agent does not react to the specific network-change event sequence on Windows and therefore does not reprogram routes atomically.
+3) DNS suffix order persistence compounds the problem for name-based services, causing name lookup to prefer an unreachable resolver briefly.
+
+Investigation notes to date:
+- Reproduced on two different laptop models with corporate dock.
+- Packet capture shows encapsulated WireGuard traffic continues but routing selects wrong next-hop for internal CIDR.
+- Compared behavior with macOS laptops: mac handles reprogramming immediately and does not leave duplicate CIDR routes.
+- SRE observed RETRIES spikes on api-gateway per-host when user population spikes during EV charging (docking area).
+
+Temporary workaround:
+- Educate affected users: Restarting the WireGuard client or toggling the adapter (disable/enable the WireGuard interface) restores connectivity immediately.
+- Interim support script: run `wg-quick down && wg-quick up` or run the Windows agent's "rebind routes" helper. Deployed via Intune for a small pilot.
+
+Proposed remediation steps:
+- Short term: update Windows WireGuard agent to listen to NetworkListManager and call route reconciliation on NIC change events. Add an expo-backoff retry to reprogram split-tunnel routes.
+- Medium term: change split-tunnel route program to prefer interface-independent routes (where supported) or use next-hop-based routes that survive interface swaps.
+- Long term: add deterministic route reconciliation in agent startup and a small kernel monitor that prunes stale duplicate CIDR entries.
+
+Next actions assigned:
+- Marcus Chen: capture additional packet traces and produce minimal repro script (by 2026-03-13).
+- Nora Patel: roll out support helper script via Intune to 20 pilot users (by 2026-03-12).
+- Networking team: review split-tunnel route approach and possibility of next-hop binding (eng ticket INT-875556) (by 2026-03-17).
+
+Links to dashboards and artifacts:
+- Internal trace: https://grafana.redwood-internal/series/wg-route-errors?from=now-24h
+- Packet captures and route dumps archived: https://files.redwood.local/it/wg-repro-20260310.zip
+- Slack thread: #internal-networking > thread "wireguard docking route-flip"
+
+2026-03-10 10:22 - Marcus Chen: Confirmed reproduction on my Dell XPS with corporate dock. Captured route tables before/after. Attaching pcap to ticket.
+2026-03-10 14:05 - SRE Ops (Jordan Lee): Noticing correlated retries to api-gateway from hostnames that resolve to internal IPs during dock events. Possible client-side routing issue rather than gateway. Adding network team.
+2026-03-11 09:35 - Nora Patel: Deployed temporary PowerShell helper to 5 users via Intune; all 5 reported immediate recovery when helper executed. Will expand to 20 users today.
+2026-03-12 08:10 - Marcus Chen: Created small repro script demonstrating NIC preemption sequence and route-stale window. Opening engineering follow-up INT-875556 for agent fix.
+2026-03-12 13:00 - Networking (Aisha Gomez): Suggest evaluating use of Windows ADVAPI route options or setting stronger route metrics during agent install to prefer WG routes across NIC changes.

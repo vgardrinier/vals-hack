@@ -1,0 +1,22 @@
+Add usage UI copy + KB link re: retries billed as separate attempts; streaming cancellation token accounting
+
+Background:
+- From SUP-1842 (Northwind AI escalation). Customer confusion around attempt-level accounting.
+
+Requested changes:
+1) Usage page: add small helper text near request_id + export: "request_id represents a single attempt. Retries appear as separate attempts and are billed separately."
+2) Add link to KB article: usage-accounting-retries-and-stream-cancellation
+3) Optional follow-up: add docs snippet under API retry guidance (out of scope for this ticket).
+
+Acceptance criteria:
+- Copy visible in Hosted API usage dashboard
+- Link to Confluence page included
+- Approved by CS + Finance
+
+References:
+- SUP-1842
+- Slack #eng-platform thread_ts=1739386202
+
+2025-02-14 Ava Chen: Taking. Will add copy behind a feature flag first.
+2025-02-17 Ben Carter: Please ensure wording does not promise de-duplication / idempotency.
+2025-02-18 Ava Chen: PR up in redwood/console. Need Finance sign-off on phrasing.

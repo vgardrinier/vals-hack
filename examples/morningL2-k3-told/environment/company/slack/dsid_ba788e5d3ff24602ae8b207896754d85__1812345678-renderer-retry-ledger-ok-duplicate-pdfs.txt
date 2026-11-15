@@ -1,0 +1,61 @@
+finance
+
+meera (Billing Ops): Heads up  two customers reported getting two different PDFs with the same invoice_id for May batch. One PDF had missing compute lines, the other had full lines. They were charged once.
+
+meera (Billing Ops): Example (redacted):
+```
+Invoice: 2025-05-INV-3317
+Customer: omega-llc
+PDF A:
+ - Reserved capacity: $400
+ - Usage (tokens): $0  <-- missing
+ - Tax: $32
+ Total: $432
+
+PDF B:
+ - Reserved capacity: $400
+ - Usage (tokens): $240
+ - Tax: $52
+ Total: $692
+```
+
+raj (FinOps): That smells like the invoice generator committed ledger rows then retried rendering path and emitted another PDF without dedupe. Did job-runner retry after a timeout? @job-runner-bot
+
+job-runner-bot: Job invoice_batch_2025_05_31 ran at 1812342000. Step invoice-create: completed. Step pdf-render: LONG_RUNNING then timed out at 1812342300. Retry triggered at 1812342400.
+
+invoices-bot: ALERT: duplicate invoice_id detected for customer omega-llc: 2025-05-INV-3317 (count=2).
+
+emma (Payments): If ledger shows single charge that's fine billing-wise, but PDFs conflicting will trigger disputes. Pause PDF email send for May batch until we sort.
+
+tom (Support): Customer opened a ticket confused about being "sent two different invoices". They attached both PDFs. Not happy.
+
+meera (Billing Ops): Quick DB checks:
+```
+SELECT invoice_id, count(*) FROM invoice_pdfs WHERE period='2025-05' GROUP BY invoice_id HAVING count(*)>1;
+-- returns 2 rows including 2025-05-INV-3317
+```
+
+raj (FinOps): Also check invoice_lines vs usage aggregates:
+```
+SELECT i.invoice_id, sum(il.amount) as lines_sum, u.usage_total FROM invoices i
+LEFT JOIN invoice_lines il ON il.invoice_id=i.invoice_id
+LEFT JOIN usage_aggregates u ON u.customer_id=i.customer_id AND u.period='2025-05'
+WHERE i.period='2025-05' AND coalesce(sum(il.amount),0)<>coalesce(u.usage_total,0)
+GROUP BY i.invoice_id, u.usage_total;
+```
+
+meera (Billing Ops): Ran it  ledger matches expected USD 240 usage for omega-llc. invoice_lines has correct rows. Problem is renderer sometimes produced an empty usage section when it retried and the feature flag compact_lines=true is set. Renderer log: `WARN render(): missing template for 'usage_line' on retry attempt 2 for invoice 2025-05-INV-3317`
+
+emma (Payments): I'm pausing the email pipeline and setting gateway hold for customers who reported duplicates.
+
+raj (FinOps): Root cause hypothesis: job-runner timeout -> retry path calls pdf-render which isn't idempotent, creating duplicate pdf records and sometimes skipping lines under compact_lines=true. Need to make pdf-render idempotent and ensure renderer reads canonical invoice_lines not feature-derived ephemeral data.
+
+meera (Billing Ops): Proposed steps: 1) pause pdf-email job (in progress) 2) mark affected invoice_pdfs rows as investigating 3) dedupe duplicate invoice_pdfs keeping the pdf that matches invoice_lines 4) re-render any missing PDFs with renderer pinned to v1.8.4 (no compact_lines feature) 5) re-send corrected PDFs with note.
+
+tom (Support): I'll draft the customer message and hold refunds. We should tell customers charges were correct and corrected PDFs are on the way.
+
+emma (Payments): Confirmed email pause and gateway holds.
+
+raj (FinOps): Filing FIN-2025-278, attaching logs, affected invoice_ids list and remediation plan. Recommend hotfix to make renderer check for existing pdf record and validate line totals before writing. Also add alert on invoice_pdfs count>1 for same invoice_id.
+
+meera (Billing Ops): FIN-2025-278 created. Assigning to eng-billing-render. Will update when dedupe and re-render completed. :white_check_mark:

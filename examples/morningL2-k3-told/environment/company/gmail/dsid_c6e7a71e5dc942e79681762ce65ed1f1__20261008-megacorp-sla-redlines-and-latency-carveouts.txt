@@ -1,0 +1,84 @@
+Megacorp SLA redlines and latency carveouts
+
+From: Diane Huang <diane.huang@megacorp.com>
+To: Priyom Das <priyom.das@redwood.ai>
+Cc: ops@megacorp.com
+Date: Thu, 01 Oct 2026 09:12:00 -0700
+Subject: Redwood SLA — request for uptime/latency clarifications and credit scope
+
+Hi Priyom,
+
+Thanks again for the demo last week. Our legal and procurement teams reviewed the draft SLA and have three primary asks before we can move to an internal approval: 1) clarify monthly credit calculation when availability drops below 99.95% (our standard is 99.99%), 2) explicit latency SLOs for p95/p99 and how those factor into credits, and 3) carveouts for planned maintenance windows and cloud provider incidents.
+
+We attached the redlines from our side as a starting point (see Redwood_SLA_EditProposals.xlsx). For context, Megacorp runs customer-facing features where a sustained p99 > 800ms could materially impact our SLAs to our customers, so we need clear remedies.
+
+Can your legal/sales ops propose a version that keeps Redwood's availability guarantees but narrows the credit exposure? Timeline: our procurement deadline is 2026-10-12.
+
+Best,
+Diane
+Diane Huang
+Head of Platform Reliability, Megacorp
+[Attachment: Redwood_SLA_EditProposals.xlsx (xlsx)]
+From: Priyom Das <priyom.das@redwood.ai>
+To: Diane Huang <diane.huang@megacorp.com>
+Cc: Ben Carter <ben.carter@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>, Karthik Iyer <karthik.iyer@redwood.ai>
+Date: Fri, 02 Oct 2026 11:05:00 -0700
+Subject: Re: Redwood SLA — request for uptime/latency clarifications and credit scope
+
+Hi Diane — really appreciate the clear asks and the spreadsheet. Quick read through and a proposed middle-ground below. Please see the attached annotated SLA (Redwood_SLA_Template_v1.2.pdf) for line references.
+
+Summary of our proposal (high level):
+- Availability baseline: maintain 99.95% as our standard production uptime for hosted customers.
+- Credit bands: introduce graduated monthly credits capped at 50% of the monthly invoice. Example: 99.95–99.8% = 5% credit; 99.8–99.0% = 15% credit; <99.0% = 50% credit.
+- Latency SLOs: publish p95 <= 350ms, p99 <= 750ms for requests routed to our lowest-latency cluster. Credits tied only to sustained latency regressions that are reproducible by our test harness over a 6-hour window, and after on-call confirms incident classification.
+- Maintenance carveouts: planned maintenance windows (advertised 72 hours in advance to the contact list) are excluded from credit calculations if scheduled during off-peak hours. Emergency cloud provider outages will be excluded if we can show provider incident report and cross-region failover attempts.
+
+Operational asks from Megacorp:
+- 30-day notice before large rollouts that change model families or quantization profiles so we can run regression checks.
+- Access to an agreed synthetic test endpoint for monitoring p95/p99 (read-only) so Megacorp can correlate observability.
+
+Next steps I propose: Ben and Laura will tighten the credit cap language and the exact mathematical definition in the SLA, and then we can produce a single tracked copy for signature. Can you confirm Megacorp is flexible on the 50% cap and the 6-hour reproducibility window?
+
+Thanks — sending annotated SLA now.
+
+Regards,
+Priyom
+Priyom Das
+Head of Deals, Redwood Inference
+[Attachment: Redwood_SLA_Template_v1.2.pdf (pdf)]
+From: Ben Carter <ben.carter@redwood.ai>
+To: Diane Huang <diane.huang@megacorp.com>, Priyom Das <priyom.das@redwood.ai>
+Cc: Laura Bennett <laura.bennett@redwood.ai>, Karthik Iyer <karthik.iyer@redwood.ai>
+Date: Mon, 05 Oct 2026 10:22:00 -0700
+Subject: Re: Redwood SLA — request for uptime/latency clarifications and credit scope
+
+Diane — looping in Laura and Karthik for legal/ops detail. A couple of practical changes from our side after reviewing with Commercial Ops:
+
+1) Credit cap tweak: we can move the cap to 40% of monthly invoice for the first 12 months of the contract, then revert to 50% thereafter. That gives Megacorp a stronger immediate protection while capping our initial exposure.
+2) Latency definition: p99 credits will only trigger if p99 exceeds 900ms for a rolling 6-hour window AND total error-rate attributable to Redwood services is <0.1% (to avoid double-counting provider errors).
+3) Maintenance scheduling: clarify "off-peak" as 01:00–05:00 PT for Megacorp's primary region, and require an internal rollback playbook be provided (staggered rollout recommended).
+
+Laura — can you produce a short clause (two paragraphs) that captures the reproducibility test (what logs/trace data we need to confirm latency regression) and the coordination steps for cloud provider incidents? Karthik, please prepare a short operational checklist Megacorp can use during cutover.
+
+Diane — are these acceptable? If yes, we'll incorporate and push a tracked draft by EOD 10/07.
+
+Thanks,
+Ben
+VP, Sales — Redwood Inference
+From: Diane Huang <diane.huang@megacorp.com>
+To: Priyom Das <priyom.das@redwood.ai>, Ben Carter <ben.carter@redwood.ai>
+Cc: ops@megacorp.com
+Date: Fri, 08 Oct 2026 15:03:00 -0700
+Subject: Re: Redwood SLA — request for uptime/latency clarifications and credit scope
+
+Thanks Priyom and Ben — this is helpful. Megacorp can accept:
+- Availability baseline at 99.95% with the proposed graduated credits, pending final legal language on cap timing;
+- Latency carveout language provided the p99 trigger is capped at 900ms and you provide the reproducibility checklist and read-only synthetic endpoint;
+- Maintenance carveouts as defined (we will align on the rollback playbook).
+
+We are OK with the 40% initial cap for 12 months. Procurement will need the final tracked SLA by 2026-10-12 with a DocuSign link for signature. Please attach the final draft and a short summary of any monitoring endpoints we can add to our internal runbooks.
+
+Diane
+Diane Huang
+Head of Platform Reliability, Megacorp
+[Reference: Megacorp procurement deadline 2026-10-12]

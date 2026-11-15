@@ -1,0 +1,65 @@
+support
+
+maya_support: FYI customer reported an invoice payment failure. They see a combination of 'insufficient_funds' and 3DS/SCA challenge failures. Customer requires PO on invoices so can't use ACH. Pasting the API response and logs they sent below — need triage and a blocker/next steps.
+
+liam_payments: Can you paste the request_id and the raw gateway response? Also last4 + expiry (masked) so we can correlate.
+
+maya_support: request_id: r_20260317_9b7c2e, masked_card: **** **** **** 4026, exp: 04/26. API response from our hosted endpoint:
+
+```json
+{
+  "status": "declined",
+  "code": "insufficient_funds",
+  "gateway_response": {
+    "acquirer_code": "DO_NOT_HONOR",
+    "3ds_status": "failed",
+    "3ds_error": "challenge_failed",
+    "acquirer_message": "Do Not Honor",
+    "auth_code": null
+  },
+  "request_id": "r_20260317_9b7c2e"
+}
+```
+
+maya_support: customer also says their bank threw a 3DS challenge but the redirect kept failing and then showed SCA error. They tried one retry and got the same.
+
+zoe_fraud: @maya_support thanks — question: did our fraud service flag this payment before the acquirer decline? If fraud_score > 0.8 we may have blocked earlier and triggered a fallback that caused a weird path. Also need the fraud_decision_id if present.
+
+devon_sre: Logged a short timeline: we had a gateway latency spike at 2026-03-17T15:01Z that caused several 3DS sessions to timeout while waiting for acquirer redirect. See proxy logs: 
+
+```
+[2026-03-17T15:01:12Z] gateway=payments-gw-03 latency_ms=1200 path=/v1/charges/ -> upstream timeout 504
+[2026-03-17T15:01:13Z] 3ds-session s_9f3e returned: redirect_error
+```
+
+devon_sre: That timing would explain a challenge_timeout -> client fallback -> bank executes soft-decline as 'DO_NOT_HONOR' (auth blocked).
+
+liam_payments: Correlated with acquirer logs: acquirer returned 'DO_NOT_HONOR' and our system mapped that to insufficient_funds in this merchant's config (merchant uses mapping profile M-ACME-1). So two independent signals: acquirer refusal + 3DS failed due to redirect/timeout.
+
+zoe_fraud: Opening FR case FR-5123 for a manual fraud review. Assigning to fraud-review queue, flagging as high priority due to repeated declines on same card across three invoices this month. I'll attach the fraud decision tree and notes.
+
+zoe_fraud: Immediate recommendation: pause automated retries for this payment method on this account, request customer to try alternate card or have their bank whitelist the merchant. Also provide manual invoice link (non-PO flow) if they can accept it.
+
+maya_support: I'll prepare manual invoice and send it — customer requires PO but said they can approve an alternate payment method under an urgent credit hold.
+
+liam_payments: For dev team — action items: (1) check gateway timeout window and increase 3DS redirect wait by 2s for this merchant as a short-term mitigation, (2) add mapping override so 'DO_NOT_HONOR' does not collapse to insufficient_funds when 3DS status == failed, (3) store full 3DS challenge payload for FR-5123.
+
+devon_sre: Quick repro for engineers if you need to run locally:
+
+```bash
+# reproduce 3DS redirect timeout against sandbox acquirer proxy
+curl -v -X POST https://staging-payments.redwood.local/v1/charges \
+  -H 'Authorization: Bearer sk_test_xxx' \
+  -d '{"amount":9900,"currency":"USD","source":"card_4026_test","capture":false}'
+# watch proxy logs for redirect timeout lines
+```
+
+maya_support: I've told customer we opened a fraud review and created a temporary credit hold while we investigate. They asked for ETA — what's realistic?
+
+zoe_fraud: FR-5123 initial triage ETA 4 hours, full review 24-48h. If the acquirer pattern shows bank-side 'do_not_honor' we will recommend merchant reach out to acquirer/bank.
+
+ops_bot: Routing fallback triggered for merchant acme-co at 2026-03-17T15:01: connection pool exhausted -> routed to fallback pool (dedicated->shared).
+
+liam_payments: I'll file a follow-on ticket to adjust mapping and set a canary for the 3DS wait-time change. Assigning to eng-payments.
+
+maya_support: Thanks everyone — I'll update the customer with the 4h triage ETA and send manual invoice. Keeping thread open for updates. :white_check_mark:

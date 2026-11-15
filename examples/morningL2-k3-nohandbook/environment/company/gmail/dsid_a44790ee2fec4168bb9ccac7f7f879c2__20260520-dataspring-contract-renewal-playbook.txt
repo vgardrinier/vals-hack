@@ -1,0 +1,110 @@
+Data supplier contract renewal and SOW review
+
+From: Monica Patel <monica.patel@redwood.ai>
+To: Emma Liu <emma@dataspring.ai>
+Cc: contracts@dataspring.ai
+Date: Thu, 20 May 2026 08:12:00 -0700
+Subject: Data supplier contract renewal and SOW review
+
+Hi Emma —
+
+Hope you’re well. Our current DataSpring agreement (SOW v2) is up for renewal at the end of June and usage is tracking slightly above our committed tier for Q1. Before we start the formal purchase order, can you send the following so we can route internally?
+
+- Updated SOW with term and data SLA (including freshness guarantees and expected delivery windows)
+- Line-item pricing for committed vs overage tiers and any volume discounts for annual commitment
+- Q1 usage export (CSV) and a short note on any upcoming schema changes you plan to make
+
+We’re aiming to finalize terms by the third week of June. If you have a standard renewal playbook or pricing addendum, please attach. Can we schedule a 30-min sync next week to walk the SOW and pricing?
+
+Thanks —
+Monica Patel
+Enterprise Account Executive | Redwood Inference
+monica.patel@redwood.ai | +1 (415) 555-0123
+
+---
+
+From: Emma Liu <emma@dataspring.ai>
+To: Monica Patel <monica.patel@redwood.ai>
+Cc: contracts@dataspring.ai, cs@dataspring.ai
+Date: Thu, 20 May 2026 08:45:00 -0700
+Subject: Re: Data supplier contract renewal and SOW review
+
+Hi Monica —
+
+Thanks for the heads up. Attaching SOW v3 and the Q1 usage export for your review (see attachments). Summary below:
+
+- Term options: 12/24 months. 24-month comes with a 10% platform fee reduction.
+- Pricing: Committed tier pricing unchanged; overage moved to a per-10k-rows metric. We can offer a 15% one-time renewal credit if you sign by June 10.
+- SLA: 99.9% delivery success, 6-hour max data latency for streaming feeds; daily batch freshness for enrichment calls.
+
+We’re available Tue/Wed next week at 10am PT — what works for your team? Also looped in contracts@ for any redlines.
+
+Best,
+Emma Liu
+Head of Strategic Accounts | DataSpring
+Attachments: DataSpring_SOW_v3.pdf, usage_report_Q1_2026.csv
+
+---
+
+From: Monica Patel <monica.patel@redwood.ai>
+To: Karthik Iyer <karthik.iyer@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>, Markus Klein <markus.klein@redwood.ai>
+Date: Thu, 20 May 2026 09:05:00 -0700
+Subject: Fwd: Data supplier contract renewal and SOW review
+
+Looping you in — forwarding DataSpring’s SOW v3 and Q1 usage. Key asks for internal review:
+
+- Procurement / Finance (Markus): confirm whether the 24-month / 10% platform fee reduction is favorable vs our preferred 12-month cadence. Also check how overage billing aligns with our billing systems (per-10k rows).
+- Legal (Laura): please check the SLA wording (delivery success, latency) and any data residency / processing clauses. We need standard Redwood data handling clauses applied plus SOC2 evidence.
+- Karthik: want your input on negotiation levers: target discount, credit terms, and whether a committed uplift makes sense given projected usage growth.
+
+Proposed negotiation targets: 20% off list for a 12-month renewal or 10% + $25k credit for 24-month. Push to get a 30-day invoice term, and explicit commitment on schema change notification (60 days).
+
+I scheduled an internal pre-call for Mon 24 May 10:30am PT to align. DataSpring proposed Tue/Wed next week for vendor sync; I’ll confirm once we align.
+
+Thanks,
+Monica
+
+---
+
+From: Karthik Iyer <karthik.iyer@redwood.ai>
+To: Monica Patel <monica.patel@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>, Markus Klein <markus.klein@redwood.ai>
+Date: Fri, 21 May 2026 11:18:00 -0700
+Subject: Re: Fwd: Data supplier contract renewal and SOW review
+
+Thanks Monica — quick thoughts:
+
+- Finance: prefer 12-month for flexibility, but if DataSpring will lock pricing for 24 months and the math shows >=8% effective savings, we can consider. Markus, please run the 12/24 cost projection against forecasted usage (I’ll share growth assumptions in the Drive link).
+- Negotiation levers: upfront commit, narrower SLA credits tied to data freshness, and removal of unilateral schema-change clauses. Target: 25% discount on committed tier for 12-month OR 15% + $20k credit for 24-month.
+- Approvals: legal redlines will be a gating item — Laura, once you have redlines, we can ask contracts@dataspring.ai for a clean copy.
+
+I added comments on the Drive SOW draft: https://drive.redwood.com/Shared/DataSpring/SOW-draft-v3
+
+Karthik
+Procurement Manager | Redwood Inference
+
+---
+
+From: Laura Bennett <laura.bennett@redwood.ai>
+To: Monica Patel <monica.patel@redwood.ai>, Karthik Iyer <karthik.iyer@redwood.ai>, Markus Klein <markus.klein@redwood.ai>
+Date: Sat, 22 May 2026 15:43:00 -0700
+Subject: Re: Fwd: Data supplier contract renewal and SOW review
+
+Reviewed SOW v3 — top-line legal items:
+
+1) Data processing addendum: add explicit Redwood-approved subprocessors list and SOC2 attestation frequency (annual).
+2) Schema & change management: require 60-day notice for breaking changes and a mitigation window of 14 days for production-impacting changes.
+3) Liability cap: propose capping at two times fees for breach; remove carve-outs that expose us for downstream consumer losses.
+4) SLA credits: make them automatic and measurable (tokens / rows affected) rather than discretionary.
+
+I’ll prepare a redline and ask contracts@dataspring.ai for a clean MS Word with tracked changes. Negotiation priorities: keep the 12-month option as primary, push hard for the 25% discount target Karthik suggested, and insist on a documented data incident playbook from CS.
+
+Laura Bennett
+Senior Counsel | Redwood Inference
+laura.bennett@redwood.ai
+
+---
+
+[Thread notes]
+- Next internal sync: Mon 24 May 10:30am PT (Monica scheduled)
+- Vendor availability: Tue/Wed next week per Emma (DataSpring)
+- Action items: Markus to run 12/24 cost projection (due Mon 24 May 9am PT); Laura to draft redlines (due Mon 24 May noon PT); Monica to confirm vendor meeting after internal sync.

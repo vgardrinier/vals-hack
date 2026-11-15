@@ -1,0 +1,101 @@
+MSA & Order Form kickoff — template fit + infra access plan
+
+From: Alice Cho <alice.cho@springwellhealth.com>
+To: markus_klein@redwood.com, kimberly_park@redwood.com
+Cc: procurement@springwellhealth.com
+Date: Thu, 12 Jun 2025 09:15:00 -0700
+Subject: MSA & Order Form kickoff — template fit + infra access plan
+
+Hi Markus / Kimberly,
+
+Thanks for making time — we pulled together a short kickoff so we can get the MSA and order form moving. Attached is our initial SOW (Springwell_SOW_v1.pdf) and a short security worksheet. A few things we'd like to confirm up front: 
+
+- Which template should we expect Redwood to publish as the baseline? (standard MSA v2 or customer-specific variant)
+- We have one environment that requires private VPC/connectivity for PHI systems. Will that trigger the Private deployment product or can it be scoped in Dedicated?
+- Billing/contact for invoicing: I can share our purchaser contact once you confirm procurement steps.
+
+We'd like to schedule a 30-min sync tomorrow (Fri 6/13) to walk the redline priorities and agree an initial timeline. Can you propose two times?
+
+Attachments: Springwell_SOW_v1.pdf (pdf), springwell-security-worksheet.xlsx (xlsx)
+
+Thanks,
+Alice Cho
+Head of Procurement
+Springwell Health
+phone: (415) 555-0182
+
+
+From: markus_klein@redwood.com <markus_klein@redwood.com>
+To: Alice Cho <alice.cho@springwellhealth.com>
+Cc: kimberly_park@redwood.com, naomi_feldman@redwood.com
+Date: Thu, 12 Jun 2025 11:03:00 -07:00
+Subject: Re: MSA & Order Form kickoff — template fit + infra access plan
+
+Alice — thanks for the SOW and the worksheet, received. Quick response with our proposed intake plan below so the sync is focused: 
+
+1) Template baseline: we'll start from Redwood Standard MSA v2 (see attached redwood-template-msav2.docx) and raise counterparty-specific exhibits for hosting/residency. If any of the Springwell clauses require unique language we can map them into an Exhibit rather than edit core MSA language.
+
+2) Deployment scoping: From a product/ops perspective, PHI behind a private VPC typically maps to Redwood Private (customer control plane + on-prem gateway), but we can also support a Dedicated reserved pool if Springwell is comfortable with our managed-hosting model and encryption controls. Kimberly — can you flag the legal/risk implications either way?
+
+3) Security evidence: Naomi, can you confirm the SOC2/ISO artifacts and typical lead times. Alice, if you can fill out the worksheet fields highlighted in column B we can pre-populate the security packet for review.
+
+4) Timeline & next steps: propose Fri 6/13 at 10:30am PT or 2:00pm PT for a 30-minute kick. If neither works propose two alternatives.
+
+Attachments: redwood-template-msav2.docx, external-ask-matrix.xlsx
+
+Thanks — I'll bring sales/ops; Kimberly will cover legal; Naomi will cover security evidence/ops handoff.
+
+Markus Klein
+Director, Strategic Accounts
+Redwood Inference
+markus_klein@redwood.com | +1 415-555-0129
+
+
+From: Kimberly Park <kimberly_park@redwood.com>
+To: markus_klein@redwood.com
+Cc: naomi_feldman@redwood.com, marissa_cole@redwood.com
+Date: Thu, 12 Jun 2025 14:30:00 -07:00
+Subject: Re: MSA & Order Form kickoff — template fit + infra access plan
+
+Markus / team — quick legal triage before the call.
+
+On Thu, Jun 12, 2025 at 11:03 AM Markus Klein <markus_klein@redwood.com> wrote:
+> 1) Template baseline: we'll start from Redwood Standard MSA v2 ...
+
+Notes / priorities from Legal: 
+- We'll use Redwood Standard MSA v2 as baseline, but expect to surface Exhibit X for any hosting/residency carveouts. Avoid redlining core indemnity and IP assignment language unless counterparty insists — these are high friction items.
+- Data residency & PHI: if Springwell requires private control plane with audited HSM/KMS separation we should treat that as a non-standard hosting variant and expect procurement & security review to take longer (~3-4 weeks).
+- Liability cap: push to maintain tiered cap tied to paid fees; anticipate negotiation on carveouts for breach of confidentiality involving PHI.
+- SLA / uptime credits: propose standard Dedicated SLAs for onboarding, with optional enhanced SLA add-on if they require it.
+
+Marissa — please line up the standard Exhibit template for hosting/residency and flag any cross-region residency language that must be added. Naomi — confirm which artifacts we can prepare in advance (SOC2 Type II report copy, pen-test summary).
+
+I'll mark 'high priority' for any clause edits that touch PHI or control-plane isolation.
+
+Kimberly Park
+Senior Counsel, Redwood Inference
+kimberly_park@redwood.com | +1 650-555-0999
+
+
+From: Alice Cho <alice.cho@springwellhealth.com>
+To: markus_klein@redwood.com, kimberly_park@redwood.com
+Date: Thu, 12 Jun 2025 17:02:00 -07:00
+Subject: Re: MSA & Order Form kickoff — template fit + infra access plan
+
+Thanks Markus / Kimberly — that plan works for us. Quick answers: 
+
+- We prefer Redwood Standard MSA v2 as the starting point (thanks for sharing).
+- Private deployment is preferred for our PHI environment; we'll need details on network handoff and certificate management.
+- Billing contact: procurement@springwellhealth.com (cc'd). Purchase Order will come from that mailbox.
+- Proposed call: Fri 6/13 at 10:30am PT works.
+
+I've attached our filled security worksheet and a short network diagram. Also happy to send a DocuSign template for signature routing once we have the final order form.
+
+Attachments: springwell-security-worksheet.xlsx, springwell-network-diagram.png
+
+Appreciate the quick turnaround — see you tomorrow.
+
+Best,
+Alice Cho
+Head of Procurement
+Springwell Health

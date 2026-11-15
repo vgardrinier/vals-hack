@@ -1,0 +1,124 @@
+Onsite host landing & access playbook for Redwood x Acme workshop
+
+From: Alex Martinez <alex.martinez@redwood.ai>
+To: events@grandplaza.com, concierge@deltatravel.com
+Cc: Monica Patel <monica.patel@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Date: 2026-05-28T16:12:00-07:00
+Subject: Onsite host landing & access playbook for Redwood x Acme workshop
+
+Hi team —
+
+We’re finalizing the arrival flow for the Redwood x Acme two-day workshop (June 14–15). Primary asks for the venue and travel vendor: please confirm the following and flag any blockers by EOD Monday. I attached a rooming spreadsheet (redwood_acme_rooming_v1.xlsx) with tentative arrivals.
+
+Top-line needs:
+- Express check-in for group block (30 rooms) with keycards pre-programmed and a designated table in the lobby for badge pick-up.
+- Early luggage drop for 8 late-night arrivals (post-11pm) and express check-in or keycard staging next morning.
+- One ground-transport pick-up window from SFO 7:30–9:30am on June 14 (two shuttles). Delta Travel, confirm shuttle capacity and ETA margins.
+- Passport collection requirement from the hotel if international vendors check in — we prefer a secure upload link instead of email.
+
+Questions for Grand Plaza: are we able to pre-stage keycards for the late arrivals and hold a small cooler with welcome packets at the check-in desk? Any surcharge for after-hours luggage handling?
+
+Questions for Delta: include transfer rates and confirmation of number of vehicles in the quoted block.
+
+Thanks — I’ll pull together a final list of names tomorrow after the Acme travel team confirms a couple of last-minute changes.
+
+—
+Alex Martinez
+Events Program Manager, Redwood Inference
+alex.martinez@redwood.ai
++1 415 555 0173
+
+From: Elena Ruiz <events@grandplaza.com>
+To: Alex Martinez <alex.martinez@redwood.ai>
+Cc: Monica Patel <monica.patel@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Date: 2026-05-29T09:04:00-07:00
+Subject: Re: Onsite host landing & access playbook for Redwood x Acme workshop
+
+Hi Alex —
+
+Thanks for the summary and the spreadsheet — we received redwood_acme_rooming_v1.xlsx and have tentatively blocked the 30 rooms. Quick answers below: 
+
+- Keycards: yes, we can pre-program up to 50 keycards and stage them behind our concierge desk. We will label by last name and room number. No extra fee for keycard staging.
+- Late arrivals & luggage: we can hold luggage overnight at no charge. For arrivals after 11pm, we recommend assigning an on-call evening agent (one-time fee of $150) to expedite check-in; otherwise front desk can process first thing at 6:30am.
+- After-hours access to meeting space: we can provide 24/7 access for organizer staff with a staff access badge (no charge) — please provide a final list of staff who need badges.
+- Passport policy: we do require passport presentation at check-in for non-US IDs. We cannot accept passport scans via unsecured email; please use a secure upload or have guests present IDs at arrival. We can coordinate a secure upload link if you prefer.
+
+I attached our standard hotel_checkin_instructions.pdf (contains ID/visa requirements, early check-in policy).
+
+If you’d like, I can schedule a short site-call Thursday to walk through the check-in table plan and where to place the welcome packets.
+
+Best,
+Elena Ruiz
+Director of Events, Grand Plaza Hotel
+events@grandplaza.com
++1 415 800 2244
+Attachment: hotel_checkin_instructions.pdf
+
+From: Marcus Li <concierge@deltatravel.com>
+To: Alex Martinez <alex.martinez@redwood.ai>, Monica Patel <monica.patel@redwood.ai>
+Cc: Laura Bennett <laura.bennett@redwood.ai>
+Date: 2026-05-29T11:22:00-07:00
+Subject: Re: Onsite host landing & access playbook for Redwood x Acme workshop
+
+Hi Alex/Monica —
+
+We can cover the SFO pick-ups and the smaller executive transfers. Quick notes: 
+- Shuttle plan: two 18-seater shuttles reserved for June 14, pick-up window 07:30–09:30 (we’ll do rolling pickups within that window).
+- Rates: $280 per shuttle each way; driver gratuity not included. See transport_rates.csv for the full breakdown.
+- Vehicle staging & hotel hold: we can stage a vehicle by the arrivals curb for luggage unloading (15-minute hold per vehicle).
+- Payment: we need a PO or corporate card on file to confirm reservations.
+
+We can also provide one 6-passenger SUV for VIP transfer (Sara Jackson) if desired — needs confirmation by June 2.
+
+Regards,
+Marcus Li
+Client Services, Delta Travel Concierge
+concierge@deltatravel.com
+Attachment: transport_rates.csv
+
+From: Monica Patel <monica.patel@redwood.ai>
+To: Marcus Li <concierge@deltatravel.com>, Alex Martinez <alex.martinez@redwood.ai>
+Cc: Laura Bennett <laura.bennett@redwood.ai>, Elena Ruiz <events@grandplaza.com>
+Date: 2026-05-29T13:40:00-07:00
+Subject: Re: Onsite host landing & access playbook for Redwood x Acme workshop
+
+Thanks Marcus — we’ll use the Redwood corporate card for the shuttle deposit. Card ending 0421 — I’ll forward the authorization via our finance portal.
+
+Re: passports and PII: Elena, please do send your secure upload link and we’ll route passport images from the Acme team through that. For vendors with US IDs we’ll have them present at check-in.
+
+Alex — I confirmed with Acme travel: Sara Jackson wants the VIP SUV. I’ll lock that by EOD Monday and provide a PO number. Laura — can you confirm the list of organizer staff who need 24/7 access badges?
+
+Monica Patel
+Senior Program Ops, Redwood Inference
+monica.patel@redwood.ai
+
+From: Alex Martinez <alex.martinez@redwood.ai>
+To: events@grandplaza.com, concierge@deltatravel.com
+Cc: Monica Patel <monica.patel@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>, Logan Wright <logan.wright@redwood.ai>, Sara Jackson <sara.jackson@acmecorp.com>
+Date: 2026-05-30T10:05:00-07:00
+Subject: Re: Onsite host landing & access playbook for Redwood x Acme workshop
+
+Perfect — thanks all. Final asks and confirmations now that we have vendor responses: 
+
+1) Grand Plaza (Elena): please pre-program and stage the following by name (late arrivals in bold):
+- David Chen — arrives 23:40 (late, luggage hold)
+- Sara Jackson — arrives 08:05 (VIP SUV to hotel)
+- Priya Natarajan — arrives 00:30 (late, express check-in requested)
+- Michael Grant — arrives 22:10 (can self-check but please hold luggage)
+
+Please tag badges for organizer staff: Alex Martinez, Monica Patel, Laura Bennett, Logan Wright — staff badges with 24/7 access.
+
+2) Delta Travel (Marcus): please confirm the two 18-seat shuttles and one 6-passenger SUV for Sara on June 14. Charge the corporate card ending 0421 for the partial deposit; Monica will provide PO number by Monday.
+
+3) Passport handling: Elena — send the secure upload link and we’ll forward the international IDs from our external guests. No passport images via email.
+
+Attachment: final_late_arrivals_list.csv (names, flights, local arrival time). Please confirm once keycards are staged and shuttle deposit is processed.
+
+If there are any schedule conflicts I’ll call — otherwise we’ll proceed with this plan.
+
+Thanks,
+Alex Martinez
+Events Program Manager, Redwood Inference
+alex.martinez@redwood.ai
++1 415 555 0173
+Attachment: final_late_arrivals_list.csv

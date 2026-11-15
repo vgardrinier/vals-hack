@@ -1,0 +1,3 @@
+Invoice COS-2026-0204 from Kellerby Office Supply
+
+From: Kellerby Office Supply Billing <billing@kellerbyoffice.com>\nTo: finance@redwood.com\nDate: Mon, 01 Jun 2026 07:34:00 -0700\nSubject: Invoice COS-2026-0204\n\nHello Redwood Inference finance team,\n\nPlease find our invoice details below.\n\nInvoice number: COS-2026-0204\nInvoice date: 2026-05-29\nDue date: 2026-06-28\nAmount due: $798.34 USD\n\nPayment by ACH to the account on file. Thank you for your business.\n\nKellerby Office Supply billing

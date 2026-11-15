@@ -1,0 +1,118 @@
+Staggered tranche onboarding plan for Dedicated GPUs - Luminate Health
+
+From: Sofia Ramirez <sofia.ramirez@luminatehealth.com>
+To: Ben Carter <ben_carter@redwood.com>
+Cc: Ethan Cole <ethan.cole@luminatehealth.com>
+Date: 2026-10-11T09:12:00-07:00
+Subject: Re: Capacity follow-up and next steps
+
+Ben —
+
+Thanks for the check-in. We finished our August/September evaluation and saw a sustained 45% increase in p99 inference volume for our core triage model. The existing dedicated pool is hitting high utilization windows (especially 10:00–16:00 PT) and we’re concerned about tail latency for production triage.
+
+We have budget approval to expand capacity but procurement needs a clear onboarding schedule and cost phasing (Q4 vs Q1). Can Redwood provide a plan that avoids a big up-front tranche but guarantees runway for Black Friday and an upcoming pilot in January?
+
+Also attaching the usage CSV you requested.
+
+—Sofia
+Sofia Ramirez
+Head of ML Ops, Luminate Health
+
+From: Ben Carter <ben_carter@redwood.com>
+To: Sofia Ramirez <sofia.ramirez@luminatehealth.com>
+Cc: Ethan Cole <ethan.cole@luminatehealth.com>, Monica Patel <monica_patel@redwood.com>
+Date: 2026-10-11T10:05:00-07:00
+Subject: Re: Capacity follow-up and next steps
+
+Sofia — thanks for the data and context. I reviewed the attached CSV quickly and copied Monica (CS) to help with utilization analysis. Two quick thoughts:
+
+- We can support a staggered onboarding of GPUs in 2 tranches (60% now, remainder early Q1) to smooth cost recognition while ensuring capacity during peak windows.
+- We’ll propose a cooling policy and KV prefix caching changes to reduce p99 during peak without immediately doubling hardware.
+
+I'll draft a formal staged plan and estimated bill-of-materials + cost phasing. Monica, can you take the usage and produce a utilization-normalized GPU estimate?
+
+Action: Ben to circulate staged plan by EOD tomorrow.
+
+Best,
+Ben Carter
+Enterprise Sales
+Redwood Inference
+
+From: Monica Patel <monica_patel@redwood.com>
+To: Ben Carter <ben_carter@redwood.com>, Laura Bennett <laura_bennett@redwood.com>, Markus Klein <markus_klein@redwood.com>
+Date: 2026-10-11T11:43:00-07:00
+Subject: Re: Capacity follow-up and next steps (analysis attached)
+
+Ben / team —
+
+Attached is a quick utilization-normalized estimate from Sofia's CSV (usage_report_sep2026.csv). Key points:
+
+- Observed average GPU utilization across production windows: 68% (std dev 9%)
+- Peak-day p95 token throughput implies need for +22 GPUs to restore p99 latency to target under current scheduling.
+- With KV prefix caching + batching optimizations (config changes only), we estimate a 12–14 GPU effective saving during peak (so net +8–10 GPUs needed).
+
+Recommendation: Staged tranches — add 10 GPUs on Nov 1 (to cover Q4 peaks) and an additional 8 on Jan 10 if January pilot usage validates growth. This gives procurement a two-line charge and mitigates overcommit.
+
+Attachments: staged_onboarding_plan_v1.pdf, usage_report_sep2026.csv
+
+Monica Patel
+Customer Success
+Redwood Inference
+
+From: Ben Carter <ben_carter@redwood.com>
+To: Sofia Ramirez <sofia.ramirez@luminatehealth.com>
+Cc: Monica Patel <monica_patel@redwood.com>, Markus Klein <markus_klein@redwood.com>, Laura Bennett <laura_bennett@redwood.com>
+Date: 2026-10-12T08:22:00-07:00
+Subject: Staged onboarding plan + cost phasing (proposal)
+
+Hi Sofia —
+
+Thanks again for the quick turnaround. Please find the proposed staged onboarding plan attached (PDF). TL;DR:
+
+1) Nov 1: Provision 10 dedicated GPUs (preferred A100 80GB equivalent). This covers anticipated Q4 peaks.
+2) Jan 10: Provision additional 8 GPUs if pilot rollout on Jan 1 shows >=30% traffic lift.
+3) Billing: Nov tranche billed pro-rata starting Nov 1 (monthly commit), Jan tranche billed when provisioned.
+4) Fallback: If we see higher-than-estimated growth before Jan, we have a hot-burst policy to spin up on-demand capacity for up to 72 hours while we finalize tranche 2.
+
+We included an optional 12-month commit adder with a 10% discount if you prefer to convert both tranches into a single annual commit.
+
+Files: staged_onboarding_plan_v1.pdf, redwood-commit-term-sheet-lh.pdf
+
+Would love your thoughts and any procurement constraints.
+
+Best,
+Ben
+
+From: Ethan Cole <ethan.cole@luminatehealth.com>
+To: Ben Carter <ben_carter@redwood.com>, Sofia Ramirez <sofia.ramirez@luminatehealth.com>
+Date: 2026-10-13T09:30:00-07:00
+Subject: Re: Staged onboarding plan + cost phasing (proposal)
+
+Ben / Sofia —
+
+Appreciate the clear plan. Procurement wants the following before they sign off: a short teardown that shows cost delta between staged vs single-commit pricing, a clause for early termination if our pilot stalls, and an SLA addendum for p99 latency during Black Friday weekend. Can you provide those?
+
+Also, can you confirm the lead time to provision tranche 1 once procurement approves?
+
+—Ethan
+Ethan Cole
+Director, Platform Engineering, Luminate Health
+
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Ethan Cole <ethan.cole@luminatehealth.com>, Ben Carter <ben_carter@redwood.com>, Monica Patel <monica_patel@redwood.com>, Markus Klein <markus_klein@redwood.com>
+Date: 2026-10-14T15:48:00-07:00
+Subject: Re: Staged onboarding plan + cost phasing (proposal)
+
+Ethan —
+
+Quick answers:
+
+- Cost delta doc: attached (high level) and a line-item monthly comparison in the Drive link. Staged is ~18% higher than single-commit over 12 months, but lowers immediate cash flow.
+- Early termination: we can include a 60-day notice termination carve-out for tranche 2 (with a small conversion fee).
+- SLA addendum: Markus, can you confirm p99 Black Friday weekend SLOs and any recommended fallback model variants?
+
+Provisioning lead time: Once PO is received we can provision tranche 1 within 7 business days for dedicated capacity (we keep a short warm pool for committed customers). For hot-burst on-demand we can enable within hours but with no commit discount.
+
+Laura Bennett
+Sales Operations
+Redwood Inference

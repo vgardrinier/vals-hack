@@ -1,0 +1,76 @@
+Latency regression after runtime-1.22 canary: elevated p99 decode latency correlated with KV compaction activity
+
+Issue Summary
+- During a runtime-1.22 canary expansion in prod (hosted, us-east-1), we observed a statistically significant p99 latency regression on decode-heavy traffic, most visible for mixed sequence-length distributions.
+- Regression correlated with elevated KV compaction work (bytes moved + compaction time) and increased allocator fragmentation ratio oscillation.
+- Canary was rolled back (feature flag disabled + cohort drained) per guardrails.
+
+Customer Impact
+- Customer: Northwind Analytics (enterprise) reported increased p99 latency and intermittent request timeouts during bursty chat traffic.
+- Symptoms: p95 largely stable; p99 degraded (notable tail spikes) during bursts and after churn events (rapid session start/stop).
+- Scope: Only canary cohort in us-east-1. Control region (eu-west-1) did not show comparable change.
+
+Detection
+- 2026-01-29 09:12 PT: SRE alert fired: hosted decode p99 exceeded threshold for canary cohort for 10m.
+- 2026-01-29 09:18 PT: Support received escalation via CSM thread referencing prior tail-latency concerns (see SUP-28411).
+
+Environment
+- Runtime: runtime-1.22 canary (hosted)
+- Canary cohort: ~5% of us-east-1 hosted capacity (dedicated pools not included)
+- Traffic pattern: mixed prompt lengths, bursty chat sessions, high cancellation/churn
+
+Evidence / Observations
+- Dashboard signals (high level):
+  - p99 decode latency: +18–35% vs baseline during burst windows
+  - Compaction bytes moved: spiky (peaks aligned with p99 spikes)
+  - Compaction time per step: higher variance than staging
+  - Eviction counters: low/near-zero (so tail impact likely compaction rather than eviction)
+  - Fragmentation ratio: saw sawtooth behavior (trigger threshold repeatedly crossed)
+- Trace exemplars (from compaction spans): decode loop shows intermittent stalls where compaction step executed near decode boundary.
+
+Timeline / Comments
+- 2026-01-29 09:22 PT (Sean Gallagher, SRE): Confirmed alert corresponds to canary nodes only. Requesting runtime team to validate compaction budget enforcement and whether compaction can run during decode.
+- 2026-01-29 09:31 PT (Rafael Mendes, Oncall): Opened incident bridge in #incidents; linked thread: sources/slack/incidents/1767735109.json. Requested latest canary diff + feature flag defaults.
+- 2026-01-29 09:40 PT (Sofia Ivanova, Runtime): Suspected scheduler boundary issue: compaction budget being applied but step can still run in an unfavorable phase when queues are shallow (burst recovery) and decode becomes latency-sensitive.
+- 2026-01-29 09:55 PT (Allison Grant, Observability): Noted instrumentation overhead increase in the same canary build (compaction tracing spans). Suggested testing with spans disabled to isolate.
+- 2026-01-29 10:05 PT (Decision): Roll back canary per hosted tail-latency guardrails. Disable KV compaction feature flag in hosted us-east-1 canary cohort; drain cohort to baseline build.
+- 2026-01-29 10:11 PT (Rafael Mendes): Executed kill-switch via config propagation (validated propagation <2m). p99 began recovering within 15m as cohort drained.
+- 2026-01-29 10:38 PT (Support): Informed Northwind Analytics we rolled back the canary change and are investigating; requested a 30-minute window of request IDs for trace correlation.
+- 2026-01-29 12:10 PT (Samir Qureshi, Runtime): Preliminary hypothesis: compaction relocation step sometimes exceeds time budget due to larger-than-expected copy size when fragmentation is high; budget accounting is per-step but actual move cost depends on page locality. Also flagged potential overhead from tracing spans.
+- 2026-01-30 08:45 PT (Runtime): Added follow-up to test: disable compaction spans (keep metrics) and re-run canary in a smaller cohort; additionally adjust compaction trigger hysteresis to reduce repeated threshold crossings.
+- 2026-02-03 16:20 PT (Rafael Mendes): Confirmed no further p99 regressions after rollback; customer reports normalized behavior. Closing support incident; tracking engineering fixes under runtime epic/tickets.
+
+Rollback / Mitigation Actions Taken
+- Rolled back canary cohort in us-east-1 hosted (KV compaction kill-switch OFF).
+- Left fragmentation metrics ON for continued monitoring.
+- Paused further canary expansion pending fixes + perf canary pass.
+
+Root Cause (Provisional)
+- KV compaction work occasionally executed at an unfavorable time relative to decode scheduling, causing transient stalls that manifest as p99 spikes under bursty mixed-length workloads.
+- Contributing factors:
+  - Compaction trigger oscillation (threshold crossed repeatedly) causing repeated compaction attempts.
+  - Increased tracing span overhead in the same build (amplifying tail effects).
+
+Resolution
+- Customer-facing: Regression resolved by rolling back canary (feature flag disabled; nodes drained to baseline).
+- Internal: Incident closed with action items assigned; canary expansion blocked until updated perf canary scenario and revised compaction budgeting/hysteresis are validated.
+
+Follow-up Tasks / Next Steps
+- Runtime (owner: Sofia Ivanova / Samir Qureshi):
+  - Tighten scheduler phase gating: ensure compaction steps never run on latency-critical decode path when queue depth is below threshold.
+  - Add hysteresis + cooldown to fragmentation trigger to prevent sawtooth compaction behavior.
+  - Verify budget enforcement uses wall-clock + bytes moved with hard stop when approaching decode deadlines.
+- Observability (owner: Allison Grant):
+  - Add dashboard panel overlay: p99 vs compaction bytes moved and compaction step time.
+  - Reduce tracing overhead or sample compaction spans; keep metrics at full fidelity.
+- SRE (owner: Sean Gallagher):
+  - Update automated rollback condition to consider compaction bytes moved rate + p99 correlation (not just p99 absolute).
+
+External Communication
+- Northwind Analytics updated 2026-01-29: rollback performed; performance back to baseline; follow-up planned after next canary with improved guardrails.
+
+References
+- Slack incident thread: sources/slack/incidents/1767735109.json
+- Oncall procedures draft: sources/slack/eng-oncall/1767660044.json
+- Guardrails: sources/confluence/eng-sre/slo-and-error-budgets/hosted-api-tail-latency-guardrails.json
+- Runbook: sources/confluence/eng-serving-runtime/runbooks/runtime-kv-cache-compaction-runbook.json

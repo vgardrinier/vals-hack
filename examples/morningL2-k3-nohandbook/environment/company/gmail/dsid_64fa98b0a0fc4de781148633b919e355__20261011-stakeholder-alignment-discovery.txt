@@ -1,0 +1,148 @@
+Initial discovery and demo coordination — Teslix / Redwood
+
+From: Ava Chen <ava.chen@redwood.ai>
+To: Riley Thompson <riley.thompson@teslix.io>, Alex Guerrero <alex.guerrero@teslix.io>, procurement@teslix.io
+Cc: Marcus Lin <marcus.lin@redwood.ai>, Mina Haddad <mina.haddad@redwood.ai>
+Date: Sun, 11 Oct 2026 09:05:00 -0700
+Subject: Initial discovery + demo — Teslix / Redwood
+
+Hi Riley —
+
+Thanks again for the intro and for sharing a bit about the use case yesterday. Wed like to schedule a 45-minute discovery + demo to align on high-level goals and surface any security/procurement asks early. That will help Marcus (our Solutions Engineer) tailor the demo to your infra and data flows.
+
+Proposed slots (all PT):
+- Tue 10/13, 10:00–10:45am
+- Tue 10/13, 2:00–2:45pm
+- Wed 10/14, 11:00–11:45am
+
+If none work, tell us 2 windows that do and well coordinate. Quick asks before the meeting if possible:
+- Who will own the technical evaluation (eng lead)?
+- Any specific security/compliance questions (SOC 2, data residency, access controls)?
+- Are there procurement timelines or PO processes we should be aware of?
+
+Attached: short demo deck + pre-demo questionnaire (3 short items) — filling that out will save time.
+
+Thanks — looking forward.
+
+Best,
+Ava Chen
+Account Executive, Redwood Inference
+ava.chen@redwood.ai | (415) 555-0189
+[Attachment: redwood-demo-deck.pdf (slides, 3.4 MB)]
+[Attachment: pre-demo-questionnaire.xlsx (spreadsheet, 42 KB)]
+From: Riley Thompson <riley.thompson@teslix.io>
+To: Ava Chen <ava.chen@redwood.ai>, Alex Guerrero <alex.guerrero@teslix.io>, procurement@teslix.io
+Cc: Marcus Lin <marcus.lin@redwood.ai>, Mina Haddad <mina.haddad@redwood.ai>
+Date: Sun, 11 Oct 2026 13:12:00 -0700
+Subject: Re: Initial discovery + demo — Teslix / Redwood
+
+Thanks Ava — appreciate the options. Tue 10/13 2:00pm PT works best for me. Alex (engineering lead) is out at a customer day that afternoon and asked me to check if we can do 10/13 at 10am instead.
+
+Procurement (cc) — were starting intake this week; if you can share a commercial one-pager and high-level SOC 2 info that would help speed internal approvals.
+
+Ill also patch in our data platform lead if needed.
+
+-Riley
+Riley Thompson
+Product Manager, Teslix
+riley.thompson@teslix.io
+
+On Sun, Oct 11, 2026 at 9:05 AM Ava Chen <ava.chen@redwood.ai> wrote:
+> Hi Riley —
+> ...
+
+From: Alex Guerrero <alex.guerrero@teslix.io>
+To: Ava Chen <ava.chen@redwood.ai>, Riley Thompson <riley.thompson@teslix.io>, procurement@teslix.io
+Cc: Marcus Lin <marcus.lin@redwood.ai>, Mina Haddad <mina.haddad@redwood.ai>
+Date: Sun, 11 Oct 2026 16:48:00 -0700
+Subject: Re: Initial discovery + demo — Teslix / Redwood
+
+Hey all — sorry for the late reply. Im on a customer visit 10/13 afternoon and cant make the 2pm slot. I can do 10/13 at 10am PT or earlier on 10/14 (8:30–9:15am PT).
+
+For the discovery, the items I care most about:
+- Integration patterns for prefix/KV cache and how session affinity works
+- Token-level cost vs latency trade-offs per model variant
+- Data residency and ability to run in our VPC (private deploys)
+
+If we can lock 10/13 10:00am PT, Ill invite our infra engineer (sarah.cline@teslix.io) to the call.
+
+Alex
+Alex Guerrero
+Engineering Lead, Teslix
+
+On Sun, Oct 11, 2026 at 1:12 PM Riley Thompson <riley.thompson@teslix.io> wrote:
+> Thanks Ava — ...
+
+From: procurement@teslix.io
+To: Ava Chen <ava.chen@redwood.ai>, Riley Thompson <riley.thompson@teslix.io>
+Cc: legal@teslix.io, Marcus Lin <marcus.lin@redwood.ai>
+Date: Mon, 12 Oct 2026 08:21:00 -0700
+Subject: Re: Initial discovery + demo — Teslix / Redwood
+
+Hi Ava —
+
+Can you share a one-page commercial summary and any standard terms/SOW templates you use for pilots? Also: SOC 2 type II report or a security summary would be helpful to circulate to our InfoSec.
+
+Wed like to understand lead times for a pilot purchase order and whether there are prepaid options.
+
+Thanks,
+Dana (Procurement)
+procurement@teslix.io
+
+On Sun, Oct 11, 2026 at 4:48 PM Alex Guerrero <alex.guerrero@teslix.io> wrote:
+> Hey all — ...
+
+From: Marcus Lin <marcus.lin@redwood.ai>
+To: Ava Chen <ava.chen@redwood.ai>, Riley Thompson <riley.thompson@teslix.io>, Alex Guerrero <alex.guerrero@teslix.io>, procurement@teslix.io
+Cc: Mina Haddad <mina.haddad@redwood.ai>
+Date: Mon, 12 Oct 2026 08:37:00 -0700
+Subject: Re: Initial discovery + demo — Teslix / Redwood
+
+Ava / Riley / Alex — quick note from the SE side: 10/13 10:00am PT works for me.
+
+Agenda I propose (45m):
+1) 5m intros & scope (Riley)
+2) 20m discovery — traffic patterns, sensitive data flows, infra (Alex + Sarah)
+3) 12m targeted demo (Redwood) — routing/policies, batch/cache, model selection
+4) 6m next steps (procurement/PO + follow-up tech deep-dive)
+
+Two quick asks for the questionnaire:
+- Sample request shape (anonymized) or token distribution if available
+- Any redaction/encryption constraints for payloads
+
+Ill prepare a short demo plan and runbook for the session and share slides.
+
+—Marcus
+Marcus Lin
+Solutions Engineer, Redwood Inference
+marcus.lin@redwood.ai
+[Attachment: redwood-demo-deck.pdf (slides, 3.4 MB)]
+From: Ava Chen <ava.chen@redwood.ai>
+To: Riley Thompson <riley.thompson@teslix.io>, Alex Guerrero <alex.guerrero@teslix.io>, procurement@teslix.io
+Cc: Marcus Lin <marcus.lin@redwood.ai>, Mina Haddad <mina.haddad@redwood.ai>, Monica Patel <monica.patel@redwood.ai>
+Date: Tue, 13 Oct 2026 09:42:00 -0700
+Subject: Confirmed: Teslix discovery + demo — 10/13 10:00am PT
+
+Thanks everyone — locking in Tue 10/13, 10:00–10:45am PT. Calendar invite sent (link below).
+
+Meeting agenda (final):
+- Intros & goals (5m)
+- Customer infra & data flows (20m)
+- Redwood demo: routing, caching, quantization & pricing trade-offs (12m)
+- Next steps: procurement timeline, follow-up tech deep-dive (8m)
+
+Attachments: demo deck + short questionnaire (please review if you havent).
+
+Calendar: https://calendar.google.com/event?eid=teslix-initial-discovery
+HubSpot deal: https://hubspot.redwood.ai/deal/3091
+
+If procurement needs a commercial one-pager or a SOC 2 attestation now, Monica (cc) will follow up with the docs right after this email.
+
+Appreciate the quick coordination — see you on Tuesday.
+
+Best,
+Ava Chen
+Account Executive, Redwood Inference
+ava.chen@redwood.ai | (415) 555-0189
+[Attachment: redwood-demo-deck.pdf (slides, 3.4 MB)]
+[Attachment: pre-demo-questionnaire.xlsx (spreadsheet, 42 KB)]

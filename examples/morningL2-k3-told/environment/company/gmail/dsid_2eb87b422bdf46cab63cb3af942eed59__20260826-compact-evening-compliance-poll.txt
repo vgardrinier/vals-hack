@@ -1,0 +1,103 @@
+Coordination: SOC 2 + pen test + DPA — compact evening availability
+
+From: Maria Ortega <maria.ortega@fintegrate.com>
+To: Ben Carter <ben.carter@redwoodinference.com>
+Cc: Security Team <security@fintegrate.com>, DevOps <devops@fintegrate.com>
+Date: Wed, 26 Aug 2026 09:05:00 -0700
+Subject: SOC2 / pen test / DPA — seeking a short evening window
+
+Hi Ben,
+
+Thanks for the quick intro last week. We need to get a combined intake call to cover:
+- SOC 2 scope and evidence handoff
+- Pen-test scoping and vendor expectations
+- DPA questions (legal will want to be part of the conversation)
+
+Our engineering/security team is mostly booked during US business hours the week of Sep 6–10. Do you have any evening windows (US PT) we could propose for a single 60-minute session? If not, we can split across two 30-min blocks (security first, then legal).
+
+Attendees on our side: Maria Ortega (security lead), Sam Patel (DevOps), and Legal (TBD).
+
+Thanks — appreciate any compact options so we can lock a time for our pen vendor as well.
+
+Best,
+Maria Ortega
+Security Lead, Fintegrate
+attachments: none
+
+From: Ben Carter <ben.carter@redwoodinference.com>
+To: Maria Ortega <maria.ortega@fintegrate.com>
+Cc: Lauren Bishop <lauren.bishop@redwoodinference.com>, Jordan Blake <jordan.blake@redwoodinference.com>
+Date: Wed, 26 Aug 2026 11:18:00 -0700
+Subject: Re: SOC2 / pen test / DPA — seeking a short evening window
+
+Maria —
+
+Thanks for the note and the context. We can absolutely accommodate an evening slot and I think a single 60-minute session will be most efficient (we'll come with the intake docs and a rough runbook). A few compact options (US PT):
+
+- Tue Sep 7, 18:00–19:00 PT
+- Wed Sep 8, 19:30–20:30 PT (works well for your east coast folks)
+- Thu Sep 9, 17:30–18:30 PT
+
+If you prefer splitting, we can do Security (30m) + DPA/legal (30m) back-to-back on the same evening — we'll note that on the invite.
+
+I've attached a short Walkthrough_Agenda_v2.pdf and the PenTest_Scoping_Form.xlsx to speed the intake. Lauren (cc'd) will own DPA questions and can review redlines ahead of the call — looping Jordan for capacity if we need extra engineering on the bridge.
+
+Let me know which of the three slots is best and I will send a calendar invite with a short agenda and a link to a shared drive for evidence transfer. If none work, tell me your top two evening availabilities and I'll match.
+
+Cheers,
+Ben Carter
+Senior Solutions Engineer | Redwood Inference
+attachments: Walkthrough_Agenda_v2.pdf; PenTest_Scoping_Form.xlsx
+
+From: Maria Ortega <maria.ortega@fintegrate.com>
+To: Ben Carter <ben.carter@redwoodinference.com>
+Cc: Security Team <security@fintegrate.com>, DevOps <devops@fintegrate.com>
+Date: Wed, 26 Aug 2026 14:02:00 -0700
+Subject: Re: SOC2 / pen test / DPA — seeking a short evening window
+
+On Wed, Aug 26, 2026 at 11:18 AM Ben Carter <ben.carter@redwoodinference.com> wrote:
+> Maria —
+> 
+> Thanks for the note and the context. We can absolutely accommodate an evening slot...
+
+Ben — thanks for the options and the forms. Wed Sep 8, 19:30–20:30 PT works best for our group. We'll aim to have someone from legal on the tail end.
+
+A couple asks before the call please:
+- Can you confirm the expected attendee list from Redwood (names/roles)?
+- Any pre-read you want our legal team to review (we have a 24–48 hour turnaround for redline comments)?
+- For the pen vendor: do you have an example scope template we can share with them?
+
+We'll slot Wed Sep 8 on our side tentatively and I'll confirm legal once I have their availability.
+
+Thanks — Maria
+
+
+From: Ben Carter <ben.carter@redwoodinference.com>
+To: Maria Ortega <maria.ortega@fintegrate.com>
+Cc: Lauren Bishop <lauren.bishop@redwoodinference.com>, Jordan Blake <jordan.blake@redwoodinference.com>
+Date: Thu, 27 Aug 2026 14:20:00 -0700
+Subject: Re: SOC2 / pen test / DPA — seeking a short evening window
+
+Maria — perfect, Wed Sep 8 19:30–20:30 PT is confirmed on our end. I've just sent a calendar invite (please accept when convenient).
+
+Attendees from Redwood (confirmed):
+- Ben Carter — Solutions (host)
+- Lauren Bishop — Legal / Privacy (DPA redlines)
+- Jordan Blake — Escalation / Technical lead (on-call if we need deeper infra details)
+- Optional: Product/Runtime engineer (will join if we hit model-serving specifics)
+
+Pre-reads and links:
+- Walkthrough agenda (attached): Walkthrough_Agenda_v2.pdf
+- Pen test scoping template: PenTest_Scoping_Form.xlsx (attached) — feel free to share with your vendor; it includes the default surface area and typical timing expectations.
+- DPA redline draft: DPA_Redlined_v1.pdf (Lauren will review live during the call).
+- Shared evidence folder: https://drive.google.com/drive/folders/1a2b3c-walkthrough-agenda
+- HubSpot record: HS-45291 (for reference on provisioning and entitlement)
+
+Logistics: we'll use the standard Redwood bridge in the calendar invite. If legal needs more time to redline ahead of the call, we can shorten the walkthrough to 45 minutes and leave 15 minutes for legal Q&A. Also open to splitting into two 30-minute blocks if your vendor needs a dedicated scoping slot.
+
+If anything changes on your side (legal can't make it, or the pen vendor requests an earlier scoping chat), loop me and Lauren and we'll rework quickly. Looking forward to it.
+
+Best,
+Ben Carter
+Senior Solutions Engineer | Redwood Inference
+attachments: Walkthrough_Agenda_v2.pdf; PenTest_Scoping_Form.xlsx; DPA_Redlined_v1.pdf

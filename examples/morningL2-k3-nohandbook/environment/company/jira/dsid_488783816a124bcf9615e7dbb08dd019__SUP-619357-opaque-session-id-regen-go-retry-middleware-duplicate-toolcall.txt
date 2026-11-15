@@ -1,0 +1,63 @@
+Go SDK retry middleware regenerates opaque session id on retry, causing duplicate remote tool/function invocations
+
+Issue summary:
+Customer reports duplicated external tool (webhook) invocations when the Go client retries a streaming request. The customer is using a custom retry middleware that injects an opaque session identifier into X-Redwood-Idempotency for each attempt.
+
+Impact:
+- Duplicate side effects observed in downstream systems (two webhook posts for same logical tool execution).
+- Customer is seeing increased billing for duplicated work and inconsistent application state.
+- Reproducible for a subset of requests that hit a proxy chain (edge sidecar -> CDN) before reaching Redwood API.
+
+Environment:
+- LiteraHealth dedicated account on us-west-2, Go SDK v0.9.7 with in-house retry middleware.
+- Requests are long-running streaming with function/tool calls (external webhook triggered by function tool).
+
+Steps to reproduce:
+1) Start a streaming session from the Go client that triggers a function/tool call (webhook) from the model.
+2) Simulate transient network failure between client and edge sidecar to cause client retry.
+3) Observe that retry middleware generates a new X-Redwood-Idempotency value on the retry attempt.
+4) Server processes both attempts as distinct and executes the tool/webhook twice.
+
+Observed behavior:
+- Two webhook POSTs within ~2s for the same user action.
+- Server logs show two different idempotency header values for the two attempts.
+- Edge proxy logs indicate header truncation to 32 bytes for the regenerated value.
+
+Expected behavior:
+- Retries should preserve the idempotency key for the logical request so downstream function/tool calls are deduplicated by the server.
+
+Relevant logs (redacted):
+- Client header on initial attempt: X-Redwood-Idempotency: "sess:QmFzZTY0VXNlcjoxMjM0NTY="
+- Client header on retry attempt: X-Redwood-Idempotency: "sess:QmFzZTY0VXNlcjoxMjM0NTYgLTAtcmVuZ2Vu"
+- Edge proxy truncation observed: header passed to api-gateway: "sess:QmFzZTY0VXNlcjoxMjM0NTYgLT"
+- Server treated truncated header as a different idempotency key and executed tool twice.
+
+Customer-provided notes:
+- "We intentionally re-generate a session-level nonce when retrying to separate retransmits, but assumed the server would canonicalize by prefix. We didn't expect the sidecar to clip the value and cause a collision."
+
+2026-03-12 16:05 - Support (Aisha K): Received initial report and reproduction artifacts from customer. Marking as P1 due to duplicate side-effects in production. Escalating to infra eng.
+2026-03-12 17:22 - Eng (Marcus L): Confirmed reproducer with customer's middleware; reproduced duplicate webhook posts locally when simulating proxy truncation. Adding logging to capture raw header bytes across the edge chain.
+2026-03-12 18:10 - SRE (Jonah Park): Edge sidecar config enforces header size limit of 32 bytes for custom headers by default. That explains truncation of regenerated idempotency values. Created hotfix to relax header limit for X-Redwood-Idempotency on a small fleet for testing (edge-sidecar-#3124).
+2026-03-13 09:03 - Customer (LiteraHealth - PM Claire T): After applying the temporary sidecar relax, duplicates stopped for a few tests. However, we still want guidance on best practice for idempotency generation in our retry middleware.
+2026-03-14 11:30 - Eng (Marcus L): Proposed mitigation: preserve original idempotency value across retries at the client layer (recommended) or switch to a canonical short token (hex-128) that survives intermediate proxy length limits. Drafted SDK guidance and a code snippet for the Go SDK to expose a retry-hook to preserve idempotency header.
+Timeline and findings:
+- Reproduced duplication locally using customer's retry middleware.
+- Root cause chain: (1) middleware regenerates an opaque idempotency value containing base64 + metadata; (2) intermediate edge proxies truncate header to 32 bytes; (3) server treats truncated string as distinct key -> duplicate execution.
+- Edge sidecar previously enforced strict header size for custom headers to prevent large header abuse; default was 32 bytes.
+- Two mitigations validated: a) server-side canonicalization that extracts 'sess:' prefix and base64-decodes/pads before dedupe (requires careful compatibility); b) client-side best practice to preserve idempotency across retry attempts or emit a short stable token.
+- Related to earlier ticket SUP-980999 (mux-reconnect out-of-order tool ack and orphaned effects) which also discussed header normalization.
+
+Partial/temporary resolution applied 2026-03-13:
+- SRE relaxed header size limit for X-Redwood-Idempotency on a test subset of edge sidecars to 128 bytes to reduce truncation risk (edge-sidecar-#3124).
+- Provided customer with recommended client change: preserve the original X-Redwood-Idempotency value across retry attempts in their middleware. Shared code snippet and suggested unit tests.
+Planned permanent fix:
+- Implement server-side canonicalization and normalization for idempotency header parsing to tolerate common encodings and trailing truncation patterns. This will be gated and feature-flagged; GH PR opened: https://github.com/redwood-inference/serving-runtime/pull/789.
+- Add SDK-level helpers and a retry-preserve option in Go SDK v0.9.8 to make correct behavior the default for customers. PR: https://github.com/redwood-inference/go-sdk/pull/412.
+Follow-ups:
+- QA to run focused e2e with common proxies and CDNs to ensure no other headers hit similar truncation problems.
+- Security review on relaxing header limits to ensure no request-splitting or header-bloat attack surface introduced.
+
+edge-proxy-2026-03-12T17:05:22Z - header_len(X-Redwood-Idempotency)=48 -> truncated to 32
+api-gateway-2026-03-12T17:05:23Z - received idempotency='sess:QmFzZTY0VXNlcjoxMjM0NTYgLT' - no prior match -> executing tool
+serving-runtime-2026-03-12T17:05:25Z - executed tool webhook -> status 200
+api-gateway-2026-03-12T17:05:26Z - received idempotency='sess:QmFzZTY0VXNlcjoxMjM0NTY=' - no match because different string -> executed tool again

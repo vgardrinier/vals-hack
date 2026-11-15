@@ -1,0 +1,37 @@
+Session linkage token mismatch blocks cross-account impersonation for support tooling
+
+Issue summary: Since 2026-03-12 09:10 UTC, support tooling (impersonation flows used by oncall engineers via the internal console and CLI) intermittently fail with a 'session token mismatch' error when initiating cross-account impersonation. Impact: Oncall engineers cannot assume customer-facing service accounts for 5-30% of impersonation attempts, blocking urgent runbook actions and escalations. Environment: production us-east, identity-proxy v3.4.1, okta-device-trust enabled for privileged flows.
+
+Steps to reproduce:
+1) Login to console as admin (device trust approved)
+2) Open 'Switch account / Impersonate' dialog and select external-tenant service-account
+3) Click 'Assume role', or run 'rwd auth impersonate --account <tenant-id>' via CLI
+4) Observe immediate failure in UI or CLI with error code 403/SESSION_LINK_MISMATCH and short correlation id in logs
+
+Observed behavior: The identity-proxy returns 403 with message 'session_linkage_token invalid for target session'. The console shows a transient toast 'Unable to start impersonation — session verification failed'. CLI returns non-zero exit and logs: 'auth: session_linkage: verification failed: token not in session map'.
+
+Expected behavior: Token exchange should validate and produce a scoped session for the target account or fall back to a clear diagnostic flow requesting reauthorization.
+
+Investigation notes:
+- Correlation IDs collected from affected attempts: rwd-imp-3f9b, rwd-imp-3fa0, rwd-cli-4b12. Logs attached to ticket in the support bucket (s3://redwood-support/logs/impersonation/2026-03-12/).
+- Identity-proxy logs show the incoming assertion includes a linkage_token header (base64 string). The session-store (redis cluster auth-sessions-prod) lookup for the linkage token intermittently returns a 5xx from the replica nodes leading to token not found. The failure window aligns with a 2-minute rolling restart of redis-read replicas (maintenance job kicked off at 09:09 UTC by infra auto-heal).
+- Reproduced locally by toggling a TTL skew: if session-store read misses then the verification fails immediately with the same error.
+- No Okta assertion failures observed; device-trust asserts ok.
+- Related code paths: identity-proxy handler verifySessionLinkage(), session-cache middleware, rwd-auth-cli token exchange.
+
+Temporary mitigation:
+- Oncall instructed to retry impersonation (most retries succeed). A short-term runbook added to the support-confluence page.
+- Infra team paused the rolling restart and warmed read replicas; observed reduction in failures.
+
+Next steps / Proposed fix:
+1) Add a robust retry layer to session-store reads in identity-proxy (backoff + failover to primary) — PR proposed: https://github.com/redwood-inference/identity-proxy/pull/1872
+2) Improve observability: emit metrics for session-linkage cache misses and 5xx on redis replicas. Dashboard ticket created under MON-impersonation-calls.
+3) Add defensive behavior: if linkage token not found but assertion from Okta valid, present clear UI guidance to reauthorize rather than generic 403.
+
+References: Slack thread #support-impersonation (https://slack.redwoodinference/support-impersonation/p12345), PR above, redis maintenance logs (infra ticket INT-931200).
+2026-03-12 10:05 UTC — Ethan Park: Picked up for triage. Confirmed correlation ids and logs. Reached out to infra to pause replica restart.
+2026-03-12 10:22 UTC — Infra (L1): Paused rolling restart. Observed reduced errors for 20m. We are investigating replica health and failover policy.
+2026-03-12 11:03 UTC — Marisol Vega: Customer-impacting oncall action blocked for a span. Documented interim retry guidance in runbook. Added troubleshooting checklist.
+2026-03-12 13:47 UTC — SRE (Arjun Mehta): Root cause likely race between replica restart and streaming session replication. Working on a fix path: ensure reads fallback to primary on replica errors. Will prepare a hotfix to identity-proxy.
+2026-03-13 09:12 UTC — Ethan Park: Created PR https://github.com/redwood-inference/identity-proxy/pull/1872 with retry/backoff on session-store reads. Ran canary in staging; passed synthetic impersonation tests.
+2026-03-13 16:30 UTC — Release (Nora Liu): Rolled identity-proxy hotfix to prod-us-east with gradual rollout. Monitoring dashboard shows linkage failure rate down to baseline. Marking ticket for validation before close.

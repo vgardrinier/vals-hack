@@ -1,0 +1,143 @@
+Customer advocate recording — scope, schedule, and release paperwork
+
+From: Sean Gallagher <sean_gallagher@redwoodinference.com>
+To: Ella Ramirez <ella@novacare.com>
+Cc: Marissa Cole <marissa_cole@redwoodinference.com>, Laura Bennett <laura_bennett@redwoodinference.com>
+Date: 2026-08-18T10:12:00-07:00
+Subject: Customer advocate recording — scope, schedule, and release paperwork
+
+Hi Ella —
+
+Thanks again for agreeing to chat about NovaCare’s deployment of Redwood Inference. We’d love to record a short (2–3 minute) on-camera segment with you as a customer advocate that highlights the impact on latency/cost and the team-level outcomes you’ve seen. High-level plan: 
+
+- Format: remote Zoom-recorded interview (BrightFrame Media will handle capture + live switching).
+- Length: ~15–20 minute session to produce a 2–3 minute edited clip + 30s social cuts.
+- Topics: business problem, why you chose Redwood, concrete outcomes (latency, cost reductions, reliability), and one piece of advice for teams adopting LLMs.
+- Assets: short script outline, talking points, and a standard release form (attached).
+
+Proposed windows (Pacific time):
+- Wed Sep 2, 9:00–11:00am PT (preferred)
+- Fri Sep 4, 12:00–2:00pm PT
+
+Can you confirm interest and whether remote recording works for you? If yes, we’ll send a DocuSign release to your legal contact and a one-page prep sheet. Also note we’ll provide a $250 honorarium (vendor reimbursement) for your time and include written signoff on final cuts before anything is published.
+
+Attachments: draft-script-novacare-v1.docx, release-form-template.pdf, call-sheet-remote.md
+
+Appreciate it — excited to feature NovaCare.
+
+Best,
+Sean Gallagher
+Account Executive, Redwood Inference
+sean_gallagher@redwoodinference.com
++1 415-555-0191
+
+--
+BrightFrame Media (vendor): hello@brightframe.media
+
+From: Ella Ramirez <ella@novacare.com>
+To: Sean Gallagher <sean_gallagher@redwoodinference.com>
+Cc: Marissa Cole <marissa_cole@redwoodinference.com>, Laura Bennett <laura_bennett@redwoodinference.com>
+Date: 2026-08-18T14:03:00-07:00
+Subject: Re: Customer advocate recording — scope, schedule, and release paperwork
+
+Thanks Sean — thrilled to help. Remote works fine for us. Quick Qs from my side: 
+
+1) Our legal team typically wants to review any release before signature — who should I loop in?
+2) Could we push to the afternoon slot on Sep 2? I have a board meeting in the morning.
+3) I’d like to see the final questions you’ll ask so I can prep a few metrics.
+
+Also — is it possible to have someone on the call to capture a few screenshots of the dashboard for B-roll (we’d prefer those to be internal screenshots, not Redwood assets)?
+
+If you can confirm legal and send the interview questions, I’ll run this by Tom in legal and confirm availability.
+
+Best,
+Ella Ramirez
+VP Product, NovaCare Health
+ella@novacare.com
++1 206-555-4420
+
+On Wed, Aug 18, 2026 at 10:12 AM Sean Gallagher <sean_gallagher@redwoodinference.com> wrote:
+> Hi Ella —
+> 
+> Thanks again for agreeing to chat about NovaCare’s deployment of Redwood Inference. We’d love to record a short (2–3 minute) on-camera segment with you as a customer advocate that highlights the impact on latency/cost and the team-level outcomes you’ve seen. High-level plan: ...
+
+From: Marissa Cole <marissa_cole@redwoodinference.com>
+To: Ella Ramirez <ella@novacare.com>, Sean Gallagher <sean_gallagher@redwoodinference.com>, Laura Bennett <laura_bennett@redwoodinference.com>
+Cc: Monica Patel <monica_patel@redwoodinference.com>
+Date: 2026-08-19T09:08:00-07:00
+Subject: Re: Customer advocate recording — scope, schedule, and release paperwork
+
+Hi Ella —
+
+Great — thank you. Quick notes from the production side (BrightFrame Media is on cc of this thread):
+
+- Interview questions (short):
+  1) Brief intro — role and use case (30s)
+  2) Challenge before Redwood (30–45s)
+  3) What changed after adoption — specific metrics (latency, cost, error rate) (45–60s)
+  4) How this shifted developer/product workflows (30–45s)
+  5) One piece of advice for other teams (15–20s)
+
+- Remote capture: we’ll ask you to join a Zoom link where BrightFrame records separate audio + video tracks. We can also take a screen-share window for B-roll; if you prefer NovaCare to supply screenshots, that’s fine — we’ll only use what you authorize.
+- Release: attached is a standard media release (release-form-template.pdf). We can send it to Tom at NovaCare via DocuSign for signature; the document is intentionally simple (publication rights + right to edit), and we’ll confirm final rights with you in writing.
+- Honorarium: $250 via corporate gift card or ACH — let us know preference.
+
+If Sep 2 afternoon is good, we’ll tentatively hold 1:00pm PT. Monica, can you coordinate the calendar invite and the DocuSign send? Sean, please confirm HubSpot deal link and we’ll attach the asset to the record.
+
+Best,
+Marissa Cole
+Senior Marketing Manager, Redwood Inference
+marissa_cole@redwoodinference.com
+
+Attachments: release-form-template.pdf, draft-script-novacare-v1.docx
+
+--
+BrightFrame Media (production lead): Nora Velez <nora@brightframe.media>
+
+From: Tom Ellis <tom.ellis@novacare.com>
+To: Marissa Cole <marissa_cole@redwoodinference.com>, Sean Gallagher <sean_gallagher@redwoodinference.com>, Ella Ramirez <ella@novacare.com>
+Date: 2026-08-20T09:22:00-07:00
+Subject: Re: Customer advocate recording — scope, schedule, and release paperwork
+
+Hi all —
+
+Thanks, Ella — I’m the counsel who handles marketing releases. Please send the release to me (pdf or DocuSign is fine). A couple of notes from NovaCare legal: 
+
+- We generally require a 30-day review window for any edits to quotes used as substantive claims (we don’t expect to exercise that here, but flagging).
+- Please include a clause that allows NovaCare to request removal of the asset if it contains inaccurate performance numbers tied to our platform configurations.
+
+We’re happy to sign once we confirm those two items. Also, how is Redwood handling any customer data contained in B-roll screenshots? We need confirmation that no PHI or patient identifiers will be captured.
+
+Tom Ellis
+General Counsel, NovaCare Health
+tom.ellis@novacare.com
+
+On Thu, Aug 19, 2026 at 09:08 AM Marissa Cole <marissa_cole@redwoodinference.com> wrote:
+> Hi Ella —
+> 
+> Great — thank you. Quick notes from the production side (BrightFrame Media is on cc of this thread): ...
+
+From: Sean Gallagher <sean_gallagher@redwoodinference.com>
+To: Marissa Cole <marissa_cole@redwoodinference.com>, Monica Patel <monica_patel@redwoodinference.com>, Laura Bennett <laura_bennett@redwoodinference.com>
+Cc: Tom Ellis <tom.ellis@novacare.com>, Ella Ramirez <ella@novacare.com>, Nora Velez <nora@brightframe.media>
+Date: 2026-08-20T15:45:00-07:00
+Subject: RE: Customer advocate recording — scope, schedule, and release paperwork
+
+All — quick status and next steps (internal owners in parens):
+
+1) Schedule: Ella is good for Wed Sep 2 at 1:00pm PT — Monica, please send the calendar invite with Zoom link and BrightFrame dial-in (owner: monica_patel).
+2) Release: Marissa to update release with the two legal notes Tom requested (30-day review window + removal clause for inaccurate performance claims) then send via DocuSign to Tom (owner: marissa_cole). DocuSign link to use: https://www.docusign.net/s/sample-ds-link
+3) B-roll / PHI: Nora (BrightFrame) — confirm in writing that production will only record screen snippets provided by NovaCare and that no PHI will be captured. We will require explicit written confirmation for Tom.
+4) Assets: I’ve attached the draft script and call sheet for production. We’ll ask Ella to review the five short questions and give a preferred metric to call out.
+5) Compensation: $250 honorarium — Sean will confirm payment method with Ella (owner: sean_gallagher).
+
+Next steps: Monica to send invites and DocuSign goes out by end of day tomorrow. Marissa — once you update the release, cc me and Tom so we have legal on the record.
+
+Thanks — team, let’s keep this tight; marketing deadline for the edited asset is Sep 30.
+
+Best,
+Sean Gallagher
+Account Executive, Redwood Inference
+sean_gallagher@redwoodinference.com
+
+Attachments referenced: draft-script-novacare-v1.docx, call-sheet-remote.md

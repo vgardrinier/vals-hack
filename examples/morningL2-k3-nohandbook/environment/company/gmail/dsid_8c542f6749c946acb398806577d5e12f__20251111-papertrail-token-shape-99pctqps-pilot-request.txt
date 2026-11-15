@@ -1,0 +1,126 @@
+Hosted API pricing prep: PaperTrail token shape & 99th-percentile TPS
+
+From: Tessa Morgan <tessa.morgan@redwood.com>
+To: Alex Rivera <alex@papertrail.ai>
+Cc: marissa.cole@redwood.com, karthik.iyer@redwood.com
+Date: 2025-11-04T15:12:00Z
+Subject: Follow-up: hosted API sizing and $/1M target — PaperTrail call recap
+
+Hi Alex — thanks again for the demo earlier. Quick recap and a couple of asks so we can put a formal pilot quote together.
+
+What I heard on the call (please correct if I got anything wrong):
+- Baseline monthly tokens: ~45M active usage (current production).
+- Peak/seasonal months: up to ~120M tokens (brief 2–3 day spikes).
+- Request shape: ~80% short (<512 tokens), ~20% long (~1.5–2k tokens).
+- Peak concurrency: you mentioned up to ~120 concurrent TPS during a few hourly windows, with a 99th percentile sustained ~95 TPS.
+- Target pricing you called out: ~$15 / 1M tokens as your procurement target.
+
+As next steps, can you confirm the above numbers and paste a simple monthly token CSV if you have one (month, tokens) — I attached a quick template for your convenience. Also tell us: are the spikes predictable (scheduled campaigns) or organic? That affects whether we recommend burst capacity or reserved capacity.
+
+Attached: papertrail_volume_model.csv (template)
+
+If those numbers are accurate we'll pull together 2 hosted pricing scenarios:
+1) 90-day pilot (metered hosted) with a committed baseline + burst buffer and monitoring;
+2) 12-month discounted commit (tiered $/1M) with rate limits and spike protection.
+
+Will loop in KarTik for pricing math and Marissa for SOW/ops.
+
+Thanks —
+Tessa Morgan
+Senior Sales Engineer, Redwood Inference
+[t] +1-415-555-0199
+[Attachment: papertrail_volume_model.csv (CSV template)]
+From: Alex Rivera <alex@papertrail.ai>
+To: Tessa Morgan <tessa.morgan@redwood.com>
+Cc: procurement@papertrail.ai, elaine.cfo@papertrail.ai
+Date: 2025-11-05T09:21:00Z
+Subject: Re: Follow-up: hosted API sizing and $/1M target — PaperTrail call recap
+
+Hey Tessa — thanks for the clear recap. Confirming the numbers and adding a bit more color so you guys can size it.
+
+Confirmed numbers:
+- Avg monthly tokens (last 6mo): 45,200,000
+- Peak month (marketing campaign in Q2): 120,000,000 (spike lasted ~48 hours, roughly 3x baseline over that window)
+- Request shape: ~78% <512 tokens, ~22% between 1024–2048 tokens. Very few >4k.
+- Concurrency: normal day 12–25 TPS; peak synchronous burst tested up to 120 TPS; 99th percentile sustained traffic ~92–98 TPS depending on day.
+- Latency sensitivity: web chat latency target is 300–400ms for short requests; longer async jobs are OK up to 2s.
+- Target price: procurement is looking for ~$15 / 1M tokens as a starting negotiation point; elaine indicated she'd like to see a pilot/PRICING matrix first.
+
+Spike details: the big Q2 spikes are predictable (campaign-driven) — we can provide a calendar of expected campaign windows once we get into contracting.
+
+Attached a quick month-by-month export as asked.
+
+—Alex
+Alex Rivera
+Product Lead, PaperTrail Labs
+alex@papertrail.ai
+[Attachment: papertrail_monthly_export_Nov2025.csv (CSV)]
+From: Tessa Morgan <tessa.morgan@redwood.com>
+To: karthik.iyer@redwood.com, marissa.cole@redwood.com
+Date: 2025-11-05T12:03:00Z
+Subject: Fwd: PaperTrail numbers — need hosted pricing scenarios
+
+Forwarding PaperTrail numbers (see below). Key asks for pricing side:
+- Build two hosted scenarios (as discussed):
+  * Metered 90-day pilot: baseline commit = 40M tokens/month + burst to 120M for campaign windows. Pilot should include monitoring hooks and one SLO for 99th TPS failover.
+  * 12mo commit: tiered pricing where $/1M decreases with volume — show tiers at 0–50M, 50–150M, and >150M. Target band around $15, but show aggressive band (12–14) and conservative (16–18) so commercial can move.
+- Need an internal quick estimate of expected monthly bill under each band (use Alex's month-by-month numbers).
+- Attach an SOW draft and ask Legal to look at standard pilot terms (SLA, data residency on hosted, cancellation).
+
+P.S. Alex flagged web-chat latency requirement (300–400ms on short requests) — include latency SLO notes so we can show tradeoffs (higher throughput / lower price vs guaranteed 300ms).
+
+Attaching a stub SOW to speed the loop: SOW-draft.pdf
+
+Thanks —
+Tessa
+
+[Attachment forwarded: papertrail_monthly_export_Nov2025.csv]
+[Attachment: SOW-draft.pdf (SOW skeleton)]
+From: karthik.iyer@redwood.com <karthik.iyer@redwood.com>
+To: Tessa Morgan <tessa.morgan@redwood.com>, marissa.cole@redwood.com
+Date: 2025-11-06T08:45:00Z
+Subject: Re: Fwd: PaperTrail numbers — need hosted pricing scenarios
+
+Thanks for the forward — quick pricing sketch below using Alex's monthly numbers. I kept it focused on hosted-only (no Dedicated) per their initial ask.
+
+Assumptions:
+- Baseline commit for pilot: 40M tokens/month.
+- Burst buffer: up to 120M for campaign windows (metered and capped, automatic fallback model if exhausted).
+- Token mix weighted 78/22 short/long (shorts tend to be ~0.3x cost since lower consumption of KV cache).
+
+Scenario A — 90-day pilot (metered with soft commit)
+- Price: $15 / 1M tokens (flat)
+- Pilot mechanics: baseline billing monthly for actual usage; commit discount after pilot if 12mo signed.
+- Estimated month bill (using last 6mo avg 45.2M): ~$678 / month (45.2 * $15 / 1M => $678). During peak month (120M): ~$1,800.
+
+Scenario B — 12mo commit (tiered)
+- Tier bands: 0–50M: $16 / 1M; 50–150M: $13 / 1M; >150M: $10 / 1M. Effective blended price on Alex's baseline = ~$14.6 / 1M.
+- If they commit 50M/mo we can offer $14 / 1M; 100M commit -> $12 / 1M.
+- Burst pricing: allow up to 2x burst at 1.5x the committed $/1M on overage.
+
+Operational notes:
+- To meet 300–400ms for short requests we'll need to guarantee small-model colocations and priority routing — marginal cost to us increases (hence higher price band unless we do commit).
+- Recommend offering a 90-day pilot at $15, with an explicit conversion credit if they sign a 12mo commit (credit applied to first 3 months).
+
+I'll craft a quick quote doc and SOW language for the pilot and the 12mo banding. Legal pricing check first then we can send to Alex and procurement.
+
+-karthik
+Head of Commercial Ops, Redwood Inference
+From: Alex Rivera <alex@papertrail.ai>
+To: Tessa Morgan <tessa.morgan@redwood.com>, karthik.iyer@redwood.com, marissa.cole@redwood.com
+Date: 2025-11-10T09:03:00Z
+Subject: Re: pricing sketch & next steps — PaperTrail interest in pilot
+
+Tessa / Karthik / Marissa — this looks good. Quick replies inline:
+
+- Pilot: PaperTrail is happy to run a 90-day hosted pilot on your metered pilot terms. We prefer a small baseline commit (40M) + burst.
+- Pricing bands: the tiered bands are reasonable. Procurement will push to $12–13 / 1M for a 12mo commit of 100M+, but the conversion credit sounds useful.
+- Latency: confirming web-chat requires the 300–400ms SLO for short requests. We can accept a higher price band for guaranteed latency.
+- Next asks: please send a formal pilot quote + SOW and a DocuSign link. Also can we schedule a 45-min technical deep-dive next week to confirm routing/latency plan?
+
+If you send those items to procurement@papertrail.ai we'll loop in elaine (CFO) for signoff.
+
+Thanks — looking forward.
+Alex
+Product Lead, PaperTrail Labs
+[Attachment: requested: DocuSign pilot quote link pending]

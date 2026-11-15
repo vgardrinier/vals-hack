@@ -1,0 +1,59 @@
+Console shows available credits but requests receive 429s during concurrent uploads
+
+Issue summary:
+Customer Brightlytics reports that during large concurrent upload jobs their requests are intermittently receiving 429 responses even though the Redwood Console shows a remaining token balance for the tenant. Impact: production backfill jobs are failing and streaming ingest pipelines are blocked.
+
+Impact:
+- Multiple worker processes receive 429s and abort chunked uploads.
+- Observed during nightly backfill window causing delayed downstream processing.
+- Customer reports partial job success followed by waves of 429s that do not line up with console credit drops.
+
+Environment:
+- Dedicated pool, prod-us-west, region-specific dedicated capacity.
+- Customer pinned to redwood/guanaco-13b-q4 for the ingest path; fallback to open/llama-2-13b observed in logs.
+
+Steps to reproduce (as provided by customer):
+1) Start 60 parallel uploader workers each opening a short-lived session using an ephemeral key.
+2) Each worker uploads ~15 files concurrently using chunked multipart flow over HTTP/2.
+3) Observe 429s within 10-20 minutes despite console showing ~30% tenant credit remaining.
+
+Expected behavior:
+- Console credit balance and rate-limit enforcement should be aligned; 429s should only occur when credits are exhausted or per-route thresholds are exceeded.
+
+Actual behavior / evidence:
+- Intermittent 429s with header snapshot attached by customer. Example response headers returned to the client: 
+  X-RateLimit-Remaining: 0
+  X-RateLimit-Limit: 10000
+  X-RateLimit-Reset: 2026-03-10T04:20:00Z
+  X-RateLimit-TenantBalance: 14230
+  Retry-After: 8
+- Console shows tenant credit ~14230 tokens still available at the time of the first 429s.
+- Customer logs indicate short-lived ephemeral keys rotated every 30s.
+
+Additional notes:
+- Customer is on a dedicated contract with predictable throughput but also uses signed ephemeral keys for parallelism.
+- They recently increased concurrent worker count from 20 -> 60 the night before the issue began.
+- Brightlytics attached flamegraphs and an upload timeline to the ticket.
+2026-03-10 10:14 Diego Alvarez (Support): Acknowledged. To confirm: on your console the tenant balance shows ~14k tokens at 03:57 UTC while your workers reported first 429 at 03:50 UTC? Please attach the tenant-id and a couple of raw request/response headers if possible.
+2026-03-10 11:02 Brightlytics (Customer): Correct. Tenant ID: tb-8392. Attached two zipped header dumps and the orchestrator job trace. We also saw a small number of 500s prior to the 429 wave. No config changes to the job besides scaling workers.
+2026-03-10 13:25 Ava Martinez (SRE): Reproduced a similar pattern on a staging mimic with short-lived keys and high worker fanout. Hypothesis: ephemeral-key churn + HTTP/2 stream reuse is causing per-connection accounting to inflate token consumption at the edge layer, leading to local rate decisions before central refill reconciles. Filed INT-4402 for root cause verification.
+Initial hypotheses and telemetry links:
+- Hypothesis A: Edge token accounting (connection/stream-level counting) temporarily reports zero remaining during a tight refill window due to NAT/pool affinity and ephemeral key fanout. Evidence: edge logs show per-connection counters hitting 0 while tenant-level aggregator still reports balance.
+- Hypothesis B: Signed ephemeral-key creation rate triggered a sidecar health probe that incremented internal heartbeat counters counted against tenant credit.
+- Telemetry checked: rate-limiter metrics (grafana/d/rate-limiter/tenant-tokens?orgId=1&var=tenant=tb-8392), edge-proxy logs (s3://prod-logs/edge/tb-8392/2026-03-10/).
+- Correlation: spikes in 'session_open' events at the ingress line up with 429 waves.
+- Repro run: synthetic test with ephemeral keys rotated every 10s reproduced intermittent 429s in ~35% of runs.
+- Related prior tickets: SUP-314420 (edge connection affinity) and SUP-314271 (auth-token swapback-pressure) referenced for context.
+
+Next investigative steps:
+- Request SRE to inspect sidecar health-check accounting and whether health pings are counted against tenant quota.
+- Validate refill timing at the origin: confirm whether central refill events are delayed by 1-2s leading to transient local zero states.
+- Run controlled repro with smaller worker counts and incrementally scale to isolate threshold and window size.
+Workaround applied and long-term actions:
+- Temporary workaround (applied 2026-03-11 02:40 UTC): recommend Brightlytics stagger ephemeral-key rotation and reduce per-second session_create rate. Customer applied a 500ms jitter to their key refresh. This reduced 429 frequency from ~40% -> ~5% for sustained jobs.
+- Temporary server-side mitigation (deployed by SRE): edge proxy patch to avoid counting health-check pings against tenant tokens (PR https://github.com/redwood-inference/edge-proxy/pull/220). Deployed to prod-us-west on 2026-03-11 05:10 UTC.
+- Root cause follow-up: engineering to update rate-limiter to add short hysteresis at connection-level accounting to prevent transient underflow during refill. Tracked in INT-4402.
+- Customer communication: advised Brightlytics to keep worker fanout below 40 for now while patch rolls out globally.
+INT-4402: edge accounting hysteresis design and fix
+ENG-issue-729: console readout reconciliation lag investigation
+DOCS-142: add guidance on ephemeral-key churn and rate-limit best practices

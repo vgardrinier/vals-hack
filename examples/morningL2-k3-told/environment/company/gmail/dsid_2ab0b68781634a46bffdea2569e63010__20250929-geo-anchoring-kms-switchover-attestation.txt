@@ -1,0 +1,96 @@
+Geo anchoring attestation + KMS switchover proposal
+
+From: Lukas Meyer <lukas.meyer@redwood.ai>
+To: Amelia Ross <amelia.ross@veridianhealth.com>
+Cc: Laura Bennett <laura.bennett@redwood.ai>, Kimberly Park <kimberly.park@redwood.ai>
+Date: Mon, 29 Sep 2025 09:12:00 -0700
+Subject: Geo anchoring attestation + KMS switchover proposal
+
+Hi Amelia,
+
+Thanks again for the sync last week. Per your ask, attached is a short attestation draft we can sign that summarizes Redwood's geographic anchoring commitments for Veridian Health (EU-first placement, APAC region affinity for APAC customers, and US-only analytics carve-outs). The doc is intentionally concise so it can be appended to the DPA if legal prefers.
+
+Two related operational notes I want to surface up-front:
+- KMS switchover: we occasionally perform key rotations that migrate customer key metadata across KMS zones (this is a metadata operation; encrypted tokens are not re-encrypted during the short window). In rare cases this can cause transient routing of control-plane metadata toward the region where the key is being provisioned for a rolling window (~30–90 minutes). We have controls and fallbacks (automatic retry, regional fallback model variants).
+- Temporary egress: for the KMS window, we can provide a controlled switchover plan with a defined maintenance window and pre-notification; we also produce audit logs and a signed attestation post-switchover.
+
+Attached: redwood_geo_attestation_draft.pdf (short), provisional runbook stub. If the above model works we can surface the attestation into the DPA addendum and schedule the switchover at a low-traffic time.
+
+Proposed staging window: Oct 2, 2025 01:00–04:00 UTC (we can shift to your preferred maintenance window).
+
+Request: please confirm whether Veridian needs: (a) a stricter no-egress guarantee during switchover (not usually compatible with live KMS rotations), or (b) acceptance of a documented, auditable maintenance window with post-event attestation and telemetry.
+
+Thanks,
+Lukas Meyer
+Senior Solutions Architect
+Redwood Inference
+[Attachment: redwood_geo_attestation_draft.pdf (PDF, 78KB)]
+
+From: Amelia Ross <amelia.ross@veridianhealth.com>
+To: Lukas Meyer <lukas.meyer@redwood.ai>
+Cc: Procurement Ops <procure@veridianhealth.com>, Laura Bennett <laura.bennett@redwood.ai>
+Date: Mon, 29 Sep 2025 13:46:00 +0100
+Subject: Re: Geo anchoring attestation + KMS switchover proposal
+
+Thanks Lukas — helpful start. A few clarifying questions from Veridian legal/procurement: 
+
+1) Can you confirm whether the "transient routing" you describe applies to customer data payloads, logs, or only to control-plane key metadata? Our security team differentiates between each and needs explicit language.
+
+2) If you move forward with the proposed Oct 2 window, we need:
+   - Pre-notice: 72 hours
+   - Post-event attestation: signed within 5 business days
+   - Audit evidence: delivery of the redacted runbook + selective telemetry showing region placement (we can accept signed hashes for telemetry artifacts)
+
+3) We want a fallback guarantee: if the switchover causes unexpected cross-region processing of customer payloads, Redwood will roll back the key change and provide a remediation report within 24 hours. Is this acceptable?
+
+4) Please also confirm the behavior for embedding creation and embedding storage during the window — do embeddings remain pinned to EU/APAC per-customer config, or is there temporary fallback to US analytics buckets for dedupe/ops?
+
+If you can address (1)–(4) we can move to a one-paragraph attestation to add to the DPA addendum. Also please upload the runbook to a shared Drive link instead of sending raw attachments (procurement prefers links).
+
+Best,
+Amelia Ross
+Senior Counsel, Privacy & Compliance
+Veridian Health
+
+From: Lukas Meyer <lukas.meyer@redwood.ai>
+To: Amelia Ross <amelia.ross@veridianhealth.com>
+Cc: Laura Bennett <laura.bennett@redwood.ai>, Kimberly Park <kimberly.park@redwood.ai>, Procurement Ops <procure@veridianhealth.com>
+Date: Tue, 30 Sep 2025 08:05:00 -0700
+Subject: Re: Geo anchoring attestation + KMS switchover proposal
+
+Amelia — thanks, answers inline below (quoting your numbers):
+
+1) The transient routing only affects control-plane metadata associated with key provisioning (tenant key metadata and routing headers). Customer payloads (request/response bodies and embeddings) remain encrypted at-rest in their pinned region; we do not re-encrypt or stage customer payloads during the switchover. Logs: operational logs may include region tags and short-lived meta-entries but we can provide redacted traces as requested.
+
+2) Oct 2 window: 72-hour pre-notice OK, post-event attestation within 5 business days OK. We'll provide a redacted runbook and signed hashes for telemetry. I'll upload the runbook to a shared Drive link once legal approves.
+
+3) Fallback guarantee: we can commit to an automated rollback policy if we detect customer payloads leaving the pinned region (threshold: any verified payload egress). Rollback remediation report within 24 hours — we can accept that as part of the addendum. The operational playbook references the detection heuristics (IDS + placement telemetry) and rollback criteria.
+
+4) Embeddings: embeddings and customer storage remain region-pinned. Analytics-only dedupe/aggregation jobs may temporarily run in the US analytics tier for sys-ops, but only on de-identified, aggregated telemetry (we will not route PII or identifiable customer payloads out of the pinned region). If Veridian requires zero analytics hop, we can add a carve-out in the contract to disable aggregation for your tenant (this has billing and performance implications).
+
+Attached: kms-switchover-runbook-v2.pdf (redacted). I'll upload the production runbook to Drive and share the link by EOD.
+
+Proposed language for the one-paragraph attestation (draft):
+"Redwood Inference will place Veridian Health customer payloads and derived embeddings in the customer-designated region (EU or APAC). Routine KMS maintenance may trigger short-lived control-plane routing for key metadata; such operations do not re-encrypt customer payloads and do not result in customer payload egress beyond the pinned region. Redwood will provide 72-hour pre-notice for scheduled switchover windows, a signed post-event attestation within five business days, and remediation within 24 hours if unintended payload egress occurs."
+
+Please confirm whether that paragraph is acceptable (we can tune wording).
+
+Thanks,
+Lukas
+[Attachment: kms-switchover-runbook-v2.pdf (PDF, 212KB)]
+
+From: Laura Bennett <laura.bennett@redwood.ai>
+To: Lukas Meyer <lukas.meyer@redwood.ai>, Kimberly Park <kimberly.park@redwood.ai>
+Date: Wed, 01 Oct 2025 15:40:00 -0700
+Subject: Internal: quick legal ops note on attestation wording
+
+Lukas/Kim — quick internal note before we send anything to Amelia/procurement:
+
+- The draft paragraph is good but avoid absolute language like "will not result" — legal prefers "are not expected to cause customer payload egress beyond the pinned region; in the unlikely event that egress is detected, Redwood will perform an automated rollback and provide remediation within 24 hours." 
+- Add a short sentence committing to retention of the telemetry hashes for 90 days to allow Veridian to validate the post-event attestation.
+- Confirm whether procurement needs DocuSign placeholders for the attestation or if a signed PDF is sufficient. Procurement often wants DocuSign for audit trail — include a DocuSign link option.
+
+I'll let you push the revised paragraph and the Drive link once you have the production runbook uploaded.
+
+Laura
+Head of Privacy Controls, Redwood Inference

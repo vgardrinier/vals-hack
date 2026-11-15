@@ -1,0 +1,127 @@
+Tax entity verification, EIN confirmation & wire remit update - Aurora BioSystems
+
+From: Aurora APAC Payments <apac.payments@aurorabio.com>
+To: markus.klein@redwood.com
+Cc: Elena Rossi <elena.rossi@aurorabio.com>, Thomas Nguyen <t.nguyen@globalprocure.io>
+Date: 2026-05-20T09:12:00-07:00
+Subject: Outstanding invoice #7890 — tax docs needed to release payment
+
+Hi Markus,
+
+Hope you’re well. We’re ready to schedule payment for Redwood Invoice #7890 (USD 184,200) but our APAC Treasury requires a completed tax form on file before we can release funds. Our APAC CPA team is asking whether Redwood is a US tax resident for 1099 purposes or a foreign entity that will provide a W-8BEN-E.
+
+Could you please confirm Redwood’s legal entity name, EIN, and which tax document you will supply? If you’re a US entity, please attach a completed W-9. If you’re foreign, please provide a completed W-8BEN-E and the supporting certificate.
+
+Additionally, our bank requires the final remit instructions (beneficiary name, account number, SWIFT/IBAN). We have Invoice #7890 attached for reference.
+
+Thanks — we’re trying to clear the payment this week.
+
+Best,
+Elena Rossi
+APAC Payments Manager
+Aurora BioSystems
+
+Attachments: 2026-05-Aurora-Invoice-7890.pdf (pdf)
+From: markus.klein@redwood.com
+To: Aurora APAC Payments <apac.payments@aurorabio.com>
+Cc: laura_bennett@redwood.com, monica_patel@redwood.com, neha_kapoor@redwood.com, Thomas Nguyen <t.nguyen@globalprocure.io>
+Date: 2026-05-20T11:03:00-07:00
+Subject: Re: Outstanding invoice #7890 — tax docs needed to release payment
+
+Hi Elena — thanks for the heads up.
+
+Short answers: Redwood Inference Inc. is a US entity (EIN: 82-3141592) and will provide a completed W-9. I’m attaching our standard W-9 for your treasury team.
+
+For the wire: Redwood prefers ACH domestically; for international wires we use the Redwood Inference LLC omnibus account detailed in the attached wire template. Please use the beneficiary name exactly as shown on the wire form to avoid delays.
+
+Laura (Finance) and Monica (Collections) are looped in to confirm the attachments and the final remit lines.
+
+Markus
+VP, Sales Operations
+Redwood Inference
+
+Attachments: W9-request-form.pdf, wire-instructions-template.xlsx
+
+On Wed, May 20, 2026 at 09:12 AM Aurora APAC Payments <apac.payments@aurorabio.com> wrote:
+> Hi Markus,
+> 
+> We’re ready to schedule payment for Redwood Invoice #7890 (USD 184,200) ...
+From: Elena Rossi <elena.rossi@aurorabio.com>
+To: markus.klein@redwood.com
+Cc: apac.payments@aurorabio.com, t.nguyen@globalprocure.io
+Date: 2026-05-21T02:18:00+10:00
+Subject: Re: Outstanding invoice #7890 — tax docs needed to release payment
+
+Thanks Markus — that helps. A couple follow-ups from our treasury team:
+
+1) Can you confirm the payee legal name to match our tax system exactly? We have: "Redwood Inference, Inc." vs "Redwood Inference Inc" (comma matters in our vendor master).
+2) For US suppliers, our APAC entity is still required to determine 1099 eligibility under local U.S. tax liaison procedures. Please confirm whether Redwood issues 1099s and if Redwood has a U.S. withholding agent on file.
+3) If there are any subcontractor relationships — e.g., billing through a non-Redwood affiliate — we need the affiliate tables.
+
+We attached a copy of our vendor onboarding questionnaire and the bank beneficiary form (signed only after tax docs are in place). If you can return the corrected W-9 with the exact legal name and EIN, we’ll proceed to payment initiation.
+
+Regards,
+Elena
+
+---
+Attachment: signed-W8BEN-E-Aurora.pdf (internal reference only)
+From: laura_bennett@redwood.com
+To: Elena Rossi <elena.rossi@aurorabio.com>, apac.payments@aurorabio.com
+Cc: markus.klein@redwood.com, monica_patel@redwood.com
+Date: 2026-05-21T12:36:00-07:00
+Subject: Re: Outstanding invoice #7890 — tax docs needed to release payment
+
+Hi Elena —
+
+Confirmed legal name: "Redwood Inference, Inc." (with the comma). EIN: 82-3141592. Redwood is a U.S. taxable corporation for vendor-pay reporting; we do not expect to be subject to withholding for this payment and typically do not receive 1099-MISC (we are a C-corp).
+
+Attached: updated W-9 (signed), and our vendor master declaration PDF. Monica, please follow up with bank wires team to ensure the beneficiary name on the wire template matches the vendor master.
+
+Elena — if your tax colleagues still require any additional certification for APAC remittance rules, let us know and we’ll coordinate with our tax counsel.
+
+Thanks,
+Laura Bennett
+Director, Finance — Redwood Inference
+
+Attachments: W9-request-form.pdf (signed)
+From: apac.payments@aurorabio.com
+To: laura_bennett@redwood.com, markus_klein@redwood.com
+Cc: Elena Rossi <elena.rossi@aurorabio.com>, Thomas Nguyen <t.nguyen@globalprocure.io>
+Date: 2026-06-03T09:08:00+10:00
+Subject: Re: Outstanding invoice #7890 — tax docs needed to release payment
+
+Laura / Markus — thanks for the quick turnaround and the signed W-9. One outstanding item: our compliance team flagged that your vendor record in our system still lists "Redwood Inference LLC" (US/foreign flagged) rather than the incorporated name provided. That mismatch will block the ACH instruction.
+
+Could you provide either:
+- vendor_registration_form (completed), or
+- copy of the Redwood Articles of Incorporation (to reconcile the vendor master), or
+- confirmation on letterhead from your legal or finance team confirming the correct legal name and EIN.
+
+Once we receive either the Articles or a signed confirmation letter, the payment run will proceed (targeting 06/07).
+
+Thomas (procure) suggested that a quick DocuSign confirmation would be fastest — I can send a DocuSign envelope if that works.
+
+Best,
+APAC Treasury Team
+Aurora BioSystems
+
+Related link: https://na1.docusign.net/Signing/?t=abc123
+From: laura_bennett@redwood.com
+To: apac.payments@aurorabio.com, Elena Rossi <elena.rossi@aurorabio.com>
+Cc: markus_klein@redwood.com, monica_patel@redwood.com, neha_kapoor@redwood.com
+Date: 2026-06-07T11:45:00-07:00
+Subject: Re: Outstanding invoice #7890 — tax docs needed to release payment
+
+Elena / APAC Treasury —
+
+Thanks — attached is a PDF copy of Redwood Inference, Inc. Articles of Incorporation (state filing excerpt) and a signed vendor confirmation letter on Redwood letterhead confirming the legal name and EIN. We also completed your vendor registration form and returned it via the DocuSign link Thomas provided.
+
+Monica: once Treasury confirms the vendor master is updated, please confirm to Aurora that the wire template matches the vendor master name and then close the collections task for invoice #7890.
+
+Elena: please advise expected settlement method (wire/ACH) and final value date so we can reconcile cash application on our side.
+
+Thanks,
+Laura Bennett
+Director, Finance — Redwood Inference
+
+Attachments: Redwood_Articles_of_Incorporation_excerpt.pdf, Redwood_vendor_confirmation_letter_signed.pdf, completed-vendor-registration-form.pdf

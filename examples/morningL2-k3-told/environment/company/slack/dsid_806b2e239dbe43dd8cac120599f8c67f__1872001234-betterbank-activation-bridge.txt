@@ -1,0 +1,41 @@
+customer-success
+
+Alex Chen: FYI BetterBank renewal in 18 days. Usage down ~40% past 30d, sessions dropping. Thinking a quick activation + targeted enablement + a one-off credit to re-engage. Need volunteers to run an audit, lead enablement, and coordinate pricing. Thoughts?
+Priya Nair: Can you paste the key metrics? DAUs, top routes, last production deploy time? :eyes: 
+Alex Chen: Quick snapshot:
+- DAU: 520 -> 310 (30d)
+- Token/day: 2.1M -> 1.3M
+- Top route: /generate (latency fine)
+- Billing risk: overage spike last month, then drop
+Jonah Blake: I can scope the pricing concession. We usually offer a one-off credit or 2-week discount. If we do credit, need AM approval and renewal note. :thumbsup: 
+Wei Zhang: I can run a focused enablement session. Proposed agenda:
+1) 30m ops review (usage patterns)
+2) 30m prompts & integration tips
+3) Action plan + follow-up metrics
+Prefer Wed or Thu this week.
+Samira Flores: I'll run the usage audit and surface exact queries + sample failing prompts. Will need SQL access — pinging eng-analytics if not open. ETA EOD tomorrow.
+Alex Chen: Samira, include funnel: sign-in -> init call -> long running prompts. Wei, Wed works. Jonah, do you need a customer note to justify credit?
+Jonah Blake: Yes a short note on how credit ties to reactivation + proof points. I'll draft and loop in sales legal. Can we commit to one of: 20% 2-week discount OR a $X credit? Which is less friction?
+Priya Nair: Ops preference = credit (single ledger item). Less product change. I'll prep the one-off credit flow doc snippet.
+Alex Chen: Samira — run this query to get daily active orgs + avg tokens
+```sql
+SELECT date, COUNT(DISTINCT user_id) as dau, SUM(tokens) as tokens
+FROM events
+WHERE org_id = 'betterbank'
+GROUP BY date
+ORDER BY date DESC
+LIMIT 30;
+```
+Samira Flores: Got it. Also will export top 10 prompts for last 30d.
+cs-bot: Reminder: Renewal team checkbox "activation session scheduled" not set for BetterBank. Use /renewal-touch to update.
+Alex Chen: Action items:
+- Samira: audit + top prompts (due EOD tomorrow)
+- Wei: enablement session (book Wed or Thu) + agenda
+- Jonah: pricing note & draft credit language
+- Priya: credit flow doc & renewal update
+I'll run the customer outreach and propose Wed 3pm PT. Ping here when you add calendar invites. Thanks all :rocket:
+Priya Nair: Added to my list, will update renewal checklist once credit flow is confirmed. :white_check_mark: 
+Jonah Blake: Draft ready, sending to Alex for review.
+Wei Zhang: Booked Wed 3pm PT. Added calendar invite.
+Samira Flores: Audit uploaded to cs-drive (private). Shared link in DM to Alex. Done.
+Alex Chen: Great — keep me posted. If usage doesn't lift by renewal we'll prepare a 60-day downgrade path (outline ready).

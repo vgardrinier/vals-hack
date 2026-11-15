@@ -1,0 +1,62 @@
+Dedicated H100 pool throughput drop during FP8/INT8 benchmark window (capacity contention)
+
+Issue summary:
+- Customer on Dedicated (Summit AI) reported a sudden throughput drop (tokens/sec) and elevated queueing during a scheduled window.
+- We correlated the drop with internal FP8/INT8 benchmark jobs that inadvertently consumed capacity in the same H100 node pool used for the customer’s Dedicated deployment.
+
+Customer impact:
+- Time window: 2026-02-16 02:10–03:05 UTC
+- Symptoms: lower sustained throughput, increased p95 latency, intermittent request timeouts at peak concurrency.
+- Scope: Summit AI Dedicated H100 pool in us-east.
+
+Environment:
+- Dedicated cluster/pool: dedicated-prod-use1-h100
+- Region: us-east
+
+Detection:
+- Customer email to Support + Console screenshots showing throughput reduction.
+- SRE saw increased scheduler queue depth for the dedicated namespace and elevated GPU utilization from non-dedicated workloads.
+
+Initial hypothesis:
+- Noisy-neighbor / capacity contention due to benchmark runner jobs hitting the wrong cluster/pool.
+
+Steps to reproduce (internal):
+1) Submit benchmark-lab matrix runner jobs with misconfigured --cluster (or missing dedicated-pool exclusion).
+2) Observe increased queue depth and reduced effective throughput in dedicated scheduler metrics.
+
+Diagnostics / evidence:
+- Grafana: Scheduler queue depth spikes for dedicated-prod-use1-h100
+- Cluster events: benchmark-lab jobs scheduled onto dedicated node pool
+- Audit trail: benchmark runner job spec lacked required nodeSelector/taint tolerations to force bench pool
+
+Requested outcome:
+- Immediate mitigation to restore Dedicated performance.
+- Prevent recurrence via infra guardrails (hard separation + scheduling constraints + preflight checks).
+2026-02-16 02:24 UTC — Rafael Mendes (SRE): Created ticket after on-call page from Dedicated throughput alarm + customer report. Seeing queue depth rising in dedicated-prod-use1-h100 while GPU util ~98–100%. Error rate stable; this looks like contention rather than crash.
+2026-02-16 02:31 UTC — Vanessa Ortiz (Infra): Confirmed: benchmark-lab jobs are present in the dedicated-prod-use1-h100 cluster. These should have been pinned to bench-use1-h100. Suspect runner config regression / missing guardrail.
+2026-02-16 02:38 UTC — Irene Choi (Fleet): Capacity reservation for sprint was approved, but the isolation relied on correct cluster targeting. There’s no hard admission control preventing non-dedicated namespaces from landing on dedicated node pools right now.
+2026-02-16 02:42 UTC — Vanessa Ortiz (Infra): Immediate mitigation started: cordon + drain nodes running benchmark jobs; deleting benchmark-lab workloads in dedicated cluster; re-submitting to bench cluster. ETA 10–15 mins for perf to recover.
+2026-02-16 02:55 UTC — Rafael Mendes (SRE): Metrics improving. Queue depth returning to baseline; p95 latency trending down. No further timeouts in the last 5 mins.
+2026-02-16 03:07 UTC — Support (internal note, owner Rafael Mendes): Sent customer update: identified internal capacity contention, stopped conflicting jobs, performance recovering; offered to provide incident summary and discuss safeguards.
+2026-02-16 09:18 UTC — Talia Benson (Program Mgmt): Flagging as sprint-impacting: benchmark runners must not target Dedicated pools. Adding action item for infra scheduling guardrails + runner preflight validation before continuing full matrix runs.
+2026-02-17 11:04 UTC — Vanessa Ortiz (Infra): Proposed guardrails:
+1) Dedicated node pools tainted + only dedicated namespaces have tolerations.
+2) Admission controller policy: deny benchmark-lab namespace in dedicated-prod clusters.
+3) Bench runner preflight: require explicit --cluster=bench-* and validate against allowlist.
+4) Reservation calendar enforcement: automated check to avoid collisions with Dedicated autoscaling windows.
+Owners: Infra + SRE. Target: within 48 hrs.
+2026-02-18 16:22 UTC — Rafael Mendes (SRE): Customer confirmed performance normalized. Marking incident resolved; keeping follow-ups tracked under internal infra tasking (see linked INT-9923 for access/quota + guardrail changes).
+Root cause:
+- Benchmark-lab matrix runner jobs for the FP8/INT8 benchmarking sprint were scheduled onto the us-east Dedicated H100 node pool (dedicated-prod-use1-h100) due to a mis-targeted cluster configuration and insufficient isolation controls.
+
+Immediate remediation:
+- Stopped/evicted benchmark-lab workloads from the Dedicated cluster and re-ran them on the intended bench cluster.
+- Temporarily tightened scheduling by cordoning nodes used by the conflicting benchmark jobs.
+
+Preventative actions (guardrails):
+- Implemented hard separation between Dedicated pools and benchmark workloads via node taints/tolerations and namespace-based admission control.
+- Added benchmark runner preflight validation to require bench cluster allowlist and block dedicated-prod targets.
+- Updated capacity reservation process to include an automated “Dedicated collision check” (time window + cluster allowlist).
+
+Customer-facing outcome:
+- Dedicated throughput returned to baseline within ~30 minutes of mitigation. Customer notified with a concise incident summary and prevention plan.

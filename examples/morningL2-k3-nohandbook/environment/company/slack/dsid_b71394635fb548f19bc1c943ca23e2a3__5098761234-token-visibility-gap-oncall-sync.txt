@@ -1,0 +1,43 @@
+incidents
+
+incident-bot: [P1] metering-emitter lag + token-count drift detected in prod — alert rule metering.emitter.delta > 5000
+
+sre-oncall: Ack @incident-bot. I'm on it. Seeing large positive deltas from emitter-3 in us-west-2.
+
+infra-raj: Confirmed, emitter-3 write latency up, retry backlog building. Tail of producer logs shows repeated 5xx.
+
+sre-oncall: Quick check: counts look duplicated during retries. Sample:
+```
+[2026-03-17T18:12:34Z] emitter-3 POST /emit status=500 id=abc123 retry=1 tokens=4200
+[2026-03-17T18:12:35Z] emitter-3 POST /emit status=200 id=abc123 tokens=4200
+```
+
+billing-eng: This duplication will inflate token tallies — we're getting overage flags in the billing pipeline for a handful of customers.
+
+pm-ella: @billing-eng @cs-lucas what's the customer-facing risk? Are invoices impacted now?
+
+cs-lucas: Early list: cust-42, cust-77, cust-omega flagged. Reached out to initial two with heads-up.
+
+sre-oncall: Mitigation plan: 1) Pause emitter-3 to stop duplicate writes. 2) Backfill dedupe job for last 10m using request id. 3) Suppress billing alerts until dedupe completes.
+
+infra-raj: I'll cordon emitter-3 and redirect traffic to emitter-1/2. Doing now.
+
+sre-oncall: Redirect done. Observability: token delta rate falling.
+
+billing-eng: Please open temporary alert-suppression runbook step so Finance doesn't auto-bill. I can flip a feature flag to suppress emails.
+
+pm-ella: @cs-lucas notify affected AEs and ask for hold on invoice generation for the window 18:12–18:30 UTC.
+
+cs-lucas: On it.
+
+sre-oncall: Dedupe backfill started. ETA ~12min. Using request-id based idempotency. Progress: 45%.
+
+billing-eng: Backfill verified on sample customer — counts corrected, overage flag cleared in test pipeline.
+
+sre-oncall: Backfill complete. Replaying reconciliation job. Monitoring for residual drift.
+
+incident-bot: Incident closed: metering-emitter duplicates — em-3 restart and dedupe backfill. Duration 00:24:15. Tags: billing-impact, customer-notified.
+
+pm-ella: Postmortem owners: @sre-oncall (runtime), @billing-eng (billing), @infra-raj (deployment). Kickoff tomorrow.
+
+cs-lucas: Customers updated; CS case #2345 opened.

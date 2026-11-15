@@ -1,0 +1,19 @@
+people-ops
+
+Evan: Hey people-ops — quick question. Had an unexpected overnight layover in Lisbon on a business trip (flight delayed) and I booked an Airbnb for 1 night because hotels were full. Can I expense it? Total was €93 (€78 night + €15 cleaning/service). What receipts do I need to upload?
+Maya (People Ops): Sorry about the delay — short answer: yes, Airbnb is allowed for emergency/layover/night-of travel when a hotel isn't available, but we need a few items to approve reimbursement:
+  - itemized host receipt showing nightly rate + cleaning/service if possible
+  - Airbnb invoice/booking confirmation PDF showing booking dates and guest name
+  - proof of travel showing the delay (boarding pass, flight change email, or itinerary)
+  - a one-line justification in the expense explaining why hotel wasn't used (e.g., last‑minute, full hotels)
+Submit via Expensify and tag the expense with "travel" + "layover", and CC your manager on the submission.
+Diego: Quick Q — do we reimburse the platform/service fee and cleaning fee? And does per‑diem still apply?
+Maya (People Ops): We reimburse the full Airbnb charge (base + cleaning + platform/service) up to reasonableness. Lodging is claimed as actuals (so per‑diem does NOT apply to lodging) — per‑diem is only for meals if you choose that method. If part of the stay was personal, prorate nights and only claim the business portion. For currency conversion, use the exchange rate pulled by Expensify or attach the card statement showing the charge date.
+Tasha: If the host only shows a single combined total and no breakdown, is that acceptable?
+Maya (People Ops): Yes — the Airbnb invoice PDF + screenshot of the booking details that show dates and total is usually sufficient. If it's still unclear, escalate to people-ops@redwood.com with the PDF and we can validate. Also note: any Airbnb/lodging > $200 requires manager pre-approval — exceptions are allowed for true emergencies, but they'll need a manager sign-off after submission.
+Evan: Great — thanks. I already have the boarding pass and the Airbnb invoice PDF. Do I need manager sign-off before submitting the expense or can I submit now and ping them?
+Maya (People Ops): If the lodging cost is under $200 you can submit now. If over $200 we ask for pre-approval, but for emergency cases you can submit and ping your manager in the expense comments — we'll fast-track review. Tag @Diego as finance reviewer if you want a quicker turnaround.
+Diego: :thumbsup: I'll watch for it and approve if everything's in order.
+PeopleOps-Bot: Reminder: Travel & expense policy page — https://intranet.redwood.com/travel-expense ; Expense tool: Expensify. Use category: Lodging -> 'Unexpected layover/alternate lodging'.
+Evan: Uploaded "airbnb_invoice.pdf" and "boardingpass.jpg" to the expense. Added a 1-line note about the flight delay. Thanks everyone.
+Maya (People Ops): Received the files — thanks Evan. We'll review and follow up if anything else is needed. One operational tip: for future last-minute layovers try contacting travel@redwood.com first — they can sometimes rebook hotel rooms on company rate which makes approvals smoother. Closing thread once expense is approved. :raised_hands:

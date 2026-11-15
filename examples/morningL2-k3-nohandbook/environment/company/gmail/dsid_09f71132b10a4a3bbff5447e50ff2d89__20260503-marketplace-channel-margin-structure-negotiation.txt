@@ -1,0 +1,132 @@
+Marketplace private offer — channel margin & pricing structure
+
+From: Logan Wright <logan.wright@redwood.com>
+To: procurement@acmecloud.com
+Cc: stephanie.nguyen@redwood.com
+Date: 2026-05-01T09:12:00-07:00
+Subject: Redwood private offer for AcmeCloud — marketplace packaging + channel margin
+
+Hi Chris / Acme procurement team,
+
+Thanks for taking the time last week. Attached is a short term sheet for a Redwood private offer through AWS Marketplace. It outlines list pricing, our suggested packaging (base inference + tokens bundle), and an initial channel margin structure.
+
+Quick notes:
+- This is a starting point; we can do a committed-volume-backed discount structure.
+- Marketplace fees are typically ~3% (AWS). We can model share of fee with your channel partner but prefer Redwood to cover up to 2% for the first year on committed deals.
+
+Attachment: AcmeCloud_Private_Offer_Termsheet_v1.pdf (application/pdf, 210KB)
+
+Could you confirm: 1) channel partner you plan to use and 2) any internal resale margin targets (you mentioned 20% in passing) so we can return a clean PO-able term sheet?
+
+If useful, I can also run a simple channel-margin model and propose tiered discounts tied to annual committed spend.
+
+Best,
+Logan Wright
+Account Executive, Redwood Inference
+logan.wright@redwood.com
+(415) 555-0194
+
+From: Chris Lane <chris.lane@acmecloud.com>
+To: Logan Wright <logan.wright@redwood.com>
+Cc: channel@ccpartners.com (CloudChannel Partners), procurement@acmecloud.com
+Date: 2026-05-01T11:03:00-07:00
+Subject: Re: Redwood private offer for AcmeCloud — marketplace packaging + channel margin
+
+Logan — thanks for the term sheet, appreciate the quick turnaround. A few items from procurement and our channel team:
+
+- Channel margin: our channel partner is expecting ~20% margin on list to cover reseller services and support. Is that feasible?
+- Discounting: we'd like a 10% customer-facing discount off list for the first year if we commit to a $300k ARR spend.
+- Marketplace fees: we'd prefer vendor (Redwood) to net out the marketplace fee so our partner can see a clean margin; can you confirm Redwood is willing to absorb the fee or compensate the partner?
+
+Also looping in CloudChannel Partners so they can confirm margin expectations and any contractual needs on their end.
+
+If we can firm up these points this week, procurement will hit approve and issue a PO.
+
+Thanks,
+Chris Lane
+Sr. Cloud Ops — AcmeCloud
+chris.lane@acmecloud.com
+
+From: Logan Wright <logan.wright@redwood.com>
+To: neha.kapoor@redwood.com, rishi.malhotra@redwood.com
+Cc: stephanie.nguyen@redwood.com
+Date: 2026-05-01T13:20:00-07:00
+Subject: Fwd: Redwood private offer for AcmeCloud — margin ask
+
+Neha / Rishi — forwarding Acme procurement note below. They asked for a 20% channel margin + 10% customer discount on a $300k commit and want us to "absorb" the marketplace fee so the partner sees a clean margin.
+
+Attached: channel_margin_model.xlsx (spreadsheet, 42KB) — quick model with list price, partner margin, and effective net to Redwood.
+
+Q: do we have room to meet 20% margin (they want partner at that level) while also giving a 10% first-year discount and covering marketplace fees? If not, what counter? My thought: offer 12% partner margin year 1, give tiered customer discounts tied to commit (10% @ $300k, 15% @ $500k), and Redwood covers marketplace fee up to 2% for year 1. Would appreciate a rapid decision — procurement is ready to PO once margin is confirmed.
+
+Thanks,
+Logan
+
+---------- Forwarded message ----------
+From: Chris Lane <chris.lane@acmecloud.com>
+Date: 2026-05-01T11:03:00-07:00
+Subject: Re: Redwood private offer for AcmeCloud — marketplace packaging + channel margin
+To: Logan Wright <logan.wright@redwood.com>
+Cc: channel@ccpartners.com (CloudChannel Partners), procurement@acmecloud.com
+
+(see above)
+
+From: Neha Kapoor <neha.kapoor@redwood.com>
+To: Logan Wright <logan.wright@redwood.com>, rishi.malhotra@redwood.com
+Cc: stephanie.nguyen@redwood.com
+Date: 2026-05-02T09:45:00-07:00
+Subject: Re: Fwd: Redwood private offer for AcmeCloud — margin ask
+
+Logan — thanks for the context and the model. My guidance after quick margin play:
+
+- Do NOT accept 20% for year 1. That leaves us negative on unit economics given the 10% customer discount they want.
+- Counter (recommended):
+  - Channel margin: 12% for year 1.
+  - Customer discount: 10% off list at $300k ARR commit (12 months). 15% off list at $500k ARR commit.
+  - Marketplace fees: Redwood will cover up to 2% of marketplace fees for year 1 only. Any excess must be passed through or negotiated separately with partner.
+  - Term: 12 month minimum commit; auto-renew unless notice given 60 days prior.
+
+Operational asks before signing:
+- Sales ops to run final unit-econ table (Steph) and confirm overall CAC / payback.
+- Legal to prepare SOW + private-offer docs with standard marketplace indemnities and a clause that channel margin is payable to the named partner on receipt of partner-signed invoice.
+
+Rishi — if we want to be a bit more aggressive in exchange for a larger marketing co-op or a short-term credit, we can model a 14% margin at $500k commit. Thoughts?
+
+Logan — if Acme wants to push 20%, push back with the tiered structure and emphasize Redwood covering initial fee friction to accelerate onboarding.
+
+Best,
+Neha Kapoor
+Head of Commercial Partnerships, Redwood Inference
+neha.kapoor@redwood.com
+
+From: Logan Wright <logan.wright@redwood.com>
+To: procurement@acmecloud.com, chris.lane@acmecloud.com
+Cc: channel@ccpartners.com (CloudChannel Partners), stephanie.nguyen@redwood.com, neha.kapoor@redwood.com
+Date: 2026-05-03T16:45:00-07:00
+Subject: RE: Redwood private offer for AcmeCloud — marketplace packaging + channel margin
+
+Chris / team — thanks for the quick responses and for looping CloudChannel Partners. Per internal guidance (below), Redwood can do the following counter-proposal:
+
+- Channel partner margin: 12% of list price in year 1 (payable to the named partner on Redwood invoice receipt).
+- Customer-facing discount: 10% off list for a 12-month, $300k ARR commit. 15% off list if the commit meets or exceeds $500k ARR.
+- Marketplace fees: Redwood will absorb up to 2% of marketplace fees (year 1 only). Any marketplace fee beyond 2% must be reconciled between Redwood and partner.
+- Term: 12-month minimum, auto-renew unless 60-day notice.
+
+Attached is a revised term sheet (AcmeCloud_Private_Offer_Termsheet_v2.pdf) that reflects the above and includes invoicing language for partner margin payment.
+
+Next steps:
+1) Please confirm CloudChannel Partners accepts the 12% margin and invoicing flow.
+2) If accepted, procurement can issue a PO against the v2 term sheet and our legal team will circulate the private-offer SOW for signature.
+
+If CloudChannel wants to trade up to 14% margin, we can consider a marketing co-op commitment or increase the commit threshold to $500k.
+
+Thanks — happy to jump on a quick call if helpful.
+
+Best,
+Logan Wright
+Account Executive, Redwood Inference
+[Attachment: AcmeCloud_Private_Offer_Termsheet_v2.pdf (application/pdf, 254KB)]
+[Attachment: channel_margin_model.xlsx (spreadsheet, 45KB)]
+
+On May 2, 2026, Neha Kapoor <neha.kapoor@redwood.com> wrote:
+> Logan — thanks for the context and the model. My guidance after quick margin play: ...

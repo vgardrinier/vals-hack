@@ -1,0 +1,119 @@
+Next steps: burn forecast, target $/1M tokens & discount tiers
+
+From: Ben Carter <ben@redwood.com>
+To: Elena Park <elena@orbitai.com>
+Cc: Olga Petrov <olga@redwood.com>
+Date: Fri, 23 Oct 2026 09:15:00 -0700
+Subject: Next steps: burn forecast, target $/1M tokens & discount tiers
+
+Hi Elena / Samir,
+
+Thanks again for the call this morning — good to meet the OrbitAI team. As promised, quick recap of agreed next steps and a few clarifying questions so we can put a formal offer on paper.
+
+Quick recap (from our side):
+- Goal: embed Redwood for low-latency inference for customer-facing features (search, summarization).
+- Current baseline: ~50M tokens/month today across dev/prod (Samir confirmed).
+- 3x growth expected over 6 months if pilot metrics hold.
+- You asked for committed pricing options, multi-year incentives, and confirmation of startup program eligibility.
+
+Action items we need from OrbitAI to finalize terms:
+1) A 3-month rolling projection (month-by-month tokens) or even a simple band (e.g., 50-75M -> 75-150M). Attached is a short template we use — saves back-and-forth.
+2) Target unit-econ: what is your target $/1M tokens (ballpark)? This lets us map to starter vs committed bands.
+3) Procurement timeline / PO lead time and any specific billing terms/legal contacts.
+
+Preliminary notes on pricing (for calibration only):
+- On-demand (no commit): $1,800 / 1M tokens (reference list price for the model class discussed).
+- 12-month committed band (50M monthly avg commit, billed monthly): ~$900 / 1M tokens (rough).
+- 24–36 month multi-year (150M total annualized): $650 / 1M tokens + potential additional credit for startup customers.
+
+We can weave in a startup credit (~1–3 months of bill credits) if OrbitAI qualifies for our program; that would be layered with the committed discount.
+
+Attachments: Redwood-Startup-Offer-v1.pdf (proposal template; draft numbers)
+             usage_projection_template.xlsx (simple month-by-month template)
+
+Proposed next step: if you can share the projection and a target $/1M, Ben and I will draft a short offer (term sheet + MOU) and propose legal loop-in items. Can we aim for a decision call next week?
+
+Thanks,
+
+-- 
+Ben Carter
+Senior Account Executive | Redwood Inference
+ben@redwood.com | +1 415-555-0183
+
+
+-----Original Message-----
+From: Elena Park <elena@orbitai.com>
+To: Ben Carter <ben@redwood.com>
+Cc: Samir Shah <samir@orbitai.com>
+Date: Sat, 24 Oct 2026 11:02:12 -0400
+Subject: Re: Next steps: burn forecast, target $/1M tokens & discount tiers
+
+Thanks Ben — quick answers and a couple of follow ups.
+
+1) Ballpark target: we were hoping to get to ~$750 / 1M tokens for committed pricing. That number is driven by product economics on the subscription tier we plan to ship in Q1.
+2) Current monthly: 50M today (mix of eval + prod), expected to ramp to 120–150M by end of Q1 if the pilot converts. We can share the projection you attached — will populate this week.
+3) Startup program: OrbitAI is a seed-stage company (pre-Series A), raised $3.1M to date. Curious what the qualification criteria are and whether that $750 target is within range when factoring startup credit + 12-month commit.
+
+Other asks: could you provide an example 12-month commitment math (showing raw list, discount applied, and net $/1M)? Also note that legal will want a description of potential early-termination clauses and data residency assurances.
+
+Elena
+COO | OrbitAI
+elena@orbitai.com
+
+On Oct 23, 2026, at 09:15, Ben Carter <ben@redwood.com> wrote:
+> [original message above]
+
+
+-----Original Message-----
+From: Ben Carter <ben@redwood.com>
+To: Elena Park <elena@orbitai.com>
+Cc: Olga Petrov <olga@redwood.com>
+Date: Sun, 25 Oct 2026 08:20:05 -0700
+Subject: Re: Next steps: burn forecast, target $/1M tokens & discount tiers
+
+Elena —
+Appreciate the quick detail, that helps. Below is a worked example with the pieces you asked for (list price, committed discount, startup credit applied). Numbers are illustrative — final numbers in the attached draft offer.
+
+Example: 12-month commit example (50M avg monthly -> 600M tokens/year) - List (no commit): $1,800 / 1M tokens -> Annual cost = 600 * $1,800 = $1,080,000
+- Committed discount (approx 50% off list at this band): $900 / 1M tokens -> Annual = 600 * $900 = $540,000
+- Startup credit (one-time credit applied month 1): $50,000 (example) -> First-year net = $490,000
+- Effective $/1M after credit = $490,000 / 600 = ~$817 / 1M tokens
+
+As you can see, a $750 goal is close for a 12-month commit if the startup credit is toward upfront months or if we increase committed volume slightly (75M avg monthly). For 24–36 month structured deals we can push to ~$650 / 1M as noted earlier.
+
+Notes:
+- Banding matters: we price by sustained monthly average rather than peak. If your burn is variable, we can structure graduated bands.
+- Billing: monthly invoiced based on committed quantity; overage billed at on-demand or a negotiated overage rate.
+- Early termination: standard pro rata unwind with committed minimums; we can add a 60–90 day cure in the MSA.
+- Data residency: Redwood Private options (VPC or private deployment) are available if you have strict residency requirements; for hosted, we have region controls and SOC2 controls documented.
+
+Attached is the draft Redwood-Startup-Offer-v1.pdf with the above examples populated and a simple MOU outline. Also attached the usage_projection_template.xlsx — if you send back the filled file we can plug into the final model.
+
+Would you be open to a short call Thursday (10/29) to go through the term sheet?
+
+Best,
+
+-- 
+Ben Carter
+Senior Account Executive | Redwood Inference
+ben@redwood.com | +1 415-555-0183
+
+
+On Tue, 27 Oct 2026 at 14:02:00 -0700, Olga Petrov <olga@redwood.com> wrote:
+> Hi Elena / Samir,
+>
+> Thanks for the thoughtful questions and for populating the template so quickly — saw the upload this morning. We can get the draft commercial terms over to you by EOD tomorrow. A couple internal notes/requests to close this cleanly: 
+>
+> 1) Approval path: I will confirm with finance/legal on the exact discount bands but pre-approve the 12-month example Ben shared as within policy for seed-stage startups where the commitment aligns to a minimum 50M monthly avg. I will need an internal quick sign-off from RevOps if we have any PO/TAX special handling.
+> 2) Documentation: please share contact for procurement/legal (name + email) so our legal team can prepare the MOU/MSA redline path.
+> 3) Timing: if OrbitAI can issue a PO or sign the MOU in November, we can target onboarding in early December (technical onboarding 2–3 weeks).
+> 4) Next call: Ben, please propose two slots for a commercial review call (30 min) next week; include RevOps/legal if OrbitAI has them on hand.
+>
+> We will also include a short appendix that shows sensitivity: effective $/1M at 50M / 75M / 150M avg monthly with and without a one-time startup credit so you can present cleanly to the board.
+>
+> Olga Petrov
+> Director, Strategic Accounts | Redwood Inference
+> olga@redwood.com | +1 650-555-0245
+>
+> Attachments referenced: Redwood-Startup-Offer-v1.pdf, usage_projection_template.xlsx
+

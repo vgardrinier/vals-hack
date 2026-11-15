@@ -1,0 +1,108 @@
+Aperture Health — budget owner & econ-buyer confirmation
+
+From: Marcus Lin <marcus@redwood.com>
+To: Jenna Ortiz <jenna@aperturehealth.com>
+Cc: Marissa Cole <marissa@redwood.com>
+Date: Sun, 15 Feb 2026 15:12:00 -0800
+Subject: Aperture Health — budget owner & econ-buyer confirmation
+
+Hi Jenna,
+
+Thanks again for the time today — appreciate the clear context on where Aperture is trying to take the patient-coding assistant. Quick recap and two asks so we can align pricing correctly: 
+
+Key notes from our discovery call:
+- Expected usage profile: 5k active users at launch, average 1.2k tokens per session (inference + system prompts).
+- Target production ramp: month 1 = 0.5M tokens, month 2 = 1.5M tokens, steady state ~5M tokens/month by Q3.
+- Primary success metric: inference latency <300ms p95 for UI flows.
+
+Pricing qualification I need to lock in: 
+1) Economic buyer / budget owner: who signs and owns the P&L for this initiative? (Name, role, email)
+2) Budget band: are you thinking in the ~$20k–$60k/month range, or is procurement targeting an annual committed amount?
+3) Finance/Procurement reviewer: include the contact so we can send unit economics and a clean SOW/PO template.
+
+For quick transparency, we've attached a redwood-1M-token-cost-breakdown.pdf showing our recommended unit economics and model variants for the stated workload (includes committed discounts and burst policies). If you can confirm the econ buyer and the expected committed tokens (or a budget band), we’ll produce a short MAU/ramp-based quote and a draft mutual action plan.
+
+Next steps I propose:
+- You confirm econ buyer + procurement contact by EOD Tuesday 2/17
+- We deliver a 30/60/90 cost forecast and a DocuSign-ready SOW for signature
+
+Thanks —cc'ing Marissa here for any finance-specific notes.
+
+Best,
+Marcus
+Account Executive | Redwood Inference
+marcus@redwood.com | +1 415-555-0123
+
+Attachment: redwood-1M-token-cost-breakdown.pdf (3 pages)
+
+From: Jenna Ortiz <jenna@aperturehealth.com>
+To: Marcus Lin <marcus@redwood.com>
+Cc: Procurement Team <procurement@aperturehealth.com>
+Date: Mon, 16 Feb 2026 09:04:00 -0800
+Subject: Re: Aperture Health — budget owner & econ-buyer confirmation
+
+Thanks Marcus — great summary and helpful to see the 1M breakdown. A few quick points: 
+
+- Economic buyer / budget owner: that will be Priya Shah, VP Product (priya.shah@aperturehealth.com). She owns the roadmap and signs off on platform spend.
+- Budget band: our initial internal target for this initiative is $30k–$45k/month, with flexibility if we get stronger quality/latency results during the pilot. We prefer a quarterly committed commitment for predictability.
+- Finance contact: looping procurement@aperturehealth.com (Sara, head of procurement) — they’ll handle contract/PO.
+
+Sara from procurement — we’ll need an invoice/PO flow and any SOC2 evidence. Marcus/Marissa: can you include finance-friendly unit economics and a short statement on data residency/audit logs?
+
+Appreciate it —I’ll get Priya to review the MA plan this week.
+
+Best,
+Jenna Ortiz
+Sr. Product Manager | Aperture Health
+jenna@aperturehealth.com
+
+From: Marissa Cole <marissa@redwood.com>
+To: Jenna Ortiz <jenna@aperturehealth.com>, Procurement Team <procurement@aperturehealth.com>
+Cc: Marcus Lin <marcus@redwood.com>, Neha Kapoor <neha@redwood.com>
+Date: Mon, 16 Feb 2026 11:18:00 -0800
+Subject: Re: Aperture Health — budget owner & econ-buyer confirmation
+
+Hi Jenna / Sara — thanks for confirming Priya as the econ buyer. Quick finance-friendly packet below to make procurement review straightforward: 
+
+1) Unit economics (summary) — baseline pricing we’d use for the proposed ramp:
+- Spot model (no commitment): $4.50 / 1k tokens (inference + embedding mix)
+- 1M-token committed tier: effective $2.75 / 1k tokens ($2,750 / 1M tokens)
+- 5M-token committed tier: effective $1.95 / 1k tokens ($1,950 / 1M tokens)
+- Commitment term options: 3 months, 12 months (tiered discount increases at 6/12 mo)
+
+2) Ramp example aligned to your plan: month1 = 0.5M (starting), month2 = 1.5M, steady = 5M. For a 3-month pilot (0.5 + 1.5 + 3.0 = 5.0M total) we’d recommend a 1M committed tier with monthly true-ups; typical pilot PO sits in the $6k–$9k / month range depending on tokens consumed and burst caps.
+
+3) Finance/Compliance notes: we can provide SOC2 report, audit log export, and a short paragraph on VPC/Private deployment options if you need on-prem guarantees.
+
+I’ve attached the same one-page cost breakdown and a vCard for procurement to speed contact import. If Priya prefers a $/1M target different than the tiers above, tell us the target and we’ll compute a tailored committed discount to match.
+
+Marissa Cole
+Head of Revenue Operations | Redwood Inference
+marissa@redwood.com | +1 617-555-0180
+
+Attachments: redwood-1M-token-cost-breakdown.pdf, aperture-procurement-contact.vcf
+
+From: Procurement Team <procurement@aperturehealth.com>
+To: Marcus Lin <marcus@redwood.com>, Marissa Cole <marissa@redwood.com>, Neha Kapoor <neha@redwood.com>
+Cc: Jenna Ortiz <jenna@aperturehealth.com>, Priya Shah <priya.shah@aperturehealth.com>
+Date: Tue, 17 Feb 2026 09:04:00 -0800
+Subject: Re: Aperture Health — budget owner & econ-buyer confirmation
+
+Marcus / Marissa — looping Priya (econ buyer) as requested. A few procurement notes: 
+
+- Priya is the signatory for platform contracts > $25k / year. For pilot PO under $25k we can approve on our side; anything above requires central finance sign-off.
+- Our preferred billing cadence is monthly with net-30 terms.
+- We reviewed your unit economics PDF; the 1M and 5M committed tiers look reasonable. Priya — we’re aligned to move forward with a 3-month pilot and a follow-on committed tier evaluation.
+
+Action items: 
+- Marcus: please send the DocuSign SOW and a short one-page invoice template that reflects monthly billing + net-30.
+- Marissa: please include SOC2 attestation link and the audit log export cadence.
+
+We’ll expect the SOW by EOD Wed 2/18 so procurement can issue the PO.
+
+Thanks,
+Sara Nguyen
+Procurement | Aperture Health
+procurement@aperturehealth.com
+
+Attachment referenced: DocuSign powerform (link provided by Marcus in follow-up)

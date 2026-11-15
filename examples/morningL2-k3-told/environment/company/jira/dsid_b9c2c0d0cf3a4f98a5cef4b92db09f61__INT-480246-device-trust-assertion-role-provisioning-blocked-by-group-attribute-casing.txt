@@ -1,0 +1,57 @@
+Device-trust assertion present but RBAC role not provisioned due to Okta group attribute casing
+
+Issue summary:
+Several internal users and a service-runner reported that after completing device-trust SSO flow, the identity proxy includes a valid device_trust assertion in the downstream SAML/OIDC token, but the RBAC service does not provision the expected console roles. Impact: users cannot access runbook and credential operations (403) despite successful SSO and device attestation.
+
+Impact:
+- Multiple oncall engineers and a service-runner are blocked from running sensitive runbooks and requesting ephemeral SSH certs.
+- Not currently a full outage but prevents escalations and some privileged workflows.
+
+Environment:
+- Prod, us-west cluster, auth-proxy v1.8.2, console v2.3.0, rbac-service v0.9.1
+
+Observed behavior:
+- Okta device-trust assertion present in token (see logs).
+- RBAC service lookup for group membership returns empty for affected users.
+- Console returns 403 when calling runbook endpoints.
+
+Expected behavior:
+- RBAC service should map the asserted groups to console roles and grant access based on role mappings defined in the policy store.
+
+Notes:
+- Failures started after an Okta group mapping roll (attribute remap) rolled ~2026-03-11 23:40 UTC.
+- Affected principals: both human users and service-runners whose Okta group attribute contains mixed-case naming convention (e.g., "SRE-Runbooks" vs expected lowercase "sre-runbooks").
+1) Authenticate via SSO with device-trust enabled for a user whose Okta group attribute uses mixed-case (e.g., SRE-Runbooks).
+2) Observe token received by identity-proxy includes device_trust=true and groups:["SRE-Runbooks"].
+3) Identity-proxy forwards claims to rbac-service.
+4) rbac-service attempts to resolve groups against policy store and returns no match.
+5) Attempt to access console runbook endpoint and receive 403.
+
+Repro rate: 6/8 attempts on affected user accounts; accounts with all-lowercase groups succeed.
+auth-proxy (2026-03-13T02:12:09Z) INFO forwarded token for user alice.sr@redwood.ai claims={device_trust:true, groups:["SRE-Runbooks","sre-oncall"]}
+rbac-service (2026-03-13T02:12:09Z) WARN group_lookup: 'SRE-Runbooks' -> no match in policy store
+console (2026-03-13T02:12:09Z) ERROR authorization denied for user alice.sr@redwood.ai: missing role 'runbook_executor'
+
+Sample token (redacted):
+- sub: alice.sr@redwood.ai
+- device_trust: true
+- groups: ["SRE-Runbooks","sre-oncall"]
+
+Policy store snapshot (2026-03-13T02:00Z): contains mapping for 'sre-runbooks' -> runbook_executor
+- 03/13 02:30 UTC: Confirmed device_trust assertion arrives intact from Okta. Identity-proxy logs show correct claim forwarding.
+- 03/13 03:10 UTC: Replayed token with groups lowercased and RBAC mapping succeeded. Hypothesis: group attribute casing mismatch causes policy lookup to fail because policy store keys are normalized to lowercase.
+- 03/13 05:45 UTC: Looked at recent Okta attribute mapping change (audit id okta-audit-20260311-7). The transformation removed lowercase normalization on group.displayName for a subset of groups.
+- 03/13 06:20 UTC: Verified service-runner (svc-runner-12) also affected; the runner's group attribute used mixed-case and failed to get ephemeral cert permission.
+- 03/13 07:00 UTC: Temporary mitigation: added a lowercase fallback in rbac-service to normalize incoming group names; patch deployed to staging (identity-proxy normalization considered but rbac-service is canonical place for mapping).
+- 03/14 09:15 UTC: Patch pushed to prod (rbac-service v0.9.2) that lowercases incoming group identifiers before lookup. Observed immediate reduction in 403s for repro accounts (repro rate dropped to 0/10 in quick smoke).
+Aisha Patel (Reporter) 2026-03-12: Noticed multiple oncall pings about 403s after device-trust login; filing ticket and adding logs.
+Marcus Chen (Assignee) 2026-03-13: Started triage. Reproduced with mixed-case groups. Hypothesis: case-sensitivity in RBAC lookup. Spun up diag replay in staging.
+SRE Team #oncall 2026-03-13: Observed service-runner 'svc-runner-12' blocked when requesting ephemeral certs. Raising priority to P1.
+Identity Team (Eve Jackson) 2026-03-13: Okta config change noted (okta-audit-20260311-7). That rollout removed a transform that lowercased group.displayName. Rolling back is an option but may impact other customers. Recommend service-side normalization.
+Marcus Chen 2026-03-14: Deployed rbac-service v0.9.2 with lowercase normalization. Monitoring shows request success for previously affected users. Will keep this ticket open until we confirm 48 hours stability and discuss long-term config hardening.
+Priya Kapoor (IAM) 2026-03-14: Filing follow-up to coordinate with Identity team to update Okta mapping to include canonicalized group IDs. See linked Confluence page.
+Marcus Chen 2026-03-14: Note: alerted #security about device-trust assertions being forwarded unchanged — no credential leakage detected.
+Temporary hotfix: rbac-service now normalizes incoming group identifiers to lowercase before policy lookup (v0.9.2). Next steps: schedule IdP mapping rollback or canonicalization work with Identity team; add unit tests for group matching; add observability metric for group-lookup-misses-by-case.
+Coordinate with Identity team to reintroduce deterministic group canonicalization in Okta (owner: Eve Jackson)
+Add unit/integration tests around group casing for rbac-service (owner: Marcus Chen)
+Add alert: group-lookup-mismatch-rate > 0.5% for 10m (owner: SRE)

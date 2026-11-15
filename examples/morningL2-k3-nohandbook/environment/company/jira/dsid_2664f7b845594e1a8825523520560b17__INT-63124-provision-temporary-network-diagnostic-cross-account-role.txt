@@ -1,0 +1,53 @@
+Provision temporary cross-account network diagnostic role for inter-region VPC flow investigation
+
+Issue summary:
+We need a short-lived, least-privileged cross-account role for a network engineer to collect VPC Flow Logs, S3/GCS flow artifacts, and Cloud Router logs across two accounts/projects to investigate sporadic packet drops and elevated tail latency for inference traffic between us-east-1 and eu-west-1.
+
+Impact:
+- Ongoing customer-reported increased end-to-end tail latency for customer workloads that span regions.
+- Cannot complete root-cause analysis because the network team lacks read access to the peer account's flow logs and the GCP project that hosts the inter-region VPN.
+
+Environment:
+- Affected AWS account: aws-prod-main (us-east-1)
+- Peer AWS account: aws-prod-shared (eu-west-1)
+- Affected GCP project: redwood-prod-networking (europe-west1)
+
+Requested access summary:
+- A temporary, timebound role usable via AssumeRole from aws-prod-main into aws-prod-shared and a temporary service account key or workload identity binding for redwood-prod-networking.
+- Permissions must be scoped to read-only network telemetry and storage buckets used for flow ingest. No compute modification privileges.
+
+Duration and constraints:
+- Requested window: 4 hours on 2026-03-11 09:00-13:00 UTC (one-time).
+- Access must require MFA and be recorded in CloudTrail/Cloud Audit Logs.
+- Access should be automatically revoked after the window.
+
+Approval:
+- Pre-approval provided by Leah Thompson (Cloud Security). Post-audit required by Security Operations.
+
+Deliverables / success criteria:
+- Engineer can retrieve VPC Flow Logs for the suspect window, query GCS/S3 objects for flow export, and access Cloud Router logs to correlate routing churn.
+- All actions must be visible in audit logs and an access ticket created in PagerDuty for any suspicious actions.
+AWS: sts:AssumeRole on arn:aws:iam::ACCOUNT_SHARED:role/Net-Diagnostic-ReadOnly-JIT
+AWS: s3:GetObject, s3:ListBucket on arn:aws:s3:::redwood-vpcflow-*
+AWS: logs:DescribeLogGroups, logs:GetLogEvents for VPC flow log groups
+GCP: roles/logging.viewer on projects/redwood-prod-networking
+GCP: roles/compute.networkViewer and roles/compute.viewer (read-only routing tables)
+GCP: storage.objects.get on gs://redwood-network-flow-exports
+Network team needs temporary, minimal privileges to complete RCA for cross-region packet drops. Long-term permanent access is not requested; this is a JIT request tied to a single investigation window.
+Leah Thompson approved 2026-03-10 16:40 UTC. Security to perform post-access audit and sign-off.
+2026-03-09 22:12 UTC: Observed 99.95th percentile tail latency spikes in inter-region traffic (traces linked in observability dashboard).
+2026-03-09 22:40 UTC: Attempted to pull flow logs from aws-prod-shared but received AccessDenied on s3 bucket redwood-vpcflow-eu. Contacted account owner; they recommended a scoped assume-role.
+Hypothesis: intermittent route flap on VPN appliance in eu-west-1 causing retransmits and increased tokenization latency for streaming endpoints. Need flow logs to confirm.
+1) Create role Net-Diagnostic-ReadOnly-JIT in aws-prod-shared with the requested permissions and trust policy allowing sts:AssumeRole from the reporter's principal, MFA required.
+2) Create workload identity binding for redwood-prod-networking to allow reporter@redwood-internal to impersonate a diagnostic SA with logging.viewer and storage.objectViewer privileges for the specified bucket.
+3) Log the temporary grant in the central access ledger (Confluence audit table) and create an access session in PagerDuty for the operation window.
+4) After the window, revoke role trust policy and delete temporary bindings. Collect audit logs and attach to this ticket for Security review.
+Aisha Patel (Reporter) 2026-03-10 15:05: Requested JIT role window and provided initial justification.
+Leah Thompson (Cloud Security) 2026-03-10 16:40: Approved for 4-hour window contingent on MFA and full audit logs. Please coordinate with Account Owner in aws-prod-shared.
+Owen Baker (Assignee) 2026-03-11 08:05: Preparing IAM policy templates and trust policy. Need confirmation of exact S3 bucket names from account owner.
+Carlos Nguyen (Account Owner - aws-prod-shared) 2026-03-11 08:22: Bucket is redwood-vpcflow-eu and logs are exported daily to prefix /exports/2026-03-09/. Granting approval for assume-role creation scoped to that prefix.
+Owen Baker 2026-03-11 08:45: Role created (arn:aws:iam::ACCOUNT_SHARED:role/Net-Diagnostic-ReadOnly-JIT). Temporary credentials issued to reporter at 09:02 UTC. Monitoring audit logs.
+In progress - role provisioned and JIT session initiated. Post-access audit pending; will attach logs and final notes upon completion.
+Collect CloudTrail and Cloud Audit Logs for the 09:00-13:00 UTC window and attach to this ticket.
+Security to perform a forensic review and confirm no privilege escalation or unexpected activity.
+If root cause confirmed as VPN appliance instability, create follow-up ticket for network team to schedule maintenance and apply fix.

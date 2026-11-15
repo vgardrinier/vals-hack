@@ -1,0 +1,146 @@
+Champion enablement & economic-buyer intake
+
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Maya Kapoor <maya.kapoor@brightwell.health>
+Cc: Laura Bennett <laura.bennett@redwood.com>, Marcus Lin <marcus.lin@redwood.com>
+Date: 2026-02-15T10:05:00-08:00
+Subject: Quick recap + request: next steps & stakeholder list
+
+Hi Maya —
+
+Thanks again for the time this morning. Quick recap from our side and a couple of asks so we can move the evaluation forward smoothly: 
+
+What we heard:
+- Primary use case: reduce clinical documentation time for outpatient visits (measure: minutes saved per encounter).
+- Target volume: ~1.2M tokens/month initially, with pilot on 10 clinicians.
+- Key success criteria: latency < 300ms median for short prompts, clear audit logs, and per-patient data residency controls.
+
+Immediate asks / next steps:
+1) Can you confirm the economic buyer (name & best email) so we can prepare a tailored cost estimate and ROI table?
+2) Please share any procurement/security questionnaires we should fill out — we can return a completed packet within 48 hours.
+3) I’m attaching a short champion brief (one-pager) that you can use internally — can you share with the stakeholders you mentioned? Attachment: redwood-champion-playbook.pdf
+
+I’ll follow up with a short pricing note and a suggested pilot plan once I have the econ-buyer contact.
+
+Thanks — excited to keep this moving.
+
+Best,
+Karthik
+Account Executive, Redwood Inference
+karthik.iyer@redwood.com
+(415) 555-0147
+
+Attachment: redwood-champion-playbook.pdf (1 page — champion talking points, ROI bullets, pilot scope)
+From: Maya Kapoor <maya.kapoor@brightwell.health>
+To: Karthik Iyer <karthik.iyer@redwood.com>
+Cc: Anil Desai <anil.desai@brightwell.health>
+Date: 2026-02-15T13:20:00-08:00
+Subject: Re: Quick recap + request: next steps & stakeholder list
+
+Thanks, Karthik — great conversation. I shared the pilot idea with the clinical leads; they’re interested.
+
+Econ buyer and stakeholder map (high-level):
+- Anil Desai — CFO (primary economic buyer) — anil.desai@brightwell.health
+- Priya Sharma — Head of Procurement (procurement lead) — priya.sharma@brightwell.health
+- Dr. Rajiv Menon — Chief Medical Officer (clinical sponsor) — rajiv.menon@brightwell.health
+- Me (Maya Kapoor) — Clinical Ops (champion / day-to-day contact) — maya.kapoor@brightwell.health
+
+Procurement wants an initial security checklist before we route to Priya. I’ll loop Priya on the next email. Also happy to share your one-pager with the CFO and CMO — thanks for that.
+
+-Maya
+Clinical Ops Program Manager
+Brightwell Health
+
+On Mon, Feb 15, 2026 at 10:05 AM Karthik Iyer <karthik.iyer@redwood.com> wrote:
+> Hi Maya —
+> 
+> Thanks again for the time this morning. Quick recap from our side and a couple of asks so we can move the evaluation forward smoothly: 
+> 
+> [snip]
+>
+> Best,
+> Karthik
+> Attachment: redwood-champion-playbook.pdf
+From: Priya Sharma <priya.sharma@brightwell.health>
+To: Karthik Iyer <karthik.iyer@redwood.com>, Maya Kapoor <maya.kapoor@brightwell.health>
+Cc: procurement@brightwell.health
+Date: 2026-02-16T09:10:00-08:00
+Subject: Re: Quick recap + request: next steps & stakeholder list
+
+Hi Karthik / Maya —
+
+Thanks for the intro. For procurement and security intake we need a completed questionnaire and a short answers doc covering: data residency, retention, encryption (in transit & at rest), SOC2 / ISO certifications, access controls, and subprocessor list.
+
+I’ve attached the Brightwell Security QA we use for vendors — please return with your responses where applicable. Attachment: Brightwell_Security_QA.pdf
+
+Procurement timeline: if we get completed docs by EOD Wed (2026-02-18), procurement review + legal redline window is ~10 business days.
+
+Also — for pricing, please include a pilot price (10 clinicians) and a 12-month committed price with an optional ramp. We prefer line-item clarity (per-token, per-seat, pilot flat fee).
+
+Priya
+Head of Procurement, Brightwell Health
+priya.sharma@brightwell.health
+
+Forwarded message:
+> From: Maya Kapoor <maya.kapoor@brightwell.health>
+> Date: Mon, Feb 15, 2026 at 1:20 PM
+> Subject: Re: Quick recap + request: next steps & stakeholder list
+> To: Karthik Iyer <karthik.iyer@redwood.com>
+>
+> Thanks, Karthik — great conversation. I shared the pilot idea with the clinical leads; they’re interested.
+>
+> [snip]
+
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Maya Kapoor <maya.kapoor@brightwell.health>, Priya Sharma <priya.sharma@brightwell.health>, Anil Desai <anil.desai@brightwell.health>
+Cc: Laura Bennett <laura.bennett@redwood.com>, Marissa Cole <marissa.cole@redwood.com>
+Date: 2026-02-17T11:45:00-08:00
+Subject: Champion brief + pilot pricing outline (requested items)
+
+Hi all —
+
+Appreciate the fast turn. Per Priya’s note I’ve attached a one-page answers file and a short champion playbook to help you brief Anil and Rajiv. High level pricing below; I’ll follow up with a full line-item quote in HubSpot and a proper pilot SOW once you confirm the stakeholder list.
+
+Pilot (10 clinicians, 6 weeks) — flat pilot fee: $12,500
+12-month committed plan — blended: $0.0022 per token, with discounted seat-add pricing after 3 months
+Estimated first-year cost (scale to expected volume): $X (we’ll finalize once we confirm exact token profiles)
+
+Champion enablement highlights (copy for Maya to use internally):
+- Value talk track: Reduce documentation time by an average of 35% -> ROI = clinician-hours recovered * average hourly rate
+- Security: Private deployment option (VPC) + KMS integration; audit logs retained per your retention policy
+- Rollout: 10-clinician pilot -> 2-week technical validation -> 4-week clinical validation -> full rollout gating metrics
+
+Attachments included: redwood-champion-playbook.pdf, Redwood_responses_to_Brightwell_QA.docx (short answers).
+
+Please confirm Priya’s timeline above (EOD 2026-02-18 for initial docs) and Anil’s preferred time for a 20-minute pricing & ROI sync.
+
+Thanks,
+Karthik
+Account Executive, Redwood Inference
+
+> On Feb 16, 2026, Priya Sharma <priya.sharma@brightwell.health> wrote:
+> > Hi Karthik / Maya —
+> >
+> > [snip]
+
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Laura Bennett <laura.bennett@redwood.com>
+Cc: Marcus Lin <marcus.lin@redwood.com>, Marissa Cole <marissa.cole@redwood.com>
+Date: 2026-02-18T08:30:00-08:00
+Subject: Fwd: Champion brief + pilot pricing outline — request: approval guidance for pilot discount
+
+Laura —
+
+Forwarding the thread. Quick ask: Priya set a procurement deadline of EOD 2026-02-18 for initial docs. I’m proposing a pilot fee of $12,500 (flat) and the 12-month tier pricing noted in the email. Can we approve a 10% pilot discount if needed to secure the pilot this week? Retail teams often need a small incentive to lock the pilot and get the CFO comfortable with the first-year forecast.
+
+If you’re out, Marcus / Marissa — can you weigh in on seat-level pricing flexibility and whether we should include an onboarding credit?
+
+Thanks — I’ll be on the phone with Maya at 9:00 to coordinate the doc handoff.
+
+Karthik
+Account Executive, Redwood Inference
+
+> On Feb 17, 2026, Karthik Iyer <karthik.iyer@redwood.com> wrote:
+> > Hi all —
+> >
+> > [snip]

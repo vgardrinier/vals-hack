@@ -1,0 +1,49 @@
+Create runtime-ops Slack channel with automated thread->Confluence page creation and Jira escalation sync
+
+Issue summary: Request to provision a new #runtime-ops Slack channel that automatically converts any new top-level thread into a persistent Confluence page (under OPS > Runtime Incidents) and creates a Jira support task when a thread is flagged with :escalate: emoji. The automation should also surface a short digest to the channel nightly and allow timebound guest access for partner on-call rotation with approval.
+
+Impact: Improves post-incident documentation hygiene and reduces manual ticket creation. Current pain: on-call posts incident notes in ephemeral channels, losing thread context; follow-up tickets are created manually leading to missed action items. This affects SRE, platform, and on-call rotations across pods.
+
+Proposed solution:
+- Create Slack channel #runtime-ops with topic and pinned runbooks.
+- Install/configure a lightweight automation (Bolt/Workflow Builder or our internal bot) that: 
+  * On new top-level thread post, create a Confluence draft page in Ops/Runtime Incidents with the thread title, timestamp, author, and initial messages.
+  * On reaction :escalate: from any member, create a Jira task under project INT-OPS (use INT- prefix internal support) prefilled with thread link, Confluence draft link, urgency label, and assign to the on-call rotation.
+  * On channel thread closure (no activity for 48h), auto-publish the Confluence draft and add page to the weekly incident index.
+- Implement an approval flow for external guest access (timebound 7-day window) via our existing provision bot; ensure guests are not able to see confidential Confluence pages unless whitelisted.
+- Nightly digest: post a short list of threads created that day with links to Confluence pages and Jira tasks.
+
+Acceptance criteria:
+- #runtime-ops exists and is discoverable in Slack.
+- New thread in channel creates a Confluence draft with correct metadata within 2 minutes.
+- Reacting with :escalate: generates a Jira task with required fields and links.
+- Drafts auto-publish after 48h of inactivity and appear in the incident index.
+- Guest access requests route through the approval bot and enforce timebound scopes.
+- No elevation of Confluence visibility occurs for drafts; only published pages follow space permissions.
+
+Steps to reproduce (for testing):
+1) Post a new top-level thread in #runtime-ops with incident title.
+2) Verify Confluence draft appears at the linked page URL and contains thread content.
+3) Add :escalate: reaction from another user.
+4) Confirm Jira task creation with links.
+5) Leave thread idle and confirm auto-publish after 48h or trigger manual publish via command.
+
+Risks & mitigations:
+- Risk: accidental exposure of private data in Confluence draft. Mitigation: drafts created in restricted Ops space; only on-publish do we inherit normal space permissions. Add a pre-publish checklist that requires a reviewer.
+- Risk: spam creating many drafts. Mitigation: rate-limit automation (3 drafts per user per day) and provide a manual opt-out command.
+
+Rollout plan:
+- Stage in staging workspace for 1 week with Platform pod and Oncall team testing.
+- After signoff, enable in prod for limited audience (SRE + Platform) for 2 weeks.
+- Open to all runtime-related owners after monitoring.
+
+Follow-ups:
+- Create a small dashboard in Console tracking drafts->published ratio and average time-to-ticket.
+- Add training snippet to the on-call runbook.
+
+Lena Ortiz (Reporter) 2026-03-10: Filing this to reduce manual follow-ups after incidents. Happy to demo example threads we use now.
+Marcus Chen (Assignee) 2026-03-10: Assigned. Need clarification on whether Confluence drafts should be visible to everyone in Ops or restricted to on-call first. Also, do we want the Jira task to get auto-priority based on keywords?
+Lena Ortiz 2026-03-10: Prefer drafts restricted to on-call + SRE leads. For priority, let's map keywords (P0,P1) if present in thread title; otherwise default to P3. We can refine mapping after initial rollout.
+SRE Oncall (comment) 2026-03-11: Would like an opt-in command /no-publish for sensitive threads so they never get auto-created. Also request an escape hatch to bulk-purge auto-drafts older than 90 days.
+Marcus Chen 2026-03-11: Noted—will scope the commands and retention settings. I'll schedule a 30-min staging walkthrough with SRE and Platform for 2026-03-15.
+Support Tools (automation) 2026-03-11: Linked to INT-739201 for oncall workflow template and INT-64812 for observability space provisioning.

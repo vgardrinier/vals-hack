@@ -1,0 +1,140 @@
+Dedicated capacity slab allocation review for HelixHealth renewal
+
+From: Soojin Lee <soojin_lee@redwood.com>
+To: Sara Patel <sara@helixhealth.com>
+Cc: Ben Carter <ben_carter@redwood.com>
+Date: 2026-09-30T10:15:00Z
+Subject: Dedicated capacity slab allocation review for HelixHealth renewal
+
+Hi Sara —
+
+As we start the renewal conversation for your Dedicated cluster, I pulled together a short snapshot of the last 60 days of usage and a proposal for a slab-based allocation that maps to the commit tiers we discussed. Attaching: usage_report_aug-sep.csv and an initial proposed_slab_layout.pdf.
+
+Quick summary:
+- Current commit: 160 A100-equivalent GPU-hours/day (monthly reserved dedicated capacity).
+- Observed 60d median utilization: ~58% during business hours, 22% off-peak; 95th percentile bursts align with short windows tied to nightly retrains.
+- Effective tail risk: ~3% of requests drove 25% of peak token volume in spikes.
+
+What I want to validate with you:
+1) Whether Helix prefers a deterministic slab allocation (stable reserved slabs + burst pool) vs a smoother utilization-based commit.
+2) Acceptable buffer percent for SLO headroom (we usually recommend 15–25% depending on tolerance for throttling).
+3) Procurement timing so we line up the tranche start date with your billing cycle.
+
+Proposed next steps: 30-minute walkthrough to go over the slab diagram and cost delta between a 15% and 25% headroom buffer. I have availability Wed (10/6) 11:00–12:00 or Thu (10/7) 15:00–16:00 PT.
+
+Thanks — I’ll keep Ben copied so we can surface the pricing impact and SOW changes.
+
+— Soojin
+Soojin Lee | Account Lead, Redwood Inference
+soojin_lee@redwood.com | +1 (415) 555-0132
+
+Attachments: usage_report_aug-sep.csv (CSV, 1.2MB), proposed_slab_layout.pdf (PDF, 540KB)
+From: Sara Patel <sara@helixhealth.com>
+To: Soojin Lee <soojin_lee@redwood.com>
+Cc: HelixHealth Procurement <procurement@helixhealth.com>
+Date: 2026-10-01T09:02:00Z
+Subject: Re: Dedicated capacity slab allocation review for HelixHealth renewal
+
+Thanks Soojin — this is helpful.
+
+Two quick notes from our side:
+- We like the slab approach for predictability; our infra team prefers clear isolation during peak inference windows.
+- Procurement will want a clear explanation for any headroom beyond 10% — historically they push for conservative buffers. They are looped here.
+
+Can you send a short justification for a 15% vs 25% buffer (cost delta + risk posture)? Also, for the proposed slab layout, can you show how swap/rollover credits would work if our usage drops quarter-over-quarter?
+
+We can do Wed 10/6 11:00 PT. I’ll invite the infra lead (cc’d procurement separately).
+
+Best,
+Sara Patel
+Director, ML Platforms — HelixHealth
+
+---
+Attachment requested: detailed breakdown of slab economics and rollover policy
+
+From: Ben Carter <ben_carter@redwood.com>
+To: Soojin Lee <soojin_lee@redwood.com>, Sara Patel <sara@helixhealth.com>
+Cc: Laura Bennett <laura_bennett@redwood.com>
+Date: 2026-10-02T14:30:00Z
+Subject: Re: Dedicated capacity slab allocation review for HelixHealth renewal
+
+On Fri, Oct 1, 2026 at 9:02 AM Sara Patel <sara@helixhealth.com> wrote:
+> Thanks Soojin — this is helpful.
+> 
+> Two quick notes from our side: ...
+
+Hi Sara — looped Laura for SOW and billing artifacts. Quick note on buffer justification and slab economics:
+
+15% buffer (recommended minimum):
+- Rationale: covers regular day-to-day variance and predictable daily peaks (95th percentile).
+- Cost: ~+8% on committed spend vs current commit.
+- Risk: Low chance of throttling; bursts within buffer handled by reserved slab.
+
+25% buffer (high-safety):
+- Rationale: absorbs larger, irregular bursts (including occasional multi-hour retrain windows).
+- Cost: ~+18% on committed spend.
+- Risk: Near-zero throttling, but less efficient spend if off-peak utilization remains low.
+
+Slab layout idea (see proposed_slab_layout.pdf):
+- Base slab: 120 GPU-hours/day reserved (covers steady state).
+- Peak slab: additional 40 GPU-hours/day reserved, active during business hours by schedule.
+- Burst pool: on-demand capacity that charges slightly higher but scales short-lived spikes.
+
+Swap/rollover policy (commercial):
+- We can offer 20% of unused committed hours to roll into subsequent quarter as credits, or apply to burst consumption in the next billing month. Full rollover on a quarterly basis requires a 12-month commitment amendment.
+
+If Helix wants a leaner cost profile, we can model a hybrid: 120 base + smaller peak slab (30) + larger burst pool; this reduces committed spend by ~6% vs the base+40 model while keeping similar tail coverage via burst pricing.
+
+I’ll prepare a short two-slide economics summary for the 10/6 call.
+
+— Ben
+Ben Carter | Sr. Solutions Engineer, Redwood Inference
+ben_carter@redwood.com | +1 (650) 555-0199
+
+Attachments referenced: proposed_slab_layout.pdf
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Sara Patel <sara@helixhealth.com>, Soojin Lee <soojin_lee@redwood.com>
+Cc: HelixHealth Procurement <procurement@helixhealth.com>
+Date: 2026-10-05T11:20:00Z
+Subject: Re: Dedicated capacity slab allocation review for HelixHealth renewal
+
+Hi Sara — thanks for the sync booked on 10/6. I’m attaching a SOW-draft-v3.docx that encodes the two commercial paths Ben described (15% buffer vs 25% buffer) and the rollover language for quarterly credits.
+
+A couple of operational items to confirm before we finalize pricing:
+- Start date alignment: Do you want the tranche to begin 2027-01-01 or aligned to your fiscal month (2026-12-15)? Either is fine; we just need a firm date for provisioning.
+- Scheduled scaling windows: If you adopt the peak slab we will set predictable activation windows (e.g., 8:00–20:00 PT) to minimize preemptive autoscaling.
+- Audit/usage exports: we will provide daily token/GPU-hour exports and monthly utilization dashboards (no extra cost).
+
+Please review the SOW and highlight any redlines. Procurement: if you prefer, Laura (me) can take the first pass on contract language to keep things moving.
+
+Warmly,
+Laura Bennett | Director, Customer Success — Redwood Inference
+laura_bennett@redwood.com | +1 (415) 555-0177
+
+Attachments: SOW-draft-v3.docx (Word, 160KB)
+
+From: Sara Patel <sara@helixhealth.com>
+To: Laura Bennett <laura_bennett@redwood.com>, Soojin Lee <soojin_lee@redwood.com>
+Cc: HelixHealth Procurement <procurement@helixhealth.com>
+Date: 2026-10-09T16:42:00Z
+Subject: Re: Dedicated capacity slab allocation review for HelixHealth renewal
+
+Laura / Soojin — thanks for the materials and the clear options. Procurement reviewed and is okay with the 15% buffer model if we can commit to the quarterly rollover clause you proposed. Two quick requests before we sign:
+1) Replace the auto-renew termination notice to 60 days (we typically operate on 60-day exit windows).
+2) Add a line that guarantees a 48‑hour escalation path for Sev‑1 incidents related to dedicated slab performance.
+
+Assuming those two redlines are acceptable, we’re prepared to move forward on the 2027-01-01 tranche start date and will need a DocuSign link for the SOW. I’m copying procurement on the response so they can confirm legal language.
+
+Sara Patel
+Director, ML Platforms — HelixHealth
+sara@helixhealth.com | +1 (212) 555-0621
+
+-- Forwarded message attached for procurement --
+> From: HelixHealth Procurement <procurement@helixhealth.com>
+> To: laura_bennett@redwood.com
+> Date: 2026-10-09T16:40:00Z
+> Subject: RE: Contract redlines (pending)
+> 
+> Procurement has one additional ask: please surface the SLA credit mechanics tied to aggregated monthly availability. We will sign once those are explicit.
+
+Attachments included: SOW-draft-v3.docx (Word, 160KB)

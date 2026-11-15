@@ -1,0 +1,37 @@
+Duplicate privileged sessions originating from image-proxy GETs after external email embed
+
+Issue summary: Multiple Redwood employee accounts showed near-simultaneous creation of new privileged web sessions (console/API) immediately after receiving an external marketing email with a remote-hosted image. Sessions were from geographically diverse IPs but tied to identical OAuth token IDs. Suspected compromise vector is an image-hosted redirector that triggered a third-party token exchange path in our SSO integration.
+
+Why this ticket: escalate to SRE/Sec to triage scope, contain compromised tokens, and validate whether any service accounts or elevated actions were taken.
+At least 6 employee sessions observed (developers, infra engineers) activated within a 2-minute window. No confirmed data exfiltration yet; several console actions attempted and blocked by our step-up MFA rule. Potential lateral movement risk until tokens are revoked. Affected users are all internal; no customer-facing endpoints observed to be accessed yet.
+2026-03-12T09:05:13Z - Automated alert from session-anomaly detector: clustered token reuse across 6 accounts
+2026-03-12T09:06:40Z - Support triage: initial correlation to recently received external marketing email with embedded image tag (tracking pixel) sent at 09:03:21Z
+2026-03-12T09:12:02Z - Security created temporary blocklist rule for image-host host: img-analytics.example.com
+2026-03-12T09:20:00Z - SRE revoked suspicious OAuth refresh tokens for affected accounts and forced short-lived session invalidation
+2026-03-12T10:05:00Z - Early investigation showed identical OAuth token hash present in auth logs across all sessions
+1) Receive email with remote-hosted image (tracking pixel) from external domain
+2) Browser or email client makes GET to image-hosting domain which triggers a 302 to a redirector that includes open-redirect parameters
+3) Redirector executes a client-side fetch to an endpoint that performs implicit token exchange with our SSO (observed via referrer headers), producing a short-lived session cookie
+4) New session appears in logs as created with matching oauth_token_id across different user agents and IPs.
+Auth logs: oauth_token_id 'otk_3a9f...b12' seen in six session create events; token signature valid for our client_id but refresh token flows show nonstandard user_agent 'ImageFetch/1.0'
+Inbound network: multiple GETs to img-analytics.example.com from office and remote IPs within seconds of email send; host resolves to CDN provider used by third-party marketer
+SSO provider (IdP) logs: conditional consent bypass returning success when referrer matches 'track.example-redirect.com' — open-redirect parameter present
+No API keys or service account tokens observed to be used in conjunction with these sessions; console actions attempted were blocked by policy 'high-privilege-stepup' which requested MFA and returned 401 when automated agent couldn't continue
+Related indicators: IPs 198.51.100.34, 203.0.113.120; redirector domain track.example-redirect.com; image host img-analytics.example.com
+Preliminary hypothesis: third-party marketing redirector abused an open-redirect that allowed an automated client to trigger an IdP implicit or token-exchange flow resulting in valid session tokens being minted and propagated to various clients.
+Auth log snippets: auth-prod-20260312.log lines 5321-5334 (oauth_token_id matches)
+Screenshot of raw email headers and embedded image tag (saved in secure evidence bucket)
+PCAP of outbound GETs from affected user's nat-gateway (redacted) stored at s3://redwood-sec-evidence/INT-408271/pcap
+IdP audit export for 2026-03-12 09:00-09:30 (provided by IdP support team)
+Immediate containment steps applied: revoked refresh tokens tied to affected oauth_token_id, forced short session invalidation for affected users, blocklist added for img-analytics.example.com at edge proxy and mail gateway. IdP conditional rules temporarily tightened to reject token exchanges with external referrers and to enforce additional consent. Ongoing: Security working with vendor to request takedown of redirector domain and coordinate post-incident review.
+1) Rotate any potentially exposed app-level client secrets used by the marketing vendor integration
+2) Create a detection rule to flag any future oauth_token_id reuse across distinct user-agents/IPs within a 5-minute window
+3) Update phishing awareness guidance to engineering teams describing the image-based fingerprinting/redirect risk
+4) Confluence runbook: document INT-408271 findings and update 'IdP hardening' checklist
+5) Security to coordinate legal/third-party takedown if vendor is unresponsive
+Samuel Ortiz (Reporter) - 2026-03-12T09:08:00Z: Noticed clustered sessions right after the marketing email. Attaching headers and log snippets.
+Aisha Khan (Assignee) - 2026-03-12T09:15:00Z: Scoped to 6 users; revoking refresh tokens now and adding host blocklist at edge. Escalating to SecOps.
+Jordan Lee (SecOps) - 2026-03-12T09:22:00Z: Confirmed IdP shows matching token IDs. Asking IdP to freeze token issuance for the client_id until we confirm redirector fix.
+Tariq Mahmood (SRE) - 2026-03-12T10:02:00Z: Applied temporary proxy rule and deployed detection lambda to alert on token_id reuse. Collecting pcaps into evidence bucket.
+Partial containment complete. Tokens revoked and proxy blocklist applied. Investigation continues with IdP and vendor; no evidence of customer data access. Will update ticket with final postmortem and runbook changes.
+Include timeline of email send -> image GETs -> token minting; map any gaps in IdP consent flow; consider disabling implicit grant or ensuring strict referrer checks for token exchange endpoints.

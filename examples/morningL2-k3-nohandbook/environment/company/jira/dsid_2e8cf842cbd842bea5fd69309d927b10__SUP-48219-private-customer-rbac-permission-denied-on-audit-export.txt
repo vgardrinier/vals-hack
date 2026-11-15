@@ -1,0 +1,84 @@
+Private deployment: permission denied when exporting audit logs after RBAC v2 rollout
+
+Customer (Northbridge Healthcare) reports that audit log export started failing with 403 PermissionDenied immediately after enabling RBAC v2 on their Private deployment. They are attempting to export audit logs to their SIEM integration for daily compliance review.
+
+Impact:
+- Security team cannot export audit logs from Redwood Console or via API.
+- Blocks compliance evidence collection for internal audit window (customer stated deadline: end of week).
+
+Notes:
+- Customer indicates exports worked the prior week.
+- They recently upgraded their Private deployment and enabled RBAC v2 feature flag per rollout guidance.
+- Customer uses SSO group mappings -> built-in role templates; no custom roles yet.
+1) Log into Console as a user in customer IdP group mapped to their auditor role (customer calls it "Compliance-Auditor").
+2) Navigate to Console -> Security -> Audit Logs -> Export.
+3) Select time range (e.g., last 24h) and destination (download CSV / SIEM push).
+4) Click Export.
+
+API variant:
+- POST /v1/audit/exports with payload {"from":"2025-02-26T00:00:00Z","to":"2025-02-27T00:00:00Z","format":"jsonl"}
+Export job is created successfully and either (a) produces a downloadable artifact, or (b) pushes events to the configured SIEM exporter. Console shows job status and a success event is written to audit logs.
+Console shows "You don't have permission to perform this action" and the export job is not created.
+
+API returns:
+- HTTP 403
+- error: PermissionDenied
+- message: "Missing permission: audit.export" (when debug header is enabled for admin users)
+
+Customer sees the failure for both download exports and SIEM push exports.
+Customer-provided (redacted) Console network trace:
+- request_id: req_9c7f2b2c0c4c
+- POST https://<redacted-private-domain>/v1/audit/exports
+- status: 403
+- response: {"error":"PermissionDenied","message":"permission denied"}
+
+Server-side (Support reproduced via customer-provided request_id in their cluster logs):
+2025-02-27T18:22:51.931Z audit-exporter INFO request_id=req_9c7f2b2c0c4c subject=user:<redacted> org=org_nbhc action=audit.export scope=org:org_nbhc decision=deny reason=SUBJECT_MISSING_PERMISSION policy_version=rbac-bundle-2025.02.21
+
+Control plane authz debug (from customer admin session with debug header enabled):
+X-RW-Authz-Deny-Reason: SUBJECT_MISSING_PERMISSION
+X-RW-Authz-Policy-Version: rbac-bundle-2025.02.21
+X-RW-Authz-Action: audit.export
+X-RW-Authz-Scope: org:org_nbhc
+Initial hypothesis: role template used by customer (auditor/read-only) does not include the new audit export permission introduced/required by RBAC v2 for export job creation.
+
+Findings:
+- In Private deployment, customer is using built-in role template derived from the policy bundle artifact.
+- The policy bundle version deployed in their cluster (rbac-bundle-2025.02.21) contains audit.read permissions but not audit.export.
+- The export flow is correctly enforcing deny-by-default at the service layer and is returning 403 (expected behavior when permission missing).
+- This appears to be a role template gap/mismatch rather than a regression in the exporter service code.
+
+Root cause:
+- Role template intended for auditors (and/or deployment operators) did not include audit.export after RBAC v2 permission catalog expansion.
+- Customer’s group mapping therefore omitted audit.export even though the user’s responsibilities include export for compliance.
+Immediate workaround (customer-admin action):
+1) Create a custom role (or clone the auditor template) and add permission: audit.export
+2) Bind that role at org scope to the IdP group used for auditors.
+3) Wait up to 60s for authz cache TTL to expire (or trigger cache invalidation by re-saving the binding).
+4) Retry export.
+
+Alternate workaround (least recommended but acceptable short-term): bind the built-in Security Admin role to a small subset of compliance users who need export, then remove once the proper auditor role is updated.
+
+Support offered to run a screen-share to validate permissions via the Console permission viewer once enabled in their build.
+Fixed by updating the Private policy bundle role templates to include audit.export in the appropriate built-in roles (Auditor / Security Admin variants for Private), then rolling the updated bundle to the customer’s Private deployment.
+
+Customer actions completed:
+- Upgraded policy bundle from rbac-bundle-2025.02.21 to rbac-bundle-2025.03.01 (delivered via their standard Private update process).
+- Re-synced IdP group mapping to the updated role template.
+
+Verification:
+- Customer confirmed exports succeed from Console and via POST /v1/audit/exports.
+- Support validated new audit log entries include authz context for the export action (decision=allow) and the SIEM push succeeded.
+
+Follow-ups logged:
+- Ensure role template matrix explicitly calls out audit.export vs audit.read separation and applies consistently across Hosted/Dedicated/Private.
+We confirmed RBAC v2 is enforcing a new fine-grained permission (audit.export) for creating export jobs. Your current auditor role template includes audit viewing but not export. We provided a safe workaround (custom role add audit.export) and delivered an updated policy bundle so your existing group mapping can continue to use a built-in role template. After the update, exports are working again.
+2025-02-27 (Colin O'Donnell): Opened on behalf of Northbridge after POC admin reports they cannot export audit logs. Customer suspects RBAC v2 change; started immediately after upgrade/flag enablement. Asking for quick workaround due to audit deadline.
+2025-02-27 (Kevin Osei): Acknowledged. Requesting: policy bundle version, Private platform version, whether export is Console-only or also API, and one request_id for correlation. Also asking customer to confirm which IdP group/role mapping is in use.
+2025-02-27 (Colin O'Donnell): Customer provided request_id req_9c7f2b2c0c4c and confirmed it fails both in Console and direct API call. Policy version shown in debug header: rbac-bundle-2025.02.21. Group mapped to "Read-only Auditor" template.
+2025-02-27 (Kevin Osei): Found deny log in audit-exporter with reason SUBJECT_MISSING_PERMISSION for action audit.export. This looks like expected enforcement + missing permission in role template. Coordinating with Security Eng to confirm intended role coverage.
+2025-02-28 (Marcus Lin): Confirmed audit.export is intentionally separate from audit.read for least privilege; however the built-in auditor template should include export for most enterprise setups. We should update role templates and document recommended split (Auditor vs Auditor-NoExport).
+2025-02-28 (Kevin Osei): Provided workaround to customer: create custom role with audit.export at org scope and bind to their IdP group. Customer will apply immediately while we prep updated policy bundle.
+2025-03-01 (Kevin Osei): Role template change landed in policy bundle; advising customer to update to new bundle artifact and resync. Noting cache TTL up to 60s; may need to re-save binding to trigger invalidation. (Related: cache TTL discussion in #eng-platform thread 1739808400.)
+2025-03-03 (Colin O'Donnell): Customer upgraded bundle and confirmed exports are now succeeding; SIEM push also successful. Requesting confirmation that audit log entries include authz context for their SOC evidence.
+2025-03-04 (Kevin Osei): Confirmed exporter emits authz context fields (decision, action, policy_version, reason codes) aligned with the authz decision schema. Closing ticket.

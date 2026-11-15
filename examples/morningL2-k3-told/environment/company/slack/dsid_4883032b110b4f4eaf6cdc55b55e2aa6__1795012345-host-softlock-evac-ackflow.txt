@@ -1,0 +1,75 @@
+eng-oncall
+
+incident-bot: :rotating_light: PagerDuty alert PD#82341 fired for host `gpu-host-109` (zone-us-west-2b): kubelet NotReady detected and serial console silent. Metric: kubelet.heartbeat-missed=5m. Tags: gpu, dedicated-pool.
+
+sam: acked PD#82341 — I'm the oncall. pulling serial.
+
+anya: i'm available to help, can take console if you want.
+
+incident-bot: PD#82341 -> ack by sam at 1795012350. Escalation window suspended.
+
+sam: `ssh jump -> tmate` failed, serial attach next. Starting serial console attach (expect ~3-5m).
+
+leo: heads-up — there are 2 reserved workloads pinned to this host (cust-a-model, cust-b-batch). tagging for impact check.
+
+sam: serial shows kernel softlockup messages repeating on ttyS0: `INFO: task kworker/3:2: 0 blocked for 123456ms`. also seeing repeated `soft lockup - CPU#3 stuck for 123s`.
+
+david: that smells like firmware or PCI interrupt storm. any NVRM/Xid logs?
+
+sam: grepping dmesg now. snippet: ```
+[ 12345.6789] NVRM: Xid (PCI:0000:03:00): 79, GPU has fallen off the bus
+[ 12345.6790] kernel: watchdog: BUG: soft lockup - CPU#3 stuck for 123s
+```
+
+anya: Xid79 + soft lockup — probable GPU driver/hardware fault. we should cordon/drain to prevent further impact.
+
+sam: nodename `gpu-host-109` currently `NotReady`. kubectl shows: ```
+NAME           STATUS     ROLES   AGE   VERSION
+gpu-host-109   NotReady   <none>  22d   v1.27.3
+```
+
+leo: coordinating with routing — re-routing live inference from this host now. @infra-agent can you confirm LB fallthrough?
+
+infra-agent: confirmed. we have a fallback pool in us-west-2c. Starting gradual re-route and instance-replacement policy. no customer-facing 5xx so far.
+
+sam: performing cordon: `kubectl cordon gpu-host-109` -> ok. starting drain with `--ignore-daemonsets --delete-local-data --force` to expedite. ETA ~4-6m for eviction.
+
+incident-bot: Eviction in progress. PD#82341 annotated with `cordon+drain`.
+
+david: any live jobs stuck? leo, check redis queue/backpressure for cust-b-batch.
+
+leo: cust-b batch had 3 pods on this node, all evicted, restarted in fallback pool. cust-a-model had ephemeral pods — traffic rerouted, no requests dropped (some 100ms extra latency on failover). marking low impact.
+
+sam: drain complete. node is empty but still NotReady due to kernel oops on reboot attempts. kicking remote powercycle (iLO/IPMI) now.
+
+infra-agent: remote powercycle command sent. If node fails to come back cleanly we'll RMA the GPU card. Opening infra ticket INF-4519.
+
+anya: can we get serial logs preserved and attach to INF-4519? that Xid79 trace is important for vendor.
+
+sam: saved `serial-logs/gpu-host-109-1795012345.log` and uploaded to infra ticket. snippet included.
+
+david: customer comms — cust-a & cust-b SREs notified?
+
+leo: pinged cust-a SRE on pager and DM, cust-b via support channel. both acknowledge, no immediate SLA breach.
+
+sam: marking incident as "mitigated" from oncall perspective — workloads evacuated, routing fallback active, node isolated. will keep INF-4519 open for hardware follow-up + RMA.
+
+incident-bot: PD#82341 status updated -> acknowledged, mitigated. Runbook steps completed: cordon, drain, serial-capture, fallback-routing.
+
+anya: quick postmortem notes for follow-up: 1) check kernel + driver version matrix, 2) confirm automatic eviction retry window, 3) consider pinning noisy drivers to separate maintenance window.
+
+david: thanks team. sam — please handoff to next oncall after you fill in playbook. I'll take infra RMA coordination tomorrow.
+
+sam: oncall handoff: @anya you're next. putting a quick blurb in rotation channel. :white_check_mark:
+
+anya: taking it. I'll run the reimage + bring node into rotation once RMA/troubleshooting done. logging follow-ups in INF-4519 and postmortem doc.
+
+incident-bot: Thread closed for new pages; reopen INF-4519 if node flaps after re-entry.
+
+sam: final — no customer-visible errors, slight latency bump for a few requests during failover. tagging this as P0->P3 after impact review.
+
+leo: adding notes to the console incident feed and marking dedicated pool capacity for temporary bump.
+
+anya: thanks everyone.
+
+sam: closing thread at 1795013245 :thumbsup:

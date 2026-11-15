@@ -1,0 +1,42 @@
+eng-runtime
+
+IncidentBot: URGENT page to #eng-runtime oncall — service=\"inference-runtime\" symptom=throughput_drop(≈60%), elevated latency for long-seq requests. thread_ts=1800001234
+Marco: on it. what's the deploy?
+Priya: checking release metadata. Release 2.1.3 rolled 12:05 UTC, canary at ~10% traffic.
+Priya: seeing latency + error spike immediately after canary ramp.
+Priya: digging into runtime logs — repeated kernel fallback to CPU for kv-cache ops; batcher queue growing.
+SREbot: metrics snapshot: p95=820ms, p99=1.2s, throughput -45% vs baseline. attached charts.
+Lina: Support: two customers reported timeouts; EnterpriseX (high-volume embeddings) impacted. I've opened an escalation.
+Dan: SLAs at risk? what's the estimate of customer impact?
+Lina: EnterpriseX: ~300 failed requests around 11:14 UTC, degradation but not billing-impacting yet. They want an ETA.
+Marco: can we force the release path off? I think the change to batching heuristics in 2.1.3 is the trigger.
+Priya: we have an emergency feature flag `rolling_batch_v2`. flipping that should revert the new batching heuristic.
+Priya: flipping flag now:
+```
+# flip via control-plane API
+curl -X POST "https://control-plane.internal/api/flags/rolling_batch_v2" -H "Authorization: Bearer $ADMIN_TOKEN" -d '{"enabled":false}'
+```
+DeployBot: flag change accepted and propagated; rollout triggered to all clusters (deploy-id: dpl-20260045).
+Priya: observing metrics — p95 dropped to ~310ms within ~40s after flag flip. :thumbsup:
+Marco: please record timeline + actions for handoff.
+Priya: quick hypothesis: batching heuristic misclassifies long-seq embedding traffic as short batches, routes to a new kernel path incompatible with current kv-cache layout, leading to kernel_selector fallback and serialized CPU handling.
+Priya: logs excerpt:
+```
+[2026-03-15T12:05:17Z] ERROR kernel_selector: mismatched_kernel_signature op=kv_read model=redwood/lite-q4 fallback=true
+[2026-03-15T12:05:18Z] WARN batcher: enqueue_delay=230ms queue_len=48 route=embed-longseq
+```
+Marco: as a safety belt I'm kicking an automated rollback from 2.1.3 -> 2.1.2 as well. running now:
+```
+deploy rollback --id dpl-20260045 --to-tag v2.1.2
+```
+DeployBot: rollback started, estimated propagate time ~3 minutes.
+SREbot: routing check: canary traffic now at ~0.5% and trending to 0. Will report when at 0.
+Lina: notifying EnterpriseX with an incident note and ETA. Legal looped for SLA comms.
+Dan: good — Priya, can you capture eval diffs and perf deltas for postmortem?
+Priya: copying logs, perf diffs, and batch traces to /var/logs/incidents/1800001234/; attaching a small repro script in that folder. Repro notes: send concurrent long-seq embedding requests with concurrency=64 and seq_len=2048.
+Priya: mitigation summary: feature flag `rolling_batch_v2` OFF (propagated), rollback to v2.1.2 in progress, traffic routing back to stable, customers notified.
+Marco: handoff note: Jamal will take overnight watch. tagging Jamal for oncall takeover.
+Jamal: ack — I'll monitor p99, batch_queue_len, and kernel_selector error rate. I'll tighten alerts (p99 > 500ms OR queue_len > 30).
+Priya: followups (short list): 1) add unit+integration runtime test for batcher heuristics; 2) refine canary policy to isolate long-seq traffic; 3) surface kernel_selector signature mismatches as a hard health-check; 4) add a quick rollback playbook entry for batching regressions.
+Marco: wrapping up interim thread. I'll create a formal incident in #incidents with timeline + RCA. Thanks everyone.
+Lina: :white_check_mark:

@@ -1,0 +1,44 @@
+Client CDN prefetch leads to residency header mismatch and APAC p95 latency spike
+
+Issue summary: KoiHealth reported a sudden increase in client-observed p95 latency for requests from APAC customers. They observed that a subset of requests were routed to US edge egress, which increased TLS handshake and RTT and caused p95 to jump from ~160ms to ~620ms. Customer believes their browser or CDN prefetch behavior is causing residency headers to be cached incorrectly and triggering control-plane selection of a non-local egress.
+
+Impact: Elevated p95 for production inference traffic for KoiHealth across APAC region for ~20% of requests; user-facing slowdowns and some request timeouts at mobile-device scale. No token billing discrepancies reported.
+
+Environment: prod:apac-southeast (customer tenant id: koi-9981). Traffic originates from mobile clients using a CDN vendor (FastEdge) plus browser prefetch enabled in their app.
+
+Steps to reproduce (customer-provided):
+1) App opens on APAC mobile client with CDN prefetch enabled.
+2) Prefetch requests to our /v1/chat endpoint occur on app background/idle.
+3) Subsequent interactive request is sent shortly after; client observes X-Redwood-Residency header set to "apac-southeast" but control plane routes egress to us-east-1 for ~1 in 5 requests.
+4) Observed p95 spikes on client traces and TLS handshake delays in our edge logs.
+
+Observed logs/metrics:
+- edge-proxy logs (apac-southeast) show upstream egress selection: egress=us-east-1 on ~18% of active sessions in the 03/12 08:00-10:00 window.
+- auth logs show token-scoped residencies are present and unexpired.
+- TLS handshake histogram: p95 increased from 160ms -> 620ms for affected session IDs.
+- Control-plane decision traces show a cache hit for token->residency mapping but a miss for client-ip->edge affinity; fallback policy selected remote egress.
+
+Initial customer impact: degraded UX for end users in APAC during morning peak; customers are requesting mitigation (prefer strict residency enforcement or short TTL changes).
+Initial hypothesis: client-side CDN prefetch created persistent connections or cached DNS entries that caused the edge-proxy to see source IPs or SNI hints that mapped to a different region. Alternate hypothesis: FastEdge is doing prerouting on behalf of the client and reusing a US egress POP causing the control plane to observe inconsistent client-origin metadata.
+
+What we checked so far:
+- Correlated request IDs from customer traces to our edge traces; confirmed that the same client token was used and residency metadata was present.
+- Verified token residency mapping in control plane: token residency = apac-southeast, TTL healthy.
+- Edge proxy behavior: sticky-session table shows entries with last_seen from FastEdge IP ranges; these entries map to us-east-1 egress due to FastEdge ASN->geo mapping returning US in some cases.
+- DNS evidence: FastEdge appears to pre-resolve our public edge hostname and then reuse a cached socket to a US POP for subsequent requests.
+
+Next steps:
+- Request FastEdge logs from KoiHealth (done, awaiting).
+- Add temporary control-plane override to treat CDN-prerouted x-forwarded-for as non-authoritative for residency decisions for KoiHealth token scope (can be toggled per-tenant). Needs review from Network/Infra.
+- Instrument edge proxy to log fastedge-asn and socket-reuse flags for a 6h window.
+- Consider recommending customer disable CDN prefetch for critical auth-bound calls as a short-term mitigation.
+2026-03-12 09:22 - Maya Patel (Support): Customer reported spike and provided HAR traces and mobile SDK timing profiles. They believe CDN prefetch is involved.
+2026-03-12 10:05 - Diego Morales (SRE): Acknowledged ticket. Reproducing with test harness in apac-southeast. Observed ~15% of simulated prefetch requests being forwarded to us-east. Added label 'investigating'.
+2026-03-12 13:40 - Lina Vu (Network): Noted FastEdge ASN 39712 mapping returns RIR allocation that overlaps with our US POP mapping. Possible ASN geolocation mismatch at ASN->region mapping layer. Suggested adding an exception for known CDN ASNs.
+2026-03-13 08:18 - Maya Patel (Support): Customer provided FastEdge request IDs and a short packet capture from their app. FastEdge support confirmed they reuse sockets to nearest POP but sometimes route traffic across backbone for optimization.
+2026-03-14 11:02 - Diego Morales (SRE): Deployed temporary edge proxy logging patch to capture socket reuse and client-ip-origin. Enabled for koi-9981 for 6 hours. Also submitted control-plane PR to allow tenant-level cdn-socket-ignore flag (PR: https://github.com/redwood-inference/control-plane/pull/1853).
+In Progress: temporary mitigation options being evaluated. Pending FastEdge logs and network team's review of tenant-level override. If override approved, will schedule short maintenance window to flip flag and monitor for p95 regression.
+If customer disables CDN prefetch for auth-bound endpoints in their mobile SDK, observed incidence drops to <1%. Recommended as immediate short-term workaround while we validate tenant override.
+Network to review ASN->region mapping for FastEdge and update geolocation data
+Product/SRE to add tenant-level control-plane flag to ignore CDN socket reuse when computing residency mapping
+CS to coordinate customer rollout and confirm UX improvement

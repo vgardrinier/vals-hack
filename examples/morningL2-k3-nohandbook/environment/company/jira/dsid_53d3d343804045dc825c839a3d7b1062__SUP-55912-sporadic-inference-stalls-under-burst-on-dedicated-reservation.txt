@@ -1,0 +1,50 @@
+Sporadic inference stalls during high-concurrency bursts on dedicated reservation
+
+Issue summary: Customers on a dedicated reservation (Datawave Inc) reported intermittent inference stalls and 30-60s request timeouts during short, high-concurrency bursts on prod/us-west. The behavior started 2026-03-13 ~09:20 UTC and recurred in bursts across the morning. Impact: Client-facing features experienced elevated P95/P99 latency and ~12% user-facing errors during spikes (timeouts and 504s). Business impact: degraded UX for live features (search/rerank) for Datawave enterprise tier.
+
+Environment: Dedicated reservation; prod region us-west; running serving-runtime v2.7.1; autoscaler config: min=2, target=5, max=8; tenant pinned to a set of GPU nodes with mixed A100-s and A10-s. Typical requests are short (avg tokens per request ~18) but concurrency bursts reach 300-600 simultaneous inflight.
+
+Steps to reproduce (observed pattern):
+1) Simulate burst: 500 concurrent short requests (10-30 tokens) from single tenant for 30s.
+2) Observe queue length at routing layer climb; tail-latency jumps at worker side.
+3) A subset of requests (5-12%) enter prolonged stall (20-60s) before timing out.
+
+Logs / metrics (selected excerpts):
+- Scheduler queue backlog spike: routing-queue-length > 450 at 2026-03-13T09:21:12Z
+- GPU utilization per-node: 40-70% but compute stalls observed (nvml stall counters incrementing)
+- Serving runtime trace: many requests stuck in "acquire-kv-cache" / "gpu-lock" for 18-52s
+- Autoscaler event: no scaling event until 90s after burst began (scale-up latency observed)
+- Per-node error: occasional CUDA driver retries logged on A10 nodes (driver-retry=1..3)
+
+Observed hypothesis: Short-token heavy bursts create many inflight requests that are small but frequent, producing scheduling pressure and head-of-line blocking on GPU resources. Autoscaler min/target settings plus conservative scale-up cooldown permit a transient undersupply of fully-ready GPUs; meanwhile background maintenance/batch workloads (on the same pool) intermittently contend for PCIe / MPS resources causing stalls rather than steady high utilization. This looks like a noisy-neighbor + slow autoscale ramp scenario rather than full GPU saturation.
+
+Immediate impact: Elevated client latency and request timeouts for Datawave.
+
+Requested customer action: None required immediately; support applied mitigations (see Workaround).
+
+For follow-up: perform node-level forensic capture across affected window, review autoscaler cooldown settings and admission control thresholds for short-request workloads, consider tenant placement changes or burst-only buffer capacity.
+1) From a client in prod/us-west, issue a 30s burst of 300-600 concurrent requests (10-30 tokens each) to the customer's pinned deployment. 2) Observe routing queue and per-node inflight counters. 3) Note that after ~10-20s queue lengths increase and a subset of requests stall for 20-60s before timeout.
+- SRE (Tomas Novak) captured full nvml/gpu metrics and observed driver-retry spikes on A10 nodes.
+- Support repro (Lina Gomez) was able to recreate higher queueing with synthetic load; stalls correlate with periods where the autoscaler has not yet provisioned additional nodes.
+- Admission control tests show that limiting inflight per-tenant to 200 reduces stalls but increases upstream client throttling.
+- There are intermittent background batch jobs scheduled on the same physical host group (found via scheduler logs) — not fully isolated.
+- Hypothesis refined: a combination of head-of-line queueing, slow autoscaler reaction, and occasional noisy batch interference producing PCIe contention / driver retry leading to request stalls.
+- No evidence of model-level deadlocks; KV cache behavior shows long wait times while holding locks for many small requests.
+[2026-03-13T09:21:12Z] routing-queue-length=472
+[2026-03-13T09:21:14Z] node-09 (A10): nvml.driver_retry=2; gpu_busy=52%
+[2026-03-13T09:21:25Z] serving: request_id=abc123 state=acquire-kv-cache wait=38s
+[2026-03-13T09:22:50Z] autoscaler: scale_up_decision delayed by cooldown (elapsed=92s)
+
+Applied by Support (2026-03-13 11:05 UTC):
+- Temporarily raised autoscaler target and max for this reservation (target=7, max=10) to add headroom; nodes provisioned and reduced stalls after ~120s.
+- Temporarily set admission control to 250 inflight per-tenant to limit head-of-line blocking.
+- Isolated scheduled background batch jobs from the affected GPU node group for the next 48 hours.
+Effect: immediate reduction in stalls and timeouts, P95 latency improved toward baseline within 3 minutes of node readiness.
+
+Mitigation applied: autoscaler headroom increased and noisy batch jobs isolated. Engineering to follow up with a targeted fix: tune autoscaler cooldown/scale-up aggressiveness for short-burst workloads, add a per-tenant lightweight admission controller that preferentially throttles low-value concurrent requests, and update placement policy to avoid colocating batch workloads on dedicated reservations. Next steps tracked in INT-4011 and a follow-up runbook will be created. Status: monitoring; customer notified and reporting improved metrics.
+2026-03-13T10:02Z - Sarah Lee (Datawave): We're seeing intermittent 504s from our live rerank endpoint, began this morning around 09:20 UTC. Requesting urgent assistance.
+2026-03-13T10:15Z - Maya Chen (Support): Acknowledged; collecting logs and scaling history. Setting P1 due to customer impact. Assigned to Raj Patel.
+2026-03-13T10:48Z - Raj Patel (SRE): Reproduced with synthetic load. Observed queueing and slow scale-up. Captured nvml and driver logs; attaching to ticket.
+2026-03-13T11:07Z - Lina Gomez (Support): Applied temporary autoscaler headroom and admission control. Customer reports reduced errors. Monitoring for 30m.
+2026-03-14T09:22Z - Tomas Novak (SRE): Following up: scheduled maintenance to remove batch jobs from node group; targeting permanent autoscaler tuning in upcoming release 2.7.3.
+2026-03-14T12:00Z - Sarah Lee (Datawave): Confirming UX improved; thank you. Please keep us posted on permanent fixes.

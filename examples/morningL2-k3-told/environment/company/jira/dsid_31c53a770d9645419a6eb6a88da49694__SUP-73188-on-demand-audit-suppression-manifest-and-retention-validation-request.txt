@@ -1,0 +1,38 @@
+On-demand audit stream sample with event suppression manifest and retention enforcement validation
+
+Issue summary:
+Customer requests an on-demand sample of their tenant-scoped audit stream showing how event-level suppression/redaction is applied, accompanied by a signed manifest that proves counts and checksums for both raw and redacted records. They also need evidence that retention (immutable 90-day) is enforced for the sample window and a mapping to their QRadar field names for ingestion.
+
+Impact:
+FinNova is completing a third-party audit and needs verifiable artifacts to satisfy their compliance team and external auditors. Without a demonstrable sample and signed manifest they cannot close the audit, potentially delaying go-live for a regulated product.
+
+Requested deliverables (customer asks):
+- A zipped sample package (max 72 hours of events, prefer a 24-hour slice) with two files: raw-events.ndjson and redacted-events.ndjson.
+- Signed manifest.json listing per-file SHA256 checksums, per-event suppression counts (by event type), and an HMAC-SHA256 envelope using a Redwood-support key for integrity proof.
+- A short CSV crosswalk mapping Redwood audit fields -> FinNova QRadar fields.
+- Evidence of retention enforcement: policy excerpt + storage object metadata proving created_at and retention lock for the sample objects.
+- KMS key rotation log excerpt and HSM attestation pointer for the time range of the sample.
+- Guidance on event types that are suppressed vs. pseudonymized for their legal team.
+
+Customer provided context:
+- Tenant ID: finnova-prod-7 (provided in secure channel).
+- They are on enterprise plan with private deployment options enabled.
+- Audit scope: authentication, role-change, model-invoke, api-key-usage, admin-console-access events.
+
+2026-03-10 09:12 - Maya Thompson (Support): Created ticket after customer request shared via secure-upload. Customer flagged audit sample as blocker for compliance review.
+2026-03-10 10:05 - Ravi Patel (SRE): Acknowledged. Will validate audit-store query access and start extraction job. Estimated delivery: 48 hours, pending KMS proof retrieval.
+2026-03-11 14:31 - Ravi Patel (SRE): Extraction completed for 24-hour slice. Raw file size 18.7MB, redacted file size 16.2MB. Preparing signed manifest. Need confirmation from Security on HMAC key usage for customer-facing artifacts.
+2026-03-12 08:47 - Priya Sharma (Security): Confirm HMAC key usage: use support-artifacts-hmac-v1, rotate-once policy applied. Security to attach KMS rotation proof and HSM attestation pointer to manifest.
+2026-03-12 12:02 - Maya Thompson (Support): Uploaded sample package to presigned URL and shared with customer via secure channel. Awaiting confirmation and any follow-up mapping questions from FinNova.
+2026-03-12 16:20 - FinNova audit lead (external): Confirmed receipt and requested an additional line in CSV mapping: 'actor.identity.email' -> 'userEmail'.
+Verified tenant access: audit-read role present for support-service-account.
+Ran extraction against replica to avoid production load.
+Observed suppression pipeline removed PII elements from 'user_profile' nested blob and replaced with pseudonym_id per policy.
+Count summary: raw_events=37,482; redacted_events=37,482; suppressed_fields_total=4,912 (removed personal_identifiers).
+Generated manifest fields: file_list, record_counts, suppressed_counts_by_event_type, sha256_checksums, hmac_envelope.
+Retention metadata: objects set with object lock (governance) and retention_until >= 90 days from created_at.
+2026-03-12 - Delivered sample package to customer via presigned S3 URL (7-day expiry).
+Provided manifest.json and CSV crosswalk mapping.
+Attached evidence snippets: KMS rotation table (last rotation 2026-02-10), HSM attestation pointer: confluence://security/hsm-attestations/2025-11.
+Workaround/temporary: If auditors require on-site verification, we can schedule an audit-runbook session (support+security) to replay the extraction with a Redwood security engineer present.
+Follow-up: Security to upload full KMS rotation audit trail to Confluence page referenced in ticket. Schedule 1:1 with FinNova for mapping confirmation (owner: Maya).

@@ -1,0 +1,36 @@
+Ghosted partial output and missing terminal metadata for SSE client after connection multiplexing handoff behind corporate proxy
+
+Issue summary:
+Customer reports that for long-running SSE streams initiated from the hosted API, the client sees the correct prefix tokens but never receives the terminal 'end' event and final metadata. This happens after a connection handoff event on the customer's corporate edge (multiplexed connection reuse between multiple HTTP/2 clients). The stream shows a ghosted partial: final tokens appear in the server logs and in the worker process, but the SSE session never emits the close/end marker and the client's JS SDK stays waiting.
+
+Impact:
+- Two enterprise customers (same corp network) experience incomplete responses for multi-paragraph outputs 3-5% of the time on long streams (>12s).
+- Customer-facing feature (document summarization) sometimes displays a never-ending loader and misses final credits/usage metadata.
+
+Observed behaviour differs from typical reconnect truncation: there are no duplicate tokens on client rejoin, instead the finalization metadata is absent and worker traces show a successful flush.
+
+1) Use SSE streaming endpoint with a prompt that produces a long multi-paragraph output (token count > 400).
+2) Place client behind a corporate edge/proxy that performs HTTP/2 connection multiplexing (observed with vendor X and vendor Y).
+3) Initiate stream and force a connection handoff by opening other streams concurrently or by triggering lightweight probes on the same connection to cause stream preemption.
+4) Observe client SDK where final '\n\n__end__' style event (our close marker) is never emitted, while server-side worker logs show the final tokens were generated and flushed to the socket before edge GOAWAY/RST.
+[worker-12] 2026-03-12T15:21:43.511Z INFO generated-final-chunk request_id=abc123 tokens=412 duration_ms=1234
+[worker-12] 2026-03-12T15:21:43.512Z DEBUG socket-write-flush request_id=abc123 bytes=8192 result=ok
+[edge-proxy] 2026-03-12T15:21:43.520Z WARN connection-reuse preempted-stream stream_id=17 reason=prioritize-probe client_conn=10.0.0.45
+[api-gateway] 2026-03-12T15:21:43.522Z INFO upstream-closed code=GOAWAY last_stream=16 request_id=abc123
+customer sdk console: 'SSE: waiting for final event...'
+Hypothesis A: Edge multiplexing causes a subtle TCP/TLS handoff where the final server-side flush is acknowledged to the worker process but the proxy swallows the trailing event frame (GOAWAY timing window).
+Hypothesis B: Our SSE framing logic relies on a final control frame that can be queued behind higher-priority HTTP/2 frames; when the connection is preempted the control frame is never retransmitted across the new connection path.
+We were able to reproduce locally with vendor X's proxy in replayer mode by triggering a GOAWAY immediately after a large flush; reproduce rate ~12% with replayer, ~3% in customer environment.
+No evidence of duplicated token replay or corrupted JSON; problem is absence of closing metadata object ("terminal_metadata").
+Worker-level traces show write() returned success before edge GOAWAY; kernel-level packet capture shows the final frame transmitted but not delivered to client (dropped by proxy).
+2026-03-12 16:05 - Support (Maya Patel): Confirmed initial report with customer. Requested tcpdump and proxy vendor/version. Asked customer to enable short polling fallback while we investigate.
+2026-03-12 18:10 - Customer (KB): Sent pcap and proxy version (EdgeCorp Proxy v3.4.2). Noted behavior improves when they disable HTTP/2 connection pooling.
+2026-03-13 09:30 - SRE (Diego Alvarez): Reproduced against EdgeCorp proxy in lab. Created local replayer test that forces GOAWAY after large chunk flush. Raising to in-progress and adding serving-runtime owner.
+2026-03-13 14:20 - Eng (Priya Rao): Investigating SSE close semantics; possible mitigation to duplicate terminal metadata in-body so client has fallback in case final control frame is lost.
+2026-03-14 10:12 - Support (Maya Patel): Shared recommended customer workaround: disable HTTP/2 connection reuse for streaming clients or enable long-poll fallback in SDK. Customer to test and report.
+2026-03-14 13:55 - Customer (KB): Applied workaround (disable reuse) — observed immediate improvement; incidence rate dropped to near zero in initial pass.
+Workaround applied: instruct customer to disable HTTP/2 connection reuse / enable long-poll fallback in SDK for streaming clients behind multiplexing proxies. Engineering action items:
+- short-term: add in-body terminal metadata duplicate (engineer: Priya Rao, PR opened #2433).
+- medium-term: update SSE emitter to mark terminal chunk with an idempotent in-stream token so proxies that drop final control frames still carry terminal metadata.
+- long-term: add automated test against common edge proxies (EdgeCorp, CorpProxyX) simulating GOAWAY and connection preemption.
+Status: customer verified workaround reduces failures; change in serving-runtime PR under review; follow-up INT ticket to add proxy regression tests.

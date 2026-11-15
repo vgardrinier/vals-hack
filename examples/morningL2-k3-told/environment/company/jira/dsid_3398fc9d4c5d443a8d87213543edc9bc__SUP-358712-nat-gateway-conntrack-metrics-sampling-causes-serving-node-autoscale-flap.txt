@@ -1,0 +1,63 @@
+Intermittent serving-node autoscale flapping traced to NAT conntrack metrics sampling behind customer egress appliance
+
+Issue summary:
+- Repeated autoscaler scale-down/up cycles on customer's private cluster coinciding with increased model shard download failures and 5xxs on long-running streaming calls.
+
+Impact:
+- Intermittent request 5xxs for live inference traffic (~3-7% of requests during window), elevated p95/p99 latency, and downstream application retries. Several jobs reported cache/KV eviction leading to higher token costs.
+
+Environment:
+- BrightBank private deployment (VPC peered to Redwood control plane), prod, us-east-1. Customer uses an on-prem egress appliance that forwards to a NAT gateway; VPC Flow Logs are enabled with sampling on the appliance by their SOC team.
+
+Steps to reproduce (observed in customer's environment):
+1) Start large concurrent batch of embeddings/generation that triggers parallel model shard downloads from S3 via presigned range requests.
+2) Observe egress appliance generating sampled flow logs and connection tracking reports.
+3) Around the same time, serving nodes report TCP resets, HTTP/2 RSTs and repeated short-lived connection failures.
+4) Redwood autoscaler interprets multiple transient failures as pod/node underutilization and triggers scale-down, then immediate scale-up when traffic continues.
+
+Observed behavior:
+- High conntrack churn metrics on customer's appliance (conntrack deletions spike).
+- Broken keepalives and ephemeral port re-use warnings in serving logs.
+- Autoscaler events: scale-down triggered while healthy requests are still inflight, followed by scale-up.
+
+Expected behavior:
+- Stable conntrack state during large transfers with graceful transient failures handled by retries and no autoscale thrash.
+
+Attachments/Artifacts:
+- Flow log excerpts, conntrack metric graphs, autoscaler event timeline, serving node logs (attached in ticket).
+Correlated timestamps across flow logs, conntrack counters and autoscaler events; timeline aligns within 500ms windows.
+PCAP shows mid-stream FIN/RST from appliance to SGN (serving node) rather than from remote S3; suggests local conntrack deletion or NAT pool exhaustion.
+conntrack table on appliance configured with aggressive timeout and periodic pruning script (cron) that runs under high connection-count conditions.
+Autoscaler treats a burst of connection-level errors as low-utilization signal due to our current healthcheck sampling; debounce threshold too low for transient network-induced failures.
+No evidence of S3 throttling or model artifact corruption; retries succeed after ephemeral failures.
+Customer's flow-logs sampling interacts poorly with appliance heuristics (sampling triggers housekeeping that prunes flows aggressively when log export backlog grows).
+Aggressive conntrack pruning on customer's egress appliance (triggered by VPC Flow Logs sampling/backpressure) caused premature deletion of in-flight NAT entries during concurrent ranged shard downloads. This led to TCP resets and short-lived failures that the autoscaler misinterpreted, producing scale-down/up cycles.
+Mitigation (applied by customer):
+- Disabled aggressive conntrack pruning cron job.
+- Increased conntrack_max and per-flow timeouts on egress appliance.
+- Temporarily reduced flow-logs sampling rate.
+Result: serving-node RSTs dropped to baseline and autoscaler stopped thrashing.
+
+Follow-up actions (persisted):
+- INT-4021 created to add autoscaler debounce logic when healthchecks show transient network errors.
+- Ops runbook updated (PR #2142) with recommended conntrack/timeouts and presigned range concurrency guidelines for private deployments.
+- Recommend formal change window for customer's SOC to validate new config and re-enable controlled flow-log sampling.
+
+Owner: BrightBank networking + Redwood SRE.
+1) Schedule joint change window with BrightBank to validate permanent config and re-enable flow-logs at reduced sampling.
+2) Deploy autoscaler debounce PR (INT-4021) to staging and run canary on private clusters.
+3) Add monitoring alert for rapid conntrack deletion spikes tied to autoscaler events.
+4) Follow up in 1 week to confirm stability and close ticket.
+2026-03-10 - Aisha Fernandes (Support): Customer reports latency spikes and repeated scale thrash starting ~2026-03-09 14:10 UTC. Provided flow log samples and conntrack counters.
+2026-03-10 - Liam O'Connor (SRE): Noted correlation between conntrack deletion bursts and serving-node resets. Requested tcpdump and netstat from customer's egress appliance and one serving node during next window.
+2026-03-11 - BrightBank Eng (customer): Furnished tcpdump (pcap) and appliance config dump. They confirmed sampling of VPC Flow Logs enabled with 1:100 sampling ratio and an internal process that prunes conntrack aggressively.
+2026-03-11 - Liam O'Connor (SRE): Initial hypothesis: appliance's conntrack pruning combined with ephemeral port re-use on heavy concurrent range requests causes mid-connection state loss leading to RSTs and downstream autoscaler misinterpretation. Asked customer to temporarily disable aggressive conntrack pruning as a mitigation.
+2026-03-12 - BrightBank Eng (customer): After disabling aggressive pruning and increasing conntrack_max, immediate reduction in conntrack deletions and serving-node resets observed. Autoscaler stabilized. Customer requests recommended config and a follow-up change window for permanent fix.
+2026-03-12 - Liam O'Connor (SRE): Logged mitigation steps and recommended long-term fixes; filed INT-4021 to track an autoscaler resilience change (debounce on scale decisions) and ops PR to add guidance to private deploy runbook.
+2026-03-09T14:12:33Z serving-node-3 warning: HTTP2 RST_STREAM id=15 code=INTERNAL error=reset by peer
+2026-03-09T14:12:33Z egress-appliance debug: conntrack_delete: 1243 entries removed in 5s window
+2026-03-09T14:12:34Z autoscaler info: scale-down triggered target-replicas=4 current=6 reason=low-utilization-metric
+(Customer repro is environment-specific)
+1) Replay high-concurrency shard downloads simulating production traffic (range requests, >16 concurrent connections per node).
+2) Enable flow-logs sampling on egress appliance to match observed SOC config.
+3) Watch conntrack and ephemeral-port metrics while measuring serving-node TCP/reset counts and autoscaler triggers.

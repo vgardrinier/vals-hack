@@ -1,0 +1,91 @@
+Intro + Sponsor request — aligning VP/CIO availability for product demo
+
+From: Stephanie Nguyen <stephanie@redwoodinference.com>
+To: Olivia Grant <olivia@aurorion.com>
+Cc: Ben Carter <ben@redwoodinference.com>
+Date: Wed, 24 Jun 2026 09:03:00 -0700
+Subject: Intro + Sponsor request — aligning VP/CIO availability for product demo
+
+Hi Olivia,
+
+Thanks again for the time earlier — really appreciated the quick intro and high-level context about Aurorion's evaluation criteria. We're excited to walk the team through Redwood's inference platform and show the throughput/latency story with a short, focused exec briefing + technical deep dive.
+
+High-level ask: can you confirm whether your VP of Engineering or CIO (you mentioned Daniel) would be able to join a 45-minute session so we can cover architecture, SLA/rollout model, and a brief roadmap alignment? We find it helps accelerate procurement when an exec sponsor is on the call for the first demo.
+
+Two windows that work well on our side next week (PT):
+- Tue, Jul 7 — 10:00–10:45 PT
+- Wed, Jul 8 — 13:00–13:45 PT
+
+If neither of those work, please share two slots that do. I've attached a short agenda and a couple of pre-demo questions so we can tailor the session.
+
+Attachments: redwood-demo-agenda-v2.pdf (PDF, 38KB)
+
+Next steps: if you can confirm Daniel's availability (or an alternate exec sponsor), Ben and I will hold the slot and send a calendar invite with a brief run of show.
+
+Thanks — appreciate the help coordinating.
+
+—Stephanie Nguyen
+Director, Strategic Accounts | Redwood Inference
+stephanie@redwoodinference.com | +1 (415) 555-0147
+https://redwoodinference.com
+
+From: Olivia Grant <olivia@aurorion.com>
+To: Stephanie Nguyen <stephanie@redwoodinference.com>
+Date: Wed, 24 Jun 2026 13:05:00 -0400
+Subject: Re: Intro + Sponsor request — aligning VP/CIO availability for product demo
+
+Thanks, Stephanie — appreciate the agenda.
+
+Quick note on availability: Daniel (CIO) is traveling the week of July 6 and is tightly packed, but he can make the morning of Tue, Jul 7 US/Eastern before he hops a flight — around 13:00–13:45 UTC (which I think maps to your 10:00–10:45 PT). I can also invite our VP of Platform, Priya Khanna, as an alternate if Daniel can't make the full session.
+
+A couple of housekeeping items:
+- We need a brief (1–2 slide) summary of security/compliance posture up front — SOC2 and data residency notes are the top asks from procurement.
+- Can you confirm whether you can run a short Q&A at the end for our architecture leads (they prefer 10–15 mins)?
+
+If that Tue morning works, pencil it and send a hold. I'll confirm Daniel or Priya by EOD Friday.
+
+—Olivia
+Head of Platform Partnerships | Aurorion
+olivia@aurorion.com | (617) 555-0128
+
+From: Ben Carter <ben@redwoodinference.com>
+To: Olivia Grant <olivia@aurorion.com>
+Cc: Stephanie Nguyen <stephanie@redwoodinference.com>, Marcus Lin <marcus@redwoodinference.com>
+Date: Wed, 24 Jun 2026 16:22:00 -0700
+Subject: Re: Intro + Sponsor request — aligning VP/CIO availability for product demo
+
+Hi Olivia — thanks for the quick reply and the clarity on Daniel's travel. Tue, Jul 7 at 10:00 PT / 13:00 ET works for our team; I'm holding a 45-minute session (10:00–10:45 PT).
+
+Marcus (cc'd) will lead the brief architecture walkthrough; Stephanie will cover the exec-level value props and procurement hooks. We'll plan: 15 min exec overview + 20 min technical demo + 10 min Q&A. We'll include a 2-slide security snapshot at the top that covers SOC 2, data residency, and KMS options.
+
+Olivia — can you share which people from Aurorion you expect (names + titles) so we send calendar invites to the right folks? Also attaching a short pre-demo questionnaire that helps Marcus prepare for the demo (networking/ingress, model runtime constraints, PII concerns).
+
+Attachments: pre-demo-questions.pdf (PDF, 22KB)
+Related link: https://app.hubspot.com/deal/2345678 (provisional deal record)
+
+If Daniel is a maybe, we will still run the session and ensure a concise exec summary so the CIO can get the highlights asynchronously. If Priya is joining, that's great too — either counts as sponsor presence.
+
+Thanks — Ben
+Account Executive | Redwood Inference
+ben@redwoodinference.com | +1 (650) 555-0190
+
+From: Stephanie Nguyen <stephanie@redwoodinference.com>
+To: Ben Carter <ben@redwoodinference.com>, Marcus Lin <marcus@redwoodinference.com>
+Cc: Olivia Grant <olivia@aurorion.com>
+Date: Thu, 25 Jun 2026 01:22:00 +0000
+Subject: Re: Intro + Sponsor request — aligning VP/CIO availability for product demo
+
+Ben — thanks for taking point on the agenda and the security snapshot.
+
+Olivia — thanks for penciling Tue, Jul 7. If you can confirm Daniel or Priya by Friday EOD, we'll finalize the calendar invite and attach the 2-slide SOC2/data-residency note and a one-page procurement checklist for Aurorion's vendor team.
+
+Planning notes for internal coverage:
+- Marcus: run the demo with the standard 45-minute runbook; please prepare a 3-slide appendix that calls out latency/cost tradeoffs (we may need to drop deeper metric tables if exec time is tight).
+- Ben: please add the HubSpot event link to the invite and mark the deal as 'demo-scheduled' so solutions engineering gets the pre-demo folder.
+- If Daniel cannot join, we will ask for a 15-min follow-up with him. If Priya is the sponsor, ensure the invite includes the procurement checklist.
+
+I'll draft the calendar invite after we get confirmation; Ben hold the original slot as tentative until Olivia confirms attendees.
+
+—Stephanie
+Director, Strategic Accounts | Redwood Inference
+stephanie@redwoodinference.com

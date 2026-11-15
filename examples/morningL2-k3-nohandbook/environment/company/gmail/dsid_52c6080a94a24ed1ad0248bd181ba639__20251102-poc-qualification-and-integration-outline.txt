@@ -1,0 +1,134 @@
+Post-call: Technical qualification & proposed PoC milestones for Acme Retail
+
+From: Diego Fernandez <diego.fernandez@redwoodinference.com>
+To: Alex Bennett <alex@acme-retail.com>
+Cc: Rishi Malhotra <rishi.malhotra@redwoodinference.com>
+Date: Sun, 2 Nov 2025 16:12:00 -0700
+Subject: Post-call: Technical qualification & proposed PoC milestones for Acme Retail
+
+Hi Alex (and Jordan),
+
+Thanks again for taking the time today — really helpful to understand where you’re trying to get with catalog personalization and realtime recommendations. Quick recap from our call + suggested PoC plan so the team can align. I’ve attached the PoC scope and a short compatibility matrix.
+
+Top pain points you called out:
+- Latency variability from current vendor at peak (95th pctl spikes > 400ms).
+- Cost blowouts during holiday traffic windows.
+- Poor cold-start relevance for new SKUs; engineering overhead to maintain custom reranking.
+
+Current stack we heard:
+- Backend: Node.js microservices on ECS (AWS, us-west-2).
+- Data: Product catalog in RDS + nightly sync to ES for search.
+- Traffic pattern: high QPS during promotions, steady baseline otherwise.
+
+Success criteria for the PoC (we heard):
+1) 95th percentile latency < 200ms for inference under target load (10 rps baseline, 100 rps burst).
+2) Recommendation relevance uplift > 8% (A/B vs current baseline) on the metric you use for conversions.
+3) Clear deploy path to Dedicated capacity or VPC Private deployment for PCI-adjacent flows.
+
+Proposed PoC milestones (6 weeks total):
+- Week 0 (this week): Kickoff, sign POA, exchange test credentials + sample data subset. Owners: Diego (sales), Rishi (SE).
+- Week 1: Integration sprint — Node.js SDK + REST calls, basic online inference, KV caching enabled.
+- Week 2: Loaded traffic test with synthetic replay; measure latency and tail behavior.
+- Week 3–4: Quality evals — compare outputs vs baseline on your eval set; iterate prompt/template.
+- Week 5: Joint results review; finalize production migration plan (Dedicated vs Private).
+
+Integration specifics we discussed:
+- SDKs: Primary language is Node.js (backend). Data science team likely wants Python for offline evals. We support both SDKs; compatibility matrix attached.
+- API compatibility: Redwood supports an OpenAI-like REST surface with optional streaming and function-calling. We can pin a model version for consistency.
+- Data residency: We can run the PoC in us-west-2 and discuss Private deployment options for regulated flows.
+
+Next steps I propose:
+1) You confirm the smaller sample dataset we can use for eval (looks like ~50k items).
+2) Sign the attached PoC scope (one-page) so we can schedule the kickoff.
+3) Proposed kickoff slot: Wednesday 2025-11-05 10:00–10:30 PT — does that work for Alex/Jordan?
+
+I’m copying Rishi to own the technical onramps and Vanessa to flag onboarding/CS once we move to kickoff.
+
+Attachments: ACME-POC-scope-v1.pdf, redwood-sdk-compatibility-matrix.xlsx
+
+Thanks — looking forward.
+
+Best,
+Diego Fernandez
+Account Executive | Redwood Inference
+diego.fernandez@redwoodinference.com
+(415) 555-0132
+
+
+
+From: Alex Bennett <alex@acme-retail.com>
+To: Diego Fernandez <diego.fernandez@redwoodinference.com>
+Date: Sun, 2 Nov 2025 18:03:00 -0700
+Subject: Re: Post-call: Technical qualification & proposed PoC milestones for Acme Retail
+
+Diego — thanks for the clear recap. A few quick clarifications from our side: 
+
+1) Dataset: we can share a 60k SKU sample with product metadata and recent session logs (anonymized).
+2) Success metric: we'll run an A/B for conversion rate uplift on product recs and also track CTR for recommendations (the 8% uplift target is reasonable).
+3) Data residency: us-west-2 is fine for the PoC; production will need contract language for logging retention.
+
+Couple of asks before kickoff:
+- Can Rishi share a short Node.js SDK snippet showing streaming vs non-streaming inference? Our infra lead wants to see how KV cache will be surfaced.
+- Ballpark cost for a 6-week PoC and an indicative monthly cost for the Dedicated configuration at ~1000 qps.
+
+The Wednesday 11/05 10:00 PT slot works for me. Jordan will join as well.
+
+Appreciate it — Alex
+Alex Bennett
+Senior Product PM, Acme Retail
+alex@acme-retail.com
+
+
+From: Diego Fernandez <diego.fernandez@redwoodinference.com>
+To: Alex Bennett <alex@acme-retail.com>, Jordan Fox <jordan.fox@acme-retail.com>
+Cc: Rishi Malhotra <rishi.malhotra@redwoodinference.com>, Vanessa Ortiz <vanessa.ortiz@redwoodinference.com>
+Date: Mon, 3 Nov 2025 09:14:00 -0800
+Subject: Re: Post-call: Technical qualification & proposed PoC milestones for Acme Retail
+
+Alex — great, thanks for confirming. Quick follow-up items and attached matrix/snippets: 
+
+1) Node.js snippet: Rishi attached a minimal example in the compatibility matrix (redwood-sdk-compatibility-matrix.xlsx has a code tab). High level: you can call our REST endpoint with streaming; the SDK exposes a .stream() helper and a .predict() sync call. KV caching is available via a header and SDK helper.
+
+2) PoC pricing: for a 6-week scoped PoC we typically run on hosted capacity and provide an estimate. Ballpark: $15k–$25k for the PoC depending on traffic replay. Dedicated monthly at 1k qps (reserved) — rough starting point $35k/mo (this is very rough; will run numbers after we see replay profile). I’ve put these ballparks in the attached scope doc.
+
+3) Milestones & owners (repeating with owners):
+- Kickoff (2025-11-05): Diego (Sales) — scheduling + data exchange.
+- Integration (2025-11-06 to 11-12): Rishi (SE) — Node.js SDK + sample integration, caching enabled.
+- Load/Quality tests (2025-11-13 to 11-26): Rishi + Acme infra/data teams.
+- Review + decision (2025-11-27): Diego + Vanessa (CS) for onboarding plan.
+
+4) Next meeting: Confirmed 2025-11-05 10:00 PT. I created the HubSpot deal and linked the PoC scope: https://app.hubspot.com/deal/ACME-2025-189.
+
+Can you please confirm the PO/contact for procurement so we can send the one-page POA? Also confirm the S3/GCS path where you will drop the sample dataset.
+
+I’ll bring Rishi to the kickoff to walk the team through the Node flow. Vanessa will track onboarding checklist once we pass the PoC.
+
+Thanks — Diego
+Diego Fernandez
+Account Executive | Redwood Inference
+diego.fernandez@redwoodinference.com
+(415) 555-0132
+
+Attachments: redwood-sdk-compatibility-matrix.xlsx, ACME-POC-scope-v1.pdf
+
+
+From: Diego Fernandez <diego.fernandez@redwoodinference.com>
+To: Vanessa Ortiz <vanessa.ortiz@redwoodinference.com>, Rishi Malhotra <rishi.malhotra@redwoodinference.com>
+Date: Tue, 4 Nov 2025 09:24:00 -0800
+Subject: Internal: Acme PoC kickoff & onboarding checklist (do not forward)
+
+Team — internal note ahead of Wednesday’s kickoff (10:00 PT). Please see the snippet I sent to Acme below for context. Key asks for us: 
+
+- Rishi: be prepared to show Node.js streaming snippet and how KV caching header works in the SDK. Also bring a short runbook for synthetic load test (target: 100 rps burst).
+- Vanessa: onboarding checklist and CS touchpoints. If PoC metrics pass, we should have a 30-day onboarding plan ready to propose (Dedicated vs Private options).
+- Pre-kickoff: Alex will drop a ~60k sample dataset to the S3 path he provides. Confirm we have IAM access and a test key ready to hand to them at kickoff.
+
+Quoted for visibility: 
+> "Proposed PoC milestones (6 weeks total):
+> - Week 0 (this week): Kickoff, sign POA, exchange test credentials + sample data subset. Owners: Diego (sales), Rishi (SE).
+> - Week 1: Integration sprint — Node.js SDK + REST calls, basic online inference, KV caching enabled."
+
+I’ll own the kickoff invite and add the runbook link to the calendar event. If either of you sees risk on our end (IAM, test key, infra), flag here and I’ll escalate.
+
+Thanks — Diego
+

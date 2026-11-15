@@ -1,0 +1,101 @@
+Eval extension request — surge pass vs cap credits
+
+From: Liam Carter <liam.carter@vectorwave.ai>
+To: Grace O'Connor <grace_oconnor@redwood.com>
+Date: Sun, 31 May 2026 09:12:00 -0700
+Subject: Short extension request and packaging question
+
+Grace —
+
+Thanks again for the support during our eval. We ran into an unexpected data-set ingest delay and are about 9 business days behind schedule; the team is asking whether we can get a two-week extension on the timeboxed evaluation (currently set to close 2026-06-10).
+
+Two asks from our side:
+- Can you extend the trial window + keep the same SKU/seat pricing?
+- If not, can we apply a short "surge pass" (one-time token bucket) to cover the extra consumption, or alternatively convert unused days to a token credit we can apply later?
+
+We want to avoid a full re-contracting cycle if possible. Happy to sign a narrow addendum.
+
+Attachment: VectorWave_POC_usage_report.xlsx (summary of current token burn / ETA)
+
+—Liam
+Director, ML Infrastructure
+VectorWave
+
+From: Grace O'Connor <grace_oconnor@redwood.com>
+To: Liam Carter <liam.carter@vectorwave.ai>
+Cc: Marissa Cole <marissa_cole@redwood.com>
+Date: Sun, 31 May 2026 11:03:00 -07:00
+Subject: Re: Short extension request and packaging question
+
+Liam —
+
+Appreciate the heads-up and the usage breakdown. We can absolutely avoid a full renegotiation. Two immediate options we can offer while I coordinate internally:
+
+Option A — 14-day extension (no change to SKU) + conditional shortfall credits
+- We extend the evaluation window by 14 days.
+- If total token burn by the new end date exceeds the originally agreed allowance by >15%, we convert the overage to a one-time credit at 60% of list rate (applied to a future committed purchase).
+
+Option B — Surge pass (one-time token bucket)
+- One-time surge bucket equal to 30% of current remaining allowance, priced at a 20% discount off the pay-as-you-go rate.
+- No change to trial end date.
+
+I copied Marissa from Commercial for approval of the discount/credit mechanics and to advise on whether a simple addendum is enough (legal and finance gating). If either option looks good, reply here and I’ll get approval and a short addendum drafted.
+
+Thanks,
+Grace
+Senior Account Executive
+Redwood Inference
+
+From: Marissa Cole <marissa_cole@redwood.com>
+To: Grace O'Connor <grace_oconnor@redwood.com>
+Cc: David Kim <david_kim@redwood.com>
+Date: Mon, 01 Jun 2026 09:15:00 -07:00
+Subject: Re: Short extension request and packaging question
+
+Grace / David —
+
+Quick internal on the ask. We can approve a limited concession without exec signoff if we keep the exposure bounded and protect revenue. Proposed guardrails:
+
+- Approve Option B (Surge pass) at 20% discount to PAYG for up to $12k of list value (i.e., our cost & margin are protected within that band).
+- If customer chooses Option A (full 14-day extension), we will:
+  * Approve a 0% immediate discount but apply a conversion rule where any overage becomes a credit at 60% of list applied to a future 6- or 12-month commit.
+  * Require a signed 1-page addendum acknowledging the conversion rule and new end date.
+
+Notes from Eng (David): the delay is mostly ingest-related; a short surge bucket is the least operational lift for us — we won't need to provision extra Dedicated capacity. If VectorWave later converts to Dedicated we'll revisit margins.
+
+If Grace wants to push more discount for ARR coverage, we need to surface to Sales Ops (and possibly request a 1-off promo code).
+
+Marissa
+Commercial Director, Redwood Inference
+
+Attachment: Quote_V2_20260531.pdf (internal pricing calc)
+
+From: Grace O'Connor <grace_oconnor@redwood.com>
+To: Liam Carter <liam.carter@vectorwave.ai>
+Cc: Marissa Cole <marissa_cole@redwood.com>
+Date: Mon, 01 Jun 2026 14:22:00 -07:00
+Subject: Re: Short extension request and packaging question
+
+Liam —
+
+Thanks for the patience. Short version: we can proceed without a full re-contract. Two formal options below — pick whichever you prefer and I’ll send a 1‑page addendum for signature.
+
+Option 1 — Surge Pass (recommended)
+- One-time token bucket sized to 30% of your remaining allowance, priced at a 20% discount to PAYG rates.
+- Cap on Redwood's exposure: $12,000 list-value equivalent.
+- No change to original end date (2026-06-10); tokens valid immediately.
+
+Option 2 — 14-day extension
+- Trial end date moved to 2026-06-24.
+- No upfront discount; any overage beyond 15% of original allowance converts to a credit at 60% of list rate that can be applied to a future committed annual contract (6- or 12-month).
+- Requires a signed addendum; no finance hold if signed within 48 hours.
+
+Please reply with which option you want and confirm the PO/person who will sign the addendum if you choose Option 2. If you want me to draft the addendum now, I can attach it for signature.
+
+Best —
+Grace
+Senior Account Executive
+Redwood Inference
+
+Quoted links: https://docsend.com/view/vectorwave-poc-quote-v2
+Attachments: VectorWave_POC_usage_report.xlsx, Quote_V2_20260531.pdf

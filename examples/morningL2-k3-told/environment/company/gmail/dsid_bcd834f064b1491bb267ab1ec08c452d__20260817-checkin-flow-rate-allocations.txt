@@ -1,0 +1,143 @@
+Operational plan: guest check-in flow & rate allocation for Aug onsite
+
+From: Neha Kapoor <neha_kapoor@redwood.ai>
+To: Olivia Barnes <obarnes@northbridgehotel.com>, Marcus Lee <marcus@travelops.co>
+Cc: Marissa Cole <marissa_cole@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>, Tessa Morgan <tessa_morgan@redwood.ai>
+Date: Wed, 12 Aug 2026 09:22:00 -0700
+Subject: Operational plan: guest check-in flow & rate allocation for Aug onsite
+
+Hi Olivia / Marcus,
+
+Thanks again for confirming the room block for our executive workshop on Aug 30–31. Before we lock rates and distribute the rooming sheet, I want to align on the guest check-in experience and how the hotel will capture negotiated rates so our finance team can reconcile quickly. High-level asks below — see the attached rooming_template_v3.xlsx and northbridge_rate_sheet_Aug2026.pdf for details.
+
+Key requests: 
+- Master room block name: Redwood Inference — please ensure the group rate code appears on folios.
+- Check-in flow: can the front desk pre-print keycards and have a dedicated group lane? What's the expected wait time during our 3:00–6:00pm arrival window?
+- Early arrivals: we expect ~15% early check-ins (arrivals between 11am–2pm). Can you hold 8 rooms for guaranteed early check-ins or provide luggage storage and a 10% early-arrival rate?
+- Rate capture: define the folio code / rate plan name exactly (we need it in the invoice).
+- Keycard distribution for split arrivals: can we have keycards pre-assigned to attendee last names from the rooming template? If not, what's the quickest on-site workaround (e.g., will the concierge bring packets to the meeting space)?
+- Breakfast vouchers: group continental breakfast included for booked room nights? Need voucher or billing code.
+
+Please confirm items above and note any constraints by end of day Friday so I can share the final plan with the exec team.
+
+Thanks,
+Neha Kapoor
+Program Manager, Events Operations
+Redwood Inference
+neha_kapoor@redwood.ai
+(415) 555-0182
+
+Attachments: rooming_template_v3.xlsx (spreadsheet), northbridge_rate_sheet_Aug2026.pdf (pdf)
+From: Olivia Barnes <obarnes@northbridgehotel.com>
+To: Neha Kapoor <neha_kapoor@redwood.ai>
+Cc: Marcus Lee <marcus@travelops.co>
+Date: Wed, 12 Aug 2026 14:08:00 -07:00
+Subject: Re: Operational plan: guest check-in flow & rate allocation for Aug onsite
+
+Hi Neha,
+
+Thanks for the clear list — all good questions. Quick answers below and details follow in the attached keycard-instructions.docx and our internal group SOP.
+
+- Group name / rate plan: "Redwood Inference — Executive Workshop"; rate code RIDX-AUG26. We will ensure the code is on each folio and on the master invoice.
+- Dedicated lane: yes, we'll staff a dedicated group lane at the front desk from 2:30–6:30pm. Estimated peak wait time 3–6 minutes per check-in when staffed.
+- Pre-printing keycards: we can pre-print keycards and place them in sealed packets behind the group desk if we have a final rooming list 72 hours prior. For split arrivals, concierge can deliver packets to the meeting room within 20 minutes.
+- Early arrivals: we can hold 8 rooms for guaranteed early check-ins (first-come, first-served) and provide luggage storage with priority retrieval. Early-arrival fee can be waived for these holds.
+- Breakfast: continental breakfast is included for roomed nights under the group rate; we will provide breakfast vouchers for walk-in breakfasts at the cafe — we'll add the voucher code to the folio.
+- Billing and folios: we will post the negotiated rate to each guest folio and include the RIDX-AUG26 rate code so finance can reconcile. Master folio will be produced daily if you prefer.
+
+Please send the completed rooming spreadsheet by 2026-08-27 17:00 PDT to guarantee pre-printed keycards. If you'd like, Marcus can coordinate on the logistics side.
+
+Best,
+Olivia Barnes
+Director, Group Sales
+Northbridge Hotel
+obarnes@northbridgehotel.com
++1 617-555-4433
+
+Attachment: keycard-instructions.docx
+From: Neha Kapoor <neha_kapoor@redwood.ai>
+To: Marissa Cole <marissa_cole@redwood.ai>
+Date: Thu, 13 Aug 2026 08:11:00 -07:00
+Subject: Fwd: Operational plan: guest check-in flow & rate allocation for Aug onsite
+
+Marissa — forwarding Olivia's confirmation. Two immediate notes for finance and operations: 
+
+1) Finance will need the rate code RIDX-AUG26 on every folio and the final master invoice PDF by Sep 7. Can you confirm the accounting contact and preferred invoice format?
+
+2) Ops: we should decide who will staff the group desk during the 2:30–6:30pm window and who will be the single point to hand out packets (labeled by last name). I can ask Hannah to coordinate staffing and briefing.
+
+Also looping Laura and Tessa for accessibility and VIP handling.
+
+-Neha
+
+On Wed, Aug 12, 2026 at 2:08 PM Olivia Barnes <obarnes@northbridgehotel.com> wrote:
+> Hi Neha,
+> 
+> Thanks for the clear list — all good questions... (message truncated)
+> 
+> Attachment: keycard-instructions.docx
+
+From: Marissa Cole <marissa_cole@redwood.ai>
+To: Neha Kapoor <neha_kapoor@redwood.ai>, Hannah Schmitt <hannah_schmitt@redwood.ai>
+Cc: Laura Bennett <laura_bennett@redwood.ai>, Tessa Morgan <tessa_morgan@redwood.ai>
+Date: Thu, 13 Aug 2026 09:03:00 -07:00
+Subject: Re: Fwd: Operational plan: guest check-in flow & rate allocation for Aug onsite
+
+Thanks Neha — I can cover the group desk shift from 3:00–5:30pm on Aug 30. Hannah, can you take the 2:30–3:00pm handoff and stay on call for packet deliveries? I'll bring the labelled packets and a sign-in sheet.
+
+Finance note: our AP contact is invoices@redwood.ai (acct: AP Team). We need the master invoice as a single PDF emailed to invoices@redwood.ai and copied to me (marissa_cole@redwood.ai).
+
+I'll update the rooming sheet with expected arrival windows and send the final by Friday EOD.
+
+-Marissa
+
+--
+Marissa Cole
+Events & Customer Experience
+Redwood Inference
+marissa_cole@redwood.ai
+(415) 555-0147
+From: Laura Bennett <laura_bennett@redwood.ai>
+To: Neha Kapoor <neha_kapoor@redwood.ai>, Marissa Cole <marissa_cole@redwood.ai>
+Cc: Olivia Barnes <obarnes@northbridgehotel.com>, Tessa Morgan <tessa_morgan@redwood.ai>
+Date: Fri, 14 Aug 2026 10:17:00 -07:00
+Subject: Re: Operational plan: guest check-in flow & rate allocation for Aug onsite
+
+Quick accessibility and VIP notes: 
+- We have one attendee with mobility aid + late-night arrival (arriving 11:45pm). Please confirm accessible room placement near elevator and that engineering can assist with luggage.
+- Two VIPs require late checkout (noon) and a welcome note in-room. Can we mark these on the rooming list under "VIP"?
+
+Olivia — please confirm that accessible rooms are held and that late checkout for the two VIPs is on the folio with no penalty.
+
+Thanks,
+Laura Bennett
+Head of People Ops (interim)
+laura_bennett@redwood.ai
+
+On Thu, Aug 13, 2026 at 9:03 AM Marissa Cole <marissa_cole@redwood.ai> wrote:
+> Thanks Neha — I can cover the group desk shift...
+
+From: Olivia Barnes <obarnes@northbridgehotel.com>
+To: Neha Kapoor <neha_kapoor@redwood.ai>, Marissa Cole <marissa_cole@redwood.ai>, Laura Bennett <laura_bennett@redwood.ai>
+Cc: Marcus Lee <marcus@travelops.co>, Tessa Morgan <tessa_morgan@redwood.ai>
+Date: Mon, 16 Aug 2026 16:03:00 -07:00
+Subject: Re: Operational plan: guest check-in flow & rate allocation for Aug onsite
+
+Hi all,
+
+All confirmed: 
+- Accessible rooms: 3 ADA rooms reserved near the elevator, request noted on the folios.
+- VIP late checkout: two rooms flagged for noon checkout with welcome amenity on arrival. No late-checkout fee applied.
+- Keycard packets: we will pre-print and assemble packets for all guests if the final rooming sheet is received by 2026-08-27 17:00 PDT. Packets will be at the group desk and concierge will deliver to the meeting space on request (20-minute SLA).
+- Rate capture: RIDX-AUG26 will be applied to each folio; master invoice PDF will be sent to invoices@redwood.ai and cc marissa_cole@redwood.ai within 48 hours of checkout.
+
+Attached: northbridge_rate_sheet_Aug2026.pdf (for your records). Let me know if you want a walk-through of the group desk layout prior to the event; Marcus can run logistics if helpful.
+
+Best regards,
+Olivia Barnes
+Director, Group Sales
+Northbridge Hotel
+obarnes@northbridgehotel.com
++1 617-555-4433
+
+Attachments: northbridge_rate_sheet_Aug2026.pdf

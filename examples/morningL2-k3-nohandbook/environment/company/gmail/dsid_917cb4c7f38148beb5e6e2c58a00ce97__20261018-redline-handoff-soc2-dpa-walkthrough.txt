@@ -1,0 +1,97 @@
+SOC2 + DPA walkthrough — redline handoff and pen-test scope
+
+From: Katherine Li <katherine@acmecorp.com>
+To: Jasmine Liu <jasmine@redwood.com>
+Cc: Acme Security <security@acmecorp.com>
+Date: Mon, 12 Oct 2026 15:12:00 +0000
+Subject: SOC2/DPA/pen-test walkthrough — request to schedule
+
+Hi Jasmine,
+
+Thanks for the quick intro last week. Were ready to move into a combined security walkthrough so our security and legal teams can: 1) review Redwoods SOC2 controls and evidence mapping, 2) hand off DPA redlines for discussion, and 3) align on an initial pen-test scope and vendor coordination.
+
+Would a 60-min slot work to cover all three items? Our preferred window next week is Tue/Wed/Thu (Oct 19-21) between 14:00-18:00 ET. Attendees on our side: myself (security PM), Tom Ellis (infosec manager), and our legal lead (in cc on follow-up). Wed like to circulate any redlines to the DPA and a short agenda beforehand — I attached the RFP excerpt that shows required items (Acme_RFP_v3.pdf).
+
+Can you propose 2–3 slots that fit Redwoods SOC2 folks? Also please include the person who owns pen-test orchestration at Redwood so we can loop in the vendor.
+
+Thanks,
+Katherine Li
+Security Program Manager
+Acme Corp
+attachments: Acme_RFP_v3.pdf
+
+From: Jasmine Liu <jasmine@redwood.com>
+To: Katherine Li <katherine@acmecorp.com>
+Cc: laura_bennett <laura_bennett@redwood.com>, rishi_malhotra <rishi_malhotra@redwood.com>
+Date: Tue, 13 Oct 2026 08:36:00 +0000
+Subject: Re: SOC2/DPA/pen-test walkthrough — request to schedule
+
+Katherine — thanks for the note and the RFP excerpt. Happy to run a 60-min combined session; if we need extra time we can extend to 90. Proposed 60-min slots (all ET):
+
+- Tue, Oct 20 — 11:00 AM–12:00 PM ET (16:00–17:00 UTC)
+- Wed, Oct 21 — 02:00 PM–03:00 PM ET (19:00–20:00 UTC)
+- Thu, Oct 22 — 10:00 AM–11:00 AM ET (15:00–16:00 UTC)
+
+Ive ccd Laura from legal for the DPA redlines and Rishi (infra) for the pen-test scope. Ill attach a short agenda and a template redline doc for you to drop notes into prior to the call (walkthrough_agenda.pdf). Also heres a quick HubSpot link to the deal for reference: https://app.hubspot.com/contacts/12345/deal/DEAL-4593.
+
+If you can confirm one preferred slot and share any redlines ahead of time (or drop them in the drive link below), well send a calendar invite with a bridge and pre-read.
+
+Drive (redlines folder): https://drive.google.com/drive/folders/1a2b3c-redlines
+
+Best,
+Jasmine Liu
+Solutions Engineer, Redwood Inference
+jasmine@redwood.com
+attachments: walkthrough_agenda.pdf
+
+From: rishi_malhotra <rishi_malhotra@redwood.com>
+To: Jasmine Liu <jasmine@redwood.com>, laura_bennett <laura_bennett@redwood.com>
+Cc: Katherine Li <katherine@acmecorp.com>
+Date: Wed, 14 Oct 2026 09:02:00 +0000
+Subject: Re: SOC2/DPA/pen-test walkthrough — request to schedule
+
+Quick note from infra side: I can join the Oct 20 slot (11:00 AM ET). If the Acme team plans to discuss pen-test logistics, please confirm the vendor contact and whether you expect a live attack window or a scoped vulnerability assessment. Prework that helps us prepare: a list of IPs/domains in-scope, expected test hours, and any allowlist needs for vendor IPs.
+
+Ill also add Lauras redline contact to the drive.
+
+-rishi
+Rishi Malhotra
+Head of Platform Security
+Redwood Inference
+
+From: Katherine Li <katherine@acmecorp.com>
+To: Jasmine Liu <jasmine@redwood.com>
+Cc: Tom Ellis <tom.ellis@acmecorp.com>, Acme Security <security@acmecorp.com>, laura_bennett <laura_bennett@redwood.com>
+Date: Fri, 16 Oct 2026 20:18:00 +0000
+Subject: Re: SOC2/DPA/pen-test walkthrough — request to schedule
+
+Jasmine / team — thanks, well take the Tue, Oct 20 11:00 AM ET slot. Confirming attendees: Katherine (me), Tom Ellis (infosec), Maya Patel (legal), and our third-party coordinator (VeriSec Testing).
+
+Im attaching a quick redline file (redlines_dpa_v1.docx) and the vendor contact info: verisec-testing@verisec.io. Wed prefer to keep the session to 60 minutes but happy to extend to 90 if the conversation requires it.
+
+Forwarded message (agenda + notes included below):
+> From: Katherine Li <katherine@acmecorp.com>
+> Date: Mon, 12 Oct 2026 15:12:00 +0000
+> Subject: SOC2/DPA/pen-test walkthrough — request to schedule
+>
+> [see original message and RFP excerpt attached]
+
+Well accept the calendar invite when you send it. See attached redlines.
+
+Thanks,
+Katherine
+attachments: redlines_dpa_v1.docx
+
+From: Ben Carter <ben_carter@redwood.com>
+To: Jasmine Liu <jasmine@redwood.com>, rishi_malhotra <rishi_malhotra@redwood.com>
+Cc: laura_bennett <laura_bennett@redwood.com>, Katherine Li <katherine@acmecorp.com>
+Date: Sun, 18 Oct 2026 09:05:00 +0000
+Subject: Re: SOC2/DPA/pen-test walkthrough — request to schedule
+
+Looping in pen-test ops: I added a short checklist for the meeting and a pre-call action item list (pen_test_checklist.xlsx). Can someone confirm whether DevOps lead will join or if Rishi will cover infra questions? If Acme wants a brief run-through of the testing approach, we can stretch to 90 minutes.
+
+—Ben
+Ben Carter
+Customer Success (Enterprise)
+Redwood Inference
+attachments: pen_test_checklist.xlsx

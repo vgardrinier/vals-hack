@@ -1,0 +1,98 @@
+Evening compliance sprint — SOC 2 / DPA walkthrough availability
+
+From: Logan Wright <logan_wright@redwood.com>
+To: Anita Shah <anita.shah@finserve.com>
+Cc: Kimberly Park <kimberly_park@redwood.com>
+Date: Mon, 18 May 2026 15:22:00 -0700
+Subject: Evening compliance sprint — SOC 2 / DPA walkthrough availability
+
+Hi Anita —
+
+Thanks again for the quick intro earlier. FinServe's timeline makes total sense and we want to make the walkthrough as low-friction as possible for your ops team. A couple notes up front: we typically run the intake as a focused sprint (60–90 minutes depending on scope) covering SOC 2 control mapping, DPA questions, and a short pen-test orientation.
+
+Because your regional ops team prefers after-hours availability, can you confirm whether one of the following CEST slots would work for a 60-minute sprint (we can extend to 90 if you prefer):
+
+- Tue, 26 May — 18:00–19:00 CEST
+- Wed, 27 May — 19:00–20:00 CEST
+
+I've attached a short evidence checklist and a draft agenda to help the call run fast. If you need us to include network/infra contacts or an external pen vendor on the bridge, flag those folks and we will add them to the invite.
+
+Would you prefer 60 or 90 minutes? Once you confirm a slot I will send a calendar invite with the Zoom bridge and an internal ops cover (Kim will be on-call).
+
+Best,
+
+Logan Wright
+Solutions Engineer, Redwood Inference
+logan_wright@redwood.com | +1 (415) 555-0192
+Redwood Inference
+
+Attachments: soc2-evidence-checklist.pdf, redwood-sprint-agenda-v1.docx
+From: Anita Shah <anita.shah@finserve.com>
+To: Logan Wright <logan_wright@redwood.com>
+Cc: Marcus Li <marcus.li@finserve.com>, ops-security@finserve.com
+Date: Mon, 18 May 2026 22:40:00 +0200
+Subject: Re: Evening compliance sprint — SOC 2 / DPA walkthrough availability
+
+Hi Logan —
+
+Thanks — both slots look possible but our security lead (Marcus) prefers the 90-minute window so we can cover the DPA specifics and the pen-test scoping. Wed 27 May 19:00–20:30 CEST would be ideal for us.
+
+One small constraint: our on-call network engineer is available until 20:00 CEST only. If a hard 90 is required, we can shift the start to 18:45 and go to 20:15, or push to Thu 28 May 18:30–20:00. Which is easier for your side?
+
+Also attaching a short list of stakeholders who should be present: Marcus Li (security), Clara Mendes (legal, will dial in briefly), ops-security@finserve.com.
+
+Thanks,
+Anita
+Director, IT Operations — FinServe
+anita.shah@finserve.com
+
+From: Logan Wright <logan_wright@redwood.com>
+To: Anita Shah <anita.shah@finserve.com>
+Cc: Kimberly Park <kimberly_park@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: Tue, 19 May 2026 00:03:00 -0700
+Subject: Re: Evening compliance sprint — SOC 2 / DPA walkthrough availability
+
+Anita —
+
+Appreciate the detail. 90 minutes is fine; we can take the 18:45–20:15 CEST option on Wed 27 May. Marissa will own the pen-test orientation portion and Kim will be the fallback on the bridge if anything runs long.
+
+I'll send a calendar invite with the Zoom link and the agenda attached. For scope: we will reserve the first 30 minutes for control mapping (SOC 2), 30–40 minutes for DPA and data flow questions, then 15–20 minutes for pen-test logistics and next steps. If Clara can only join briefly, we'll note action items and capture follow-ups in a shared doc.
+
+Draft invite attached as an .ics (proposal-invite.ics). Please confirm attendee list and any additional artifacts you want us to review in advance.
+
+Best,
+Logan
+
+On Tue, May 18, 2026 at 22:40 +0200 Anita Shah <anita.shah@finserve.com> wrote:
+> Hi Logan —
+> 
+> Thanks — both slots look possible but our security lead (Marcus) prefers the 90-minute window so we can cover the DPA specifics and the pen-test scoping. Wed 27 May 19:00–20:30 CEST would be ideal for us.
+> 
+> One small constraint: our on-call network engineer is available until 20:00 CEST only. If a hard 90 is required, we can shift the start to 18:45 and go to 20:15, or push to Thu 28 May 18:30–20:00. Which is easier for your side?
+> 
+> Also attaching a short list of stakeholders who should be present: Marcus Li (security), Clara Mendes (legal, will dial in briefly), ops-security@finserve.com.
+> 
+> Thanks,
+> Anita
+
+From: Anita Shah <anita.shah@finserve.com>
+To: Logan Wright <logan_wright@redwood.com>
+Cc: Marissa Cole <marissa_cole@redwood.com>, Kimberly Park <kimberly_park@redwood.com>, Marcus Li <marcus.li@finserve.com>, ops-security@finserve.com
+Date: Tue, 19 May 2026 02:07:00 +0200
+Subject: Re: Evening compliance sprint — SOC 2 / DPA walkthrough availability
+
+Hi Logan / team —
+
+Confirmed: Wed 27 May, 18:45–20:15 CEST (90 minutes). Marcus and Clara will join; ops-security will be on the bridge until 20:00 as noted. Thank you for being flexible and for the checklist — we've shared the evidence folder with the items you flagged.
+
+Please send the final invite (with Zoom + attach checklist) and we'll mark calendars. Looking forward to the walkthrough.
+
+Best,
+Anita
+
+-----
+Anita Shah
+Director, IT Operations — FinServe
+anita.shah@finserve.com
+Attachments: none
+Note: Calendar invite (proposal-invite.ics) and evidence checklist were referenced and uploaded to the shared Drive link above.

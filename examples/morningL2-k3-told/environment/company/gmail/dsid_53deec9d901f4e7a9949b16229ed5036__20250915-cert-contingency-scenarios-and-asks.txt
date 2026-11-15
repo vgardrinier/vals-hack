@@ -1,0 +1,117 @@
+Certification contingency scenarios and intake asks
+
+From: Helen Park <helen.park@havensec.com>
+To: Marissa Cole <marissa.cole@redwood.com>
+Date: Mon, 15 Sep 2025 09:12:00 -0700
+Subject: Certification contingency scenarios and upfront asks
+
+Hi Marissa,
+
+We're lining up a FedRAMP pre-assessment (federal agency intake) and an ISO 27001 Stage 1 between late October and mid-November. Before we lock windows I have a few concrete asks so we can scope the intake properly: 
+
+- Confirm the in-scope boundary for both programs (are we looking only at US regions or global?): list of regions/cloud accounts.
+- PII/data classification: what categories of customer data are processed in-scope for the audit (esp. model inputs vs. logs)?
+- Subservice providers: current list and SOC/SOC-equivalent status for major vendors.
+- Evidence retention: typical retention periods for logs, backups, and configuration snapshots that you can provide as attestable artifacts.
+- SIG / CAIQ: do you have a recent CAIQ filled out or a SIG baseline we can include?
+- Sample window expectations and maximum sample sizes (we need to line up artifact pulls and test accounts).
+
+Also: in past engagements auditors have asked for a contingency approach when small nonconformities are discovered — do you have an established contingency/exception process we can cite (temporary compensating controls, remediation window, or remediation letters)?
+
+If helpful, we're happy to run a 1-hour scoping call this week. If you can send an inventory template we can start mapping evidence owners.
+
+Thanks,
+Helen Park
+Principal Security Assessor
+Haven Security
+
+[Note: attaching formal audit intake worksheet in follow-up if needed]
+From: Marissa Cole <marissa.cole@redwood.com>
+To: Helen Park <helen.park@havensec.com>
+Cc: karthik.iyer@redwood.com, mina.haddad@redwood.com, olga.petrov@redwood.com
+Date: Mon, 15 Sep 2025 10:03:00 -0700
+Subject: Re: Certification contingency scenarios and upfront asks
+
+Hi Helen — thanks for the clear list. We're available for a scoping call Thursday or Friday; I'll propose times in a separate calendar invite. Quick answers and next steps below: 
+
+- Boundary: initial preference is US-only (primary clusters in us-west-2 and us-east-1) — we can expand to EU upon request but that will add workload.
+- PII: model inputs are by default tokenized and routed through ephemeral caches; we treat customer-provided PII as high-sensitivity and will map controls accordingly. We will include sanitized examples rather than raw prompt data where possible.
+- Subservice providers: I'll attach our current control-owners template and a short vendor list; several providers have SOC2 reports (we'll note which).
+- Retention: we typically retain audit-relevant logs for 13 months (config snapshots 12 months) — I'll confirm retention buckets and provide a retention matrix.
+- CAIQ/SIG: we maintain a CAIQ baseline; Olga will take point on packaging the CAIQ and the SIG mapping.
+- Sample window: please advise max sample size; our default assent is to support up to 250 artifacts per control area within a 2-week window, but we can negotiate.
+
+I've attached an evidence-inventory-template.csv so your team can start tagging what you'll request. Internally I'm going to stand up a short intake sprint and assign owners.
+
+If you can confirm the auditor's ideal sample window and whether they require raw prompt material, we can finalize sprint dates.
+
+Best,
+Marissa Cole
+Head of Security Programs
+Redwood Inference
+
+Attachment: evidence-inventory-template.csv
+From: Marissa Cole <marissa.cole@redwood.com>
+To: karthik.iyer@redwood.com, mina.haddad@redwood.com, olga.petrov@redwood.com
+Date: Mon, 15 Sep 2025 11:20:00 -0700
+Subject: Fwd: Certification contingency scenarios and upfront asks
+
+Team — forwarding Haven's intake asks. Proposed plan and asks for owners: 
+
+- Karthik: lead FedRAMP scoping (verify cloud region boundary, PII defs, fallback options if sample access is delayed).
+- Mina: evidence assembly (logs, config snapshots, backups); prepare redaction plan and sanitized examples.
+- Olga: CAIQ / SIG packaging and control mapping; confirm which subservice SOC packages we can include.
+- Proposed intake sprint: Sep 22 — Oct 3 (2 weeks) to gather and stage artifacts. If Haven needs sooner we'll compress to a 1-week triage + 1-week pull.
+- Contingency ask: auditors sometimes request temporary compensating controls when an artifact isn't immediately available. We should pre-author an exception memo and remediation timeline (30 days typical) — can we draft a template?
+
+I've attached a one-page proposed-intake-sprint-plan for your review. Please reply with any blocking issues or if we should expand scope to EU for this engagement.
+
+Original message from Haven quoted below.
+
+[Attachment: proposed-intake-sprint-plan.md]
+From: karthik.iyer@redwood.com <karthik.iyer@redwood.com>
+To: Marissa Cole <marissa.cole@redwood.com>
+Cc: mina.haddad@redwood.com, olga.petrov@redwood.com
+Date: Tue, 16 Sep 2025 09:30:00 -0700
+Subject: Re: Fwd: Certification contingency scenarios and upfront asks
+
+Thanks Marissa — quick notes after an internal scan: 
+
+- Regions: confirm US-only (us-west-2, us-east-1) for initial scope. We'll treat EU as out-of-scope unless Haven confirms federal EU requirement.
+- Data types: for FedRAMP we should mark raw customer prompts as "sensitive operational input" and supply sanitized examples only. Our logs (access and inference logs) are in-scope; retention matrix attached.
+- Subservice providers: list in the vendor register; three key providers (storage, telemetry, KMS) have SOC2 Type II; we'll attach their attestations where possible.
+- Sample sizing: 250 artifacts/control is workable; escalate if auditors request >500. That would require a dedicated extraction job.
+- Contingency approach: I propose we prepare a short "Temporary Exception & Remediation Commitment" memo (template attached) that: identifies missing artifact, explains compensating control, and commits to remediation within 30 days. Only GRC sign-off required; legal review if exceptions affect customer data.
+
+Attachments included: control-owners-list.xlsx; retention-matrix.pdf; temp-exception-template.docx
+
+If we can lock sprint start Sep 22, I'll pre-populate the control-owner sheet and reach out to infra teams for scheduled extraction windows. Also flagging one risk: for some archived snapshots we only have hashed indices older than 9 months — that may complicate evidence that requires raw config files. Suggest we triage those controls early.
+
+— Karthik
+Director, Compliance Operations
+Redwood Inference
+
+> On Mon, Sep 15, 2025 at 10:03 AM Marissa Cole <marissa.cole@redwood.com> wrote:
+> > I've attached an evidence-inventory-template.csv so your team can start tagging what you'll request.
+
+From: Helen Park <helen.park@havensec.com>
+To: Marissa Cole <marissa.cole@redwood.com>
+Cc: karthik.iyer@redwood.com, mina.haddad@redwood.com
+Date: Thu, 18 Sep 2025 14:03:00 -0700
+Subject: Re: Certification contingency scenarios and upfront asks
+
+Marissa / Karthik —
+
+Thanks for the quick turnaround and the attachments. Confirming we will scope the pre-assessment to US-only for now and the auditors accept sanitized examples in lieu of raw prompts. Our target intake window is Sep 25 — Oct 6; please stage artifacts for the first 3 days of that window where possible (we'll use the remainder for validation).
+
+We appreciate the proposed temporary exception memo approach — please send the template in the intake packet. Final ask: can you include a short statement in the intake packet that lists which subservice providers have current SOC2 attestations (name + report date)? That will speed our review.
+
+If you can get the initial inventory uploaded to the Drive folder by Sep 24 EOD we should be on track. I'll send a calendar invite for an initial scoping call Friday at 10am PT.
+
+Best,
+Helen Park
+Principal Security Assessor
+Haven Security
+
+> On Tue, Sep 16, 2025 at 09:30 AM karthik.iyer@redwood.com wrote:
+> > Attachments included: control-owners-list.xlsx; retention-matrix.pdf; temp-exception-template.docx

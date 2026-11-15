@@ -1,0 +1,111 @@
+IRP delivery, evidence bundle, and next steps for Helios Health
+
+From: Luke Moore <luke@helioshealth.com>
+To: Aisha Rahman <aisha_rahman@redwood.ai>
+Cc: procurement@helioshealth.com
+Date: Wed, 4 Nov 2026 11:22:00 -0700
+Subject: Request: incident response plan + SOC2 artifacts for vendor review
+
+Aisha —
+
+Thanks for taking our call earlier. As part of Helios Health's vendor onboarding we need the following to complete our security review: a current incident response plan (IRP) covering detection and notification steps, a mapping of SOC 2 control evidence (index), and any recent incident postmortems or IR exercises.
+
+We have an internal timeline to finish vendor risk sign-off by 11/15. Can you confirm what you can provide this week and who on your side will be the point of contact if we have follow-up technical questions?
+
+Also, we have a short SIG questionnaire that asks how you handle incident communication to downstream customers — happy to share it if useful.
+
+Regards,
+Luke Moore
+Security Operations Lead
+Helios Health
+
+--
+attachments: helios_evidence-request.xlsx (spreadsheet)
+
+From: Aisha Rahman <aisha_rahman@redwood.ai>
+To: Luke Moore <luke@helioshealth.com>
+Cc: Karthik Iyer <karthik_iyer@redwood.ai>, Monica Patel <monica_patel@redwood.ai>
+Date: Wed, 4 Nov 2026 13:05:00 -07:00
+Subject: Re: Request: incident response plan + SOC2 artifacts for vendor review
+
+Hi Luke —
+
+Appreciate the clear list. We can provide: the current IRP (redwood IRP v2), a SOC 2 evidence index (mapping to relevant controls), and a redacted postmortem from a November tabletop we ran last quarter. I will own the coordination and Karthik will handle technical follow-ups related to detection/logging artifacts. Monica will prepare the SOC 2 index for your control mapping.
+
+Proposed timeline:
+- Today (11/4): confirm scope and recieve your SIG questionnaire
+- 11/6: deliver IRP v2 and SOC2 evidence index (initial)
+- 11/8: deliver postmortem summary + evidence bundle (zipped)
+
+If that works I'll upload artifacts to a shared drive and send links + a short README. If you need an NDA or tighter controls on the evidence, let me know.
+
+Thanks,
+Aisha Rahman
+Head of Solutions (Vendor Security)
+Redwood Inference
+
+--
+attachments: none
+
+From: Aisha Rahman <aisha_rahman@redwood.ai>
+To: Karthik Iyer <karthik_iyer@redwood.ai>, Monica Patel <monica_patel@redwood.ai>, Vivek Kulkarni <vivek_kulkarni@redwood.ai>
+Date: Fri, 6 Nov 2026 09:12:00 -07:00
+Subject: Fwd: Request: incident response plan + SOC2 artifacts for vendor review
+
+Team — forwarding Helios request. Action items:
+
+- Monica: finalize SOC2 evidence index CSV, include sample S3 retention policy export and audit log extract.
+- Karthik: prepare sanitized detection logs and a short note about our notification flow and timelines (MAPI + webhook examples).
+- Vivek: please red-team the postmortem to remove any PII and confirm the `postmortem-summary-20261108.txt`.
+
+Deadline: send me ready-to-upload artifacts by EOD 11/6 so I can stage and upload on 11/7. Use the evidence naming convention Helios_EVID_{YYYYMMDD}.
+
+Thanks — Aisha
+
+--
+On Wed, Nov 4, 2026 at 11:22 AM Luke Moore <luke@helioshealth.com> wrote:
+> Aisha —
+> 
+> Thanks for taking our call earlier...
+> 
+> attachments: helios_evidence-request.xlsx
+
+From: Luke Moore <luke@helioshealth.com>
+To: Aisha Rahman <aisha_rahman@redwood.ai>
+Cc: security@helioshealth.com
+Date: Sat, 7 Nov 2026 08:35:00 -0800
+Subject: Re: Request: incident response plan + SOC2 artifacts for vendor review
+
+Aisha — quick clarification: the SIG form asks about customer notification SLAs and whether you provide an 'incident summary' to downstream customers. Can you include a short paragraph that describes: 1) who receives external notifications, 2) typical SLA for initial notification, and 3) whether you provide periodic updates / a public postmortem?
+
+If you can drop that into the README it will speed our review.
+
+Thanks,
+Luke
+
+From: Aisha Rahman <aisha_rahman@redwood.ai>
+To: Luke Moore <luke@helioshealth.com>
+Cc: Karthik Iyer <karthik_iyer@redwood.ai>, Monica Patel <monica_patel@redwood.ai>, Vivek Kulkarni <vivek_kulkarni@redwood.ai>, procurement@helioshealth.com
+Date: Mon, 8 Nov 2026 16:05:00 -07:00
+Subject: IRP + evidence bundle uploaded — README + postmortem summary
+
+Luke —
+
+Per our timeline, I've uploaded a zipped evidence bundle and a short README to the shared drive. Contents: IRP v2 (irp_v2.pdf), SOC2 evidence index (soc2-evidence-index.csv), sanitized detection logs, retention policy export, postmortem summary (postmortem-summary-20261108.txt), and the Excel you sent with requested fields populated.
+
+Readme excerpt on incident notification to customers (for SIG):
+- External notifications: Primary contact list maintained per customer contract; notifications go to security distribution lists and an identified product contact for operational impact. For Helios we will send initial notifications to security@helioshealth.com and your named SOC contact.
+- Initial SLA: We aim to send an initial incident notification within 2 hours of confirmed customer-impacting incidents (for high-severity incidents). Lower-severity events follow a 24-hour notification expectation after validation.
+- Follow-ups/postmortem: We provide periodic status updates via email or a shared incident workspace until resolution. For incidents with broad customer impact we publish a post-incident summary after remediation and root cause analysis — the cadence is typically 7–14 days depending on investigative scope.
+
+Download: https://drive.redwood.com/shared/Helios/IRP-evidence-20261108 (evidence-bundle-Helios-20261108.zip)
+
+If you'd like a short video walkthrough or a live session next week to go over the artifacts, I'm available Tues/Wed.
+
+Regards,
+Aisha Rahman
+Head of Solutions (Vendor Security)
+Redwood Inference
+
+--
+attachments: evidence-bundle-Helios-20261108.zip, irp_v2.pdf, soc2-evidence-index.csv, postmortem-summary-20261108.txt

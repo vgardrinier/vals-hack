@@ -1,0 +1,94 @@
+Triggered repricing & rollback clause - redline and sign-off request
+
+From: Ben Carter <ben_carter@redwood.com>
+To: procurement@stratonova.com
+Cc: Lauren Bishop <lauren_bishop@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: Tue, 12 Aug 2025 09:15:00 -0700
+Subject: Triggered repricing & rollback clause - redline and sign-off request
+
+Hi Aditi / procurement team,
+
+Thanks again for the productive call yesterday. Attached is the updated Order Form (Strato_OrderForm_v2.pdf) and a focused redline on Exhibit B (PricingExhibitB_redline.docx). The main items we adjusted per your ask:
+
+- Added a 90-day grace window after a usage spike before a triggered repricing becomes effective.
+- Introduced an explicit rollback path for temporary overages: if average monthly usage drops below the threshold for three consecutive months, pricing reverts to prior tier.
+- Clarified true-up mechanics and delineated the metrics that will be used for the trigger (see MA-Trigger-Matrix.xlsx).
+
+Three asks from our side so we can finalize the Order Form:
+1) Please confirm the 90-day grace window language is acceptable to legal (we flagged the clause in the redline).
+2) If you need a cap on cumulative retroactive charges during a rollback period, tell us the acceptable cap number or range.
+3) Can you route any legal edits back to me and Lauren by end-of-day Friday (2025-08-15)? We need to present final paperwork to finance next week.
+
+Quick note on attachments: PricingExhibitB_redline.docx contains inline comments for the rollback and cap language — Marissa and I added suggested wording.
+
+Thanks,
+
+Ben Carter
+Senior Account Executive | Redwood Inference
+ben_carter@redwood.com | +1 415-555-0123
+[Attachment: Strato_OrderForm_v2.pdf (PDF)] [Attachment: PricingExhibitB_redline.docx (document)] [Attachment: MA-Trigger-Matrix.xlsx (spreadsheet)]
+From: Aditi Singh <aditi.singh@stratonova.com>
+To: Ben Carter <ben_carter@redwood.com>
+Cc: Lauren Bishop <lauren_bishop@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, juridical@stratonova.com
+Date: Tue, 12 Aug 2025 11:02:00 -07:00
+Subject: Re: Triggered repricing & rollback clause - redline and sign-off request
+
+Ben —
+
+Appreciate the clean package. I shared the redline with our legal (juridical@stratonova.com) and procurement ops. A few quick items from our side:
+
+- The 90-day grace window is reasonable, but legal wants the effective date to be aligned to the calendar month following the third qualifying month — they prefer an explicit ‘effective on the first day of the month’ language.
+- Our CFO is concerned about open-ended retroactive billing during rollbacks. We can accept rollback if there is a cap equal to 25% of the monthly invoice for the month that triggered the repricing, or a flat $50k cap, whichever is lower.
+- Legal also requested clearer notice obligations: StratoNova needs 30 days’ written notice prior to any price change taking effect (even if caused by triggers).
+
+I’ll have our redline back to you by Thursday EOD; legal said they will prioritize the rollback/cap verbiage.
+
+Thanks,
+Aditi Singh
+Senior Procurement Manager | StratoNova Systems
+aditi.singh@stratonova.com
+
+On Tue, Aug 12, 2025 at 09:15 AM Ben Carter <ben_carter@redwood.com> wrote: (quoted)
+> Thanks again for the productive call yesterday...
+From: Lauren Bishop <lauren_bishop@redwood.com>
+To: Aditi Singh <aditi.singh@stratonova.com>, Ben Carter <ben_carter@redwood.com>
+Cc: Marissa Cole <marissa_cole@redwood.com>
+Date: Wed, 13 Aug 2025 08:46:00 -07:00
+Subject: Re: Triggered repricing & rollback clause - redline and sign-off request
+
+Hi Aditi —
+
+Quick follow from Redwood legal/product on the implementation logistics so your counsel has context:
+
+- Effective date alignment: we are OK with ‘effective on the first day of the month following the notice period’ language. Our billing systems reconcile on calendar-month boundaries, so that aligns operationally.
+- Cap on retroactive charges: Redwood prefers a percentage cap tied to the invoice rather than a fixed flat cap. The team’s risk model flags flat caps as potentially unfavorable if usage and dollar volumes scale rapidly. That said, the percent cap you proposed (25%) is a workable starting point for negotiation.
+- Notice obligations: 30 days’ written notice prior to an effective price change is acceptable, provided exceptions exist for contractually specified short-term events (we can call these out explicitly).
+
+I have attached a short comment file inside PricingExhibitB_redline.docx indicating the exact phrasing we propose for the rollback paragraph and notice clause. If you accept the language we’ll fold into the final Order Form.
+
+Lauren Bishop
+Director, Contracts & Commercial Operations | Redwood Inference
+lauren_bishop@redwood.com
+
+[Attachment: PricingExhibitB_redline.docx (document) — see comments 'rollback-phrase' and 'notice-clause']
+From: Ben Carter <ben_carter@redwood.com>
+To: Aditi Singh <aditi.singh@stratonova.com>
+Cc: Lauren Bishop <lauren_bishop@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, juridical@stratonova.com
+Date: Fri, 15 Aug 2025 16:22:00 -07:00
+Subject: Fwd: Triggered repricing & rollback clause - redline and sign-off request
+
+Aditi / legal team —
+
+Looping final edits from our side below and re-attaching the consolidated redline. Summary of changes we’re proposing to accept based on your feedback:
+
+1) 90-day grace window preserved; effective date anchored to the first day of the month following the qualifying period.
+2) Rollback accepted with a 25% of triggering-month-invoice cap (we are open if you prefer the flat $50k floor instead — indicate preference).
+3) 30 days’ written notice prior to effective date; call-out for exceptions for short-lived, contractually-defined events.
+
+Next steps: If juridical approves the 25% cap, please sign the attached Order Form and we’ll route to finance for invoicing setup. If you want the $50k flat cap option, confirm and we will prepare a short addendum for signature.
+
+Ben Carter
+Senior Account Executive | Redwood Inference
+ben_carter@redwood.com
+
+[Attachment: Strato_OrderForm_v2.pdf (PDF)] [Attachment: PricingExhibitB_redline.docx (document)]

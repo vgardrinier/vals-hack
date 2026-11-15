@@ -1,0 +1,28 @@
+eng-infra
+
+amy: Heads up — around 10:32 UTC I'm seeing a spike of 502/empty responses from edge pods when they POST telemetry to vendor S3 in eu-west. Only started after the nodepool roll.
+infra-bot: Alert: 502 spike detected on service=edge-proxy-eu-west (count=48 in 5m).
+leo: Do we have envoy admin logs? Could be egress-gateway rewriting source or split-horizon DNS returning wrong IPs.
+amy: Paste from edge-proxy logs:
+"2026-03-18T10:32:15Z edge-proxy[envoy] upstream reset: RESET_UNKNOWN status=502 upstream_host=10.240.5.22:443 cluster=egress_vendor_s3_eu-west"
+"2026-03-18T10:32:16Z edge-proxy tls: handshake complete, then remote RST"
+sam_k: That upstream IP (10.240.5.22) is in our VPC CIDR, not vendor. Sounds like split-horizon DNS or our egress gateway returning internal routes.
+leo: Also check conntrack & SNAT. If egress gateway preserves pod IP, the vendor firewall may drop it (they allow only public IPs).
+amy: Ran curl from a repro pod:
+$ kubectl -n prod exec -it edge-proxy-abc -- curl -v https://vendor.s3.eu-west.example/path
+* Connected to vendor.s3.eu-west.example (10.240.5.22) port 443 (#0)
+* TLS handshake...
+* SSL connection using TLSv1.3 / ECDHE...\n> POST /path HTTP/1.1\n< HTTP/1.1 403 Forbidden\n< x-error: client ip not allowlisted: 10.244.12.7
+oncall-ops: Quick mitigation options:
+- SNAT outgoing traffic in egress gateway to use node NAT IP
+- temporarily set sidecar outboundTrafficPolicy to ALLOW_ANY for the deployment
+sam_k: I can push a quick annotation to the deployment (less risky than mesh-wide change):
+kubectl -n prod annotate deploy/edge-proxy sidecar.istio.io/outboundTrafficPolicy=ALLOW_ANY --overwrite
+then rollout restart deploy/edge-proxy
+leo: Also add a DNS host override so vendor.s3 resolves to the public IPs while we debug split-horizon.
+amy: Applying annotation now and restarting pods.
+infra-bot: Deploy patch applied by sam_k — rollout edge-proxy: 1.42.3 -> 1.42.4 started.
+amy: Errors dropped to ~0 within 2m after restart. curl now shows public IP 52.48.12.33 and 200 OK.
+oncall-ops: Filing follow-up ticket INFRA-7892: egress-gateway should SNAT to node NAT IP for external 3rd-party services + audit split-horizon DNS zones.
+leo: Root cause summary: split-horizon DNS + egress gateway preserving pod IP caused vendor ACLs to reject traffic. Remediations: gateway-level SNAT, DNS zone fixes, and add regression test.
+amy: Great catch everyone, thanks :thumbsup: :pray:

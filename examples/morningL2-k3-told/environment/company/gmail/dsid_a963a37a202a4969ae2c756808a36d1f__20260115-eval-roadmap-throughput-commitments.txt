@@ -1,0 +1,153 @@
+Evaluation roadmap & throughput commitments for Q1 MAP
+
+From: Aditya Rao <aditya@redwood.ai>
+To: Emily Zhang <emily@finco.com>
+Date: Thu, 08 Jan 2026 09:12:00 -0800
+Subject: Evaluation roadmap & throughput commitments for Q1 MAP
+
+Hi Emily,
+
+Thanks again for the time yesterday — following up with the proposed evaluation roadmap and the throughput targets we discussed. Attached is a working MAP (finco_map_v1.xlsx) and a short summary of the initial performance expectations so procurement has a sense of unit economics. Quick highlights: 
+
+- Target sustained throughput: 500 QPS (inference requests) for the canonical payments use case
+- Tokens/sec: target 20k tokens/sec steady-state for a 256-token average response
+- Concurrency target: 50 concurrent request slots with tail-latency SLOs
+- TTFT target: <= 75ms median; 95th < 250ms for the committed config
+- Unit economics (hosted list-price estimate): ~$220 per 1M tokens; dedicated/reserved pricing TBD
+
+Action items I propose for next week:
+1) Redwood to run a 6-hour sustained throughput run with the FinCo prompt set (Ben)
+2) Provide 95th and 99th latency histograms + tokens/sec breakouts (Ben/Marcus)
+3) Procurement to confirm target contract date and any network/VPC requirements (Emily/procurement)
+4) Schedule a 30-min review for results (suggest Tue 13 Jan)
+
+Can you confirm the meeting time and whether procurement needs the cost breakdown in a different format?
+
+Best,
+Aditya Rao
+Enterprise Sales, Redwood Inference
+redwood.ai
+
+Attachments: finco_map_v1.xlsx (MAP spreadsheet)
+
+From: Emily Zhang <emily@finco.com>
+To: Aditya Rao <aditya@redwood.ai>
+Cc: Jared Cole <jared@cloudops.io>
+Date: Fri, 09 Jan 2026 10:05:00 -0800
+Subject: Re: Evaluation roadmap & throughput commitments for Q1 MAP
+
+Thanks Aditya — looks good. A couple clarifying asks from our side before the review: 
+
+- Can you include 99th percentile latency numbers for the planned config (we care about tail for reconciliation flows)?
+- Please add a line-item showing cost per 1M tokens at the proposed throughput (list price and with a reserved discount if available).
+- Procurement will need the MAP and a simple SOW stub if things check out.
+
+Tue 13 Jan at 11:00 PT works for me and Jared.
+
+Emily
+VP, Product 
+FinCo
+
+On Fri, 09 Jan 2026 at 09:12 Aditya Rao <aditya@redwood.ai> wrote:
+> Thanks again for the time yesterday — following up with the proposed evaluation roadmap...
+
+From: Ben Carter <ben@redwood.ai>
+To: Aditya Rao <aditya@redwood.ai>, Laura Bennett <laura@redwood.ai>
+Date: Fri, 09 Jan 2026 14:20:00 -0800
+Subject: RE: Evaluation roadmap & throughput commitments for Q1 MAP (test harness & costing)
+
+Quick note on logistics — I can spin up the FinCo test harness on Dedicated Catalyst-8 (8xA100-style) tomorrow and run an initial 6-hour ramp to steady-state followed by a 2-hour steady run. Plan:
+
+- Workload: FinCo prompt set (avg resp ~256 tokens; 60% short, 40% long)
+- Ramp: 0 -> target QPS over 30 minutes to capture warm-up effects
+- Metrics captured: tokens/sec, sustained QPS, median/95/99 latencies, TTFT, mem/KV cache hit rate
+- Expected initial numbers (estimate based on similar workloads): tokens/sec ~18k-21k; sustained QPS 420-500; concurrency 35-50; 95th ~200-260ms; 99th could range 300-500ms depending on network tail.
+- Rough costing estimate (on-demand): $0.22 per 1k tokens => ~$220 per 1M tokens (list). With a 30% reserved commitment, estimate drops to ~$154 / 1M tokens.
+
+I'll attach the latency plots and the run plan after the first run (latency_plots_qps.pdf). If Procurement needs cost per million in a line item table I can export from the MAP spreadsheet.
+
+Ben
+SRE Lead, Redwood Inference
+
+Attachments: latency_plots_qps.pdf (initial run plan)
+
+From: Aditya Rao <aditya@redwood.ai>
+To: Emily Zhang <emily@finco.com>
+Cc: Ben Carter <ben@redwood.ai>, Laura Bennett <laura@redwood.ai>, Marcus Lin <marcus@redwood.ai>
+Date: Sun, 11 Jan 2026 08:30:00 -0800
+Subject: Re: Evaluation roadmap & throughput commitments for Q1 MAP
+
+Emily — attaching an updated MAP (finco_map_v1.xlsx) with concrete commitments from our side and a short results summary from Ben's first run: 
+
+Summary of run (6h warm+2h steady):
+- Sustained QPS observed: 450 (steady window averaged over 2h)
+- Average tokens/sec: 18,000
+- Median TTFT: 60ms; 95th latency: 210ms; 99th latency: 360ms
+- Concurrency: 40 active slots during steady window
+- Observed unit cost (on-demand): ~$220 / 1M tokens (matches estimate); projected reserved pricing ~ $150-160 / 1M tokens after commit
+
+Committed actions in MAP:
+1) Redwood to run a full 24-hour sustained throughput validation (Ben) — target date 13 Jan
+2) Redwood to export 95/99 latency histograms + per-route token breakdowns for FinCo prompts (Marcus)
+3) FinCo procurement to review the SOW stub and confirm PO timeline (Emily/procurement)
+4) Final acceptance criteria: sustain >= 420 QPS for 24h with 99th latency < 400ms and unit cost <= $200 / 1M tokens (reserved pricing applied)
+
+If procurement confirms the window, we'll start the 24-hour run on Tue 13 Jan and share the consolidated report by EOD Thu 15 Jan. Meeting remains Tue 13 Jan 11:00 PT.
+
+Best,
+Aditya
+
+Attachments: finco_map_v1.xlsx
+
+From: FinCo Procurement <procurement@finco.com>
+To: Aditya Rao <aditya@redwood.ai>
+Cc: Emily Zhang <emily@finco.com>, Jared Cole <jared@cloudops.io>
+Date: Tue, 13 Jan 2026 11:00:00 -0800
+Subject: Re: Evaluation roadmap & throughput commitments for Q1 MAP
+
+Aditya / Team — procurement has reviewed the MAP and the acceptance criteria. We can proceed with the 24-hour validation run subject to the following: 
+
+- Please provide a one-page SOW stub and a draft PO by EOD Wed 14 Jan
+- Network/VPC peering will be provisioned on our side on Mon 12 Jan; confirm Redwood needs any special IPSec config
+- We require a cost table that shows list price and reserved discount for 1M/10M/50M token bands
+
+Once we have the SOW and the cost table we will confirm the PO timeline.
+
+Regards,
+FinCo Procurement
+
+From: Aditya Rao <aditya@redwood.ai>
+To: Emily Zhang <emily@finco.com>, FinCo Procurement <procurement@finco.com>
+Cc: Ben Carter <ben@redwood.ai>, Laura Bennett <laura@redwood.ai>, Neha Kapoor <neha@redwood.ai>
+Date: Thu, 15 Jan 2026 16:45:00 -0800
+Subject: Final benchmark report and MAP update — sustained validation complete
+
+Team,
+
+We completed the 24-hour sustained validation window (24 Jan run started/ended as scheduled). Summary of final validated metrics and updated unit economics: 
+
+Final validated performance (24h steady window):
+- Sustained QPS (steady): 420
+- Average tokens/sec: 16,800
+- Median TTFT: 65ms; 95th latency: 245ms; 99th latency: 320ms
+- Concurrency sustained: 38 active slots
+
+Notes: tail latency improved vs initial noisy windows; the 99th settled around 320ms once KV cache warmed and request shaping was applied. We saw periodic spikes correlated with the FinCo long responses (top 10% of requests).
+
+Updated unit economics (reserved capacity pricing applied):
+- Effective cost (after 30% reserved discount + 10% volume rebate estimate): ~$190 per 1M tokens
+- Projected monthly spend at target steady-state (420 QPS, avg 256 tokens, 30 days): ~ $77k/mo (reserve-adjusted) — details in attached MAP spreadsheet.
+
+Attachments: finco_map_v1.xlsx, latency_plots_qps.pdf, redwood_nda_signed.pdf
+
+Next steps / asks: 
+1) Emily/procurement: please review the attached SOW stub and cost table and confirm PO send-by date (requested by 2026-01-22). DocuSign link: https://app.docusign.com/s/finco-sow-2026
+2) Redwood: propose a technical onboarding week (2 days) after PO to finalize VPC peering and routing
+3) We'll schedule a short wrap-up call for 2026-01-23 to review run artifacts and sign-off checklist.
+
+If procurement is comfortable with the numbers we'll convert the MAP to the contract language and move to the dedicated reservation.
+
+Thanks,
+Aditya Rao
+Enterprise Sales, Redwood Inference
+redwood.ai

@@ -1,0 +1,134 @@
+Bakeoff: embeddings + reranker load plan & MAP (TTFT / p95 / concurrency)
+
+From: Connor O'Brien <connor@redwood.com>
+To: Olivia Chen <olivia.chen@vectorly.ai>
+Cc: Marissa Cole <marissa_cole@redwood.com>, Ben Carter <ben_carter@redwood.com>
+Date: 2026-11-04T09:12:00Z
+Subject: Proposal: Vectorly bakeoff scope + MAP for embeddings + reranker load testing
+
+Hi Olivia / Marco,
+
+Thanks for the sync earlier — per our conversation I've sketched a compact bakeoff plan and an associated mutual action plan (MAP) so we can get to a decision quickly. The goal: measure real-world SLA-relevant metrics for your search pipeline's embeddings + reranker endpoints and come back with a recommended serving profile.
+
+Key bakeoff objectives:
+- Measure Time-to-First-Token (TTFT) and p50/p95/p99 latencies for the reranker at 1, 5, 10, 25 concurrent requests (RPS-based hold).
+- Measure embeddings endpoint throughput (embeds/sec and tokens/sec) across batch sizes (1, 8, 32) and sequence lengths representative of your corpus (avg 64 tokens, 95p 256 tokens).
+- Validate combined flow: embedding -> candidate retrieve -> reranker under synthetic and replay traffic to capture realistic tail behavior.
+- Record memory/CPU/GPU utilization, queue depth, and KV cache hit-rate where applicable.
+
+Proposed test matrix (high level):
+- Embeddings: batch sizes [1,8,32], seq lens [64,256], concurrency [1,4,8]. Measure throughput (items/sec), median/95th latency per request.
+- Reranker: candidate sizes [10,100], payload tokens per doc [50-200], concurrency sweep [1,5,10,25]. Report TTFT, p50/p95/p99, and percent of requests exceeding 500ms.
+- End-to-end: replay 10k user sessions from your anonymized sample at three QPS targets (10, 50, 200) to surface degradation modes.
+
+Deliverables and timeline (MAP):
+- Nov 5: Shared load plan + test harness (we provide harness + CI recipe).
+- Nov 6-7: Redwood runs bakeoff in our dedicated test cluster; Vectorly support for dataset and quick validation.
+- Nov 8: Results summary, recommended config (model variant, quantization, batching, routing), and commercial proposal.
+
+Attachments: 20261105-vectorly-bakeoff-plan.xlsx (test matrix + sample harness commands).
+
+Questions for you:
+1) Can you provision a sanitized replay of ~10k sessions (S3 link) by EOD Nov 5?
+2) Any hard latency SLOs we must honor (TTFT < X ms or p95 < Y ms)? You mentioned <300ms p95 for reranker in product call — confirm?
+
+If that timeline works I will loop in Bench and Ops (Ben/Marissa) to schedule the test window.
+
+Thanks,
+Connor
+Connor O'Brien
+Enterprise Solutions
+Redwood Inference
+[Attachment: 20261105-vectorly-bakeoff-plan.xlsx (xlsx)]
+From: Olivia Chen <olivia.chen@vectorly.ai>
+To: Connor O'Brien <connor@redwood.com>
+Cc: Marco Ruiz <marco.ruiz@vectorly.ai>
+Date: 2026-11-05T02:10:00Z
+Subject: Re: Proposal: Vectorly bakeoff scope + MAP for embeddings + reranker load testing
+
+Thanks Connor — that looks good and aggressive (in a good way). Confirming:
+- We'll push a sanitized S3 replay (10k sessions) by EOD Nov 5.
+- Our internal product PO insists on p95 < 300ms for reranker in the interactive UX; the background ranking can tolerate higher.
+- Candidate set: we will use top-100 retrieval for the reranker tests.
+
+Two asks on our side before the bakeoff:
+1) Can you include a single-run where the reranker is run with the quantized 8-bit variant for cost comparison?
+2) Please include the memory footprint and per-request GPU time in the outputs so our infra team can map to instance types.
+
+We will be available for quick triage Nov 6 morning.
+
+— Olivia
+Olivia Chen
+Head of Product, Vectorly
+[external]
+From: Marissa Cole <marissa_cole@redwood.com>
+To: Connor O'Brien <connor@redwood.com>, Ben Carter <ben_carter@redwood.com>
+Date: 2026-11-06T08:05:00Z
+Subject: Re: Proposal: Vectorly bakeoff scope + MAP for embeddings + reranker load testing
+
+Quick notes from bench preflight:
+- We'll add quantized-8bit reranker runs and capture GPU active time + allocated memory per process.
+- For embeddings throughput, we should capture per-batch microsecond timing to understand batching efficiency at small batch sizes (1 and 8).
+- Suggest adding a short stress soak (30m at target QPS) to detect memory growth / cache pollution.
+
+I created the initial harness recipe and pinned the seed corpus; see the drive link in related_links. Ben will run the formal suite Nov 6-7.
+
+Marissa
+Benchmarking Lead, Redwood Inference
+[Attachment: harness_readme.md (txt)]
+From: Ben Carter <ben_carter@redwood.com>
+To: Connor O'Brien <connor@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, Olivia Chen <olivia.chen@vectorly.ai>
+Date: 2026-11-07T21:30:00Z
+Subject: Re: Bakeoff results (draft) — embeddings + reranker load run 20261107
+
+Team — uploading preliminary numbers from today's run (attached CSV). Highlights:
+- Embeddings endpoint:
+  - Batch=1, seq=64: 38 items/sec (median latency 26ms)
+  - Batch=8, seq=64: 290 items/sec (median latency 18ms per item; batching overhead amortized)
+  - Batch=32, seq=256: 540 items/sec (median latency 120ms per item; GPU memory near 78%)
+- Reranker endpoint (non-quantized baseline):
+  - Candidate size=10, concurrency=1: TTFT 42ms, p95 110ms, p99 240ms
+  - Candidate size=100, concurrency=5: TTFT 58ms, p95 480ms, p99 820ms (noticeable tail at higher candidate counts)
+  - Candidate size=100, concurrency=25: p95 980ms, >30% requests >1s — degradation primarily due to queuing and KV cache misses.
+- Quantized-8bit reranker run:
+  - Candidate size=100, concurrency=5: p95 560ms (+ ~16% vs baseline) but GPU utilization lower and approx 35% cost reduction estimate.
+- End-to-end replay (10k sessions) at 50 QPS: average response time 480ms; p95 760ms; observed a spike to 1.4s during a short cache-warm period at minute 7.
+
+Attachments: 20261107-load-results-emb-rerank.csv (per-run metrics), screenshots of dashboards included in the client PDF.
+
+Initial recommendations:
+1) For interactive UX target (p95 <300ms): use reranker with candidate size 10-20 and dedicated routing to low-latency pool, or run a smaller model variant for reranker and fall back to larger reranker asynchronously.
+2) If Vectorly prioritizes cost: quantized-8bit with aggressive batching (8-32) yields ~30% cost reductions but increases p95 by ~15-25%.
+3) For scale (concurrency 25+): recommend autoscale rules + increase KV cache size and warm-up steps to avoid tail amplification.
+
+I'll prep a short client-facing summary PDF for Nov 8 review.
+
+Ben
+Benchmark Engineer, Redwood Inference
+[Attachment: 20261107-load-results-emb-rerank.csv (csv)]
+From: Connor O'Brien <connor@redwood.com>
+To: Olivia Chen <olivia.chen@vectorly.ai>, Marco Ruiz <marco.ruiz@vectorly.ai>
+Cc: Marissa Cole <marissa_cole@redwood.com>, Ben Carter <ben_carter@redwood.com>, Evelyn Hart <evelyn_hart@redwood.com>
+Date: 2026-11-08T15:45:00Z
+Subject: Bakeoff debrief & MAP next steps — closing timeline
+
+Olivia / Marco — thanks for the quick turnaround and for providing the replay corpus. Summary and next steps for the MAP to get to commercial close: 
+
+Summary (short):
+- Outcome: Baseline reranker meets interactive latency only at small candidate sizes (<=20). Quantized runs lower cost but increase tail latencies. Embeddings throughput scales well with batch size; recommend batching at 8 for interactive background mix.
+- Risks: tail latency when candidate set >50 and concurrency >10; early cache warm-up causes short spikes.
+
+Mutual Action Plan (finalized):
+- Nov 9: Finalize target config (reranker candidate size, quantized vs baseline) — Product + Redwood.
+- Nov 10: Procurement: Vectorly to confirm procurement lead and PO terms; Redwood to send initial SOW and draft pricing (Evelyn).
+- Nov 12: Technical runbook handoff and small scale pilot in Vectorly dev VPC (2-week pilot start).
+- Nov 26: Production go/no-go decision (post pilot).
+
+Items we will deliver by Nov 10: client-facing PDF, recommended config yaml, cost delta estimates (quantized vs baseline), SOW draft. Items we need from Vectorly: signed NDA (if not already), PO contact, and production data access for pilot.
+
+Can we get verbal signoff on the MAP items today? If yes we'll issue the SOW draft and target a PO by Nov 10.
+
+Thanks,
+Connor
+Enterprise Solutions, Redwood Inference
+[Attachment: 20261108-client-debrief.pdf (pdf)]

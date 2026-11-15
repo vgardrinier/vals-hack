@@ -1,0 +1,70 @@
+support
+
+olivia: getting a bunch of 429s for customer `acme-inc` after yesterday's runtime deploy. they use project-scoped API keys behind a NAT’d NAT gateway. billing shows tokens consumed by project, but responses sometimes show X-RateLimit-Scope: org. anyone seen mixed scoping like this?
+
+sam: can you paste a curl + a raw response header? also which auth method — bearer key only or any extra headers?
+
+olivia: curl sample and response (redacted):
+
+```
+
+curl -v -H 'Authorization: Bearer pk_project_abc123' -H 'X-Forwarded-For: 34.210.45.22' \
+  -d '{"input":"hello"}' https://api.redwood.ai/v1/generate
+
+< HTTP/1.1 429 Too Many Requests
+< X-RateLimit-Limit: 30000
+< X-RateLimit-Remaining: 0
+< X-RateLimit-Reset: 1700000000
+< X-RateLimit-Scope: org
+< x-request-id: req_01HXXXXX
+
+```
+
+olivia: note: customer has a project quota of 30k/min and org quota higher; yet responses say scope=org which caused them to hit org-level bucket and throttle others. billing shows token usage credited to project key though.
+
+annie: tagging SRE. quick Qs: is the proxy doing any header rewriting? do we see project_id in auth claims at the ratelimiter stage? can you paste the x-request-id?
+
+olivia: request id above (req_01HXXXXX). proxy is an internal edge that adds X-Forwarded-For. they are behind a cloud NAT so many projects share same egress IP. i can share a small batch of request ids privately.
+
+mike: quick theory: during recent PR we changed scope precedence to prefer IP-derived affinity when multiple identity signals present. NAT means many project keys collapse to same IP and then get aggregated at org scope. if true, that would explain org-scoped 429s even though keys are project-scoped.
+
+sam: can we repro locally? olivia — can you try same request but remove X-Forwarded-For (or set to client IP) and see header change? also try `-H 'X-Project-Id: proj_abc123'` (if you can) to test explicit header.
+
+olivia: repro steps i ran:
+
+1) baseline (with X-Forwarded-For): 429 + X-RateLimit-Scope: org (see above)
+2) with no X-Forwarded-For: 429 + X-RateLimit-Scope: project (interesting, remaining matched project bucket)
+3) with X-Project-Id header set: project scope, no 429
+
+so it looks like when the proxy sets X-Forwarded-For we end up preferring ip-derived scope.
+
+annie: thanks — that aligns with mike's theory. digging into ratelimiter rollout notes… yep, PR #4523 introduced a configurable precedence: ip_affinity > api_key_binding > org_fallback. default was switched for a short window during canary. seems the canary reached some edge infra nodes handling this customer's traffic.
+
+support-bot: ticket #SUP-45211 created and auto-escalated to eng-sre. ETA assigned: P1 triage.
+
+annie: mitigation options:
+- revert precedence quickly (hotfix) to api_key_binding > ip_affinity > org_fallback (recommended)
+- temporary customer workaround: ensure requests include X-Project-Id or use project-specific egress IPs
+- long-term: add a safety rule that explicit authenticated project bindings always win unless customer opted into ip_affinity aggregation
+
+mike: note on billing: tokens are billed to the key/project because billing logic uses the API key's claim. rate-limiter aggregation at org only affects availability not billing. so no billing break, but availability degraded. we should check if any throttles caused retries that inflated cost for that customer.
+
+sam: can we confirm which nodes were on the canary? olivia can you DM me two sample request ids and timestamps and i'll correlate to nodes?
+
+olivia: DM'd the ids. also adding link to the customer's support ticket and the timeline: they reported errors 2026-03-16 18:03–18:22 UTC coinciding with the canary window.
+
+annie: patch rolled to revert precedence on the ratelimiter config at 2026-03-17 02:10 UTC on the edge pool that hit the canary. after revert we saw project scope applied and 429s cleared for the customer.
+
+mike: action items:
+- [P0] revert config (done)
+- [P1] add explicit-unit tests for precedence permutations in ratelimiter PRs
+- [P1] telemetry: emit metric `rate_limit.scope_mismatch` when billing key != applied_scope
+- [P2] docs: update runbook about NAT customers and recommended workarounds (X-Project-Id, egress IPs)
+
+sam: support followup: i'll email customer explaining root cause (canary config change caused IP-precedence aggregation), the mitigation we applied (reverted precedence), and suggested short-term workarounds. also offering a one-time credits if they had elevated retries.
+
+olivia: thanks all. customer confirmed errors stopped ~10m after revert. please keep the ticket open until telemetry shows no recurrences for 48h.
+
+annie: marking SRE investigation complete and adding an RFC to prevent future accidental precedence flips. will post RFC link in this thread when ready.
+
+olivia: great — closing loop on this side. thanks for quick turnaround :thumbsup:

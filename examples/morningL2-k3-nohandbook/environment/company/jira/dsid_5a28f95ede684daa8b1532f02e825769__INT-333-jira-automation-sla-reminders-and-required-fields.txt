@@ -1,0 +1,120 @@
+Jira automation: SLA reminders + triage required-field validation + known-issues index prompt
+
+Goal: Reduce time-to-triage + prevent avoidable back-and-forth by enforcing minimum triage context and keeping SLA timers visible/acted on.
+
+This ticket implements Jira Automation rules for the Customer Support project (SUP-*) and light-touch prompts to link customers/workflows to the Known Issues hub.
+
+Scope
+1) SLA reminders
+- Automated reminders when first response or next update cadence is at-risk or breached.
+- Reminders should be Support-friendly (actionable, not noisy) and aligned to the new SLA policy by tier.
+
+2) Required field validation at triage
+- When a SUP ticket transitions into Triage (or In Progress), validate a small set of required fields needed for effective escalation to SRE/Eng.
+- If fields are missing, block progression (or immediately bounce back to New with a clear comment) and tag the reporter/assignee with what’s missing.
+
+3) Known-issues index prompt (auto-link suggestion)
+- When a SUP ticket matches common recurring categories (streaming disconnects, 429/quota confusion, autoscaling oscillation, private installer upgrade stuck, audit log lag), prompt the agent to check/link the Known Issues Index and applicable workaround article.
+- This is a prompt only (no forced auto-resolution), to avoid misclassifying novel incidents.
+
+Non-goals
+- Changing Support SLA policy language (tracked elsewhere).
+- Building new fields beyond what’s already in the guidelines (we should start with validation + reminders first).
+SLA reminders
+- A1: For SUP tickets in status New/Triage/In Progress (excluding Waiting on Customer/Resolved/Closed), post an internal comment and send a notification to #support-ops when first-response timer is within 15 minutes of due OR overdue.
+- A2: For P0/P1 SUP tickets, send an additional reminder if no public update is logged within the expected cadence (per tier policy) after the last public update timestamp.
+- A3: Reminders are de-duped (no more than 1 reminder per ticket per hour) to avoid alert fatigue.
+
+Required field validation at triage
+- B1: On transition to Triage, validate: customer tier, affected region(s), model (or endpoint type), impact summary, and at least one of (request IDs / timestamps window / reproduction steps).
+- B2: If missing fields, automation posts a checklist-style comment with exactly what’s missing and how to get it (link to Support intake checklist).
+- B3: If missing fields, ticket cannot move to In Progress (either block transition or auto-revert with comment).
+
+Known-issues index prompt
+- C1: When agent sets Component/Label consistent with a known-issue category OR sets priority P2+ with matching summary keywords, automation comments with: (1) link to Known Issues Index, (2) the most likely workaround article(s), and (3) reminder to add the KB link in the customer reply if applicable.
+- C2: Prompt is suppressed for tickets labeled security-sensitive or customer-sensitive.
+
+Operational
+- D1: All rules have clear owner (Support Ops + Tooling) and are documented in the Jira field guidelines page.
+- D2: Rollout starts with a 48-hour dry run (comment-only, no transition blocking) before enabling hard enforcement.
+Proposed Jira Automation rules (draft)
+
+Rule 1 — Triage required fields (dry run)
+- Trigger: Issue transitioned -> To status = Triage
+- Condition: Project = customer-support (SUP)
+- Condition: Labels does not contain security-sensitive
+- Action: IF any missing required fields THEN
+  - Add internal comment:
+    "Triage checklist missing: <fields>. Please update before moving forward. Intake checklist: <link>"
+  - Add label: triage-missing-context
+  - Notify channel: #support-ops (via Slack automation / email)
+- No transition blocking in dry run mode.
+
+Rule 2 — Triage required fields (enforcement)
+- Same as Rule 1, but add action to revert status to New OR prevent transition to In Progress by reverting when status changes to In Progress and missing fields.
+- Prefer pattern: allow transition to Triage but prevent transition to In Progress (less disruptive during initial intake).
+
+Rule 3 — SLA first-response at-risk reminder
+- Trigger: Scheduled (every 10 minutes)
+- JQL (approx): project = SUP AND status in (New, Triage) AND "First Response Due" <= now() + 15m AND labels not in (sla-reminded)
+- Action:
+  - Internal comment: "First response due soon (<timestamp>). If awaiting customer info, set status=Waiting on Customer." 
+  - Add label: sla-reminded
+  - Send Slack notification to #support-ops with key + assignee + priority.
+- De-dupe: set an entity property or label with timestamp (preferred) OR remove/expire label via a second scheduled rule after 60m.
+
+Rule 4 — Update cadence reminder (P0/P1)
+- Trigger: Scheduled (every 15 minutes)
+- Condition: priority in (P0, P1) AND status in (Triage, In Progress) AND status != Waiting on Customer
+- Condition: last public comment/customer update older than threshold (tier-aware)
+- Action: comment + notify #support-ops
+
+Rule 5 — Known-issues prompt
+- Trigger: Field value changed (Component, Labels, Priority) OR Issue created
+- If summary/labels/components match patterns:
+  - streaming: "stream", "disconnect", "reset", "truncated"
+  - quota: "429", "rate limit", "quota", "headers"
+  - dedicated scaling: "autoscaling", "oscillation", "churn", "replicas"
+  - private upgrade: "installer", "migrations", "upgrade stuck"
+  - audit logs: "audit log", "delivery lag", "delayed"
+- Action: internal comment with links:
+  - Known issues index
+  - Specific workaround page(s)
+  - Reminder: "If this matches, paste workaround and include ‘when to escalate’ guidance."
+- Suppress if labels include: security-sensitive, customer-sensitive, legal
+
+Open questions
+- Where is the canonical field for ‘public update timestamp’? If we don’t have one, we may need to start by using last customer-visible comment OR add a simple checkbox/field later.
+- Tier-aware thresholds: do we encode tier table in automation (hardcoded) or use lookup via a Jira field (Customer Tier)? Start hardcoded for enterprise/dedicated/private/self_serve based on SLA policy page.
+
+Dependencies
+- INT-332: Slack automation for support bridges (channel + template). If Slack notification method changes, coordinate.
+- Jira fields used must match the published guidelines page to avoid drift.
+Phase 0 (today): Implement rules in disabled state, validate JQL matches ~expected volume using audit log.
+
+Phase 1 (48h dry run): Enable Rule 1 (triage checklist comment only) + Rule 3 (first-response at-risk) as comment-only (no transitions). Monitor noise in #support-ops.
+
+Phase 2 (enforce): Enable prevention/revert for missing triage fields when transitioning to In Progress.
+
+Phase 3 (known-issues prompts): Enable Rule 5 and tune keyword/component matching based on false positives.
+
+Phase 4 (update cadence): Enable P0/P1 update reminders once we confirm a reliable signal for public updates.
+Primary risk is notification fatigue (too many reminders) leading to ignored automation. Secondary risk is over-enforcement causing tickets to bounce during high-volume incidents. We mitigate via dry run, de-dupe, and narrowing enforcement to the In Progress transition.
+2026-02-10 (Dev Patel): This is the #1 tooling gap coming out of the escalation playbook refresh. On-call asked for consistent context before pages; we can’t rely on training alone. Please start with dry-run comments so we can tune the required fields list.
+2026-02-11 (Dylan Brooks): Drafted Rule 1 + Rule 3 in Jira Automation (disabled). Need confirmation on exact field names:
+- Customer Tier (single select)
+- Affected Region(s) (multi)
+- Model / Endpoint (text vs select)
+- Impact Summary (textarea)
+- Request IDs (textarea)
+If any of these don’t exist consistently, I’ll align to the Jira field guidelines page and update it with exact names.
+2026-02-12 (Owen Phillips): +1 on blocking only at In Progress. During active incidents we triage quickly and fill fields while we investigate. If we block earlier, we’ll end up fighting the workflow. Required: region, model/endpoint, impact summary, and request IDs/timestamps window.
+2026-02-13 (Rachel Kim): For enterprise accounts, make sure reminders don’t imply we owe 30-min updates 24/7. Language should reference coverage windows (business hours vs after-hours) and say “per tier policy”.
+2026-02-14 (Dylan Brooks): Implemented dry-run required-fields comment. Added suppression for labels security-sensitive/customer-sensitive. Next: set up scheduled JQL for first-response ‘at risk’ reminders. Need a Slack destination: #support-ops vs #support. Preference?
+2026-02-14 (Dev Patel): Use #support-ops for reminders. #support is too noisy and will get ignored. For P0/P1 only, also @mention on-call coordinator in the comment (we can manually tune later).
+2026-02-15 (Chris Osei): Please add a lightweight metric: count of tickets hitting triage-missing-context label and median time from New -> Triage. We want to show impact in the post-sprint metrics review.
+2026-02-16 (Dylan Brooks): Known-issues prompt rule draft is ready but I’m holding it until we confirm keyword mapping to avoid spamming. I’ll ship SLA first-response reminders + triage dry run first, then enable known-issues prompts with limited categories (streaming + 429) as a pilot.
+1) Confirm exact Jira field IDs/names with Support (Dev/PRiya Shah) and reconcile with Jira field guidelines page.
+2) Enable Phase 1 dry run and monitor reminder volume + false positives for 48 hours.
+3) Add de-dupe mechanism (label timestamp or entity property) before enabling scheduled reminders broadly.
+4) Pilot known-issues prompt for streaming + 429 categories, then expand to Dedicated/Private/audit logs.

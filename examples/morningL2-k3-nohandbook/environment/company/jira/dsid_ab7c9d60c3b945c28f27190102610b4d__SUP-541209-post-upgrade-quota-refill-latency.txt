@@ -1,0 +1,52 @@
+Post-upgrade quota refill latency causes transient 429s after organization credit increase
+
+Issue summary:
+Customer upgraded org credit limit + billing tier (enterprise plan migration) at ~2026-03-09T23:00Z. Console shows new quota immediately, but customer observed a wave of 429 responses for short-lived streaming and bulk-embed jobs for ~8–12 minutes after upgrade.
+
+Impact:
+- SlateDocs reported ~15% of requests returning 429 during a 10-minute window affecting critical ingestion jobs (bulk embeddings + live chat).
+- Customer reported degraded UX and 3 failed ingestion batches requiring manual retries.
+
+Environment:
+- Redwood hosted (api and billing)
+- Region: us-east-1
+- Customer account: slate-12345
+- Workloads: mixed low-latency streaming + periodic bulk embedding jobs
+
+Steps to reproduce (as provided by customer):
+1) Perform org credit/top-up via console (billing tier upgrade).
+2) Immediately start parallel bulk-embed workers (100 concurrent sessions) and 50 concurrent short-lived streaming sessions.
+3) Observe 429 rate and throttle headers on some calls for next 5–15 minutes.
+
+Observed behavior:
+- Console shows quota refreshed at 2026-03-09T23:00Z but rate-limiter logs indicate refill tokens were not applied uniformly to edge nodes for ~8 minutes.
+- Throttle response headers (x-rw-rate-limit) show pre-upgrade limits consistent with the lower tier returned for some sessions.
+
+Expected behavior:
+- New quota should be available immediately across all serving nodes within the SLA window (<= 60s).
+
+Frequency:
+- Reproducible when heavy parallel traffic coincides with a billing/credit update. Occurred once during this customer's upgrade; support has observed similar patterns internally during large org increases but not this exact symptom.
+
+Attempts to mitigate performed so far:
+- Customer staggered worker starts (reduced concurrent workers) which reduced 429 frequency.
+- Support performed a manual quota refresh for the tenant; partial improvement observed.
+
+Attachments:
+- Raw request + response examples supplied by customer (attached logs)
+- Support trace IDs: trace-rw-8421, trace-rw-8422
+
+2026-03-10 09:12 - Maya Chen (Support): Initial triage completed. Collected logs from customer and asked for traces and exact client SDK versions.
+2026-03-10 10:05 - Customer (SlateDocs - Henry Lowe): Sent logs and a short repro script showing 50 concurrent streams + 120 embed workers. Noted that console UI updated instantaneously.
+2026-03-10 11:20 - Omar Patel (SRE): Observed refill propagation lag in billing->rate-limiter sync logs for tenant slate-12345. Spike matches timeframe customer reported.
+2026-03-11 14:40 - Product Eng (Lena Rodriguez): Requested related PRs and tracker for cross-region token propagation optimization (ref PR #872).
+2026-03-12 08:32 - Maya Chen (Support): Shared temporary workaround with customer (stagger worker startup and raise burst window). Customer confirmed improvements but asked for long-term fix ETA.
+Checked billing service events: invoice and credit update accepted at 2026-03-09T23:00Z; billing write recorded to primary DB.
+Rate-limiter ingestion pipeline shows a backlog for quota-refresh events at edge-fanout stage; some fanout worker retries were queued due to transient S3 metadata latency.
+Edge nodes running keepalive-proxy version 2.7.1 held cached token windows that were not invalidated until TTL expiry (~9m) — caused partial stale-per-route limits.
+Throttle header traces show mixed limit windows: some responses include pre-upgrade window (100r/s) while others reflect new window (1000r/s).
+Hypothesis: billing->pubsub fanout occasionally stalls when org-level updates collide with high telemetry load; causes window mismatch across edge nodes until TTL refresh.
+Searched for related incidents: similar pattern noted in SUP-412900 (keepalive affinity) but root cause here tied to refill event delivery path, not sticky sessions.
+Impact scope estimated: affects only sessions that start within the propagation gap; established long-lived sessions pick up new tokens after reconnection or TTL expiry.
+Recommended immediate steps to customer: 1) Stagger startup of bulk workers with randomized 30–90s jitter. 2) Temporarily raise per-tenant burst allowance via support console (we applied a +2x burst credit to slate-12345). 3) For streaming clients, prefer reconnect after upgrade to pick up refreshed windows.
+1) SRE to patch fanout retry logic to avoid S3 metadata stalls (track as INT follow-up). 2) Product to evaluate reducing TTL on per-route token caches during tenant-level quota changes. 3) Add monitoring alert for refill-propagation-lag > 30s. 4) Follow up with customer once hotfix scheduled.

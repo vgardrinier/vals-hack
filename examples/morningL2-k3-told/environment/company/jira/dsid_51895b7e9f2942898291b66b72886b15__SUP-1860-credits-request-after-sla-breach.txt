@@ -1,0 +1,130 @@
+Credits request after perceived SLA breach (Acme AI) — decision + approval workflow
+
+Customer (Acme AI) is requesting service credits due to a perceived SLA breach during the us-east streaming degradation on 2026-02-04 (ref SUP-1842 / INC-2026-02-04-us-east-streaming-degradation). They are asking for credits for the impacted window and requesting written confirmation of the timeline + mitigation steps.
+
+This ticket is to (1) capture the comms log + timeline in one place, (2) document what we can/can’t promise in writing, and (3) run the exec escalation / approvals workflow for a credits decision.
+
+---
+
+Customer ask (as received)
+- Credits for the impacted period (customer cited a 2–3 hour window of elevated stream resets/truncation).
+- Confirmation whether this qualifies as an SLA breach under their Enterprise terms.
+- Assurance that mitigations are in place to prevent recurrence.
+
+Support/CS position (initial)
+- We can acknowledge impact, provide a factual timeline, and share mitigations + follow-ups.
+- We should not confirm “SLA breach” language in Support comms; route to CS + Legal/Finance approvals per exec escalation protocol.
+- Credits decisions require VP CS approval; contract interpretation requires Legal review if customer requests a formal SLA determination.
+
+Impact summary (customer-reported)
+- Streaming responses disconnect mid-generation; some responses truncated.
+- Increased retry load and higher token spend due to repeated attempts (customer claims).
+- Business impact: customer cited degraded end-user experience for their demo workflow.
+
+What we know (internal)
+- SRE confirmed partial degradation in us-east affecting streaming stability; mitigation applied during incident window.
+- Engineering follow-up: improve streaming disconnect error details + request ID propagation (PR-19321 / ENG-4822).
+
+---
+
+Timeline (UTC)
+- 2026-02-04 16:12: Customer first reports stream resets to Support; request IDs provided (see SUP-1842).
+- 2026-02-04 16:26: Support opened bridge in Slack and paged on-call (per playbook).
+- 2026-02-04 16:40: SRE confirms elevated streaming disconnects in us-east; mitigation investigation begins.
+- 2026-02-04 17:15: Mitigation applied (routing + gateway tuning); error rate begins to drop.
+- 2026-02-04 18:05: Customer updated with mitigation status + retry guidance.
+- 2026-02-04 19:10: Incident considered stable; monitoring continues.
+- 2026-02-07: Exec escalation email drafted for leadership visibility (Jasmine).
+- 2026-02-11: Customer requests credits; AE asks CS/Support for guidance.
+
+---
+
+Customer communications log (high level)
+- 2026-02-04 (Support email): Acknowledged issue, requested request IDs/region/model/SDK version, and provided interim retry guidance for streaming.
+- 2026-02-04 (Update email): Confirmed we were seeing elevated disconnects in us-east, mitigation in progress, updates every ~60 minutes.
+- 2026-02-04 (Resolution email): Reported stability improvements, asked customer to confirm recovery, provided next steps (we’ll share follow-up once engineering changes land).
+- 2026-02-11 (Customer reply): Requested credits and a determination of SLA breach.
+
+Notes on cadence
+- Customer asked for more frequent updates during the peak window. We adhered to hourly updates after stabilization, aligning with current enterprise update guidance in the draft SLA policy.
+
+---
+
+Evidence / internal references
+- Primary ticket: SUP-1842 (streaming connection resets us-east) + related SUP-1854 (truncation).
+- Eng follow-up: sources/github/redwood/pr-19321-improve-streaming-disconnect-error-details.json
+- Playbook references:
+  - Executive Escalation Protocol (approval + decision log): executive-escalation-protocol
+  - SLA policy by tier (response/update expectations): sla-policy-by-customer-tier
+  - Customer comms alignment (status vs email): customer-incident-comms-alignment
+
+---
+
+Decision template (exec escalation / credits)
+Copy/paste for approvals thread (internal):
+
+1) Account / Tier
+- Customer: Acme AI (Corp)
+- Tier: Enterprise
+- Primary contacts: (CSM + AE listed in HubSpot; do not paste customer phone numbers here)
+
+2) Incident reference
+- Incident ID: INC-2026-02-04-us-east-streaming-degradation
+- Support tickets: SUP-1842, SUP-1854
+- Dates: 2026-02-04
+
+3) Customer impact (factual)
+- Region: us-east
+- Symptom: streaming disconnects / truncated streams
+- Confirmed by: SRE dashboards + customer request IDs
+- Customer workload impact: degraded UX + retries
+
+4) Redwood response (factual)
+- Time to acknowledge: <X> minutes
+- Time to mitigation: <Y> minutes
+- Update cadence: every <N> minutes during active mitigation; then hourly until stable
+
+5) SLA/contract interpretation
+- Do we have a confirmed SLA breach per contract? (Yes/No/Needs Legal)
+- If customer requests a formal SLA determination, route to Legal + Finance (do not confirm in Support reply).
+
+6) Credits recommendation
+- Recommend: (No credits / goodwill credits / SLA credits)
+- Amount: <percentage or $ value>
+- Basis: (goodwill due to impact / confirmed SLA policy)
+- Constraints: one-time; requires VP CS approval; Finance confirms invoicing/credit memo process
+
+7) Customer-facing message (approved language)
+- Provide factual timeline, apology for impact, mitigations taken, and next steps.
+- Avoid: “SLA breach confirmed” unless explicitly approved by Legal.
+- Include: how customer can share additional request IDs if still seeing issues.
+
+8) Follow-ups (eng + support)
+- Eng: ship PR-19321; ensure error includes request_id and retry guidance
+- Support: ensure known-issue article is linked in macros for streaming reconnect guidance
+
+---
+
+Proposed resolution (CS)
+- Offer goodwill credits (small, one-time) contingent on VP CS approval.
+- Send customer a factual incident recap + mitigation summary.
+- If customer insists on SLA breach determination, move to formal contract channel with Legal.
+
+Current state / outcome
+- 2026-02-13: VP CS approval requested via exec escalation protocol; Legal reviewed language guidance (no SLA breach confirmation in Support comms).
+- 2026-02-14: Goodwill credit approved (amount communicated in CS channel; not recorded here as customer-sensitive).
+- 2026-02-15: Customer notified with approved language; customer acknowledged receipt and requested follow-up once PR-19321 is deployed.
+
+Next steps
+- Rachel to confirm with SRE/Eng ETA for PR-19321 rollout to prod us-east.
+- Support to attach the final customer-safe message to this ticket and link to SUP-1842 for audit trail.
+- Tag ticket in weekly exec escalations digest (W07) with “credits approved (goodwill) + follow-up eng change”.
+2026-02-11 (Priya Shah): Created this ticket to consolidate the credits request workflow + approvals. Linking to SUP-1842 and exec escalation protocol page. Requesting CS owner to take point.
+2026-02-11 (Rachel Kim): Taking ownership. Please route all customer-facing SLA language through CS; Support should avoid confirming 'SLA breach' in writing. I’ll draft an approved response and collect incident facts from SRE.
+2026-02-11 (Sean Gallagher): Confirmed we had elevated streaming disconnects in us-east during the window referenced. I can provide a customer-safe mitigation summary; root cause details should remain internal unless approved.
+2026-02-12 (Dev Patel): Reminder: per refreshed SLA policy draft, enterprise update cadence is hourly once stable; during active mitigation, target 30–60 min depending on severity. Keep comms consistent with comms-alignment doc.
+2026-02-12 (Sofia Mendes): Legal note: do not label as 'SLA breach' unless the contract calculation is completed and we intentionally make that determination. You may say: 'We experienced a service degradation impacting streaming stability in us-east' and 'We’re reviewing your request under our service credit policy.'
+2026-02-13 (Jasmine Liu): If we decide goodwill credits, document it as goodwill, not as an SLA admission. Ensure the customer email includes concrete next steps (PR rollout + what telemetry we’ll monitor).
+2026-02-14 (Rachel Kim): Approval obtained for a goodwill credit. Sending customer recap today with factual timeline and mitigations. Will follow up once PR-19321 is deployed broadly.
+2026-02-15 (Priya Shah): Marking Resolved; leaving ticket open for 24h pending confirmation customer received final comms and we’ve linked the final message back to SUP-1842.
+Goodwill credits approved via exec escalation protocol; customer provided a customer-safe incident recap and mitigation summary. No formal SLA breach determination stated in Support comms; contract interpretation routed through CS/Legal as needed.

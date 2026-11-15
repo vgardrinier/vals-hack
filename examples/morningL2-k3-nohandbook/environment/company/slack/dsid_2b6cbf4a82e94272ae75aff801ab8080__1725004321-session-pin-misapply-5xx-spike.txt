@@ -1,0 +1,37 @@
+incidents
+
+ben: Alert from PagerDuty — 5xx rate jumped 18% across hosted inference gateway in us-west-2. Seeing a lot of 502/504 from router layer. :rotating_light:
+ops-bot: [ALERT] gateway-5xx-rate > 15% for service=redwood-api/gateway-us-west-2 span=5m
+sre-oncall: I'm on it, tagging @deepti and @jordan for recent rollout context. :eyes:
+deepti: I rolled out a small change earlier — `session_pin_preference` toggle to enable route-affinity optimization for some tenants. Canary target 5% but I see traffic slices were incorrectly set.
+jordan: can you paste the rollout command?
+deepti: `./deployctl rollout --flag session_pin_preference=true --scope canary --weight 5 --env prod --region us-west-2`
+alice: monitoring shows error class 'kvcache-miss-timeout' spiking concurrently with 502s. Latency p95 for token fetch increased from 40ms -> 240ms.
+support-sam: support is getting multiple customer tickets complaining about failed requests and timeouts, some billing retries triggered. Customers: acct-112, acct-998 reporting errors since ~1725004300.
+billing-bot: [INFO] Duplicate charge attempts detected for acct-998 — retry workflow hit 5xx and retried. Potential billing noise.
+ben: timeline: deploy at 1725004200, alerts start 1725004300, tickets come in 1725004400. Looks correlated.
+sre-oncall: deepti — is the flag global or per-route?
+deepti: Supposed to be per-tenant via selector `tenant_id in {112,998}` but I accidentally omitted `--selector` in the rollout job. So it landed globally in the canary cluster slice. :grimacing:
+jordan: that explains it. The affinity change increases KV cache churn; many backends were not prepared and timeouts cascade to 502/504.
+alice: quick repro snippet (local):
+```
+curl -X POST https://api.redwood.io/v1/generate \ 
+  -H "Authorization: Bearer $TOKEN" \ 
+  -d '{"model":"rwd-instruct-1","input":"test"}' --max-time 3
+# returns 502 after 2.8s with header X-gw-reason: kvcache-timeout
+```
+ben: Can we hotfix? Option A: rollback flag globally. Option B: pin traffic away from canary slice and roll forward properly with selector.
+sre-oncall: Rolling flag back is fastest. deepti — can you run `featurectl rollback session_pin_preference --env prod --region us-west-2`? I'll prepare traffic shields.
+deepti: Running rollback now. `featurectl rollback session_pin_preference --env prod --region us-west-2`
+ops-bot: [DEPLOY] rollback job started by deepti at 1725004580
+jordan: while rollback runs, set the shedder to more aggressive drop for slow upstreams to prevent retries from amplifying. `shedderctl set slo 1s` for routing layer.
+alice: I've opened a temporary route pin to route 100% of new requests to stable pool in us-west-2. Doing a soft cutover.
+support-sam: Notifying affected customers: acct-112 acct-998 — providing ETA ~15m, asking for error logs (X-Request-Id).
+billing-bot: [ACTION] Pausing automatic retry billing workflow for acct-998 to avoid duplicate charges.
+ops-bot: [DEPLOY] rollback completed at 1725004725. Feature state: `session_pin_preference=false` across prod/us-west-2.
+sre-oncall: Observability — 5xx rate dropping, p95 token fetch back to ~50ms. Still seeing some lingering 504s from long-tail requests.
+deepti: will follow up with proper scoped rollout and add unit test to ensure `--selector` is required for tenant-scoped flags. Adding runbook note to avoid global misapply.
+jordan: next steps: 1) support to reply to customers with root cause and rollback note, 2) engineering postmortem to identify why canary weight didn't prevent global application, 3) add preflight validation to deploy pipeline.
+benn: typo — tagging @alice not @ben. :sweat_smile:
+alice: already drafting customer messages and filling support tickets with timeline and mitigation steps.
+sre-oncall: closing incident channel in 30m if metrics continue to stabilize. Good catch everyone. :thumbsup:

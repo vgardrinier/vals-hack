@@ -1,0 +1,46 @@
+Throughput degradation from prefetch coordination deadlock causing autoscaler misread and GPU starvation
+
+Issue summary:
+Customer reports sustained p99 and throughput degradation on their dedicated pool during two burst windows. Symptoms match an allocator/prefetch coordination "deadlock": many short-lived sessions hold prefetch leases but never complete KV prefetch, heartbeats from allocator drop, autoscaler sees low active allocation and attempts scale-down; scale-down triggers eviction which amplifies cold starts and GPU attach delays.
+
+Impact:
+- Customer observed 30-40% drop in token throughput for routed batched routes between 11:40–12:20 and 14:05–14:40 UTC.
+- Elevated 429/timeout spikes for low-latency endpoints (customer SLA impacted).
+- Affects dedicated pool serving their enterprise tier; potential revenue impact if sustained.
+
+Environment:
+- Dedicated capacity (customer: StellarDocs Inc.), region: us-east-1, prod.
+- Route: /v1/generate (batched, streaming disabled for these requests).
+- Model variants observed: open/llama-3-7b and redwood/optim-13b pinned by customer.
+
+Steps to reproduce (customer-provided reproduction):
+1) Send high-rate short-lived inference sessions (burst pattern: 2000 short requests over 3–4 minutes, each request context ~64 tokens).
+2) Interleave with a background validation sweep (their own job) that opens keepalive connections.
+3) Observe queueing in route metrics and rising p95/p99.
+
+Observed logs & metrics (excerpted):
+- allocator.events: repeated "prefetch_lease_acquired" without matching "prefetch_complete" for ~60% of leases.
+- allocator.heartbeat: spikes of 3–6s between heartbeats leading to allocation aging.
+- autoscaler.decisions: multiple consecutive "consider_shrink" events during plateau periods.
+- gpu.attach: elevated attach_time p95 -> 1.8s (baseline 0.4s).
+- serving-runtime: transient 503s during eviction wave.
+
+Notes on severity: customer-facing impact and SLA risk -> Sev1.
+
+2026-03-12 12:25 UTC - Sofia Martinez (Support): Acknowledged ticket with customer. Collected initial examples of request IDs and timestamps. Asked customer to disable background validation sweep as a test; they will try and report back.
+2026-03-12 13:02 UTC - Customer (StellarDocs SRE): Tentatively disabled validation sweep; saw partial recovery but throughput still 15% below baseline. Provided sauron log bundle (s3://redwood-uploads/stellardocs/sauron-809001-20260312.tar.gz).
+2026-03-12 14:10 UTC - Ravi Patel (SRE): Started correlating allocator heartbeat drops with prefetch leases. Observed high ratio of "lease_acquired" -> no "complete" within 10s window. Suspicion: client opens connections, then stalls during streaming handshake resulting in orphaned prefetch leases.
+2026-03-13 09:18 UTC - Eng (Serving Runtime): Replayed sampled traces from provided bundle. Found a cohort of short sessions that negotiated model metadata but timed out before prefetch finished. Prefetcher doesn't currently garbage-collect leases until allocator TTL expires which is longer than expected in these bursts.
+2026-03-14 08:40 UTC - Ravi Patel (SRE): Rolled a temporary autoscaler throttle override (increase min_instances in affected pool by +2) and reduced prefetch lease TTL from 120s -> 15s as an emergency mitigation. Customer reports throughput recovered to ~92% of baseline. Monitoring continues.
+Hypothesis A: Short-lived connection fanout causes many prefetch leases; if clients fail to complete streaming handshake (due to client-side throttling) leases remain held and allocator heartbeats appear low -> autoscaler misinterprets as idle capacity and shrinks.
+Hypothesis B: Noisy background job (customer validation sweep) amplifies keepalive connections and increases sidecar IO; combined with prefetch leakage leads to GPU attach contention.
+Telemetry correlation: High correlation between prefetch_lease_count spike and autoscaler.consider_shrink events (Pearson r = 0.78 over window), supporting hypothesis A.
+Memory inspection: No evidence of kernel-level GPU OOMs. NVLink error counters normal. PCIe latency elevated during the eviction window (avg +35ms).
+Reproduction notes: Synthetic replay with short session bursts reproduced lease-orphaning when we injected 100ms delays in client handshake path.
+Related historical tickets: linked SUP-314159 (miniwave human repro), SUP-712909 (warmup lag on bursty short streams).
+Next-level root cause analysis is targeting the prefetcher lease lifecycle and autoscaler shrink heuristics (race between lease TTL and heartbeat sampling).
+Mitigation applied 2026-03-14 08:40 UTC: (1) Increased min_instances for customer's pool by +2 to prevent immediate shrink during noisy windows; (2) Reduced prefetch lease TTL from 120s to 15s in affected region as emergency fix; (3) Rolled autoscaler debounce parameter adjustment to ignore transient low-heartbeat signals for 60s windows.
+Customer verification: StellarDocs observed throughput recover to ~92% baseline within 12 minutes of the mitigations. No further 503s reported during afternoon burst window.
+Follow-ups: Engineering to implement robust prefetch lease GC (PR: github.com/redwood/serving-runtime/pull/4123) and add autoscaler heuristic guard for prefetch_lease_ratio. Targeted code change rollout scheduled for 2026-03-20 with canary in us-east-1.
+Action items assigned: Ravi to coordinate postmortem runbook; Eng (prefetch team) to land PR and add unit tests for lease expiry; CS to notify customer of planned roll-out and offer runbook for client-side handshake health checks.
+State: Mitigations holding; ticket will be updated after postmortem and code rollout.

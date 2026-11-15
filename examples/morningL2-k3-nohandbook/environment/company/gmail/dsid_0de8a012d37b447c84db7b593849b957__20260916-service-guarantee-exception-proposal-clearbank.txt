@@ -1,0 +1,118 @@
+Service guarantee exception & credit terms for ClearBank integration
+
+From: J. Sanders <j.sanders@clearbank.com>
+To: chloe_martin@redwood.com
+Date: Tue, 14 Sep 2026 09:12:00 -0700
+Subject: Request: SLA exception and credit cap for pilot
+
+Hi Chloe,
+
+Thanks for the walkthrough earlier. As we scope the integration for ClearBank's payment reconciliation flows, our procurement and legal teams flagged two items in Redwood's standard SLA that need an exception for the pilot and initial production ramp:
+
+1) Uptime: the contract lists 99.95% monthly availability. For our initial deployment across three critical endpoints (ingest, reconcile, query) we need a temporary floor of 99.90% for the first 90 days due to our own orchestration constraints.
+
+2) Latency SLO: we need an explicit p95 latency commitment for the reconcile endpoint (target <=250ms under normal load). If p95 exceeds that for more than two non-consecutive business days in a month, we would expect a defined credit.
+
+On credits: ClearBank's policy caps total service credits in a month to 10% of that month’s invoice. We know Redwood's standard cap is often lower; would you consider matching our cap for the pilot?
+
+I've attached our Exception Form and a short downtime log for the last two months to show why we want the pilot grace period. If it's helpful we can provide traffic slices for the reconcile path.
+
+Can you let me know what Redwood can agree to for a 90-day pilot, and if legal needs a redline on the SLA template?
+
+Best,
+J. Sanders
+Sr. Procurement Manager
+ClearBank
+Attachment: ClearBank_SLA_Exception_Form.pdf
+
+From: chloe_martin@redwood.com
+To: ben_carter@redwood.com, marcus_lin@redwood.com, karthik_iyer@redwood.com
+Date: Tue, 14 Sep 2026 10:05:00 -0700
+Subject: Fwd: Request: SLA exception and credit cap for pilot
+
+Team — forwarding ClearBank's ask. Key asks summarized below:
+- Temporary uptime floor 99.90% (vs our 99.95) for 90 days for three endpoints.
+- Explicit p95 latency for reconcile <=250ms with credit triggers.
+- Customer wants monthly credit cap = 10% (higher than our typical cap).
+
+Questions / proposed responses:
+1) Uptime: product: can we contain risk by making the exception timeboxed (90 days) and limited to the three endpoints only? Also add requirement that any scheduled maintenance impacting those endpoints has a 72h notice.
+2) Latency: engineering: we can commit to monitoring p95 and include it in the support dashboard, but latency credits need strict measurement method (e.g., 5-minute aggregation windows, >=10k requests/day). We should avoid open-ended credit triggers.
+3) Credits cap: sales/legal: propose a compromise — pilot cap of 10% but revert to standard cap after a successful 90 days; also apply credits proportionally per-endpoint and cap per-incident to avoid huge one-off payouts.
+
+Attachments: SLA_Template_Redwood_v3.pdf (redline candidate), downtime-log-Jul-Aug.csv (from customer).
+
+Ask: Ben / Marcus, can you draft a short exception addendum that:
+- Timeboxes uptime change to 90 days
+- Defines p95 measurement and breach thresholds
+- Sets a one-time pilot credit cap of 10% with per-incident subcaps
+
+I'll take point to send to ClearBank and get DocuSign if legal signs off.
+
+Thanks,
+Chloe Martin
+Account Executive, Strategic Sales
+Redwood Inference
+
+From: marcus_lin@redwood.com
+To: chloe_martin@redwood.com, ben_carter@redwood.com, karthik_iyer@redwood.com
+Date: Wed, 15 Sep 2026 11:20:00 -0700
+Subject: Re: Fwd: Request: SLA exception and credit cap for pilot
+
+Chloe / team — quick take from Product & Legal viewpoint.
+
+Uptime: 99.90% over a month corresponds to ~43 minutes of allowable downtime vs 26 minutes at 99.95%. For three endpoints we can accommodate a timeboxed exception provided:
+- The exception is limited to the explicitly named endpoints (ingest, reconcile, query).
+- A 90-day term, during which Redwood will provide a weekly availability report.
+
+Latency: We can add a p95 SLO for the reconcile endpoint with these constraints:
+- Measurement: server-side p95 measured at service edge, 5-minute rolling windows, at least 10k requests/day for the metric to be considered valid.
+- Breach logic: p95 > 250ms for two non-consecutive business days in a month triggers a credit event. Multiple coincident breaches within the same day count as a single event.
+
+Service credits: Legal proposes pilot credit structure to match customer ask but with per-incident caps to mitigate exposure:
+- Monthly cap: 10% for the pilot (90 days only).
+- Per-incident cap: 3% of monthly bill.
+- Credit calculation: prorated by minutes of unavailability per incident using our standard formula (minutes down / total minutes in month) * monthly invoice, applied up to per-incident cap.
+
+Operational controls we want included:
+- Automatic fallback to a compatible model variant if latency breach is observed for >30min to reduce recurrence.
+- Customer to provide traffic slices/keys so we can instrument p95 accurately.
+
+If you want to accept, I can draft the addendum language and run it by Legal (cc'd). Ben: do we want to include a clause to automatically revert to Redwood standard SLA at the end of 90 days unless both sides sign an extension? I think yes.
+
+-marcus
+Marcus Lin
+Head of Product Partnerships
+Redwood Inference
+Attachment referenced: proposed formulas in SLA_Template_Redwood_v3.pdf
+
+From: chloe_martin@redwood.com
+To: J. Sanders <j.sanders@clearbank.com>, ClearBank Legal <legal@clearbank.com>
+Cc: ben_carter@redwood.com, marcus_lin@redwood.com, karthik_iyer@redwood.com
+Date: Thu, 16 Sep 2026 15:45:00 -0700
+Subject: Re: Request: SLA exception and credit cap for pilot — proposed addendum
+
+Hi J.,
+
+Thanks for the quick turnaround. Per our internal review we've drafted a short addendum to Redwood's standard SLA that implements the pilot terms you requested, with guardrails described below. Please see the summary and attached redline (SLA_Template_Redwood_v3.pdf). If the summary looks good, we'll send a DocuSign copy for signature and begin instrumentation.
+
+Summary of proposed pilot addendum (90 days):
+- Uptime: Temporary floor of 99.90% for the named endpoints (ingest, reconcile, query). Applies for 90 days from the effective date.
+- Latency: p95 SLO for reconcile <=250ms; measurement as Marcus outlined (server-side, 5-minute windows, >=10k req/day). A credit event is triggered if p95 > 250ms for two non-consecutive business days in a calendar month.
+- Service credits: Pilot monthly cap = 10% of that month’s invoice. Per-incident cap = 3% of monthly bill. Credits prorated by downtime minutes per Redwood's formula.
+- Operational: Redwood will provide weekly availability and p95 reports to ClearBank, and an API key slice for traffic tagging to ensure accurate measurement. Scheduled maintenance will require 72 hours notice for the named endpoints.
+- Reversion: Unless both parties agree in writing to extend, SLA reverts to Redwood standard terms at the end of the 90-day pilot.
+
+Next steps:
+1) Please review the attached redline and confirm any legal redlines by EOD Monday.
+2) If approved, Chloe will send DocuSign and coordinate the instrumentation kickoff with Marcus and Engineering.
+
+Attachment: SLA_Template_Redwood_v3.pdf (redline), ClearBank_SLA_Exception_Form.pdf (your filled form)
+
+Happy to hop on a quick call if you'd prefer to walk through any clause.
+
+Regards,
+Chloe Martin
+Account Executive, Strategic Sales
+Redwood Inference
+Phone: +1 (415) 555-0142

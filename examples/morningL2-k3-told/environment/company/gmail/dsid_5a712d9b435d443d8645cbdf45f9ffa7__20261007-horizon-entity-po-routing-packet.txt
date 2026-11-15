@@ -1,0 +1,94 @@
+Horizon Supply: Legal-entity snapshot & PO routing — vendor registry packet
+
+From: Horizon Supply <onboarding@horizonsupply.com>
+To: Rachel Kim <rachel.kim@redwood.com>
+Cc: Procurement Ops <procure@horizonsupply.com>
+Date: Wed, 07 Oct 2026 09:12:00 -0700
+Subject: Horizon Supply — vendor registry packet and PO routing info
+
+Hi Rachel,
+
+Thanks for taking our intake. Attached are the initial documents you requested to set us up in your vendor registry: W-9, a bank letter for ACH, and our entity certificate. We also included a short spreadsheet with our preferred PO contact and remit-to addresses.
+
+Quick notes:
+- Legal name on entity certificate: Horizon Supply, Inc.
+- Tax ID (EIN): 12-3456789 (see W-9)
+- Primary remit: accounts.payable@horizonsupply.com (ACH details in bank letter)
+
+Can you confirm what additional fields your vendor master needs (e.g., beneficial owner, VAT presence, primary AP contact phone)? We want to expedite the first PO.
+
+Thanks —
+Liam O'Connor
+Head of Operations | Horizon Supply
+onboarding@horizonsupply.com
+Attachments: Horizon_W9.pdf, Horizon_BankLetter.pdf, Horizon_Entity_Certificate.pdf, PO_Routing_Info.xlsx
+From: Rachel Kim <rachel.kim@redwood.com>
+To: Horizon Supply <onboarding@horizonsupply.com>
+Cc: Vanessa Ortiz <vanessa.ortiz@redwood.com>, Procurement Ops <procure@horizonsupply.com>
+Date: Wed, 07 Oct 2026 09:38:00 -07:00
+Subject: Re: Horizon Supply — vendor registry packet and PO routing info
+
+Hi Liam —
+
+Received, and thanks for sending everything over. Quick checklist from our side so we can complete the vendor master record and route the first PO:
+
+1) Confirm legal entity and DBA (if any) — you gave Horizon Supply, Inc. — please confirm there are no additional DBAs.
+2) EIN/TIN — we have 12-3456789 on the W-9; procurement needs a scan of the W-9 header page (looks fine).
+3) Remit-to email and ACH details — bank letter received; procurement will validate routing/account numbers.
+4) PO contact & email — we need a name and direct phone for the PO. The sheet lists \"AP Team\" and accounts.payable@horizonsupply.com; can you add a PO contact for order clarifications?
+5) Authorized signer for invoices above $25k (name + title + sign sample) — please confirm.
+
+I'll loop in Vanessa from AP to validate banking and Karthik for legal entity fields. Goal is to have you in the system before next-week's purchase run.
+
+Best,
+Rachel
+Vendor Data Coordinator | Redwood Inference
+rc: 415-555-0123
+From: Vanessa Ortiz <vanessa.ortiz@redwood.com>
+To: Rachel Kim <rachel.kim@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Cc: Horizon Supply <onboarding@horizonsupply.com>
+Date: Wed, 07 Oct 2026 11:02:00 -07:00
+Subject: Re: Horizon Supply — vendor registry packet and PO routing info
+
+Thanks all — Vanessa from AP here. A few validation items after scanning the attachments:
+
+- W-9: name and EIN match the entity certificate. Good.
+- Bank letter: contains account last 4 digits and bank contact; we'll need a voided check or bank verification form from your bank before ACH is approved for template POs.
+- Entity certificate: shows incorporation in Delaware; please confirm the registered office address and the physical remit address (if different).
+
+Liam — could you provide:
+- A direct PO contact (name + phone + email) we can add to the PO routing field (this is for order clarification only, not AP).
+- A voided check or bank verification PDF (bank letter is fine provisionally but we need a formal bank letter on bank letterhead OR a voided check to finalize).
+- Confirmation of ultimate beneficial owner(s) for compliance (name + country). If none outside the US, say so.
+
+Once we have the voided check and PO contact, Karthik and I can finalize the vendor master (legal name, remit-to addresses, PO route, default GL mapping). I'll also create the vendor profile in our ERP and share the vendor ID.
+
+Vanessa Ortiz
+AP Manager | Redwood Inference
+Attachments referenced: none
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Rachel Kim <rachel.kim@redwood.com>, Vanessa Ortiz <vanessa.ortiz@redwood.com>, Horizon Supply <onboarding@horizonsupply.com>
+Date: Thu, 08 Oct 2026 15:03:00 -07:00
+Subject: Re: Horizon Supply — vendor registry packet and PO routing info
+
+Forwarded message:
+
+On Wed, 07 Oct 2026 at 09:12, Horizon Supply <onboarding@horizonsupply.com> wrote:
+> Hi Rachel,
+> 
+> Thanks for taking our intake. Attached are the initial documents you requested to set us up in your vendor registry...
+
+Karthik here from Legal/Compliance. Quick follow-up items for vendor master completeness and audit trail before we persist the record:
+
+- Beneficial ownership: please provide names and countries for individuals owning >25% (or a signed UBOT statement).
+- Tax classification: confirm whether Horizon Supply is a C-Corp/S-Corp/LLC taxed as (we have W-9 but need classification for tax reporting).
+- Data retention consent: please confirm you agree to Redwood's vendor data retention policy (we retain vendor docs for 7 years) — either explicit reply or sign the attached minimal consent form.
+
+Liam, if you can reply to the three bullets (beneficial owners, tax classification, data retention acknowledgement) and attach the voided check or bank verification PDF, AP (Vanessa) and I will finish the registry entry and assign a Vendor ID. I'll post the Vendor ID to the HubSpot deal thread and copy procurement so the first PO can be sent to your PO contact.
+
+Thanks,
+Karthik Iyer
+Senior Counsel | Redwood Inference
+karthik.iyer@redwood.com
+
+Attachments: PO_Routing_Info.xlsx (referenced)

@@ -1,0 +1,59 @@
+Discrepancy between daily metering and weekly invoice - delayed reconciliation caused unexpected overage line
+
+Issue summary:
+Customer reports a mismatch between the daily usage totals they see in our metering CSVs and the weekly invoice produced for the billing period ending 2026-03-07. Blueprint Health is a Dedicated customer and relies on daily metering to reconcile internal chargebacks.
+
+Impact:
+- Customer is seeing an unexpected overage line on their weekly invoice dated 2026-03-08 for ~15,870 extra tokens (~$23) compared to the sum of daily exports.
+- They cannot reconcile internal cost reports; finance is requesting an explanation before approving payment.
+- Customer appetite: needs resolution within 48 hours to avoid payment hold.
+
+Expected behavior:
+- Daily metering exports should sum exactly to the usage billed in the weekly invoice, modulo known rounding rules (documented in billing runbook).
+
+Observed behavior:
+- Daily CSVs (S3 object paths supplied below) show total tokens 1,023,450 for period 2026-03-01 to 2026-03-07.
+- Weekly invoice line shows billed tokens 1,039,320 for the same period. There is +15,870 tokens unexplained.
+- Discrepancy appears to originate from two mid-week bursts on 2026-03-04 22:15 UTC and 2026-03-06 03:42 UTC where daily export shows lower counts than the ingestion pipeline logs.
+
+Environment / artifacts provided by customer:
+- Daily metering CSVs: s3://billing-exports/blueprint-health/2026-03-01-2026-03-07/*.csv
+- Invoice PDF: invoice-2026-03-08-BP-8472.pdf (attached by customer)
+- Customer org id: org_bph_8472
+- Keys used: api-key-xxxx-REDACTED (they provided last 8 chars)
+
+Steps to reproduce / to validate internally:
+1) Re-run the billing reconciliation job for org_bph_8472 for 2026-03-01 to 2026-03-07 in staging reconciliation runner.
+2) Compare tokens_per_day in ingestion logs (kinesis shard 12) against daily-export CSV aggregation.
+3) Verify if any late-arriving events were backfilled into the billing window after daily CSVs were generated.
+4) Check if any prefix-caching or continuous-batching dedup logic affected token counts for short-lived keys during the two burst windows.
+
+Initial logs / observations from customer:
+- They exported the two daily CSVs for 2026-03-04 and 2026-03-06 and saw totals 142,200 and 120,450 respectively.
+- Ingestion logs show 149,100 and 126,520 for the same days.
+- The difference matches the +15,870 seen on invoice.
+
+Investigation notes (support):
+- 2026-03-09 16:40 UTC: Support acked, requested attachments and S3 ETL job run id.
+- 2026-03-10 09:30 UTC: Billing pipeline owner (Carlos) started a targeted reconciliation; initial query shows ~12k events marked as "late" with ingestion timestamp 2026-03-05 but appearance timestamp 2026-03-06.
+- 2026-03-11 14:00 UTC: Engineering found a retry/backfill case where the ingestion buffer reprocessed a small batch after a transient Kinesis checkpoint lag. Those events were included in final invoice but the daily-export job had already run and emitted CSVs prior to backfill completion.
+
+Proposed mitigation / workaround:
+- Short term: apply a one-off credit equal to the delta (calculated as token delta * price-per-token) and mark as "reconciliation credit" on the next invoice.
+- Medium term: update the reconciliation job to re-run daily exports if late-arriving batches exceed a threshold within the previous 48 hours, and add a flag in CSV metadata noting the run_id and reconciliation_cutoff.
+
+Customer request:
+- Customer requests immediate credit for the delta on the next invoice and a confirmation that we will update the reconciliation process to avoid surprises.
+
+Attachments provided by customer:
+- invoice-2026-03-08-BP-8472.pdf
+- daily_export_2026-03-04.csv
+- daily_export_2026-03-06.csv
+
+2026-03-09 15:52 - Megan Liu (Blueprint Health): Hi, we found this mismatch between daily exports and the weekly invoice. Please advise. Attached invoice and two CSVs.
+2026-03-09 16:05 - Support (Megan Liu): Acknowledged. We'll investigate. I've requested run IDs and S3 paths from you.
+2026-03-10 09:35 - Carlos Ortega (Support): Starting targeted reconciliation. I've kicked off reconciliation-run rr_20260310_8472 and linked logs. Will update within 24h.
+2026-03-11 14:12 - Engineering (Jonas Meyer): Found Kinesis checkpoint lag causing backfill inclusion post CSV-generation. Suspected cause: transient shard lease renewal spike at ~03:20 UTC on 2026-03-05. Gathering list of affected event IDs.
+2026-03-12 11:48 - Billing (Priya Nair): Prepared draft credit memo for 15,870 tokens at $0.00145 per token => $23.00 (rounded). Waiting on approval for one-off credit and customer confirmation.
+2026-03-12 12:10 - Megan Liu (Blueprint Health): Thanks. Please apply the credit and confirm the change to the daily reconciliation to avoid recurrence.
+Draft credit memo prepared by billing. Engineering proposed adding a 48h late-arrival re-run and a CSV metadata field. Follow-up action: PR to billing repo for reconciliation re-run and alert threshold (linked PR).

@@ -1,0 +1,69 @@
+Intermittent batcher starvation during tenant-weight rebalancing causing p95/p99 spikes and occasional 504s
+
+Issue summary:
+BrightTask reported recurring p95/p99 latency spikes and ~1 in 10k 504 timeouts for text-generation requests starting around 2026-03-09 09:00 UTC. Spikes correlate with times when tenant-weight changes occur for their dedicated pool (scheduled internal weight rebalancing).
+
+Impact:
+- Customer-facing application latency increases to p99 > 2.5s from baseline ~450ms for short-text requests.
+- Intermittent 504s observed (approx 0.01% of requests) during spike windows.
+- Affects BrightTask's critical user flows; customer classified as dedicated and on reserved capacity.
+
+Environment:
+- Redwood Dedicated (customer-dedicated GPU pool in us-east-1).
+- Traffic pattern: steady low QPS with periodic tenant-weight updates from platform autoscaler (internal feature).
+- Models: gpt-neox-20b (primary), fallback redwood-7b-chat.
+
+Observed behavior / signal sources:
+- Traces from Console show sudden increase in batch wait time and 'empty-slot' flush events immediately after tenant weight updates.
+- Continuous-batcher metrics: queue_depth per-tenant drops and then unexpectedly rises, causing head-of-line coalescing from other tenants.
+- KV-cache warmups spike after weight change; prefix hit-rate briefly drops.
+- Worker logs include repeated 'flush_due_to_no_progress' entries minutes after reweight.
+
+Steps to reproduce (attempted):
+1) Run synthetic low-QPS steady traffic for tenant A (BrightTask) pinned to dedicated pool.
+2) Trigger a tenant-weight update via internal autoscaler (bump weight for tenant B).
+3) Observe coalescer metrics and tail latency on tenant A for next ~2-5 minutes.
+
+Expected behavior:
+Continuous-batcher tenant-weight changes should not cause head-of-line starvation or prolonged linger growth for other tenants. Latency should remain within baseline SLOs during reweights.
+
+Additional notes:
+- This surfaced after the tenant-weighting feature shipped last week. Possible interaction between weight-change notifications and the batcher’s internal idle/linger heuristics.
+- Customer is on Dedicated tier; we must prioritize mitigation and rollback options.
+
+Timeline:
+2026-03-10 09:15 UTC - BrightTask filed ticket via support portal.
+2026-03-10 09:30 UTC - Support collected traces and assigned to reliability.
+2026-03-10 10:05 UTC - Reproduced locally using the dedicated pool; observed batcher linger increase after weight-change event.
+
+Hypotheses considered:
+- 1) Weight-change event triggers coalescer to reshuffle pending queues; some tenant queues temporarily lose scheduling priority leading to starvation.
+- 2) Weight-change messages cause short-lived backpressure on KV-cache leading to miss storm and increased per-request time.
+- 3) Flushing logic has a race when active_streams==0 for a tenant while reweight arrives, setting linger to max for next flush.
+
+Preliminary findings:
+- Metrics and debug logs show 'tenant_reweight' events precede a 20-60s window of elevated linger for affected tenant.
+- The coalescer's per-tenant credit accounting had a transient negative credit after reweighting in ~6/10 reproductions.
+- Worker thread dumps show blocked flush path on scheduler lock during the same window.
+
+Immediate mitigation attempts:
+- Temporarily disabled tenant-weight-change broadcast to dedicated pools for one customer to confirm correlation (positive signal: spikes stop).
+- Adjusted local coalescer config to cap linger_max to baseline during reweights (reduced p99 but not eliminated).
+
+2026-03-10 09:15 - Ticket created by BrightTask; 09:30 - Triage; 10:00 - Eng repro and initial mitigation; 2026-03-11 02:00 - Rollback tenant-weight broadcast on dedicated pools for affected customers; 2026-03-12 11:00 - Patch PR opened for coalescer credit accounting fix.
+Aisha Patel (2026-03-10 09:30): Acknowledged ticket, requested traces and which routes are affected. Asked customer to keep traffic steady during our repro window.
+BrightTask-SRE (2026-03-10 09:45): Uploaded trace snippets and sample request IDs. Noted spikes always happen ~30-90s after our internal scaling events.
+Ethan Walker (2026-03-10 10:10): Repro'd locally with dedicated pool simulator. Observed per-tenant queue emptying followed by linger growth. Collecting scheduler thread dumps.
+Action: temporarily disable tenant-weight broadcasts for their pool as test.
+Maria Gomez (SRE) (2026-03-10 12:30): Confirmed that when weight broadcasts are paused in staging, the p99 returns to baseline. Marked this as high confidence link to weight-change handler. Adding to labels.
+Ethan Walker (2026-03-11 02:05): Rolled back tenant-weight broadcast for impacted customers as hotfix. Monitoring: p95/p99 stabilized. Preparing PR for credit-accounting race fix: github.com/redwood/coalescer@pr/212.
+Customer (BrightTask) (2026-03-11 14:20): Appreciative of quick mitigation; asked for ETA on permanent fix and whether full autoscaler functionality will be re-enabled.
+Ethan Walker (2026-03-12 11:05): Patch PR opened, running CI and load tests. Estimated production rollout after 48 hours of soak if tests pass.
+Workaround: Disabled tenant-weight broadcasts for affected dedicated pools and applied temporary linger cap; reduced p99 and eliminated 504s for BrightTask.
+Permanent fix: PR to coalescer adjusts credit accounting during reweight events and removes the linger_max increase on reweight; requires canary rollout.
+Next steps: Complete CI, run 72h soak in staging with simulated weight-changes, then schedule canary in prod with rollback plan.
+- Ship PR to fix credit accounting and add unit tests for reweight race (owner: @ethan).
+- Add telemetry: per-tenant credit delta and reweight event timestamps to Console dashboards (owner: SRE).
+- Re-enable tenant-weight broadcasts behind a staged rollout and monitor p99 for 48h.
+- Postmortem to be written if any production regression occurs after rollout (owner: reliability).
+Related incidents: referenced SUP-32714 and SUP-71045 where coalescer/head-of-line issues occurred; this ticket differs in that it is triggered specifically by tenant-weight rebalancing messages. Prior fixes for linger heuristics may have masked this until weight-change feature launched.

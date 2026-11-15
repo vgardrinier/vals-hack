@@ -1,0 +1,50 @@
+Brightline Insurance: Audit log export schema + retention controls questions (regulated security review)
+
+Issue summary:
+Brightline Insurance Security team requested detailed clarification on (a) the audit log export format/schema and (b) retention controls for Redwood Dedicated / Redwood Private. They want an example payload and a clear statement of what is/is not included (e.g., prompts, generated text, keys, PHI).
+
+Impact:
+Blocking completion of their security questionnaire and internal auditability review. This is a gating item for advancing from security review to procurement.
+
+Customer questions (verbatim-ish):
+1) “Do you provide an audit log export? What format (JSON/CSV/SIEM) and can it be streamed?”
+2) “Please provide the schema/fields and a sample event.”
+3) “What is the default retention period? Can we configure retention (e.g., 7/30/90/365 days) and do we control where logs are stored?”
+4) “Do logs include prompt / completion content or customer data?”
+5) “Can we export to our SIEM (Splunk/Datadog/CloudWatch) and how often?”
+
+Context:
+- This came up during Brightline’s regulated-workloads security review.
+- Brightline indicated strict auditability requirements (access/auth events, admin changes, config changes, and request metadata correlation).
+
+Requested output:
+- Provide customer-facing answer (approved language) + sample payload reference.
+- Confirm retention knobs and what’s plan-dependent vs. generally available.
+- Track follow-ups for Docs + evidence pack index update.
+
+Links:
+- Slack: #sales thread “brightline insurance security review asks” (ref: sources/slack/sales/1746490044-brightline-insurance-security-review-asks.json)
+- Related security FAQ: sources/confluence/sales-enablement/security-faq/regulated-workloads-security-faq.json
+- Evidence pack index: sources/confluence/security-and-compliance/compliance-evidence/abm-pilot-security-evidence-pack-index.json
+2025-05-16 (Naomi Feldman, Reporter): Creating ticket to track Brightline’s audit log export + retention questions. They asked for schema + sample event and whether logs contain prompt/completion content. Need response by early next week to keep them on track for June procurement window.
+2025-05-16 (Olga Petrov, Assignee): Acknowledged. I’ll draft a customer-safe response for Naomi/AE and validate retention + export capabilities with SE + Security. Looping in Docs for a durable artifact we can reuse across regulated accounts.
+2025-05-17 (Markus Klein, Solutions Engineering): From prior regulated deep dives: audit logs are available for Dedicated + Private. For Private deployments, customers can configure export destination (e.g., customer-owned object storage / SIEM forwarder depending on deployment). We should be explicit that content logging (prompts/completions) is NOT part of platform audit logs. Audit logs focus on access/admin/config + request metadata. Recommend referencing the audit log export example once the snippet is merged.
+2025-05-17 (Dr. Aisha Rahman, Security): Please avoid hard-coding “default retention = X days” unless we confirm per offering. We can state: retention is configurable and can be set per tenant/policy; options may vary by deployment mode and contract. Also confirm language: Redwood does not include prompt/completion bodies in audit logs by default. We should say that customers can choose what to log in their own application layer, but Redwood platform audit logs are separate.
+2025-05-18 (Olga Petrov): Draft response (for review):
+- Export formats: JSON Lines (newline-delimited JSON) available; CSV can be provided for limited event types on request; integrations for SIEM via scheduled export or forwarding agent (Private) depending on environment.
+- Delivery: batch export on a schedule (hourly/daily) and on-demand export supported; streaming/real-time forwarding is available in Private deployments where the customer manages the log forwarder.
+- Scope: events include authentication events, user/admin actions, policy/config changes, key management configuration changes, and request metadata (request_id/trace_id, model identifier, timestamp, status code, tokens counts when available). Does NOT include prompts/completions or customer payload bodies.
+- Security: logs are encrypted in transit; at rest encryption depends on deployment mode (Hosted/Dedicated vs Private). For Private, customer controls storage + encryption keys (KMS/HSM integration supported per deployment).
+- Retention: configurable retention windows; exact ranges depend on plan and deployment. Customers can export logs to their own storage for longer retention.
+Asking SE to sanity check fields + sample payload.
+2025-05-19 (Evan Scott, Solutions Engineering): Sanity check: include these common fields we’ve shown in deep dives: event_time, event_type, actor (user/service), actor_ip, auth_method, tenant_id, resource_type, resource_id, action, outcome, request_id, trace_id, region, user_agent (where applicable). For request metadata events: route, model, token_counts (prompt_tokens, completion_tokens), latency_ms, status_code. We should be careful: token counts/latency are present for API requests; admin events won’t have them.
+2025-05-20 (Kira Thompson, Docs): I can add a short doc section “Audit logs: export + schema (high level)” and link from the regulated workloads landing page + security FAQ. Need final approved language from Security (Aisha/Naomi) and a sample payload. If we can reference the examples repo snippet, that’s best. Target: end of week.
+2025-05-21 (Olga Petrov): Sent customer-facing response to Naomi/Avery for delivery to Brightline (pending final sign-off from Security). Included:
+- Audit logs do not contain prompts/completions by default.
+- Export available (JSONL) with example event.
+- Retention is configurable; for long-term retention export to customer-controlled storage.
+Also noted: If Brightline needs a specific Splunk HEC format, we can provide guidance but they may implement transform in their forwarder.
+2025-05-22 (Naomi Feldman): Delivered response to Brightline security contact. They asked one follow-up: “Can you confirm whether request metadata includes end-user identifiers?” I responded that Redwood logs identify the calling API key/service principal and tenant; end-user identifiers are customer-defined and not inherently present unless the customer includes them in headers/metadata and chooses to log them on their side.
+2025-05-27 (Daniel Carter, Compliance Support): Evidence pack update suggestion: add a one-page appendix listing audit log event categories + sample JSON (redacted). Also add a note on retention being policy-driven and export for extended retention. I can update the evidence pack index once Docs publishes the canonical page.
+2025-05-29 (Olga Petrov): Marking resolved. Brightline confirmed this satisfies their questionnaire section. Remaining items are general (SOC 2 request handled separately). Follow-ups created for Docs + evidence pack index.
+Provided Brightline Insurance a customer-facing explanation of audit log export formats (JSONL), high-level schema/fields, and retention/export approach. Shared/pointed to a sample payload (redacted) and clarified that platform audit logs do not include prompt/completion content by default. Created follow-ups for Docs and evidence pack index to make the answer durable for other regulated prospects.

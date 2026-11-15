@@ -1,0 +1,107 @@
+Clarify portion charges for mid-month seat add-on — Sunrise Biotech
+
+From: Alex Morgan <alex.morgan@sunrisebiotech.com>
+To: Jonas Weber <jonas.weber@redwo od.com>
+Cc: Dana Leigh <dana.leigh@sunrisebiotech.com>, procure@sunrisebiotech.com
+Date: Mon, 30 Aug 2026 09:12:00 -0700
+Subject: Unexpected partial-month seat charges — can you help?
+
+Jonas,
+
+Hope you’re well. We added 12 seats (intent to scale quickly) on Aug 10, but our AP team just flagged a charge on the Aug invoice that looks like a full-month seat fee for those seats rather than a pro-rated amount. Can you confirm how Redwood handled the mid-cycle charge and provide a breakdown?
+
+I can attach our PO and the invoice PDF if that helps — happy to share any usage timestamps. We need a corrected invoice for our internal reconciliation (and VAT handling) if this was billed at the full month.
+
+Thanks,
+Alex Morgan
+Head of IT Ops
+Sunrise Biotech
+Phone: +1 415-555-0193
+
+---
+Attachment: (none yet)
+
+From: Jonas Weber <jonas.weber@redwood.com>
+To: Alex Morgan <alex.morgan@sunrisebiotech.com>
+Cc: Laura Bennett <laura.bennett@redwood.com>
+Date: Mon, 30 Aug 2026 10:08:00 -07:00
+Subject: Re: Unexpected partial-month seat charges — can you help?
+
+Alex — thanks for flagging. Apologies for the confusion; I want to get a clean answer for your AP team. Two quick items so we calculate correctly:
+
+1) Can you confirm the exact activation timestamp for the 12 seats (you mentioned Aug 10) — timezone ok?
+2) Do you prefer a corrected invoice (credit + reissue) or an account credit/voucher for the pro-rated difference? Our usual flow is credit + reissue when PO numbers must match.
+
+I’ve looped in Laura (billing) to run the proration calc and handle VAT nuances. If you can drop the PO and the current invoice as attachments, we’ll generate: (A) a proration breakdown, (B) a provisional corrected invoice, and (C) a DocuSign amendment if you need the PO/term referenced.
+
+Quick note on approach: we prorate daily by seat-day for mid-cycle activations. If seats were active for 21 of 31 days in Aug we’ll bill 21/31 of the seat monthly price, plus VAT where applicable. Laura will include line-level detail.
+
+—Jonas
+Jonas Weber
+Senior Account Executive, Redwood Inference
+
+From: Laura Bennett <laura.bennett@redwood.com>
+To: Alex Morgan <alex.morgan@sunrisebiotech.com>, Jonas Weber <jonas.weber@redwood.com>
+Cc: Ben Carter <ben.carter@redwood.com>
+Date: Tue, 31 Aug 2026 08:23:00 -07:00
+Subject: Re: Unexpected partial-month seat charges — proration breakdown and provisional invoice
+
+Hi Alex — attaching the proration workbook and a provisional corrected invoice for Aug. Summary below:
+
+- Activation timestamp used: 2026-08-10T09:14:00-07:00 (confirmed by deployment logs supplied by your team).
+- Plan: Team Pro — seat price $200/month, VAT at 8% (Sunrise EU VAT registered? you previously noted a US entity — we treated as US taxable for now).
+- Proration calculation (per seat): billed days = 22 (10th inclusive to 31st), month length = 31 -> 22/31 * $200 = $141.94 per seat.
+- Charge posted on original invoice: billed as full seat ($200) for 12 seats = $2,400.
+- Correct pro-rated charge should have been: 12 * $141.94 = $1,703.28.
+- Net difference: $696.72 (to be credited). VAT impact: if taxed, additional VAT adjustments required on the credit/reissue.
+
+Options we propose:
+A) Issue a credit for $696.72 and reissue corrected invoice for $1,703.28 (+VAT if applicable).
+B) Apply $696.72 as account credit/voucher to be consumed against Sep charges (no invoice reissue).
+
+Per Alex’s note about reconciliation, option A is recommended if you need PO/invoice numbers to match. I attached: invoice_202608_prorated.pdf (provisional reissue), proration_breakdown_202608.csv (line-level math). Also added a DocuSign amendment link we can send to your procurement if you need the seat add timeline appended to the order.
+
+Laura Bennett
+Billing Manager, Redwood Inference
+Attachments: invoice_202608_prorated.pdf, proration_breakdown_202608.csv, amendment_docusign_link.txt
+
+From: Ben Carter <ben.carter@redwood.com>
+To: Alex Morgan <alex.morgan@sunrisebiotech.com>, Laura Bennett <laura.bennett@redwood.com>, Jonas Weber <jonas.weber@redwood.com>
+Date: Wed, 01 Sep 2026 11:07:00 -07:00
+Subject: Re: Unexpected partial-month seat charges — next steps on credit vs voucher
+
+Quick operational note: finance can create either a credit memo (recommended for audit trails) or an account voucher. If you need the credit memo to reference PO# SB-4579 we can add that on issuance.
+
+If you confirm option A (credit + reissue), we’ll: (1) raise credit memo CM-202608-4821, (2) post corrected invoice INV-202608-RD-4821, and (3) copy your AP contact on both documents. Expect turnaround ~2 business days after confirmation.
+
+If you choose option B (voucher), the credit will post to your account and appear on the next statement — no reissued invoice. That’s faster but less explicit for PO matching.
+
+Let me know which you prefer and we’ll action.
+
+Ben Carter
+Revenue Operations, Redwood Inference
+
+From: Alex Morgan <alex.morgan@sunrisebiotech.com>
+To: Jonas Weber <jonas.weber@redwood.com>
+Cc: Dana Leigh <dana.leigh@sunrisebiotech.com>, procure@sunrisebiotech.com, laura.bennett@redwood.com, ben.carter@redwood.com
+Date: Thu, 02 Sep 2026 15:48:00 -07:00
+Subject: Re: Unexpected partial-month seat charges — we’ll take credit + reissue
+
+Thanks all — confirmed option A. Please proceed with the credit memo and reissued invoice. Two requests:
+
+1) Make sure the reissued invoice references PO SB-4579 and shows the original invoice number for audit.
+2) Send the DocuSign amendment link to our procurement (procure@sunrisebiotech.com) so it’s on file.
+
+Once we receive the reissued invoice and credit memo I’ll route to AP for payment clearance — note they need the PDF and the CSV breakdown to attach internally.
+
+Appreciate the quick turn.
+
+Best,
+Alex Morgan
+Head of IT Ops, Sunrise Biotech
+
+---
+Quoted: "On Tue, 31 Aug 2026 at 08:23, Laura Bennett <laura.bennett@redwood.com> wrote:"
+"> Hi Alex — attaching the proration workbook and a provisional corrected invoice for Aug..."
+
+Attachments included in thread: invoice_202608_prorated.pdf, proration_breakdown_202608.csv, amendment_docusign_link.txt

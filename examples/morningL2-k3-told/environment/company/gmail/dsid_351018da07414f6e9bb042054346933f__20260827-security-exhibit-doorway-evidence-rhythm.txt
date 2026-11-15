@@ -1,0 +1,170 @@
+MSA + Order Form: Security Exhibit — Audit Scope, Pen Test Doorway, and Evidence Rhythm
+
+From: Aurora Health <aurora-legal@aurorahealth.com>
+To: Ben Carter <ben_carter@redwood.com>
+Cc: Diane Lewis <diane.lewis@securityconsult.com>
+Date: Fri, 27 Aug 2026 09:12:00 -0700
+Subject: Security exhibit - request to clarify pen test access, SOC 2 evidence cadence
+
+Hi Ben,
+
+Thanks again for the draft MSA + order form. Legal here at Aurora ran a quick pass on the security exhibit and we have two asks before we can get legal sign-off:
+
+1) Pen test access window ("doorway") — we need clearer staging access controls and timing. Current language says "reasonable notice"; our security team needs a 5-business-day notice minimum and a maximum 14-day window for staging access. Please confirm if Redwood can commit or propose an alternative.
+
+2) Evidence cadence for SOC 2 artifacts and pen test reports — Aurora requires quarterly evidence snapshots for the first year after go-live and then semi-annual thereafter, with a named owner and a single S3/secure-share location for artifact delivery.
+
+I attached our redlines (aurora_redlines_v1.docx) and a short pen test scope outline from our third-party consultant (see pen_test_scope-draft.pdf attached). Diane is copied — she can help align the scope and verify the staging constraints.
+
+Can your legal and ops folks confirm what we can accept and where we need to negotiate? Happy to jump on a short call next week.
+
+Cheers,
+Maya Patel
+Sr. Counsel, Aurora Health
+aurora-legal@aurorahealth.com
+
+Attachments: aurora_redlines_v1.docx (Word doc, redline), pen_test_scope-draft.pdf (PDF, 3 pages)
+
+From: Ben Carter <ben_carter@redwood.com>
+To: Maya Patel <aurora-legal@aurorahealth.com>
+Cc: Diane Lewis <diane.lewis@securityconsult.com>, Laura Bennett <laura_bennett@redwood.com>, Karthik Iyer <karthik_iyer@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: Fri, 27 Aug 2026 11:04:00 -07:00
+Subject: Re: Security exhibit - request to clarify pen test access, SOC 2 evidence cadence
+
+Maya — thanks, received.
+
+Looping in Laura (Legal) and Karthik (Product/Infra) so we can respond to your two points with firm options. High-level from sales: we want to avoid an unconstrained staging window but also keep some flexibility for emergency/maintenance days. Proposal: we can accept a formalized "notice and window" in the order form but will need a carve for critical infrastructure maintenance and an exception process.
+
+Next steps I'd like to propose:
+- Laura to propose exact wording for the 5/14-day door concept and exception flow.
+- Karthik to confirm technical feasibility for quarterly evidence snapshots and a secure delivery endpoint (S3 link with restricted principals + audit logs).
+- Diane/aurora to confirm whether the attached pen_test_scope-draft.pdf reflects the same scope you're expecting (e.g., internal endpoints only vs. external attack surface).
+
+If that works I can schedule a 30-minute sync early next week (Mon/Tue).
+
+Ben
+Ben Carter
+Enterprise Account Executive | Redwood Inference
+ben_carter@redwood.com | +1 415-555-0148
+Redwood Inference
+
+On Fri, Aug 27, 2026 at 09:12 Aurora Health <aurora-legal@aurorahealth.com> wrote:
+> Hi Ben,
+> 
+> Thanks again for the draft MSA + order form. Legal here at Aurora ran a quick pass on the security exhibit and we have two asks before we can get legal sign-off:
+> 
+> 1) Pen test access window (\"doorway\") — we need clearer staging access controls and timing. Current language says \"reasonable notice\"; our security team needs a 5-business-day notice minimum and a maximum 14-day window for staging access. Please confirm if Redwood can commit or propose an alternative.
+> 
+> 2) Evidence cadence for SOC 2 artifacts and pen test reports — Aurora requires quarterly evidence snapshots for the first year after go-live and then semi-annual thereafter, with a named owner and a single S3/secure-share location for artifact delivery.
+> 
+> I attached our redlines (aurora_redlines_v1.docx) and a short pen test scope outline from our third-party consultant (see pen_test_scope-draft.pdf attached). Diane is copied — she can help align the scope and verify the staging constraints.
+> 
+> Can your legal and ops folks confirm what we can accept and where we need to negotiate? Happy to jump on a short call next week.
+> 
+> Cheers,
+> Maya Patel
+> Sr. Counsel, Aurora Health
+> aurora-legal@aurorahealth.com
+> 
+> Attachments: aurora_redlines_v1.docx (Word doc, redline), pen_test_scope-draft.pdf (PDF, 3 pages)
+
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Ben Carter <ben_carter@redwood.com>
+Cc: Karthik Iyer <karthik_iyer@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, Maya Patel <aurora-legal@aurorahealth.com>, Diane Lewis <diane.lewis@securityconsult.com>
+Date: Fri, 27 Aug 2026 14:20:00 -07:00
+Subject: Re: Security exhibit - request to clarify pen test access, SOC 2 evidence cadence
+
+Maya, Ben, Diane —
+
+Thanks for the clear ask; appreciate the attachments. We reviewed Aurora's redlines and propose the following approach that keeps to your 5/14-day preference while protecting Redwood's operational needs:
+
+1) Pen test access window wording (Order Form/Exhibit):
+- We can commit to a minimum 5 business days' notice and a requested staging window not to exceed 14 days.
+- Add an exception clause: if Redwood needs to defer due to critical security patches, live incident response, or scheduled maintenance with lesser notice, Redwood will propose an alternative date within 5 business days and notify Aurora within 24 hours.
+- If Aurora requires exclusive, dedicated staging access that materially impacts our customers, we will escalate to an order-form amendment and discuss compensation for dedicated windows.
+
+Proposed snippet (to be added to exhibit):
+"Customer shall provide Provider with no less than five (5) business days' written notice prior to any penetration test conducted against Provider-managed staging environments. Provider will use commercially reasonable efforts to provide a requested testing window not to exceed fourteen (14) consecutive calendar days. Provider may postpone or reschedule a requested test for operational or security reasons, provided Provider notifies Customer within twenty-four (24) hours and proposes an alternate testing window within five (5) business days. Exclusive or dedicated staging reservations that materially impact Provider's other customers require an amendment to the Order Form and may incur separate fees."
+
+2) Evidence cadence and delivery:
+- Quarterly snapshots for the first 12 months, then semi-annual thereafter: Redwood can provide copies of SOC 2-type artifacts and pen test executive summaries on that cadence, subject to standard third-party obligations (redacted PII, vendor agreements).
+- Delivery mechanism: Redwood proposes a time-limited S3 presigned link or an SFTP endpoint with an access log retained for 12 months; the exhibit will include an "evidence owner" contact for Redwood (e.g., security@redwood.com) and a Customer owner field.
+
+3) Pen test scope alignment:
+- Karthik, could you please confirm whether our recommendation to limit external testing to production-simulated public endpoints and internal testing to non-prod/staging is acceptable? We need to ensure no test crosses into live customer traffic.
+
+If Aurora agrees to the exhibit snippet above, Laura can produce a tracked-change redline for the order form and share via Drive/DocuSign as required.
+
+Laura Bennett
+Associate General Counsel | Redwood Inference
+laura_bennett@redwood.com
+
+On Fri, Aug 27, 2026 at 11:04 Ben Carter <ben_carter@redwood.com> wrote:
+> Maya — thanks, received.
+> 
+> Looping in Laura (Legal) and Karthik (Product/Infra) so we can respond to your two points with firm options. High-level from sales: we want to avoid an unconstrained staging window but also keep some flexibility for emergency/maintenance days. Proposal: we can accept a formalized \"notice and window\" in the order form but will need a carve for critical infrastructure maintenance and an exception process.
+> 
+> Next steps I'd like to propose:
+> - Laura to propose exact wording for the 5/14-day door concept and exception flow.
+> - Karthik to confirm technical feasibility for quarterly evidence snapshots and a secure delivery endpoint (S3 link with restricted principals + audit logs).
+> - Diane/aurora to confirm whether the attached pen_test_scope-draft.pdf reflects the same scope you're expecting (e.g., internal endpoints only vs. external attack surface).
+> 
+> If that works I can schedule a 30-minute sync early next week (Mon/Tue).
+> 
+> Ben
+
+From: Karthik Iyer <karthik_iyer@redwood.com>
+To: Laura Bennett <laura_bennett@redwood.com>, Ben Carter <ben_carter@redwood.com>
+Cc: Marissa Cole <marissa_cole@redwood.com>, Maya Patel <aurora-legal@aurorahealth.com>, Diane Lewis <diane.lewis@securityconsult.com>
+Date: Mon, 30 Aug 2026 10:05:00 -07:00
+Subject: Re: Security exhibit - request to clarify pen test access, SOC 2 evidence cadence
+
+Laura / team — quick technical confirm on the proposed approach:
+
+- Notice & window: 5 business days notice / 14-day window is operationally fine for non-exclusive windows. We cannot guarantee exclusive staging reservations if that would block other customers; as Laura suggested, exclusive windows requiring dedicated capacity should be handled as an order-form addendum.
+
+- Evidence cadence: we can produce quarterly snapshots (artifacts + high-level SOC 2 mapping) for 12 months post-go-live and then move to semi-annual. Delivery: we will publish artifacts to an S3 bucket with time-limited presigned URLs and object-level access logging. We will retain the logs for 12 months. The deliverable will be a "snapshot bundle" (PDF executive summary, redacted attachments list; not the raw working files for third-party vendors).
+
+- Pen test scope: the pen_test_scope-draft.pdf looks aligned with our recommendation, but two clarifications from Diane's side would help: (a) confirm that active scanning will be constrained to non-production hostnames and (b) confirm whether credentialed scanning is in-scope (we typically require a separate escalation/approval flow for credentialed tests).
+
+I'll be on the call Monday if you schedule. Marissa, any ops notes to add?
+
+Karthik Iyer
+VP Product, Serving & Infra | Redwood Inference
+karthik_iyer@redwood.com
+
+On Fri, Aug 27, 2026 at 14:20 Laura Bennett <laura_bennett@redwood.com> wrote:
+> Maya, Ben, Diane —
+> 
+> Thanks for the clear ask; appreciate the attachments. We reviewed Aurora's redlines and propose the following approach that keeps to your 5/14-day preference while protecting Redwood's operational needs:
+> 
+> [proposed snippet and evidence cadence summary included]
+
+From: Diane Lewis <diane.lewis@securityconsult.com>
+To: Laura Bennett <laura_bennett@redwood.com>, Karthik Iyer <karthik_iyer@redwood.com>, Ben Carter <ben_carter@redwood.com>
+Cc: Maya Patel <aurora-legal@aurorahealth.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: Wed, 01 Sep 2026 15:04:00 -07:00
+Subject: Re: Security exhibit - request to clarify pen test access, SOC 2 evidence cadence
+
+Thanks all — quick acknowledgement from the consultant side after reviewing Laura and Karthik's proposals.
+
+- Scope: Aurora is aiming for external + authenticated scans of their integration endpoints and a credentialed scan for non-prod environments. That aligns with the draft but we ask that credentialed scans be scheduled as part of the 5/14 window and follow an authentication handoff ETA so no live customer credentials are used.
+
+- Evidence: Quarterly snapshot bundles and S3 presigned delivery are fine. For clarity, Aurora would like the first snapshot to include the latest pen test executive summary (redacted) and a SOC 2 mapping matrix. Subsequent snapshots can be summary-only with links to the full artifacts behind the presigned URLs.
+
+We're available Mon Sep 6 for a 30-min call; otherwise we can approve the redlined exhibit once Redwood provides the tracked-change language and confirms the credentialed-scan approval flow.
+
+Diane Lewis
+Principal Consultant | SecurePath Advisory
+diane.lewis@securityconsult.com
+
+On Mon, Aug 30, 2026 at 10:05 Karthik Iyer <karthik_iyer@redwood.com> wrote:
+> Laura / team — quick technical confirm on the proposed approach:
+> 
+> - Notice & window: 5 business days notice / 14-day window is operationally fine for non-exclusive windows. We cannot guarantee exclusive staging reservations if that would block other customers; as Laura suggested, exclusive windows requiring dedicated capacity should be handled as an order-form addendum.
+> 
+> - Evidence cadence: we can produce quarterly snapshots (artifacts + high-level SOC 2 mapping) for 12 months post-go-live and then move to semi-annual. Delivery: we will publish artifacts to an S3 bucket with time-limited presigned URLs and object-level access logging. We will retain the logs for 12 months. The deliverable will be a \"snapshot bundle\" (PDF executive summary, redacted attachments list; not the raw working files for third-party vendors).
+> 
+> - Pen test scope: the pen_test_scope-draft.pdf looks aligned with our recommendation, but two clarifications from Diane's side would help: (a) confirm that active scanning will be constrained to non-production hostnames and (b) confirm whether credentialed scanning is in-scope (we typically require a separate escalation/approval flow for credentialed tests).
+> 
+> I'll be on the call Monday if you schedule. Marissa, any ops notes to add?

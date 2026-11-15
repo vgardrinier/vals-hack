@@ -1,0 +1,119 @@
+Received,Vendor,Invoice #,Invoice Date,Due Date,Amount (USD),Cost Center,Logged By,Notes
+2026-04-01,Quillmark Fiber Networks,QFN-2026-0246,2026-03-30,2026-04-29,"4,355.01",Infra,Keiko Arndt,PO matched
+2026-04-01,Vantor Uptime Monitoring,VUM-2026-0404,2026-03-27,2026-04-26,"1,715.29",Eng Tools,Tomasz Brennan,
+2026-04-02,Brightvale Payroll Services,SPS-2026-0141,2026-03-27,2026-04-26,"1,975.69",People,Mireille Ashdown,"paid early, 2% disc"
+2026-04-02,Selbourne Talent Partners,STP-2026-0194,2026-04-01,2026-05-01,"3,850.81",People,Keiko Arndt,
+2026-04-03,Marrow & Finch LLP,MFL-2026-0237,2026-03-31,2026-04-30,"3,683.22",G&A,Keiko Arndt,credit memo applied
+2026-04-03,Brightvale Payroll Services,SPS-2026-0142,2026-04-02,2026-05-02,911.19,People,Mireille Ashdown,credit memo applied
+2026-04-06,Pellham Badge & Access,LBA-2026-0341,2026-04-03,2026-05-03,"1,245.73",G&A,Tomasz Brennan,
+2026-04-07,Vantor Uptime Monitoring,VUM-2026-0409,2026-04-06,2026-05-06,"1,601.52",Eng Tools,Mireille Ashdown,credit memo applied
+2026-04-08,Calloway Security Audits,CSA-2026-0266,2026-04-03,2026-05-03,"4,247.06",Security,Keiko Arndt,
+2026-04-09,Kellerby Office Supply,COS-2026-0170,2026-04-08,2026-05-08,847.51,G&A,Tomasz Brennan,
+2026-04-10,Calloway Security Audits,CSA-2026-0269,2026-04-09,2026-05-09,"4,125.10",Security,Keiko Arndt,
+2026-04-10,Ironwood Hardware Supply,IHS-2026-0136,2026-04-07,2026-05-07,"12,229.03",Infra,Mireille Ashdown,REVIEW
+2026-04-13,Ironwood Hardware Supply,IHS-2026-0142,2026-04-10,2026-05-10,"2,258.93",Infra,Keiko Arndt,PO matched
+2026-04-13,Marrow & Finch LLP,MFL-2026-0240,2026-04-10,2026-05-10,"12,264.90",G&A,Keiko Arndt,REVIEW
+2026-04-13,Quillmark Fiber Networks,QFN-2026-0252,2026-04-10,2026-05-10,"3,488.10",Infra,Tomasz Brennan,PO matched
+2026-04-14,Quillmark Fiber Networks,QFN-2026-0257,2026-04-08,2026-05-08,"2,233.82",Infra,Keiko Arndt,PO matched
+2026-04-15,Marrow & Finch LLP,MFL-2026-0245,2026-04-09,2026-05-09,"3,545.67",G&A,Keiko Arndt,credit memo applied
+2026-04-15,Brightvale Payroll Services,SPS-2026-0145,2026-04-09,2026-05-09,"1,593.35",People,Keiko Arndt,
+2026-04-16,Calloway Security Audits,CSA-2026-0270,2026-04-14,2026-05-14,"8,438.46",Security,Tomasz Brennan,REVIEW
+2026-04-16,Ironwood Hardware Supply,IHS-2026-0145,2026-04-12,2026-05-12,"2,774.11",Infra,Keiko Arndt,PO matched
+2026-04-16,Quillmark Fiber Networks,QFN-2026-0258,2026-04-14,2026-05-14,"2,366.78",Infra,Keiko Arndt,PO matched
+2026-04-17,Kellerby Office Supply,COS-2026-0172,2026-04-11,2026-05-11,196.56,G&A,Mireille Ashdown,
+2026-04-17,Halverson Data Centers,HDC-2026-0183,2026-04-13,2026-05-13,"14,450.61",Infra,Keiko Arndt,REVIEW
+2026-04-20,Kellerby Office Supply,COS-2026-0175,2026-04-18,2026-05-18,357.41,G&A,Keiko Arndt,
+2026-04-20,Calloway Security Audits,CSA-2026-0275,2026-04-17,2026-05-17,"2,883.39",Security,Mireille Ashdown,
+2026-04-21,Kellerby Office Supply,COS-2026-0179,2026-04-18,2026-05-18,507.76,G&A,Keiko Arndt,
+2026-04-21,Selbourne Talent Partners,STP-2026-0196,2026-04-16,2026-05-16,"3,825.60",People,Mireille Ashdown,ACH
+2026-04-21,Selbourne Talent Partners,STP-2026-0197,2026-04-19,2026-05-19,"9,004.63",Recruiting,Keiko Arndt,REVIEW
+2026-04-22,Wrenfield Creative Studio,WCS-2026-0178,2026-04-18,2026-05-18,"2,523.12",Marketing,Tomasz Brennan,
+2026-04-23,Quillmark Fiber Networks,QFN-2026-0263,2026-04-19,2026-05-19,"4,117.87",Infra,Keiko Arndt,PO matched
+2026-04-24,Wrenfield Creative Studio,WCS-2026-0183,2026-04-23,2026-05-23,"3,961.07",Marketing,Tomasz Brennan,
+2026-04-27,Wrenfield Creative Studio,WCS-2026-0188,2026-04-24,2026-05-24,"3,368.07",Marketing,Keiko Arndt,credit memo applied
+2026-04-27,Wrenfield Creative Studio,WCS-2026-0190,2026-04-23,2026-05-23,"9,215.57",Marketing,Tomasz Brennan,REVIEW
+2026-04-28,Calloway Security Audits,CSA-2026-0281,2026-04-22,2026-05-22,"3,879.02",Security,Keiko Arndt,
+2026-04-28,Vantor Uptime Monitoring,VUM-2026-0411,2026-04-23,2026-05-23,"8,343.96",Eng Tools,Tomasz Brennan,REVIEW
+2026-04-28,Wrenfield Creative Studio,WCS-2026-0196,2026-04-25,2026-05-25,"3,384.51",Marketing,Keiko Arndt,ACH
+2026-04-29,Marrow & Finch LLP,MFL-2026-0250,2026-04-24,2026-05-24,"2,228.01",G&A,Tomasz Brennan,
+2026-04-29,Brightvale Payroll Services,SPS-2026-0149,2026-04-28,2026-05-28,"1,918.08",People,Tomasz Brennan,
+2026-04-30,Kellerby Office Supply,COS-2026-0182,2026-04-28,2026-05-28,787.47,G&A,Tomasz Brennan,"paid early, 2% disc"
+2026-04-30,Pellham Badge & Access,LBA-2026-0342,2026-04-29,2026-05-29,960.75,G&A,Mireille Ashdown,
+2026-05-01,Wrenfield Creative Studio,WCS-2026-0201,2026-04-29,2026-05-29,"1,865.80",Marketing,Keiko Arndt,
+2026-05-04,Wrenfield Creative Studio,WCS-2026-0206,2026-05-02,2026-06-01,"1,770.95",Marketing,Keiko Arndt,
+2026-05-05,Marrow & Finch LLP,MFL-2026-0255,2026-05-01,2026-05-31,"6,260.57",G&A,Keiko Arndt,REVIEW
+2026-05-05,Brightvale Payroll Services,SPS-2026-0154,2026-04-29,2026-05-29,"1,355.78",People,Keiko Arndt,
+2026-05-05,Vantor Uptime Monitoring,VUM-2026-0415,2026-04-29,2026-05-29,"2,754.24",Eng Tools,Keiko Arndt,
+2026-05-06,Pellham Badge & Access,LBA-2026-0347,2026-05-02,2026-06-01,"1,015.94",G&A,Tomasz Brennan,ACH
+2026-05-06,Marrow & Finch LLP,MFL-2026-0258,2026-05-05,2026-06-04,"3,322.16",G&A,Keiko Arndt,
+2026-05-07,Ironwood Hardware Suply,IHS-2026-0146,2026-05-06,2026-06-05,"2,554.09",Infra,Tomasz Brennan,PO matched
+2026-05-08,Marrow & Finch LLP,MFL-2026-0260,2026-05-07,2026-06-06,"3,307.23",G&A,Tomasz Brennan,
+2026-05-08,Selbourne Talent Partners,STP-2026-0198,2026-05-03,2026-06-02,"8,719.20",Recruiting,Keiko Arndt,REVIEW
+2026-05-08,Wrenfield Creative Studio,WCS-2026-0209,2026-05-02,2026-06-01,"1,742.76",Marketing,Mireille Ashdown,ACH
+2026-05-11,Ironwood Hardware Supply,IHS-2026-0152,2026-05-06,2026-06-05,"14,973.49",Infra,Mireille Ashdown,REVIEW
+2026-05-11,Pellham Badge & Access,LBA-2026-0349,2026-05-07,2026-06-06,588.81,G&A,Mireille Ashdown,ACH
+2026-05-12,Kellerby Office Supply,COS-2026-0188,2026-05-08,2026-06-07,700.59,G&A,Keiko Arndt,
+2026-05-13,Pellham Badge & Access,LBA-2026-0353,2026-05-07,2026-06-06,874.66,G&A,Tomasz Brennan,
+2026-05-14,Fennick Catering Co,OCC-2026-0142,2026-05-13,2026-06-12,"1,926.79",People,Tomasz Brennan,
+2026-05-15,Vantor Uptime Monitoring,VUM-2026-0418,2026-05-14,2026-06-13,"1,353.72",Eng Tools,Keiko Arndt,"paid early, 2% disc"
+2026-05-15,Vantor Uptime Monitoring,VUM-2026-0422,2026-05-13,2026-06-12,"2,908.70",Eng Tools,Mireille Ashdown,credit memo applied
+2026-05-18,Wrenfield Creative Studio,WCS-2026-0211,2026-05-17,2026-06-16,"1,435.72",Marketing,Mireille Ashdown,
+2026-05-19,Kellerby Office Supply,COS-2026-0193,2026-05-18,2026-06-17,740.33,G&A,Tomasz Brennan,
+2026-05-19,Halverson Data Centers,HDC-2026-0188,2026-05-18,2026-06-17,"12,574.94",Infra,Tomasz Brennan,REVIEW
+2026-05-19,Quillmark Fiber Networks,QFN-2026-0265,2026-05-17,2026-06-16,"11,593.02",Infra,Mireille Ashdown,REVIEW
+2026-05-20,Ironwood Hardware Supply,IHS-2026-0156,2026-05-16,2026-06-15,"3,378.40",Infra,Keiko Arndt,PO matched
+2026-05-21,Marrow & Finch LLP,MFL-2026-0264,2026-05-20,2026-06-19,"3,749.60",G&A,Keiko Arndt,
+2026-05-21,Selbourne Talent Partners,STP-2026-0202,2026-05-18,2026-06-17,"3,339.49",People,Mireille Ashdown,
+2026-05-22,Kellerby Office Supply,COS-2026-0199,2026-05-16,2026-06-15,651.21,G&A,Mireille Ashdown,credit memo applied
+2026-05-22,Calloway Security Audits,CSA-2026-0283,2026-05-21,2026-06-20,"4,424.75",Security,Tomasz Brennan,
+2026-05-25,Brightvale Payroll Services,SPS-2026-0155,2026-05-24,2026-06-23,"1,604.87",People,Mireille Ashdown,
+2026-05-25,Selbourne Talent Partners,STP-2026-0207,2026-05-23,2026-06-22,"3,566.02",People,Tomasz Brennan,
+2026-05-25,Wrenfield Creative Studio,WCS-2026-0212,2026-05-23,2026-06-22,"6,787.83",Marketing,Tomasz Brennan,REVIEW
+2026-05-26,Pellham Badge & Access,LBA-2026-0358,2026-05-25,2026-06-24,869.79,G&A,Keiko Arndt,
+2026-05-26,Marrow & Finch LLP,MFL-2026-0269,2026-05-24,2026-06-23,"1,822.02",G&A,Tomasz Brennan,
+2026-05-27,Pellham Badge & Access,LBA-2026-0362,2026-05-21,2026-06-20,433.44,G&A,Keiko Arndt,
+2026-05-28,Pellham Badge & Access,LBA-2026-0364,2026-05-22,2026-06-21,739.87,G&A,Keiko Arndt,credit memo applied
+2026-05-28,Selbourne Talent Partners,STP-2026-0209,2026-05-22,2026-06-21,"2,936.97",People,Keiko Arndt,
+2026-05-29,Ironwood Hardware Supply,IHS-2026-0157,2026-05-28,2026-06-27,"3,670.52",Infra,Mireille Ashdown,PO matched
+2026-05-29,Fennick Catering Co,OCC-2026-0147,2026-05-24,2026-06-23,366.02,People,Tomasz Brennan,ACH
+2026-06-01,Kellerby Office Supply,COS-2026-0204,2026-05-29,2026-06-28,798.34,G&A,Keiko Arndt,
+2026-06-02,Kellerby Office Supply,COS-2026-0205,2026-05-31,2026-06-30,848.04,G&A,Keiko Arndt,
+2026-06-02,Vantor Uptime Monitoring,VUM-2026-0426,2026-05-28,2026-06-27,"2,343.52",Eng Tools,Keiko Arndt,
+2026-06-03,Quillmark Fiber Networks,QFN-2026-0271,2026-05-29,2026-06-28,"4,282.04",Infra,Tomasz Brennan,PO matched
+2026-06-04,Ironwood Hardware Supply,IHS-2026-0163,2026-05-30,2026-06-29,"13,240.61",Infra,Keiko Arndt,
+2026-06-04,Quillmark Fiber Networks,QFN-2026-0277,2026-06-03,2026-07-03,"2,166.41",Infra,Keiko Arndt,PO matched
+2026-06-04,Brightvale Payroll Services,SPS-2026-0158,2026-06-03,2026-07-03,"1,537.02",People,Tomasz Brennan,
+2026-06-05,Marrow & Finch LLP,MFL-2026-0271,2026-06-02,2026-07-02,"4,217.85",G&A,Keiko Arndt,
+2026-06-08,Fennick Catering Co,OCC-2026-0153,2026-06-05,2026-07-05,"1,829.54",People,Keiko Arndt,
+2026-06-08,Brightvale Payroll Services,SPS-2026-0161,2026-06-03,2026-07-03,928.65,People,Mireille Ashdown,
+2026-06-09,Quillmark Fiber Networks,QFN-2026-0278,2026-06-08,2026-07-08,"2,210.69",Infra,Mireille Ashdown,PO matched
+2026-06-09,Vantor Uptime Monitoring,VUM-2026-0429,2026-06-08,2026-07-08,"2,355.57",Eng Tools,Tomasz Brennan,
+2026-06-10,Pellham Badge & Access,LBA-2026-0366,2026-06-04,2026-07-04,307.67,G&A,Keiko Arndt,credit memo applied
+2026-06-10,Wrenfield Creative Studio,WCS-2026-0217,2026-06-04,2026-07-04,"10,216.65",Marketing,Mireille Ashdown,REVIEW
+2026-06-11,Marrow & Finch LLP,MFL-2026-0276,2026-06-10,2026-07-10,"2,719.18",G&A,Tomasz Brennan,"paid early, 2% disc"
+2026-06-12,Calloway Security Audits,CSA-2026-0285,2026-06-07,2026-07-07,"11,364.95",Security,Tomasz Brennan,REVIEW
+2026-06-12,Halverson Data Centers,HDC-2026-0191,2026-06-07,2026-07-07,"12,915.46",Infra,Keiko Arndt,REVIEW
+2026-06-12,Pellham Badge & Access,LBA-2026-0370,2026-06-10,2026-07-10,332.57,G&A,Tomasz Brennan,
+2026-06-12,Wrenfield Creative Studio,WCS-2026-0218,2026-06-09,2026-07-09,"3,709.80",Marketing,Keiko Arndt,
+2026-06-15,Calloway Security Audits,CSA-2026-0291,2026-06-14,2026-07-14,"3,239.33",Security,Keiko Arndt,
+2026-06-15,Ironwood Hardware Supply,IHS-2026-0167,2026-06-10,2026-07-10,"3,969.70",Infra,Keiko Arndt,PO matched
+2026-06-15,Vantor Uptime Monitoring,VUM-2026-0429,2026-06-08,2026-07-08,"2,355.57",Eng Tools,Keiko Arndt,DUPLICATE - do not pay
+2026-06-16,Marrow & Finch LLP,MFL-2026-0278,2026-06-14,2026-07-14,"5,496.33",G&A,Keiko Arndt,
+2026-06-16,Fennick Catering Co,OCC-2026-0157,2026-06-15,2026-07-15,"2,055.76",People,Keiko Arndt,
+2026-06-17,Vantor Uptime Monitoring,VUM-2026-0432,2026-06-13,2026-07-13,"2,221.63",Eng Tools,Keiko Arndt,
+2026-06-17,Wrenfield Creative Studio,WCS-2026-0224,2026-06-16,2026-07-16,"2,435.16",Marketing,Mireille Ashdown,
+2026-06-18,Calloway Security Audits,CSA-2026-0295,2026-06-16,2026-07-16,"2,750.83",Security,Keiko Arndt,
+2026-06-19,Pellham Badge & Access,LBA-2026-0374,2026-06-16,2026-07-16,423.36,G&A,Keiko Arndt,
+2026-06-19,Vantor Uptime Monitoring,VUM-2026-0434,2026-06-17,2026-07-17,"1,588.70",Eng Tools,Tomasz Brennan,
+2026-06-22,Calloway Security Audits,CSA-2026-0299,2026-06-19,2026-07-19,"2,737.04",Security,Keiko Arndt,
+2026-06-23,Quillmark Fiber Networks,QFN-2026-0281,2026-06-20,2026-07-20,"8,490.59",Infra,Mireille Ashdown,REVIEW
+2026-06-23,Vantor Uptime Monitoring,VUM-2026-0440,2026-06-18,2026-07-18,"1,854.61",Eng Tools,Keiko Arndt,
+2026-06-24,Marrow & Finch LLP,MFL-2026-0279,2026-06-21,2026-07-21,"1,673.39",G&A,Keiko Arndt,
+2026-06-24,Vantor Uptime Monitoring,VUM-2026-0443,2026-06-23,2026-07-23,"2,806.08",Eng Tools,Tomasz Brennan,
+2026-06-25,Calloway Security Audits,CSA-2026-0302,2026-06-19,2026-07-19,"4,482.35",Security,Keiko Arndt,
+2026-06-25,Quillmark Fiber Networks,QFN-2026-0286,2026-06-24,2026-07-24,"4,509.50",Infra,Mireille Ashdown,PO matched
+2026-06-26,Fennick Catering Co,OCC-2026-0162,2026-06-24,2026-07-24,"2,086.26",People,Keiko Arndt,credit memo applied
+2026-06-26,Selbourne Talent Partners,STP-2026-0210,2026-06-21,2026-07-21,"3,457.15",People,Keiko Arndt,
+2026-06-29,Pellham Badge & Access,LBA-2026-0375,2026-06-23,2026-07-23,"1,057.72",G&A,Keiko Arndt,
+2026-06-30,Pellham Badge & Access,LBA-2026-0381,2026-06-29,2026-07-29,938.08,G&A,Keiko Arndt,
+2026-06-30,Wrenfield Creative Studio,WCS-2026-0230,2026-06-26,2026-07-26,"3,300.88",Marketing,Keiko Arndt,

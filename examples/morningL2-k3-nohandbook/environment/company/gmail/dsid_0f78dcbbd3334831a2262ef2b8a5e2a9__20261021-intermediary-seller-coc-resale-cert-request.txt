@@ -1,0 +1,100 @@
+Intermediary seller chain-of-custody (CoC) & resale certificate — invoice hold
+
+From: Marketplace Ops <ops@marketplace-inc.com>
+To: Aisha Rahman <aisha_rahman@redwood.com>
+Cc: Ben Carter <ben_carter@redwood.com>
+Date: 2026-10-18T09:20:00-07:00
+Subject: Invoice 847 hold — missing intermediary chain-of-custody
+
+Hi Aisha,
+
+Quick note from Marketplace billing — we received Redwood invoice #847 for Marketplace Inc (remit to: Gina Lopez / Wholesale Co.) but the buyer (intermediary seller ID 9987) provided a resale certificate covering Sales Tax only at the end-customer level. Our compliance team is requesting chain-of-custody documentation that ties the reseller (the marketplace seller) to the shipped goods / billed entity.
+
+Specifically they're asking for one of the following:
+- a signed POA/letter from the reseller authorizing Marketplace to act as the seller of record and confirming resale coverage,
+- a ledger export showing the intermediary seller->end-customer flow for this SKU (invoice range / dates), or
+- a notarized resale certificate explicitly listing the intermediary seller entity and the Marketplace as facilitating entity.
+
+Until we receive acceptable CoC evidence, Marketplace has placed the invoice on hold for tax clearance and final payment. Can you confirm whether Redwood can supply any of the above or if Marketplace will accept a digitally signed affidavit from the seller?
+
+Thanks,
+Marketplace Ops
+[Marketplace Inc — Billing]
+From: Aisha Rahman <aisha_rahman@redwood.com>
+To: Marketplace Ops <ops@marketplace-inc.com>
+Cc: Ben Carter <ben_carter@redwood.com>, Tessa Morgan <tessa_morgan@redwood.com>
+Date: 2026-10-19T10:12:00-07:00
+Subject: Re: Invoice 847 hold — missing intermediary chain-of-custody
+
+Thanks for the heads-up — looping in revenue ops and the account owner to triage.
+
+Ben / Tessa — Marketplace is asking for chain-of-custody documentation for invoice 847 tied to intermediary seller ID 9987. Invoice details: PO# MP-847, Gross USD 42,300, shipped 2026-09-28. The seller (Gina Lopez / Wholesale Co.) submitted a state resale certificate that covers retail sales, but it does not name Marketplace or show transfer of title.
+
+Current ask: can Redwood provide any of the three items Marketplace listed? If not, do we have authority to request a signed affidavit from Wholesale Co. that covers the transaction and names Marketplace as the facilitating seller? This is blocking the payment — accounting flagged it as a payment collection risk.
+
+If we can get a ledger export (seller-side) mapping the sale to the end-customer, that would be fastest. If the seller will only provide a certificate that names their own EIN, Marketplace may still reject it.
+
+Next steps I propose:
+- Ben to contact Wholesale Co. procurement (Gina) to request a signed POA or ledger export.
+- Tessa to prepare a standard Redwood affidavit template Redwood can share if seller prefers digital attestation.
+- Karthik to advise on tax acceptance policy (multi-state) and whether a redline is acceptable.
+
+I'll follow up tomorrow with an update.
+
+Best,
+Aisha Rahman
+Account Executive — Strategic Sales
+Redwood Inference
+[aisha_rahman@redwood.com | +1-415-555-0132]
+From: Ben Carter <ben_carter@redwood.com>
+To: Gina Lopez <gina.lopez@wholesaler.com>
+Cc: Aisha Rahman <aisha_rahman@redwood.com>, Marketplace Ops <ops@marketplace-inc.com>, Karthik Iyer <karthik_iyer@redwood.com>
+Date: 2026-10-20T08:45:00-07:00
+Subject: Request: POA or ledger export to clear invoice 847 (urgent)
+
+Hi Gina — hope you're well. Ben here from Redwood (cc'd Aisha). Marketplace has placed invoice #847 on hold due to missing chain-of-custody (CoC) documentation for the sale that flowed through Marketplace seller ID 9987.
+
+To help Marketplace release payment, could Wholesale Co. provide one of the following as soon as possible:
+1) Signed POA / assignment letter from Wholesale Co. authorizing Marketplace Inc to sell on your behalf for the transaction(s) covered by PO# MP-847; OR
+2) A CSV ledger export showing the transaction chain (seller invoice -> marketplace facilitation -> end-customer invoice) for the SKU(s) on MP-847; OR
+3) A notarized or digitally signed resale certificate that explicitly lists Wholesale Co. (EIN) and indicates the Marketplace as the intermediary facilitating the sale.
+
+For convenience I attached a quick ledger stub from Marketplace with the seller ID and dates — if you can sign/return a POA that references the PO# and ship dates, that should suffice.
+
+Attachment: marketplace-seller-ledger-20261019.csv (CSV, 32KB)
+
+If you prefer Redwood to share a short affidavit template for the seller to sign, we can send it; our Revenue Ops team (Karthik) is copied for tax acceptability review.
+
+Appreciate a quick turnaround — Marketplace indicated the funds will be released once documentation is received.
+
+Thanks,
+Ben Carter
+Revenue Operations — Redwood Inference
+[ben_carter@redwood.com | +1-650-555-0199]
+From: Gina Lopez <gina.lopez@wholesaler.com>
+To: Ben Carter <ben_carter@redwood.com>, Marketplace Ops <ops@marketplace-inc.com>
+Cc: thirdparty-contracts@3rdparty.com, Aisha Rahman <aisha_rahman@redwood.com>
+Date: 2026-10-21T15:05:00-07:00
+Subject: Re: Request: POA or ledger export to clear invoice 847 (urgent)
+
+Hi Ben / team,
+
+Thanks for the clear instructions — please find attached the seller's resale certificate and a ledger export showing the seller-side transaction for PO# MP-847. The resale cert is a state-level form (TX) and includes Wholesale Co.'s EIN; it does not name Marketplace explicitly.
+
+Attachments:
+- gina_resale_cert_2026-10-20.pdf [PDF, 210KB] (signed by Gina Lopez)
+- marketplace-seller-ledger-20261019.csv [CSV, 32KB] (shows seller invoice #S-2201 mapping to MP-847)
+
+We are willing to sign the Redwood affidavit if Marketplace requires the reseller to name Marketplace in a POA. Please share the template and we will get it signed today.
+
+Gina Lopez
+Wholesale Co. — Head of Sales Operations
+[gina.lopez@wholesaler.com | +1-312-555-0202]
+
+On acceptance: if Redwood/Marketplace confirm the ledger + the signed resale cert are sufficient, we will consider the POA as a backup to speed payment.
+
+--Quoted message follows--
+On Mon, Oct 19, 2026 at 10:12 AM Aisha Rahman <aisha_rahman@redwood.com> wrote:
+> Thanks for the heads-up — looping in revenue ops and the account owner to triage.
+>
+> Ben / Tessa — Marketplace is asking for chain-of-custody documentation for invoice 847 tied to intermediary seller ID 9987...

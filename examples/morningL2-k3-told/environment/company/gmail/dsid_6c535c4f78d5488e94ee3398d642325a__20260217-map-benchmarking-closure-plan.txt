@@ -1,0 +1,163 @@
+MAP: Benchmarking plan and closure timeline for VentureApps pilot
+
+From: Priyom Das <priyom.das@redwood.com>
+To: Anna Keller <anna.keller@ventureapps.com>
+Cc: Marissa Cole <marissa.cole@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Date: Tue, 17 Feb 2026 09:12:00 -0800
+Subject: MAP: Benchmarking plan and closure timeline for VentureApps pilot
+
+Anna —
+
+Thanks for the call earlier. As discussed, I’ve attached a concise benchmarking spec and a proposed Mutual Action Plan (MAP) focused on performance validation (latency/throughput/TTFT), concurrency targets, and quantization/kernel-profile comparisons. Goal is to reach sign-off for a pilot deployment by the end of March with clear acceptance criteria so your engineering team can validate risk before procurement.
+
+High-level asks from VentureApps: confirm the model family (LlamaX-13B fine-tuned), target sequence lengths (256 / 1024), and whether tokenization or prompt templates will be locked during the benchmark window.
+
+Key deliverables attached: benchmark_spec.pdf (runbook + metrics), benchmark_script_v2.py (runner + synthetic load), kernel_profile_results.csv (example output format), MAP_timeline.xlsx (milestones).
+
+Quick summary of proposed benchmark measures (full details in the attached spec):
+- TTFT (time-to-first-token) target: <= 120 ms for single-request cold start on Dedicated pool
+- Latency (p50/p95/p99) measured at 256/1024 sequences
+- Throughput: tokens/sec under stable load and per-GPU peak throughput
+- Concurrency: validated up to 32 concurrent sessions with fallbacks at 48
+- Quantization matrix: FP16/BF16 baseline vs INT8 and INT4 variants; kernel performance and memory footprint comparisons
+- Regression checks: semantic output regression threshold <= 3% delta (embedding similarity + human spot-check)
+
+Proposed MAP milestones (dates are tentative):
+1) Benchmark window: 2026-02-22 -> 2026-02-27 (engineer-run, Redwood provides runner)
+2) Results review & regression analysis: 2026-03-02
+3) Pilot config finalization & procurement sign-off: 2026-03-09
+4) Pilot start: 2026-03-16
+
+Can you confirm: 1) model variant, 2) preferred test seq lengths, and 3) whether we should include your private dataset slice or only synthetic + public eval prompts for the initial run?
+
+Thanks — I’ll coordinate engineers once we get confirmation.
+
+Best,
+Priyom
+Senior Solutions Manager, Redwood Inference
+pri yom.das@redwood.com
++1 (415) 555-0142
+
+Attachments: benchmark_spec.pdf (PDF 42KB), benchmark_script_v2.py (Python 12KB), MAP_timeline.xlsx (XLSX 8KB)
+From: Anna Keller <anna.keller@ventureapps.com>
+To: Priyom Das <priyom.das@redwood.com>
+Cc: CloudOps Team <cloudops@ventureapps.com>, Marissa Cole <marissa.cole@redwood.com>
+Date: Tue, 17 Feb 2026 11:03:00 -0500
+Subject: Re: MAP: Benchmarking plan and closure timeline for VentureApps pilot
+
+Priyom —
+
+Thanks for the clear summary and the attachments. A few clarifying items from our side before we lock dates: 
+- Model: yes, LlamaX-13B fine-tuned (we have two checkpoints; will share the exact hash once I confirm with modeling).
+- Sequence lengths: let's run both 256 and 1024, but prioritize 1024 p95 for latency since that's our primary user path.
+- Concurrency: can you validate for 16 and 32 concurrent users initially? If 48 is reachable we’d like to know the degradation profile but don’t need it gated for sign-off.
+- Data: for the first run, please use synthetic + our small public prompt set. We’ll provide the private slice for round two if needed.
+
+One more ask — in the regression checks you mentioned semantic similarity. Can you define the exact similarity metric (cosine on instruction embeddings? avg pairwise?) and the threshold per-class (QA prompt vs summarization)? Our ML lead wants clear pass/fail rules.
+
+I’ll confirm model hash by EOD. We’re good with the benchmark window proposed if we can get the runner script by Friday.
+
+—Anna
+Director of Product, VentureApps
+anna.keller@ventureapps.com
+
+On Tue, Feb 17, 2026 at 09:12 AM Priyom Das <pri yom.das@redwood.com> wrote:
+> Anna —
+>
+> Thanks for the call earlier. As discussed, I’ve attached a concise benchmarking spec and a proposed Mutual Action Plan (MAP) focused on performance validation (latency/throughput/TTFT), concurrency targets, and quantization/kernel-profile comparisons....
+
+From: Priyom Das <priyom.das@redwood.com>
+To: Anna Keller <anna.keller@ventureapps.com>
+Cc: Marissa Cole <marissa.cole@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Date: Fri, 20 Feb 2026 08:45:00 -0800
+Subject: Re: MAP: Benchmarking plan and closure timeline for VentureApps pilot
+
+Anna —
+
+Great, thanks for the clarifications. Below I’ve expanded the benchmark acceptance criteria and the exact regression checks we’ll run. I’ve also attached an updated runner (benchmark_script_v2.py) with flags for seq length, concurrency sweep, and quantization toggles.
+
+Acceptance criteria (pass/fail):
+- TTFT (cold): <= 120 ms median on dedicated pool (single request, no warm KV)
+- Latency p95: <= 420 ms at seq=1024 with concurrency=16; p50 target <= 220 ms
+- Throughput: sustained >= 15k tokens/s per 8-GPU cluster under batching policy X (see spec)
+- Concurrency scaling: service should not show >25% latency increase when scaling from 16 -> 32 concurrent sessions under representative prompts
+- Memory footprint: INT8 variant must reduce GPU memory use by >= 40% vs FP16 baseline; INT4 expected ~60% reduction (approximate, hardware dependent)
+- Kernel profile: identify top-3 kernels by time per token for each quantization mode; INT8/INT4 should not introduce a kernel with >30% higher per-token time than baseline unless offset by batching gains
+
+Regression checks (automatic + manual):
+- Embedding-based semantic similarity: use cosine similarity on vendor-neutral instruction embeddings (we’ll use OpenEmbedding v1 for analysis) on the same prompt set. Pass if avg cosine >= 0.92 for QA prompts and >= 0.90 for summarization prompts.
+- Behavioral checks: 200 human spot-checks across prompt buckets (QA, code, summarization). Fail if >3% of checks observe incorrect instruction-following or hallucination regression vs baseline run.
+- Tokenization parity: confirm identical tokenization across test runs; any divergence must be flagged and excluded from similarity scoring.
+
+Benchmark runner notes:
+- Script supports quantization modes: fp16, bf16, int8, int4 (int4 uses per-channel symmetric quantization and requires kernel fallback for some attention patterns).
+- We’ll run the kernel profiler during each sweep; profiler output CSV includes kernel_name, time_per_token_ms, memory_bytes, invocation_count.
+- All runs will be executed on Redwood Dedicated pool matching your region (us-west). We will share the runner logs and profiler CSVs at the end of the window.
+
+Next steps:
+- Anna: confirm model checkpoint hash (you said EOD Friday)
+- VentureApps: provide public prompt set pack by Monday 2026-02-23
+- Redwood: run the benchmark window 2026-02-24 -> 2026-02-27 (we’ve moved the window 2 days later to give time for asset hand-off)
+
+Marissa / Karthik: tagging you for scheduling and technical review. If this acceptance criteria looks right I’ll lock the MAP timeline and send a version for sign-off (MAP_timeline.xlsx).
+
+Thanks,
+Priyom
+
+Attachments referenced: benchmark_script_v2.py (Python), kernel_profile_results.csv (template)
+From: Marissa Cole <marissa.cole@redwood.com>
+To: Priyom Das <priyom.das@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Cc: Anna Keller <anna.keller@ventureapps.com>
+Date: Mon, 23 Feb 2026 10:16:00 -0800
+Subject: Re: MAP: Benchmarking plan and closure timeline for VentureApps pilot
+
+Team —
+
+I reviewed the acceptance criteria and timeline. A couple of commercial items to align so procurement can meet the 2026-03-09 sign-off: 
+- Pricing: We’ll offer a 30-day pilot credit for Dedicated pool usage that covers the benchmark window + a 2-week extension for follow-up regression runs. Legal prefers we capture that as an appendix to the SOW.
+- SOW: I’ll draft a short SOW and circulate by 2026-02-25. Anna, can you confirm who on your side will sign (procurement contact)? We’ll include the pilot credit and an explicit list of deliverables (benchmark CSVs, MAP_timeline.xlsx, regression report).
+- Risk: If the INT4 path shows unexpected quality regressions above thresholds, our default fallback is to recommend INT8 with aggressive batching and caching; we should agree on that fallback in the MAP.
+
+Operational notes:
+- Karthik: please ensure the profiler flags are set to collect both kernel-level timing and NVTX traces for any INT4 fallbacks. Also please include a small script that computes per-kernel time_per_token to populate kernel_profile_results.csv automatically.
+
+Assignees & deadlines: 
+- Redwood: SOW draft (Marissa) — due 2026-02-25
+- VentureApps: model hash + signatory info — due 2026-02-20 (Anna to confirm)
+- Redwood: run benchmarks — 2026-02-24 -> 2026-02-27
+- Joint review & go/no-go — 2026-03-02
+
+If all good I’ll attach a redline-ready SOW and the MAP spreadsheet later today.
+
+Thanks,
+Marissa
+Director, Solutions Sales — Redwood Inference
+marissa.cole@redwood.com
+
+On Fri, Feb 20, 2026 at 08:45 AM Priyom Das <pri yom.das@redwood.com> wrote:
+> Anna —
+>
+> Great, thanks for the clarifications. Below I’ve expanded the benchmark acceptance criteria and the exact regression checks we’ll run....
+
+From: Anna Keller <anna.keller@ventureapps.com>
+To: Marissa Cole <marissa.cole@redwood.com>, Priyom Das <priyom.das@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Date: Sun, 01 Mar 2026 15:24:00 -0800
+Subject: Re: MAP: Benchmarking plan and closure timeline for VentureApps pilot
+
+All —
+
+This looks good and aligned with our internal priorities. Confirmed model hash: llamaX-13B-finetune-v2@sha256:9b1c4a2f. Procurement contact is me (I’m authorized for pilot-level sign-offs).
+
+We accept the pilot credit arrangement — please put the 30-day credit in the SOW appendix. Once I get the SOW and MAP_timeline.xlsx I’ll route for a quick legal/proc review. Our only open technical ask is to include the per-class similarity thresholds in the report (you mentioned 0.92 / 0.90) — please include per-prompt-group statistics and the 200 human spot checks.
+
+I’ve scheduled a joint review on 2026-03-02 at 10:00 PST; invite to follow. Looking forward to the runner script.
+
+Thanks,
+Anna
+Director of Product, VentureApps
+anna.keller@ventureapps.com
+
+On Mon, Feb 23, 2026 at 10:16 AM Marissa Cole <marissa.cole@redwood.com> wrote:
+> Team —
+>
+> I reviewed the acceptance criteria and timeline. A couple of commercial items to align so procurement can meet the 2026-03-09 sign-off:...

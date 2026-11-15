@@ -1,0 +1,134 @@
+Flag platform renewal — options and negotiation plan
+
+From: Lauren Bishop <lauren.bishop@redwood.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>, Marcus Lin <marcus.lin@redwood.com>, Aditya Rao <aditya.rao@redwood.com>, Monica Patel <monica.patel@redwood.com>
+Date: 2026-07-15T09:12:00-07:00
+Subject: Flag platform renewal — options and negotiation plan
+
+Team —
+
+Our LaunchDarkly contract renews 2026-08-31. Q2 usage attached (usage_report_Q2.csv) shows active SDKs up ~38% YoY and MAUs up ~42%. Current annual run-rate for flags + seats is ~ $285k.
+
+We need to decide two things this week: 1) whether to commit to a renewal with LD (12 vs 24 months, discount target), and 2) how hard to push on commercial terms vs evaluating Optimizely as a replacement. Engineering constraints: we rely on LD SDKs for edge caching and the mobile SDK handshake; Marcus please flag any blockers if we consider a migration.
+
+As procurement, Karthik — what target should we set for negotiations? Legal, Monica — any non-negotiable contract terms (data retention, subprocessor language) you want baked into the initial ask? Aditya — if we pursue alternative vendors, can you surface quick quotes/intro by EOD tomorrow so we have leverage?
+
+Proposed negotiation targets (thinking aloud): 12-month term with 15–20% off list, inclusion of 6 months managed rollout support, and retention of current data residency terms. If you have different targets reply with the numbers.
+
+Thanks —
+Lauren
+Lauren Bishop
+Director, Product Operations
+Redwood Inference
+
+Attachment: usage_report_Q2.csv (text/csv)
+
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Lauren Bishop <lauren.bishop@redwood.com>, Marcus Lin <marcus.lin@redwood.com>, Aditya Rao <aditya.rao@redwood.com>, Monica Patel <monica.patel@redwood.com>
+Date: 2026-07-15T10:03:00-07:00
+Subject: Re: Flag platform renewal — options and negotiation plan
+
+Lauren —
+
+Thanks for the summary and the report. Procurement view: we should aim for ~18% net reduction versus our current blended rate on a 12-month commit. That keeps renewal cadence predictable but shows good savings against the run-rate. If LD will only give deeper discounts on 24 months, we can consider it but need a clear business case.
+
+Two asks from me:
+- If LD requires a different metric (seat vs MAU), seek a hybrid metric with a floor to avoid bill shock during spikes.
+- Ensure vendor can commit to a 30-day SLA for billing disputes and provide an itemized usage export monthly (we currently parse raw events to reconcile).
+
+Aditya — please try to get an updated commercial proposal from LaunchDarkly and a rapid quote from Optimizely. Marcus — list any technical features we cannot give up (server-side streaming, mobile SDK delta updates, local bucketing).
+
+Karthik
+Head of Procurement
+Redwood Inference
+
+From: Sara Patel <sara.patel@launchdarkly.com>
+To: Lauren Bishop <lauren.bishop@redwood.com>, Aditya Rao <aditya.rao@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Cc: 
+Date: 2026-07-16T08:25:00-07:00
+Subject: Re: Flag platform renewal — proposal attached
+
+Hi Lauren / team —
+
+Thanks for the heads up and the usage file. I've attached LD_renewal_quote_v3.pdf with two options: 12-month term at 15% off list and 24-month term at 25% off list (both include the rollout support add-on for 6 months). We can also include a billing floor and a hybrid MAU+seat metric as you requested — I've outlined a couple of hybrid constructs in the quote.
+
+Highlights:
+- 12m option: 15% discount, includes 3 managed rollout hours/month for 6 months.
+- 24m option: 25% discount, 5 managed rollout hours/month, waived onboarding fee.
+- Raw usage export: available monthly in CSV via S3 (we can push to the account)
+- DocuSign link for the proposal: https://www.docusign.com/rdw/LD-Quote-2026-07
+
+Note: SLA for billing disputes is typically 45 days in our standard SOW. If you need 30 days we can escalate to our commercial team but will likely need the 24-month term or a commit uplift.
+
+Happy to hop on a 30-min call to walk through the quote.
+
+Best,
+Sara Patel
+Enterprise Lead, West
+LaunchDarkly
+
+Attachment: LD_renewal_quote_v3.pdf (application/pdf)
+
+From: Lauren Bishop <lauren.bishop@redwood.com>
+To: Sara Patel <sara.patel@launchdarkly.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Cc: Aditya Rao <aditya.rao@redwood.com>, Marcus Lin <marcus.lin@redwood.com>, Monica Patel <monica.patel@redwood.com>
+Date: 2026-07-16T13:40:00-07:00
+Subject: Re: Flag platform renewal — proposal attached
+
+Sara — thanks for the quick turnaround and the options. A few internal notes for the record:
+
+- Monica/legal: please review LD standard SOW for subprocessor, breach notification timelines, and data retention clauses. If you see anything material, flag it now so we can get redlines early.
+- Marcus/Eng: the 3 vs 5 managed rollout hours is less important than continued support for our mobile delta update path and the server-side streaming guarantees. Marcus, can you confirm those are covered under the managed rollout bucket?
+- Karthik: 15% on 12m is in the ballpark but procurement prefers 18% as a starting ask. If the 24m at 25% is materially cheaper we may consider it but need exec approval.
+
+Also, to preserve leverage, Aditya — please push Optimizely for a fast comparison (commercial + migration support) while Monica and I review terms. We'll decide by 2026-07-22 whether to accept, counter, or run a quick market evaluation.
+
+Thanks —
+Lauren
+
+From: Thomas Wu <thomas.wu@optimizely.com>
+To: Lauren Bishop <lauren.bishop@redwood.com>, Aditya Rao <aditya.rao@redwood.com>
+Cc: 
+Date: 2026-07-18T09:12:00-07:00
+Subject: Re: Flag platform renewal — Optimizely preliminary quote and migration offer
+
+Hi Lauren/Aditya —
+
+Appreciate the outreach. Attached is a short comparison workbook (optimizely_comparison_sheet.xlsx) and a preliminary 12-month commercial outline. Key points:
+- Migration assistance: we offer a 6-week migration sprint (paid) with a discount on first 6 months of licensing if you commit to our standard 12m contract.
+- Feature parity: server-side streaming is supported, mobile SDKs exist but mobile delta updates require an extra module (we can include a time-limited waiver).
+- Pricing: preliminary estimate comes in 5–12% below current run-rate if you adopt hybrid metric and take migration credit. Exact numbers depend on MAU definition.
+
+If you'd like, we can set up a technical call with our SDK lead and provide a small proof-of-concept to validate bucket parity.
+
+Regards,
+Thomas Wu
+Account Executive
+Optimizely
+
+Attachment: optimizely_comparison_sheet.xlsx (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet)
+
+From: Aditya Rao <aditya.rao@redwood.com>
+To: Lauren Bishop <lauren.bishop@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Cc: Marcus Lin <marcus.lin@redwood.com>
+Date: 2026-07-20T10:22:00-07:00
+Subject: Re: Flag platform renewal — options and negotiation plan
+
+Quick notes after reading both proposals:
+- Engineering preference: stay with LaunchDarkly unless commercial delta > 15%. LD SDK features and our current integrations are non-trivial to replicate.
+- Procurement target: I'll ask LD for 18% on 12m as Karthik suggested and push for the 30-day billing dispute SLA. If LD won't move we can escalate to 24m at 25% but need exec sign-off.
+
+If everyone is aligned I can respond to Sara today with our counter and request updated draft SOW (Monica please prepare redline template).
+
+Thanks,
+Aditya
+
+From: Marcus Lin <marcus.lin@redwood.com>
+To: Aditya Rao <aditya.rao@redwood.com>, Lauren Bishop <lauren.bishop@redwood.com>
+Date: 2026-07-20T11:05:00-07:00
+Subject: Re: Flag platform renewal — options and negotiation plan
+
++1 on engineering preference to stay with LD. Mobile delta updates and our feature flags at edge are painful to migrate quickly. If procurement can get to ~18% net improvement that preserves runway and avoids migration risk.
+
+Marcus
+Engineering Lead, Feature Platform

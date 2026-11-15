@@ -1,0 +1,67 @@
+Edge TLS rehandshake clears explicit tenant model pin on long-lived streaming sessions, causing mixed-variant outputs and billing spike
+
+Issue summary:
+PulseAI Health reports that long-lived streaming requests lost their explicit model pin mid-stream during a canary cutover window. Affected sessions silently rerouted to the fallback variant, producing mixed-model outputs and an unexpected token billing spike.
+
+Impact:
+- Several long-lived streaming sessions (chat/stream) returned mixed responses from two different model variants (pinned -> fallback).
+- Customer reported degraded output quality for ~120 sessions over a 25-minute window and ~18% higher token billing for that timeframe.
+- User-facing sessions continued but produced degraded/incorrect completions for multi-turn conversations.
+
+Environment:
+- Customer: PulseAI Health (dedicated deployment)
+- Region: prod-us-east (primary) with mirrored requests to eu-west for failover testing
+- Models: llama-3b-v1 (pinned) with fallback gpt-compat-7b-quant
+- Canary activity: staged prewarm and conditional promote running (internal canary id canary-2026-03-12-a)
+
+Steps to reproduce (observed by customer):
+1) Start a streaming chat session pinned to llama-3b-v1 using tenant model pin header X-Redwood-Model-Pin: llama-3b-v1.
+2) Let the session stream for >10 minutes with intermittent keepalive and multi-turn prompts.
+3) During a canary prewarm abort (internal), some connections experienced TLS rehandshake from the edge layer.
+4) Affected streams observed mid-stream switch to fallback variant without an explicit pin change from the client.
+
+Observed behavior:
+- Edge logs show TLS rehandshake events correlated with connection-pool auth refresh.
+- Orchestrator trace shows session metadata cleared immediately after the rehandshake, which led to routing decision falling back to the compatibility variant.
+- Billing telemetry shows a spike in tokens attributed to the fallback variant between 2026-03-12T14:12Z and 2026-03-12T14:37Z.
+
+Temporary workaround provided to customer:
+- Instructed customer to add explicit per-request override header X-Redwood-Force-Variant: <variant> for critical sessions until we patch the gateway.
+- Increased monitoring and set an alert on edge TLS rehandshake rate for their tenant.
+
+Relevant links and artifacts:
+- Edge trace sample: https://logs.redwood.internal/trace/edge/trace-20260312-AB12CD
+- Billing spike graph: https://dashboard.redwood.internal/billing/pulseai/2026-03-12
+- Canary runbook excerpt (internal): https://redwood.atlassian.net/wiki/spaces/OPS/pages/Canary+prewarm+behaviour
+
+Customer comment (summary):
+"We didn't change the client. Some customer sessions started returning shorter, mismatched replies mid-conversation — this broke several demos during our morning tests." — Taylor Kim (PulseAI Health)
+Support (Maya Patel) 2026-03-12T09:12Z: Opened ticket after CS call with customer. Collected traces and billing timestamps; escalated to SRE and serving-runtime teams.
+Customer (Taylor Kim, PulseAI Health) 2026-03-12T09:30Z: Confirmed explicit X-Redwood-Model-Pin was present in the original requests and attached client logs. Noted sessions were long-lived (~12-20m) with occasional keepalives.
+SRE (Diego Ramirez) 2026-03-12T10:01Z: Observed elevated TLS rehandshake events on edge-proxy cluster rp-east-2 correlating to canary prewarm window. Temporary rule added to suppress opportunistic TLS renegotiation for tenant PulseAI while investigation proceeds.
+Serving (Anita Bose) 2026-03-12T12:45Z: Found orchestrator callpath clearing session metadata when connection state changes; hypothesis: connection-pool auth refresh path triggers stale-session cleanup that doesn't preserve pin metadata.
+Support (Maya Patel) 2026-03-13T07:22Z: Communicated temporary header workaround to customer and confirmed mitigation decreased incidents. Working with infra to roll a hotfix to edge-proxy and serving-runtime.
+Customer (Taylor Kim) 2026-03-13T08:40Z: Customer accepted workaround and requested timeline for permanent fix; asked for official postmortem and billing adjustment guidance.
+Timeline and findings:
+- 14:08Z: Canary prewarm orchestrator triggered a conditional promote that caused a subset of edge nodes to refresh upstream connections.
+- 14:12Z-14:37Z: Edge-proxy cluster rp-east-2 shows 342 TLS rehandshake events (higher than baseline).
+- Traces show that after a rehandshake the connection's session-context index was reset; session metadata store received a delete event for tenant pin key before re-assignment.
+- Root cause hypothesis: edge-proxy's connection-pool reauth path invokes a cleanup routine that calls into session-reconciler with a flag that purges ephemeral metadata. The orchestrator's promote + prewarm timing produced a race where cleanup occurred while session was still active.
+- Repro on staging: were able to reproduce by simulating an auth refresh + forced TLS rehandshake on a long stream; session lost pin and subsequent requests routed to fallback.
+- Secondary contributing factor: older keepalive handling in some SDKs does not reattach pin header on reconnects when upgrade happens mid-stream.
+
+Next evidence requests:
+- Need packet-level TLS logs for a sample connection (SRE to collect).
+- Full orchestrator event log for canary-2026-03-12-a (orchestrator team).
+Mitigation implemented:
+- Hotfix deployed to edge-proxy (PR: https://github.com/redwood-inference/edge-proxy/pull/1893) that avoids clearing session metadata on TLS rehandshake unless explicit connection teardown occurs. Deployed to prod-us-east canary ring at 2026-03-13T02:10Z.
+- Serving runtime patch (PR: https://github.com/redwood-inference/serving-runtime/pull/4021) to make session-reconciler idempotent on metadata writes merged; rollout started 2026-03-13T05:00Z.
+- Operational change: adjusted canary prewarm sequence to quiesce long-lived streams (graceful drain window) before upstream connection refreshes. Updated runbook and scheduled for org-wide rollout 2026-03-20.
+- Customer workaround removed after verification; customer confirmed no further mid-stream pin loss in follow-up window.
+
+Follow-ups / action items:
+- Postmortem to be published by 2026-03-20 (owner: Diego Ramirez).
+- Create an alert: tenant-pin-loss-rate > 0.1% over 5m for any dedicated tenant => create P0 page. (owner: SRE)
+- Finance/CS to review billing spike with PulseAI Health and determine a credit for the affected window (owner: CS lead).
+- Add SDK guidance to re-send pin header on reconnect for streaming SDKs (owner: DX).
+This ticket is customer-impacting for a dedicated tenant during a canary window with clear correlation to edge TLS rehandshake. The fix path included both an edge-proxy hotfix and a serving-runtime resiliency change. We preserved the customer's pinned experience and prevented future silent fallbacks by treating TLS rehandshake as a metadata-preserving event unless the connection is explicitly torn down.

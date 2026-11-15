@@ -1,0 +1,28 @@
+Multiplexed signed-url retry loop counted as separate requests causing opaque 429s and console credit mismatch
+
+Customer reports repeated 429s during large multipart import where our rate limiter shows bursts from a single API key. Console credit counters appear higher (less consumed) than runtime rate limiter, creating confusion about quota depletion. Issue started after the customer migrated their upload workers behind a retry-proxy that appends a tracing query param to callbacks.
+Multiple background ingestion pipelines at Streamline Analytics are failing to complete nightly backfills. Visible symptom: steady stream of 429s for upload-callback POSTs originating from the customer's worker fleet; end-users see backfill job failures and missed SLAs.
+1) Configure a dedicated tenant with multipart storage callbacks enabled.
+2) Deploy an upload worker behind a proxy that performs retries and appends a unique query parameter (?trace_id=...) on replay.
+3) Start parallel multipart uploads that trigger signed-url-callbacks to Redwood callback endpoint.
+4) Force intermittent failures on the callback path so the proxy retries, replaying the callback with unique query strings.
+5) Observe increased 429s on the tenant and a mismatch between Console 'remaining credits' and runtime rate-limit denied requests.
+2026-03-10T02:13:40Z gateway rate-limiter DENY tenant=streamline key=sk_live_XXX path=/v1/uploads/callback status=429 reason=token-exhausted
+2026-03-10T02:13:41Z gateway rate-limiter DENY tenant=streamline key=sk_live_XXX path=/v1/uploads/callback?trace_id=abc123 status=429 reason=token-exhausted
+2026-03-10T02:13:42Z billing aggregator ingest credit-usage tenant=streamline delta=+1200 tokens (deduped)
+Console shows remaining_credits: 12,345 while rate-limiter logs indicate sustained denials. Cobrowsing screenshot uploaded to ticket.
+Initial hypothesis: gateway token-bucket is keyed on full request URI (including query string) causing retries with new query params to be treated as distinct windows and double-counting. Billing aggregation pipeline deduplicates callbacks by callback-id in body, hence console shows fewer unique consumptions. Verified via sampling: 1 physical upload produced 3 distinct rate-limiter entries (different query strings) but a single billing record. Confirmed request header differences: proxy adds X-Retry-Index and appends ?trace_id on retry. Related metrics: rate_limit.window_usage spiked to 300% of expected during proxy retry waves. Cross-referenced with dedicated-pool autoscaler metrics: no GPU saturation; this is allocation of request tokens at ingress.
+Support (Asha): Customer provided a replayable curl example and pcap. Asked to confirm whether gateway normalizes query params for rate accounting.
+SRE (Liam): Reproduced locally with a small proxy that appends ?r=UUID; observed identical behavior. Created a minimal test that shows rate-limiter keying by full request path. Adding as linked issue for gateway change.
+Support (Asha): Noted console and billing team treat callbacks as idempotent using callback_id in the body, which explains the visible credit mismatch. Customer is worried about opaque 429s and lack of correlation in Console.
+Eng (Riley Chen): Proposed short-term mitigation: recommend disabling query-param append on proxy retries or add 'X-Original-Callback-Id' header from uploader so gateway can dedupe for rate accounting. Filed gateway PR to normalize callback path for rate-limiter (see related PR).
+Customer (S. Rivera): Confirmed they can change proxy behavior but prefer a platform-side fix for long-run since multiple clients use proxy.
+Billing (Marta): Confirmed billing accuracy is preserved; aggregation dedupes by callback_id. Console display will be extended in follow-up to call out dedupe timeframe.
+
+Gateway rate-limiter keyed on full request URI including transient query params introduced by retry proxies; billing pipeline deduplicates by callback_id leading to apparent mismatch between Console credits and rate-limiter denials.
+Short-term workaround: customer disabled query-param splaying on retry-proxy and enabled X-Original-Callback-Id header; retries now preserve callback_id in header and 429s stopped. Long-term fix: gateway change to normalize signed-url callback paths for rate accounting (strip known tracing query params and prefer callback-id header if present). Patch merged: github.com/redwood-inference/gateway/pull/1492. Console note: added a tooltip explaining deduplication logic for callbacks and billing display.
+Patch rolled out to dedicated-pool edge in us-east-1 on 2026-03-12 with canary at 5% then 100% after 30m. Post-deploy monitoring: rate-limiter DENY events for tenant dropped by 98% during a replay test. Customer confirmed nightly backfills completed on 2026-03-12 run.
+1) Add docs entry in runbook for 'signed-url callback best practices' and recommended headers.
+2) Console: surface dedupe vs raw runtime discrepancy in billing pane.
+3) Add e2e test that simulates retry-proxy query param splay to prevent regressions.
+4) Consider making query-param normalization configurable per-tenant for private deployments.

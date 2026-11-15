@@ -1,0 +1,106 @@
+Scheduling: stock plan grant window & admin checklist
+
+From: Monica Patel <monica_patel@redwood.com>
+To: Karthik Iyer <karthik_iyer@redwood.com>, Laura Bennett <laura_bennett@redwood.com>
+Cc: Markus Klein <markus_klein@redwood.com>, Jonas Weber <jonas_weber@redwood.com>, advisor@capops.com
+Date: Thu, 30 Jul 2026 09:12:00 -0700
+Subject: Draft timing for upcoming stock plan grants - please review
+
+Hi team,
+
+I'm circulating a proposed timeline for the upcoming equity grant cycle so we can lock the board window and coordinate with our 409A effective date. Key notes in the attached equity-rollout-plan.pdf and the grant-timeline-matrix.xlsx:
+
+- Target grant date (board-approved effective date): Friday, Aug 14, 2026
+- 409A valuation effective date proposed: Aug 7, 2026 (to cover August grants)
+- Offer holds / blackout: July 31 - Aug 16 (no late-cycle manual grants without exec sign-off)
+- Plan reserve check: we have ~3.2% runway, recommend a 0.5% refresh for hiring needs
+
+Action items:
+1) Legal: confirm whether Aug 14 is fine from a board calendar / disclosure standpoint (Jonas / Fenwick)
+2) Finance: confirm grant accounting and whether the 409A timing causes any reporting/tax frictions (Markus)
+3) People/Talent: freeze rolling offers that expect grant prior to Aug 14 and push communication plan for new hires (Karthik/Laura)
+
+Attachments: equity-rollout-plan.pdf (PDF), grant-timeline-matrix.xlsx (XLSX)
+
+Thanks — happy to jump on a 30-min sync if helpful.
+
+Best,
+Monica
+Monica Patel
+Compensation Operations Manager | Redwood Inference
+
+From: Markus Klein <markus_klein@redwood.com>
+To: Monica Patel <monica_patel@redwood.com>, Karthik Iyer <karthik_iyer@redwood.com>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Jonas Weber <jonas_weber@redwood.com>
+Date: Fri, 31 Jul 2026 10:22:00 -0700
+Subject: Re: Draft timing for upcoming stock plan grants - please review
+
+Monica — thanks for the clear plan. A few finance points after a quick pass:
+
+- Aug 7 409A valuation is OK but we'd prefer Aug 6 close-of-business so CPAs can finalize reports before board packet (gives one business day buffer).
+- We need to confirm the equity reserve bump with accounting: a 0.5% refresh looks fine operationally but will need board approval language in the packet.
+- Implication for payroll/tax: for new hires with start dates in early Aug, advise delaying grant until after the board action to avoid corrective filings (suggest communicate to TA).
+
+I'll loop legal for any language on the packet and will draft the balance sheet note.
+
+-Markus
+Markus Klein
+Chief Financial Officer | Redwood Inference
+
+From: Jonas Weber <jonas_weber@redwood.com>
+To: Monica Patel <monica_patel@redwood.com>, Markus Klein <markus_klein@redwood.com>
+Cc: Karthik Iyer <karthik_iyer@redwood.com>, Laura Bennett <laura_bennett@redwood.com>, legal@fenwick.com
+Date: Sat, 01 Aug 2026 08:43:00 -0700
+Subject: Re: Draft timing for upcoming stock plan grants - please review
+
+Folks — brief legal read:
+
+- Board window Aug 14 is workable. We'll need the proposed resolution language and the plan amendment for the reserve before packet release. Fenwick can prepare the draft resolution and the short paper on tax/timing implications; they'll use the Aug 6 409A date that Markus recommended.
+- For employees hired between Aug 1–Aug 13: best practice is to issue offer letters with standard equity language but include an explicit clause that grants will be issued following board approval (with illustrative grant amounts). That avoids immediate expectations and reduces admin corrections.
+- If we anticipate any off-cycle discretionary grants during the blackout, require a written exec approval (email) specifying business reason and sign-off from CFO and Legal.
+
+Attaching 409a-valuation-summary.pdf for reference — this is the draft we received from the valuation vendor.
+
+-Jonas
+Jonas Weber
+General Counsel | Redwood Inference
+
+From: Karthik Iyer <karthik_iyer@redwood.com>
+To: Monica Patel <monica_patel@redwood.com>, Laura Bennett <laura_bennett@redwood.com>
+Cc: Markus Klein <markus_klein@redwood.com>, Jonas Weber <jonas_weber@redwood.com>, advisor@capops.com
+Date: Mon, 03 Aug 2026 16:05:00 -0700
+Subject: Re: Draft timing for upcoming stock plan grants - please review
+
+Thanks everyone — this plan is sensible. A couple of TA-specific items:
+
+- Hiring pipeline: we have four candidate offers in flight (SWE II, Data Scientist, Solutions Engineer, Customer Success Manager). All offers are currently contingent on standard equity terms; we will update the offer templates to include the board-dependent language Jonas suggested.
+- Candidate comms: recommend a one-sentence explanation to candidates that grants will be processed after the board meeting (Aug 14) and that typical vesting/strike terms remain unchanged. Monica — can you prepare the one-paragraph template?
+- Timing: please confirm whether HR needs the finalized envelope of grant sizes by Aug 10 EOD so we can send final offer letters with estimates.
+
+If we can get the board packet language by Aug 6 AM, I'll pause any outbound grant confirmations until after the meeting and notify recruiters.
+
+-Karthik
+Karthik Iyer
+Head of Talent | Redwood Inference
+
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Karthik Iyer <karthik_iyer@redwood.com>, Monica Patel <monica_patel@redwood.com>
+Cc: Markus Klein <markus_klein@redwood.com>, Jonas Weber <jonas_weber@redwood.com>, advisor@capops.com, legal@fenwick.com
+Date: Tue, 04 Aug 2026 10:05:00 -0700
+Subject: Re: Draft timing for upcoming stock plan grants - please review
+
+Thanks team — approved to proceed with the calendar below:
+
+- Aug 06 COB: final 409A valuation to finance/legal (per Markus)
+- Aug 07 AM: Fenwick to circulate draft board resolution and plan amendment
+- Aug 10 EOD: Monica to send final grant envelopes (estimates) to HR/Talent for offer packaging
+- Aug 14: Board meeting and formal grant effective date
+- Aug 16: Target date for issuing grant notices to new hires after administrative processing
+
+Monica — please publish the one-paragraph candidate comms and the internal admin checklist (use the attached rollout plan as the template). Markus/Jonas — please confirm you have capacity to sign off on the deliverables.
+
+I'll add a short note to the exec staff calendar and request the board packet slot.
+
+-Laura
+Laura Bennett
+VP, People Operations | Redwood Inference

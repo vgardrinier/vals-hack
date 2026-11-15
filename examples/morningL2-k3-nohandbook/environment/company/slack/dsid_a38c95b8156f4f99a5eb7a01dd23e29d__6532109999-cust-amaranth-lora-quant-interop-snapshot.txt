@@ -1,0 +1,41 @@
+eng-ml
+
+Mia Chen: kicking off quickpack for cust Amaranth — LoRA merge (amaranth/lora-v2) + int4 quant (gptq-esque). Doing a smoke run against their billing prompts. I'll drop failing snippets.
+Devin Patel: thanks. do we have tokenizer version pinned? last time amaranth used tokenizer v2.1 which caused id shifts.
+Mia Chen: tokenizer reported as v2.1 in their bundle. but the embed drift looks bigger than token id shift: avg embed cosine drop ~0.07 on retrieval tests.
+Anil Rao: can you paste an example of generated vs expected? small is fine.
+Mia Chen: Sure — example below (sanitized):
+```
+Prompt: "Generate invoice summary for order #A-9921 with amounts and line items"
+Expected: "Invoice A-9921: 3 items, total $523.20. Items: widget x2 ($200.00), service fee ($123.20)"
+Observed:  "Invoice A-9921: 3 items, total $52.32. Items: widget x2 ($20.00), service fee ($12.32)"
+```
+Mia Chen: Note decimal shifts and truncated quantities. Happens more often in multi-turn where prefix caching should hit.
+Eva Morales: that sounds like KV cache alignment or quantization overflow on scale params. Did you try running with kv-cache disabled?
+Mia Chen: yes — disabling KV cache removes the truncation. So likely a masking/prefix length or dtype mismatch during cache restore.
+Sam B.: interesting. that suggests model variant mismatch when fallback happens. Are we routing to a fallback int8 model anywhere in the stack?
+Mia Chen: routing policy is strict: same model family. No fallback. But we are using our 'quant-compat' kernel path which rewrites some ops for int4.
+Devin Patel: I can reproduce locally with the same quickpack. running: ./quick_eval.sh --model amaranth/lora-v2 --base=redwood/amaranth-base --quant=int4 --prompts=amaranth_smoke.json
+ci-bot: quick-eval job 6532110210 started by Devin Patel
+Devin Patel: run log excerpt:
+```
+[2026-03-21T15:12:03Z] load model amaranth/lora-v2 -> success
+[2026-03-21T15:12:07Z] quantize path: gptq-int4 -> kernels: fused_matmul_q4
+[2026-03-21T15:12:20Z] running 120 prompts, batch 1..8
+[2026-03-21T15:12:45Z] WARN kv_cache: dtype mismatch detected, converting float16->int8
+[2026-03-21T15:12:45Z] ERROR generation: token indices misaligned at step 7
+```
+Devin Patel: WARN line is suspicious — dtype conversion shouldn't happen at runtime.
+Anil Rao: likely our quant path inserts a downcast to int8 for the KV cache to pack memory. We need to ensure pack/unpack preserves dtype and offsets. I can add a quick assert in kv_pack/unpack to detect runtime dtype changes.
+Lisa K.: putting a short follow-up plan: 1) Anil adds assert + test harness for kv roundtrip 2) Devin runs full quickpack with assert 3) Mia collects failing prompts and labels a small eval set 4) Eva inspects quant kernel for saturation edge cases
+Mia Chen: sounds good. I've already collected 18 failing prompts — I'll upload to the quickpack as amaranth-failset.json
+ci-bot: quick-eval job 6532110210 finished: 18 failures / 120 prompts, avg embed cos drop 0.071, token misalign errors: 18
+Sam B.: I can schedule a short canary rollout to Amaranth if we get a fix in <24h. Who wants ownership of the patch?
+Anil Rao: I'll own the kv_pack patch and a unit test. ETA 6h.
+Devin Patel: I'll re-run full smoke and add a small reproduction to CI. ETA 8h.
+Mia Chen: thanks — I'll coordinate with the customer success team and share the failset + repro steps. ping me if you need extra logs.
+Eva Morales: once patched let's also run a cross-quant check: int8 vs int4 vs wfq (our custom) and compare token-level perplexity and embed similarity. Prefer a tiny matrix: 120 prompts x 3 quant configs.
+Mia Chen: noted. adding to the quick-eval matrix. thanks team :thumbsup:
+ci-bot: created ticket RNW-4621 with logs and failset attachment
+Lisa K.: leaving notes in the onboarding doc: /docs/onboarding/amaranth — add quant caveat + tokenizer version
+Mia Chen: will post final results in this thread when done.

@@ -1,0 +1,54 @@
+Bulk Slack channel rename and history migration with Confluence index for legacy topic consolidation
+
+Issue summary:
+We need a coordinated operation to rename ~150 legacy Slack channels to a new standardized naming scheme, export and attach searchable message history for legal/audit teams, and create a Confluence index page that maps old channels to new names with migration notes.
+
+Impact:
+- Many product pods have fragmented channels (e.g., team-discuss, team-dev, team-backup) causing duplicate conversations and difficulty finding historical decisions.
+- Compliance has requested message exports for a subset of channels for a vendor audit.
+- Without a mapped index, users will be confused and duplicate channels will reappear.
+
+Requested change / acceptance criteria:
+- Bulk rename ~150 channels according to the standardized pattern: <pod>-<function>-<env> (examples in playbook).
+- For channels flagged for retention, export message history (JSON/zip) and attach to the Confluence index page; exports must include timestamps and user IDs.
+- Create a Confluence index page that lists: old channel name, new channel name, export archive link, retention status, migration owner, and short notes.
+- Update channel topics and pinned messages to point to the Confluence index.
+- Provide an audit log of all rename/migration actions and a rollback plan.
+
+Background / context:
+- This request originates from the Platform Pod's cleanup initiative (internal review 2026-02-27). A spreadsheet of proposed renames is in the Confluence draft. Compliance requested preserved exports for 12 channels.
+- Prior attempts at ad-hoc renaming created duplicate channels and fragmented history. We want a scripted, auditable operation.
+
+Steps already taken:
+- Collated rename spreadsheet (Confluence draft link above).
+- Identified 12 compliance-critical channels for complete exports.
+- Created a draft Slack bot script for bulk rename in the internal-tools repo (PR linked above).
+
+Proposed runbook/rollout plan:
+1) Dry run in staging: run the rename script against a 10-channel sample and validate Confluence index creation.
+2) Prepare exports for the 12 compliance channels and store them in the secured S3 path with restricted access.
+3) Schedule bulk rename in a low-traffic window (proposed: 2026-03-22 02:00 UTC) with a 2-hour maintenance window.
+4) Post-rename: update topics/pins and create index entries; notify affected pods via @here message with links and rollback instructions.
+5) 48-hour monitoring for duplicate channel creation or missing integrations.
+
+Risks and mitigations:
+- Risk: accidental channel deletion or message loss. Mitigation: run only renames (no deletes) and pre-stage exports for critical channels.
+- Risk: permissions errors when attaching exports to Confluence. Mitigation: coordinate with Confluence admin to pre-authorize the operation account.
+
+Acceptance criteria (explicit):
+- All 150 channels renamed according to spreadsheet OR documented exceptions approved by owners.
+- Exports for 12 channels uploaded and linked from the index.
+- Confluence index page published and shared to affected pods.
+- Audit log (CSV) created and saved to secure S3 path.
+
+2026-03-12 09:18 - Marco Alvarez (Slack Admin): Thanks Lena — this looks actionable. Can you attach the final spreadsheet with owner emails and indicate which channels are in private workspaces? I need the list to assess rate limits for the bulk rename API.
+2026-03-12 13:42 - Lena Chen (Reporter): Attached spreadsheet uploaded to the Confluence draft. 10 of the channels are private; owners listed. Also marked the 12 compliance channels. Link: https://confluence.redwood.example/display/OPS/legacy-channel-migration-playbook
+2026-03-13 08:05 - Priya Patel (Compliance): We confirm the 12 channels flagged are the ones required for the vendor audit. Exports must include full message text and thread context where available. Please ensure the export files are hashed and stored in the secure bucket with ACLs restricted to Compliance and SRE-retention group.
+2026-03-13 14:30 - Marco Alvarez: Noted. I'll schedule a staging dry-run this Friday. Requesting SRE to provision a temporary service account with Confluence write access for the staging test. Tagging #sre-oncall.
+2026-03-14 10:12 - Jordan Kim (SRE): We can provision the service account for the staging test. We need the exact Confluence space ID and a scoped API token request form completed. I'll attach the token form to the ticket.
+2026-03-14 11:00 - Marco Alvarez: Updated the internal-tools PR with staging-only dry-run flags. PR: https://github.com/redwood-inference/internal-tools/pull/412 — please review.
+Checked Slack API quota windows: estimated 6h total runtime if rate-limited to 1 rename/sec for 150 channels (including retries).
+
+Verified Confluence REST endpoints support attachment with metadata; will need to chunk uploads for large exports (>50MB).
+
+Identified edge case: archived channels cannot be renamed via API in some workspaces — will require manual unarchive step or workspace admin assist. Spreadsheet marks 8 archived channels.

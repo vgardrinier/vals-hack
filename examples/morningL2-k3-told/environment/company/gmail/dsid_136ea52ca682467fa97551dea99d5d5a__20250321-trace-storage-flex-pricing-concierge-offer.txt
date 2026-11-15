@@ -1,0 +1,110 @@
+Trace storage + dashboard pricing discussion — VectorAI
+
+From: Anna Lopez <anna@vectorai.com>
+To: rishi_malhotra <rishi@redwood.ai>
+Cc: procurement@vectorai.com
+Date: Fri, 21 Mar 2025 09:12:00 -07:00
+Subject: Trace & dashboard pricing follow-up
+
+Hi Rishi,
+
+Thanks again for the demo yesterday — the dashboards looked promising. A couple of questions from our side as we finalize internal numbers:
+
+- How do you price trace ingestion vs. long-term storage? We're seeing a lot of small traces but only a fraction retained past 7 days.
+- Is there a bundled SKU for traces + dashboards (seat licences) or do you price them separately?
+- We need GDPR-compliant retention controls for our EU users — can retention be split by region?
+
+We have a preferred procurement timeline of 30 days and are evaluating a 12-month commit. Is there room for a volume discount or onboarding credit if we sign a 12-month term?
+
+Thanks — can you share a ballpark so we can model this into our TCO?
+
+Best,
+Anna Lopez
+Head of Observability
+VectorAI
+
+Attachments: (none)
+
+From: rishi_malhotra <rishi@redwood.ai>
+To: Anna Lopez <anna@vectorai.com>
+Cc: camila_reyes <camila@redwood.ai>
+Date: Fri, 21 Mar 2025 12:34:00 -07:00
+Subject: Re: Trace & dashboard pricing follow-up
+
+Hi Anna — great to connect. Answers inline and a quick proposal below.
+
+On pricing model: we separate two components — active trace ingestion (per-1000 traces) and archival storage (per-GB/month). For heavy short-lived traces (your case) the ingestion cost dominates; for long retention the storage cost stacks up.
+
+Example baseline (ballpark) — US pricing (can be region-adjusted):
+- Ingestion: $0.80 per 1,000 traces (first 10M/month); tiers after 10M steps down to $0.45 per 1k at 100M+.
+- Storage: $0.03 per GB/month for standard retention; $0.007 per GB/month for archival (90+ days) when we tier to cold storage.
+- Dashboards: $25 per named viewer seat/month; unlimited dashboards included with Insights bundle.
+
+Bundling: we do offer a packaged "Ops Insights" bundle that combines traces + dashboards + 90-day retention credits — with a blended price and committed discounts. For a 12-month committed contract we typically offer a 10–20% discount depending on volume and an onetime onboarding credit.
+
+GDPR/region: yes — we can partition retention by region (EU vs US) on Dedicated/Private, or on hosted with a region routing policy. We'll include region-based retention controls in the SOW.
+
+Proposal (starter for modeling):
+- 12-month term commit: 12M traces/month baseline + 5TB monthly stored cold (90d+)
+- Effective blended price (after 12% commit discount): ingestion ~ $0.70 / 1k, storage blended $0.02 / GB/month
+- Onboarding: $15k concierge credit (applied to professional services or initial overages)
+- Optional: 3 months free dashboard seats for up to 10 editors during onboarding
+
+I'll loop in Camila to refine SOW and confirm regional handling. I'm attaching a simple pricing worksheet and the draft SOW for your review. If you can share a rough distribution of traces by retention band (0-7d / 7-30d / 30-90d / 90+), I can produce a tighter TCO.
+
+Regards,
+Rishi Malhotra
+Senior Account Executive | Redwood Inference
+Attachments: VectorAI_Pricing_Model.xlsx, VectorAI_SOW_draft_v1.pdf
+
+From: camila_reyes <camila@redwood.ai>
+To: rishi_malhotra <rishi@redwood.ai>, karthik_iyer <karthik@redwood.ai>
+Date: Sat, 22 Mar 2025 09:18:00 -07:00
+Subject: Fwd: Trace & dashboard pricing follow-up — negotiation notes
+
+Rishi / Karthik — forwarding Anna's ask and Rishi's initial numbers. My quick thoughts for a tight counter (we should keep price math defensible and make the onboarding credit feel premium):
+
+- Offer a capped blended unit for the first 6 months (protects VectorAI from early spikes) — e.g., $0.65 / 1k up to 15M traces. Overages at $0.50 / 1k.
+- Storage: propose a 20% discount on our standard storage tiers if they commit 12 months and hit a 5TB monthly floor. Call out cold-tier migration after 60 days to keep predictable economics.
+- Dashboard seats: include 6 editor seats for 4 months, then $20/editor/month thereafter for any additional seats.
+- Add an EU data partition clause for retention controls and a 30-day audit window for exports (addresses GDPR).
+- If procurement pushes on price, we can trade additional onboarding hours (concierge) for a firm 15% discount on ingest for year 1 — but only with a signature by end of month.
+
+I'll draft the exact payable line items and a one-page concessions summary. Keep customer timeline notes: they want to close within 30 days; we should fast-track legal on the EU retention clause.
+
+-Camila
+Head of Commercial Operations | Redwood Inference
+
+Attachments: (none)
+
+From: rishi_malhotra <rishi@redwood.ai>
+To: Anna Lopez <anna@vectorai.com>
+Cc: camila_reyes <camila@redwood.ai>, procurement@vectorai.com
+Date: Sat, 22 Mar 2025 20:05:00 -07:00
+Subject: Re: Trace & dashboard pricing follow-up — Proposal and next steps
+
+Anna — thanks for the quick turnaround. Based on your timeline we pulled together a compact offer intended to simplify modeling and procurement. Summary below (PDF + pricing workbook attached).
+
+Offer summary (aimed at a 12-month commitment):
+- Ingestion: $0.65 / 1,000 traces up to 15M traces/month; overage $0.50 / 1k. (Tier step-downs apply beyond 100M.)
+- Storage: $0.024 / GB/month standard; archival cold-tier at $0.006 / GB/month after 60 days. 20% storage discount if commit to 12 months and maintain >=5TB/month.
+- Dashboards: 6 editor seats included free for first 4 months; additional editors $20/editor/month thereafter. Viewer seats unlimited.
+- Onboarding: $18k concierge credit (applied to professional services or first invoice).
+- GDPR/region: EU retention partitioning included; we'll insert a data residency addendum in the SOW.
+
+Concessions / conditions:
+- The 15% deeper ingest discount Camila referenced is available as a time-limited counteroffer if VectorAI signs a final agreement by 31 Mar 2025. That requires a firm 12-month minimum committed consumption clause (we'll include a monthly floor).
+- Pricing workbook attached shows line-item bill estimates if you provide trace retention distribution.
+
+Next steps:
+1) If this looks good, Camila will send a 1-page concessions sheet and an updated SOW for signature.
+2) We can schedule a short legal call to close the EU retention language (30-min).
+3) I'll request the onboarding team set up a kickoff slot for the week after signature.
+
+Open to a call tomorrow to talk specifics.
+
+Best,
+Rishi
+Senior Account Executive | Redwood Inference
+
+Attachments: redwood-trace-pricing-sheet.csv, VectorAI_Pricing_Model.xlsx, VectorAI_SOW_draft_v1.pdf

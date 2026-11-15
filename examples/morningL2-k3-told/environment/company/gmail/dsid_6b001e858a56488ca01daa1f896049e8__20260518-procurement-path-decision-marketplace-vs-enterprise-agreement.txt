@@ -1,0 +1,128 @@
+Marketplace vs Enterprise Agreement — procurement path decision
+
+From: Samantha Hart <samantha.hart@acme-retail.com>
+To: Dylan Brooks <dylan.brooks@redwood.com>, procurement@acme-retail.com
+Cc: 
+Date: Mon, 18 May 2026 09:12:00 -0700
+Subject: Procurement path question — Marketplace vs direct contract
+
+Hi Dylan,
+
+Thanks for the demo last week — the team loved the latency profile and the dedicated capacity options. Procurement asked me to clarify one thing before we move to legal: for an SMU/PO purchase, would we buy Redwood via AWS Marketplace (private offer) or sign a direct Enterprise Agreement with Redwood? They want pros/cons around:
+
+- invoicing cadence and consolidated cloud bill vs Redwood invoice
+- support & SLA alignment (SaaS vs managed contract)
+- ability to negotiate indemnities/data terms
+- speed of procurement (can Marketplace shorten timing?)
+- co-sell / incentive implications (is there a co-sell credit through AWS if we do marketplace?)
+
+We need this written up to include in our RFP response. Can you summarize and share any procurement artifacts?
+
+Appreciate it,
+Samantha
+Procurement Lead, Acme Retail
+
+Attachment: ACME-RFP-template.pdf (referenced)
+From: Dylan Brooks <dylan.brooks@redwood.com>
+To: Samantha Hart <samantha.hart@acme-retail.com>
+Cc: laura.bennett@redwood.com, sergio.alvarez@redwood.com
+Date: Mon, 18 May 2026 09:45:00 -07:00
+Subject: Re: Procurement path question — Marketplace vs direct contract
+
+Hi Samantha — great question, thanks for flagging. High-level summary below; I attached a concise RFP-ready writeup and a decision matrix.
+
+Quick pros/cons:
+- AWS/Azure/GCP Marketplace (Private Offer)
+  - Pros: consolidated billing under your cloud invoice, faster procurement for customers who prefer marketplace POs, opportunity for AWS co-sell if Redwood qualifies and you engage the AWS AM, simplified SaaS onboarding for some SSO/billing workflows.
+  - Cons: marketplace commercial terms are often standard (limited ability to negotiate some clauses); there can be revenue share fees and platform-specific entitlement mechanics; custom indemnity or data residency controls may require a private offer or additional paperwork.
+
+- Direct Enterprise Agreement with Redwood
+  - Pros: full flexibility on legal terms (SLA, indemnities, data controls), tailored invoicing, and the ability to put detailed support and escalation paths into the contract. Also preferred when you need on-prem/VPC deployment and KMS integrations.
+  - Cons: can take longer to finalize (legal review, redlines), and requires Redwood to support your billing process (net terms, PO handling).
+
+Notes on co-sell: if you go through AWS Marketplace private offer and we activate the APN co-sell engagement, there are potential deal registration and co-sell incentives for the AWS seller/partner side. That can help with credits or prioritized support from AWS, but it doesn’t change Redwood’s ability to offer custom contract terms if a private offer is needed.
+
+I attached: ACME-RFP-response.pdf (redacted), Redwood-Marketplace-vs-Direct-Decision-Matrix.xlsx, and a sample Private Offer pack (Redwood-PrivateOffer-AWS.pdf).
+
+If helpful, we can set a quick call with our legal and partnerships lead to talk tradeoffs for the specific clauses you care about (data processing, audit rights, indemnities).
+
+Best,
+Dylan Brooks
+Account Executive | Redwood Inference
+Mobile: (415) 555-0198
+
+---
+Attachment: ACME-RFP-response.pdf (17 pages)
+Attachment: Redwood-Marketplace-vs-Direct-Decision-Matrix.xlsx (1 sheet)
+Attachment: Redwood-PrivateOffer-AWS.pdf (sample private offer)
+From: Laura Bennett <laura.bennett@redwood.com>
+To: Dylan Brooks <dylan.brooks@redwood.com>, sergio.alvarez@redwood.com
+Cc: jordan.blake@redwood.com
+Date: Mon, 18 May 2026 10:12:00 -07:00
+Subject: Re: Procurement path question — Marketplace vs direct contract
+
+Looping in procurement/legal notes here. A few practical points for the RFP:
+
+- Invoicing: Marketplace will map to Acme's cloud bill which most procurement teams like for consolidated spend. If Acme needs monthly Redwood invoices and net-60 terms, a direct contract is cleaner.
+- Support/SLA: We enforce the same SLAs across both purchase paths for hosted Redwood API; however, enterprise contracts allow specific remedies and credits to be written in.
+- Data & Security: For VPC/private deployment, we always prefer EA/direct since Marketplace SaaS can be limited for air-gapped/on-prem constraints.
+- Marketplace private offers can be used with custom pricing and some additional T&Cs, but it requires partner ops to set up the private offer and sometimes an MSA addendum.
+
+Suggested RFP wording (short):
+"Redwood supports both Marketplace private-offer purchases and direct enterprise agreements. Marketplace provides faster procurement and consolidated cloud invoicing; direct agreements provide maximum contractual latitude for data, indemnity, and SLA customizations. Redwood can support a Marketplace private-offer with customized pricing or a direct enterprise amendment to meet Acme’s legal requirements."
+
+I'll attach a single-slide decision matrix for the sales thread.
+
+- Laura
+Director, Commercial Operations | Redwood Inference
+From: Dylan Brooks <dylan.brooks@redwood.com>
+To: Samantha Hart <samantha.hart@acme-retail.com>
+Cc: laura.bennett@redwood.com, sergio.alvarez@redwood.com, jordan.blake@redwood.com
+Date: Tue, 19 May 2026 14:20:00 -07:00
+Subject: Re: Procurement path question — Marketplace vs direct contract
+
+Samantha — attaching the RFP-ready language and a one-sheet matrix (see attachments). Quick decision guidance tailored to Acme:
+
+1) If speed is the primary constraint (PO via AWS billing), choose AWS Marketplace Private Offer. Redwood will:
+   - Create a private offer tied to Acme’s AWS account
+   - Provide the private-offer pricing and entitlement SKU mapping
+   - Liaise with AWS Partner team for any co-sell enablement
+
+2) If you require custom indemnities, audit rights, or an on-prem/VPC deployment, opt for a Direct Enterprise Agreement. Timeline: expect 3–6 weeks for legal redlines; we will prioritize the review if you share the RFP clauses now.
+
+Next steps I propose:
+- If Marketplace is preferred: confirm Acme AWS account ID and we’ll submit a private offer request to AWS (I can coordinate with our partner manager).
+- If Direct EA: send over your RFP clauses and procurement contact; Laura and our counsel will prepare an initial redline.
+
+Would you like me to schedule a 30-minute call with our legal/partner ops to walk through both flows?
+
+Thanks,
+Dylan
+
+Attachment: Redwood-Marketplace-vs-Direct-Decision-Matrix.xlsx
+Attachment: Redwood-PrivateOffer-AWS.pdf
+From: Samantha Hart <samantha.hart@acme-retail.com>
+To: Dylan Brooks <dylan.brooks@redwood.com>
+Cc: procurement@acme-retail.com
+Date: Thu, 20 May 2026 15:04:00 -07:00
+Subject: Re: Procurement path question — Marketplace vs direct contract
+
+Thanks — this is exactly what we needed. Acme wants to try to move faster, so let’s pursue the AWS Marketplace private offer first and keep the EA as fallback for any redlines that can’t be accommodated.
+
+Action items for Redwood:
+- Submit a private offer to AWS for Acme (AWS account ID: 987654321012).
+- Include the co-sell opt-in info and point of contact for AWS collaboration.
+- Send the RFP response PDF to my procurement mailbox so I can attach it to our internal packet.
+
+We’ll loop legal if the private offer contains clauses we can’t accept. Please confirm when the private offer request has been sent.
+
+Regards,
+Samantha Hart
+Procurement Lead, Acme Retail
+
+---
+On Wed, May 19, 2026 at 2:20 PM Dylan Brooks <dylan.brooks@redwood.com> wrote:
+> Samantha — attaching the RFP-ready language and a one-sheet matrix (see attachments). Quick decision guidance tailored to Acme:
+> ...
+
+Attachment: ACME-RFP-response.pdf (sent for packet)

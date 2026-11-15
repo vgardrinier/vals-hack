@@ -1,0 +1,69 @@
+Opaque 429s observed for long-running function-call streams over SSE with chunked transfer
+
+Issue summary:
+Customer reports opaque 429s returned intermittently while streaming long function-call responses via server-sent events (SSE). The stream contains large function-call payloads and is delivered using chunked transfer encoding. Throttles began after the customer enabled HTTP/2 connection reuse optimizations in their dedicated pool and after a recent ingress-proxy sidecar upgrade.
+
+Impact:
+- Production requests from customer application are intermittently receiving 429s during active SSE function-call streams.
+- Errors occur during long-running streams (30s+), causing partial function-call results to be dropped and client-side retries to splice new streams, amplifying the issue.
+- Affects a single dedicated tenant (NimbleAnalytics) in us-west-2; they report ~12% request failure rate for long streams in peak hours.
+
+Observed behavior (high level):
+- Client initiates a long-running function-call via POST to /v1/chat/stream with function_call enabled. Server responds with 200 and begins SSE frames. After several SSE frames containing chunked JSON, a 429 is returned and the stream is terminated.
+- Console shows token-level quotas not exhausted; tenant credits in Console remain available while requests are throttled.
+
+Environment details:
+- Customer: NimbleAnalytics (dedicated GPU pool: pool-ded-west-2-a)
+- API version: 2026-02-15
+- Ingress: ingress-proxy v1.12.4 (sidecar) + nginx edge (managed)
+- Rate limiter: distributed token-bucket, tenant-level + route-level accounting
+- Client: browser-based uploader using SSE fallback with HTTP/2 enabled
+
+1) Customer reproducer: POST /v1/chat/stream with function_call payload that results in a 60kB function JSON response, use chunked transfer encoding and SSE framing.
+2) Enable HTTP/2 connection reuse (client setting).
+3) Observe intermittent 429s after ~10-40s into the stream.
+4) Disabling HTTP/2 reuse or reducing chunk size to <8kB reduces occurrence.
+
+Notes: reproduction is time-dependent and more frequent under peak concurrency (~300 concurrent streams).
+Selected log excerpts (edge/ingress/rate-limiter):
+- ingress-proxy: stream-id=st-9f2a: saw multiple "request-start" entries for same stream with different route-tags (route=chat-stream, route=chat-stream-chunk) within 200ms window.
+- rate-limiter: tenant=nimble-1234: token_decrement: 0.02 tokens, then immediate token_decrement: 0.02 tokens for same stream-id flagged as separate events.
+- origin-serving: single POST accepted and SSE frames emitted; no 5xx before throttle.
+- console metrics: tenant credits available: 86% remaining at time of spike; route counters show sporadic increments aligned with chunk boundaries.
+
+Attached customer traces: trace IDs: trace-20260310-55a1, trace-20260310-59d3
+Initial hypotheses:
+- Ingress-proxy sidecar upgrade introduced duplicate accounting for chunked SSE frames (route tag duplication).
+- HTTP/2 connection reuse + upstream keepalive interaction causing ingress to reclassify subsequent chunk frames as new requests to the route layer.
+- Rate-limiter miscounts chunk fragments as separate tokens due to missing dedupe key.
+
+Work performed:
+- Correlated timestamped logs: ingress-proxy showed two "route-enter" events for same stream when chunk boundary reached (likely a tagging regression introduced in v1.12.4).
+- Reproduced in staging by replaying captured chunks with HTTP/2 reuse; confirmed rate-limiter receives duplicated accounting calls for same stream-id on chunk boundaries.
+- Built a debug branch to add dedupe by stream-id in token accounting; test branch reduced duplicate decrements. (PR opened: https://github.com/redwood-inference/ingress-proxy/pull/2456)
+- Scoped impact: only appears for long SSE streams with chunked responses and HTTP/2 reuse in dedicated pools where ingress sidecar and edge tag sync is enabled. Not observed for short streams or non-chunked transfers.
+
+Interim mitigation applied 2026-03-11 22:10 UTC:
+- Config change: disabled route-tag duplication feature for pool-ded-west-2-a (feature flag: ingress.sidecar.chunk-tagging=false).
+- Rollback of ingress-proxy sidecar v1.12.4 -> v1.12.3 for a small subset of hosts as a test.
+
+2026-03-10 08:15 - Samantha Ortiz (Support): Customer reported intermittent 429s in production during long SSE function-call streams. Provided request/response sample, trace IDs, and timestamps. Requested urgent investigation (P1).
+2026-03-10 10:02 - Liam Chen (SRE): Acknowledged ticket. Reproduced locally in staging with customer payload and HTTP/2 reuse flag. Observed duplicate route-enter events logged by ingress-proxy. Marking rate-limiter and ingress teams.
+2026-03-10 13:45 - Priya Nair (Ingress team): Confirmed sidecar v1.12.4 contains a change to chunk tagging that can emit extra route tags on continuation frames. Opening PR to add stream-id dedupe. Linked PR: https://github.com/redwood-inference/ingress-proxy/pull/2456
+2026-03-11 22:20 - Support (Samantha Ortiz): Applied temporary feature-flag disable and staged rollback on subset; customer reports error rate dropped from 12% -> 1.5% for affected hosts. Continuing rollout after validation.
+2026-03-12 09:05 - Billing (Aaron Mitchell): Customer concerned about throttled requests counting against quota and billing; advised that consumed tokens attributable to duplicate accounting will be reconciled if confirmed. Internal billing ticket opened: INT-44210.
+Mitigation and planned fix:
+- Temporary mitigation: disabled chunk-tagging feature for the affected dedicated pool and rolled back to v1.12.3 on a subset of sidecars. Customer saw immediate improvement.
+- Code fix: ingress-proxy PR #2456 implements stream-id dedupe in token accounting to prevent chunk-boundary double-counting. PR under code review and test.
+- Rollout plan: merge PR -> canary deploy to dedicated pools (us-west-2) -> monitor 429 rate and token counters for 48 hours -> full rollout.
+- Billing/credits: If post-fix analysis confirms duplicate token consumption, Finance will reconcile and credit the tenant for excess token charges (see INT-44210).
+
+Follow-ups required:
+- Postmortem and runbook update to document SSE/chunked accounting caveats. (Owner: Priya Nair)
+- Add e2e test for chunked SSE + HTTP/2 reuse to prevent regressions. (Owner: QA infra)
+- Confirm billing reconciliation window and inform customer of timeline (Support / Finance).
+1) Merge PR #2456 after final review and tests.
+2) Canary deploy to pool-ded-west-2-a (5% hosts), monitor 429 rate and duplicate token_decrement logs for 24h.
+3) If stable, progressive rollout to remaining hosts for pool and other dedicated pools.
+4) Open postmortem doc and update runbook; notify customer of fix schedule and billing reconciliation timeline.
+5) Create automated regression test and include in CI.

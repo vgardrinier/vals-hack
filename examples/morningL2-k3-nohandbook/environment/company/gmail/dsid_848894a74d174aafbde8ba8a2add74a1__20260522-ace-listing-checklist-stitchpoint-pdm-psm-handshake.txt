@@ -1,0 +1,159 @@
+ACE: Marketplace listing checklist & PDM/PSM coordination - StitchPoint
+
+From: Ben Carter <ben.carter@redwoodinference.com>
+To: John Sanders <john.sanders@stitchpoint.com>
+Cc: Karthik Iyer <karthik.iyer@redwoodinference.com>
+Date: 2026-05-22T09:12:00-07:00
+Subject: ACE enrollment prep: listing checklist and next steps
+
+John —
+
+Great to meet you yesterday. As discussed, we want to get StitchPoint into the AWS ACE program and listed on the marketplace. To keep things moving I attached a one-page listing-eligibility checklist and a first-draft mutual action plan (MOP).
+
+High level asks from our side:
+- Confirm billing contact and marketplace account owner (legal/procurement contact).
+- Identify a PDM/PSM counterpart we can introduce to AWS and include in ACE intake.
+- Confirm a small technical review window (30–45m) next week so our infra team can validate the integration approach.
+
+Proposed next steps:
+1) You confirm contacts and sign off on the attached checklist.
+2) We intro your PDM/PSM to Karthik and Naomi for ACE intake and listing requirements.
+3) Technical review and a short copy-review for the marketplace listing copy.
+
+Attachments: listing-eligibility-checklist.xlsx (attached), stitchpoint-mop-draft.pdf (attached)
+
+If you prefer, I can loop in our AWS partner lead (Karthik) directly to speed the ACE registration.
+
+Thanks — looking forward to getting this live.
+
+Best,
+Ben Carter
+Account Executive | Redwood Inference
+ben.carter@redwoodinference.com
++1 (415) 555-0123
+
+
+From: John Sanders <john.sanders@stitchpoint.com>
+To: Ben Carter <ben.carter@redwoodinference.com>
+Cc: Leah Park <leah.park@stitchpoint.com>
+Date: 2026-05-23T10:30:00-07:00
+Subject: Re: ACE enrollment prep: listing checklist and next steps
+
+Ben —
+
+Thanks for the checklist and the clear plan. We're interested in moving forward. Quick answers:
+- Billing/procurement: Leah Park (cc'd) will be our billing/AM contact.
+- PDM/PSM: I'll check internally but our primary technical contact is Maya Ortiz (maya.ortiz@stitchpoint.com); not sure about the PSM title — Leah can confirm.
+
+Can you clarify what the technical review needs to cover? Is it just API surface and auth (IAM) or do you want a short run-through of the container/image and end-to-end request flow? Also any specific docs AWS asks for during ACE intake?
+
+If it helps, we can do a 30min call next Tuesday (05/26) in the morning PST.
+
+John
+VP Product, StitchPoint
+john.sanders@stitchpoint.com
+
+On Fri, May 22, 2026 at 9:12 AM Ben Carter <ben.carter@redwoodinference.com> wrote:
+> John —
+> 
+> Great to meet you yesterday. As discussed, we want to get StitchPoint into the AWS ACE program and listed on the marketplace. To keep things moving I attached a one-page listing-eligibility checklist and a first-draft mutual action plan (MOP).
+> 
+> High level asks from our side:
+> - Confirm billing contact and marketplace account owner (legal/procurement contact).
+> - Identify a PDM/PSM counterpart we can introduce to AWS and include in ACE intake.
+> - Confirm a small technical review window (30–45m) next week so our infra team can validate the integration approach.
+> 
+> Proposed next steps:
+> 1) You confirm contacts and sign off on the attached checklist.
+> 2) We intro your PDM/PSM to Karthik and Naomi for ACE intake and listing requirements.
+> 3) Technical review and a short copy-review for the marketplace listing copy.
+> 
+> Attachments: listing-eligibility-checklist.xlsx (attached), stitchpoint-mop-draft.pdf (attached)
+> 
+> If you prefer, I can loop in our AWS partner lead (Karthik) directly to speed the ACE registration.
+> 
+> Thanks — looking forward to getting this live.
+> 
+> Best,
+> Ben Carter
+> Account Executive | Redwood Inference
+> ben.carter@redwoodinference.com
+> +1 (415) 555-0123
+
+
+From: Ben Carter <ben.carter@redwoodinference.com>
+To: Karthik Iyer <karthik.iyer@redwoodinference.com>, Naomi Feldman <naomi.feldman@redwoodinference.com>
+Cc: John Sanders <john.sanders@stitchpoint.com>, Leah Park <leah.park@stitchpoint.com>
+Date: 2026-05-23T11:05:00-07:00
+Subject: Fwd: ACE enrollment prep: listing checklist and next steps
+
+Karthik / Naomi —
+
+Forwarding the thread with StitchPoint. John and Leah are ready to proceed and have the checklist. Two asks: 1) can Karthik own the ACE registration / partner intake with AWS? 2) can Naomi own the PDM/PSM intro + eligibility confirmation on our side?
+
+Quick context: John flagged Maya Ortiz as StitchPoint's technical contact (maya.ortiz@stitchpoint.com). Leah is procurement. They asked whether the technical review should include auth/IAM + end-to-end request flow. I expect a short 30–45m call will be sufficient.
+
+Attachments included: listing-eligibility-checklist.xlsx (please review)
+
+Please reply with:
+- Who on our side will be the named PDM contact for the ACE intake?
+- Proposed 30–45m slots for next week (doing PST mornings would be easiest for StitchPoint).
+
+Thanks — cc'd John/Leah so they can see the plan.
+
+—Ben
+
+Begin forwarded message:
+
+> From: John Sanders <john.sanders@stitchpoint.com>
+> To: Ben Carter <ben.carter@redwoodinference.com>
+> Cc: Leah Park <leah.park@stitchpoint.com>
+> Date: 2026-05-23T10:30:00-07:00
+> Subject: Re: ACE enrollment prep: listing checklist and next steps
+> 
+> Ben —
+> 
+> Thanks for the checklist and the clear plan. We're interested in moving forward. Quick answers:
+> - Billing/procurement: Leah Park (cc'd) will be our billing/AM contact.
+> - PDM/PSM: I'll check internally but our primary technical contact is Maya Ortiz (maya.ortiz@stitchpoint.com); not sure about the PSM title — Leah can confirm.
+> 
+> Can you clarify what the technical review needs to cover? Is it just API surface and auth (IAM) or do you want a short run-through of the container/image and end-to-end request flow? Also any specific docs AWS asks for during ACE intake?
+> 
+> If it helps, we can do a 30min call next Tuesday (05/26) in the morning PST.
+> 
+> John
+
+
+From: Naomi Feldman <naomi.feldman@redwoodinference.com>
+To: Ben Carter <ben.carter@redwoodinference.com>, Karthik Iyer <karthik.iyer@redwoodinference.com>
+Cc: John Sanders <john.sanders@stitchpoint.com>, Leah Park <leah.park@stitchpoint.com>
+Date: 2026-05-25T15:47:00-07:00
+Subject: Re: Fwd: ACE enrollment prep: listing checklist and next steps
+
+Ben / Karthik —
+
+I can take point on the PDM/PSM intro and the eligibility confirmation. Quick updates and next actions:
+
+1) PDM/PSM contacts: I'll introduce Shruti Verma (PDM partner lead, shruti.verma@redwoodinference.com) and Priya Natarajan (PSM for marketplace listings, priya.natarajan@redwoodinference.com) to John and Leah this afternoon.
+
+2) Technical review scope: we should cover auth/IAM, request/response patterns, and a short rundown of deployment packaging (containers / images). 30min is fine if we stick to the checklist.
+
+3) Proposed slots (PST): 05/26 09:00–09:45, 05/26 10:30–11:15. John / Leah please confirm which works.
+
+4) Docs needed for ACE intake: short list — SSA (sales/service agreement) contact, support SLA summary, a copy of the AM/Procurement contact (Leah), and a short architecture diagram (1 slide). I'll provide an intake template in the intro email.
+
+I've attached a slightly annotated version of the checklist with notes on where AWS commonly asks for clarifications (see stitchpoint-mop-draft.pdf).
+
+Action items:
+- John/Leah: confirm one slot and provide Maya's contact for the technical review.
+- Karthik: if you can start the ACE portal draft (partner account name + listing owner) that helps speed AWS enrollment.
+- Ben: please track this on the deal (HubSpot id 100234).
+
+Thanks — will send the intro to Shruti/Priya in ~30m.
+
+—Naomi Feldman
+Senior Partner Success Manager | Redwood Inference
+naomi.feldman@redwoodinference.com
+(415) 555-0199
+
+Attachments: stitchpoint-mop-draft.pdf (annotated)

@@ -1,0 +1,15 @@
+EU-West: streaming disconnects / truncated output during peak (CloudCart)
+
+Issue summary:
+CloudCart reports intermittent streaming disconnects on Hosted API in eu-west. They describe "truncated output" and occasional "socket hang up" in their Node client.
+
+Impact:
+Customer production workflow intermittently returns partial responses.
+
+Notes:
+Raised during the eu-west streaming disconnect ratio alert in #incidents (thread_ts=1773815400).
+Naomi Feldman (Support) 2026-03-18: Creating case per #incidents. Customer report matches known issue pattern. Linking Confluence known issue page.
+Aisha Rahman (SRE) 2026-03-18: During incident we rolled back rwd-edge-1.42.0 -> 1.41.3 in eu-west. Streaming disconnect ratio returned to baseline.
+Naomi Feldman 2026-03-19: Customer confirms behavior improved after rollback window. Asking them to provide any remaining request ids.
+Aisha Rahman 2026-03-22: No further spikes observed. Marking resolved; will re-open if recurrence after next edge rollout.
+Resolved after eu-west edge rollback during 2026-03-18 streaming disconnect incident. Customer advised to implement retry on unexpected end-of-stream.

@@ -1,0 +1,53 @@
+incidents
+
+Maya (Support): FYI getting a barrage of customer reports — hosted API returning 502/504s intermittently for ~20 minutes. Affected endpoints: /v1/generate and /v1/embeddings. Lots of X-Request-IDs from mobile clients.
+Anand (SRE): can you paste a couple request ids and approximate client IPs or region? Also any correlation id from our edge logs?
+Maya (Support): sample: X-Request-ID: 8f7a2c3e, client-region: eu-west1. Another: 9b2d4f11, client-region: us-central1. Users report timeouts then 502s.
+Maya (Support): customers saying spike started ~15:03 UTC — some saw retries then failure.
+incidents-bot: Incident created: INCIDENT-2026-03-15-EDGE-502s, severity: high. Pager duty alerted.
+Anand (SRE): I'm looking at envoy metrics on edge-gw-frontend. There are increased upstream_reset_due_to_connection_failure counters and a small uptick in 5xx from gateway.
+Oliver (Runtime): Checked the runtime pool for the gen workers — no OOMs, but a couple of instances are hitting high accept queue lengths and increased p99 latency for model forward pass.
+Anand (SRE): In the edge logs I see lines like: 
+```
+[2026-03-15T15:04:21Z] envoy upstream reset: connection failure, upstream: gen-svc-78, downstream: 10.4.12.33:443, request_id=8f7a2c3e
+[2026-03-15T15:04:21Z] envoy response from upstream: 502, body: "upstream request failed"
+```
+Also some entries: 
+```
+[2026-03-15T15:05:02Z] nginx upstream timed out (110: Connection timed out) while reading response header from upstream, client: 34.72.12.88, server: api-hosted.redwood, request: "POST /v1/generate"
+```
+Jess (Support): Customer repro steps: POST to /v1/generate with prompt size ~2k tokens, concurrency 10 from a single client; saw 504 after ~30s wait.
+Maya (Support): I ran a curl test against a small prompt, intermittent 502s: 
+```
+curl -v -H "Authorization: Bearer $REDDO_API_KEY" -H "X-Request-ID: 8f7a2c3e" -X POST https://api.redwood.example/v1/generate -d '{"model":"rwd-small","prompt":"hi"}'
+* Received HTTP/2 stream 0
+< HTTP/2 502 
+< content-type: application/json
+< x-request-id: 8f7a2c3e
+{"error":"gateway_error","message":"upstream reset"}
+```
+Anand (SRE): Initial hypothesis: bursty traffic + a subset of runtime pods with slow cold-start for large-token requests hitting upstream connect/response timeouts at the edge. Envoy returns 502 when upstream connection gets reset; nginx shows 504 when it timed out waiting for response.
+Oliver (Runtime): I see a pattern: requests with long prefix context (large KV cache usage) have much longer first-token latency on a few older GPU nodes. Those nodes recently had a kernel update last week (driver 530.x). Rolling signal?
+Anand (SRE): Can we confirm if the problematic upstream hostnames map to the nodes that had kernel update? Tagging: @Oliver (Runtime) can you dump the mapping of runtime instances -> host kernel versions and pod restart times.
+Oliver (Runtime): On it — pulling mapping now. Also checking model shard placements.
+Anand (SRE): In the meantime mitigations: 1) Increase envoy upstream timeout from 30s -> 60s temporarily for the /v1/generate route, 2) Enable 5xx retry policy with backoff for idempotent calls where safe, 3) Scale up runtime pool by +30% for the gen service, 4) Add a route-level circuit-breaker to shed overloaded upstreams. Which of these we can do quickly?
+Oliver (Runtime): I can scale the gen-service ASG by 30% now — kicking a scale up. Also can provision a hot-warm pool to avoid cold-starts for large-token requests.
+Anand (SRE): I'll patch envoy route timeout and enable a conservative 2-retry on 502/503 with exponential backoff. Applying to canary first.
+deploy-bot: Rollout started: envoy-route-timeout-patch -> canary (edge-gw-frontend-canary).
+Maya (Support): Noted; informing customers about mitigation steps. Some customers ask for ETA.
+Jess (Support): Also flagging billing: some customers got multiple retries — may need to credit tokens for failed requests.
+Anand (SRE): Good catch — keep a list of impacted request-ids. We'll coordinate with billing and CS after stabilization.
+Oliver (Runtime): Scale up completed — added 12 hot-warm pods. I'm monitoring p95/p99 on forward pass. Initial numbers: p50 unchanged, p95 improved ~30% on the newly added pods.
+Anand (SRE): Canary of envoy timeout/retry applied — looks promising. 502s dropping in canary shard from 1.8% -> 0.2% within 3m. Rolling to 25% now.
+Maya (Support): Customers reporting fewer failures now. One enterprise said they still saw 504 at 15:20 UTC.
+Anand (SRE): Correlating — that timestamp aligns with a different edge shard that hasn't received the rollout. Rolling to 100% now.
+deploy-bot: Rollout successful: envoy-route-timeout-patch -> stable.
+Anand (SRE): Post-mortem actions: 
+- Reconcile kernel/drivers on runtime nodes; pin to validated driver version.
+- Add health-check improvements for runtime readiness when kernel-induced slow first-token latency occurs.
+- Improve our edge metrics to surface long TCP connect times to upstreams and correlate with node kernel version and pod age.
+- Automate temporary route timeout increase as part of overload mitigation runbook.
+Jess (Support): I'll draft customer comms and token crediting plan.
+Oliver (Runtime): Follow-up: we'll run a canary kernel rollback on the small pool and watch latency.
+Anand (SRE): Closing incident once 24h of stable error rates <0.05% and billing review done. Anything else?
+Maya (Support): Thanks all — I'll update the incident ticket and ping CS owners. :thumbsup:

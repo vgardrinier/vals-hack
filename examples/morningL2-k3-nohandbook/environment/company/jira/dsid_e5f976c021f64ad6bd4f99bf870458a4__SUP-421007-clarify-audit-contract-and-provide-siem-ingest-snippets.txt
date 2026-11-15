@@ -1,0 +1,53 @@
+Clarify audit event contract and provide SIEM ingestion SQL/snippets
+
+Issue summary:
+Customer (Acme Payments) is preparing to onboard Redwood audit exports into their SIEM. They have requested a concise, authoritative event catalog (field-level contract) plus a small set of ready-to-run ingestion SQL/snippets and parsing examples for their SIEM (Splunk and Snowflake teams).
+
+Impact:
+- Customer cannot complete their compliance ingest verification without precise field names, types, and examples.
+- Onboarding delay of 2+ weeks if they must reverse-engineer fields from raw exports.
+
+Request details / Desired deliverables:
+1) A field-level catalog (CSV or table) listing field name, type (string/ts/int/boolean), sample value, retention semantics (e.g., PII, redaction guidance), and TTL/partitioning hints.
+2) Two short ingestion examples:
+   - Splunk HEC mapping / props/transforms example for timestamp, tenant_id, event_type, and request_id normalization.
+   - Snowflake copy into / staged file parsing SQL with a recommended target table DDL for efficient querying (partition by event_date, tenant_id).
+3) One or two sample payload snippets for frequent event types (request.start, request.finish, audit.auth) in both raw JSON and a flattened CSV row to help DataOps teams.
+4) Any known caveats: fields that may be absent for older logs, max string lengths, and which fields are redacted/pseudonymized.
+
+Attachments customer provided: sample S3 manifest listing daily gzip files (s3://acme-redwood-audit/2026-03-08/*.gz). They included one gzipped sample file.
+
+Security / Data sensitivity:
+- Customer is handling transactional logs (payment-related). They require explicit notes about PII/PHI exposure and recommended redaction before SIEM indexing.
+- They also asked whether event payloads contain prompt text or model output under any default logging regime.
+
+Preferred format: single CSV for the field catalog, one .sql file with comments for Snowflake, and one Splunk props/transforms fragment.
+
+Example raw event (single line JSON): {
+  "timestamp": "2026-03-09T15:02:30Z",
+  "tenant_id": "acme-payments",
+  "event_type": "request.start",
+  "request_id": "r-12345",
+  "model": "redwood-text-1",
+  "tokens": 12,
+  "payload": {"prompt_length": 120}
+}
+
+Flattened CSV example row (comma-separated): 2026-03-09T15:02:30Z,acme-payments,request.start,r-12345,redwood-text-1,12,120
+
+Initial triage by Support: verified S3 sample available, confirmed files are newline-delimited JSON gz. No obvious PII in provided sample (masked emails). Eng runbook references SIEM ingestion patterns but lacks an enterprise-ready field CSV for customers. Suggested owner: Audit Exports docs + one infra PR to add example SQL.
+Action items proposed:
+- Docs team: prepare field catalog CSV and update Confluence, link to runbook.
+- Infra/Export owners: provide Snowflake DDL and Splunk props example.
+- Security SME: confirm if prompt/model-output can appear in logs by default and draft redaction guidance.
+
+2026-03-10 | Maya Patel (Support): Received customer sample, validating format. Assigned triage owner. 
+2026-03-11 | Ava Thompson (Docs): I can draft the field CSV. Need confirmation on which fields are considered PII. Marking as waiting on Security SME.
+2026-03-12 | Priya Singh (Security): Confirmed default exports do not include raw prompt text for production customers unless 'debug' logging enabled. We'll provide redaction guidance and a short checklist for customers to verify their export config.
+2026-03-13 | Infra (SRE): We have a Snowflake DDL template (internal). Will adapt and provide a .sql with COPY INTO + file format options for gzip JSON_NEWLINE. Linking PR when ready.
+2026-03-14 | Customer (Acme onboarding lead): Thank you — we would prefer examples that run without additional transforms and minimal post-processing. Please highlight any fields that might be missing from older exports.
+Pending - docs and infra owners to deliver artifacts. Target deliverables: field_catalog.csv, splunk_props_transforms.conf, snowflake_ingest.sql, and a short security note. Estimated delivery: 2026-03-18.
+Customer can continue manual mapping by sampling raw events and creating ad-hoc transforms; support provided a simple Python flatten script as a temporary aid (attached to ticket).
+Create field_catalog.csv and publish to Confluence
+Open infra PR to add snowflake_ingest.sql to audit-export repo
+Security checklist doc for redaction guidance

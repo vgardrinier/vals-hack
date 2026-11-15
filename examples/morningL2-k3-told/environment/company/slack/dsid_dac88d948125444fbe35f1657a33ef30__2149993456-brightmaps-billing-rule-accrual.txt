@@ -1,0 +1,15 @@
+Brief Slack thread for month-end close discussing an unbilled invoice due to billing rule mismatch and how to treat an associated pricing-experiment promo credit. Includes JE block and CFO approval.
+
+Ravi Singh: Quick FYI for Aug close: anomaly in usage invoicing for customer 'BrightMaps' — backend shows July usage billed but invoice not generated due to billing rule mismatch. Estimated revenue impact ~49,200. Also pricing experiment gave a $4,500 promo credit to them. Need direction on accrual vs exception handling.
+Lena Ortiz: If the service was delivered in July, we should accrue the net amount. Is the promo credit contractual or one-off?
+Ravi Singh: One-off promo tied to the experiment id EXP-2026-07. Product confirms it's a customer-level credit applied at invoicing.
+Markus Lee: Draft JE (gross):
+```
+DR 1300 Unbilled AR 49,200
+CR 4000 Revenue - Usage 49,200
+```
+Markus Lee: Since credit is $4,500, net accrual would be 44,700. Per accounting policy we can net expected credits.
+CFO_Jess: Approve net accrual treatment. Please add backup showing EXP-2026-07 tag, customer note, and calc. Also route a separate ticket for billing rule fix so this doesn't recur.
+accounting-bot: Ticket created: BILL-4021 (billing-rule-mismatch for BrightMaps).
+Lena Ortiz: I'll attach the backup to the close pack and add an auditor note about one-off credit being netted.
+Ravi Singh: Thanks team, posting journal tomorrow AM for 44,700 and tagging close PR #421.

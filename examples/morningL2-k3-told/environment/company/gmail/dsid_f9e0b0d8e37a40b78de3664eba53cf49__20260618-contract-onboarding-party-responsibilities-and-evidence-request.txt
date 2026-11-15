@@ -1,0 +1,99 @@
+MSA + Order Form kickoff — party responsibilities & evidence request
+
+From: Jonas Weber <jonas.weber@redwood.ai>
+To: Marissa Cole <marissa.cole@redwood.ai>, Kimberly Park <kimberly.park@redwood.ai>
+Cc: Soojin Lee <soojin.lee@redwood.ai>, Emma Li <emma.li@everledger.io>
+Date: Thu, 18 Jun 2026 12:05:00 -0700
+Subject: MSA + Order Form kickoff — party responsibilities & evidence request
+
+Hi Marissa / Kimberly,
+
+Looping you in to start intake for Everledger (new pilot + potential expansion). Customer attached their countersigned MSA draft and a proposed order form. High level asks:
+
+- Can legal confirm review priority: data residency (EU vs US), liability cap alignment with our template, and confidentiality carve-outs for shared logs.
+- Please populate the attached redline_tracker.csv with initial flags and a recommended disposition (accept / counter / escalate).
+- Procurement wants a draft that they can circulate to Finance by next Thu (2026-06-24).
+
+Attachments: Everledger_MSA_v1.docx (customer draft), Everledger_OrderForm_v1.xlsx (pricing + SKUs), redline_tracker.csv (blank - attached).
+
+Customer context (from Emma, below): Everledger is a supply-chain visibility SaaS, pilot is expected to start in Q3, initial usage low but expected to scale if pilot succeeds. They asked specifically about data export controls and audit logging retention.
+
+Ask: can legal surface any non-standard clauses and call out matters that require an exec exception? I'd like a 48-hour turnaround on initial pass if possible.
+
+Thanks,
+Jonas
+Jonas Weber
+Sales Operations | Redwood Inference
+jonas.weber@redwood.ai | +1 415-555-0199
+
+---
+Attachment stub: Everledger_MSA_v1.docx (docx, 247 KB)
+Attachment stub: Everledger_OrderForm_v1.xlsx (xlsx, 42 KB)
+Attachment stub: redline_tracker.csv (csv, 2 KB)
+From: Emma Li <emma.li@everledger.io>
+To: Jonas Weber <jonas.weber@redwood.ai>
+Cc: procurement@everledger.io
+Date: Thu, 18 Jun 2026 15:22:00 -0400
+Subject: Re: MSA + Order Form kickoff — party responsibilities & evidence request
+
+Thanks Jonas — appreciate the quick start. A few clarifications from our side:
+
+1) Procurement contact for PO issuance is procurement@everledger.io (cc'd). Payment terms we prefer: Net 45, but open to Net 30 if required for pilot.
+2) Data residency: pilot data will be US-hosted; if we scale to EU customers we'll need an EU hosting option and an addendum.
+3) Audit logs: we request minimum 12 months retention and an export capability on request.
+
+On Thu, Jun 18, 2026 at 12:05 PM Jonas Weber <jonas.weber@redwood.ai> wrote:
+> Hi Marissa / Kimberly,
+> 
+> Looping you in to start intake for Everledger (new pilot + potential expansion). Customer attached their countersigned MSA draft and a proposed order form. High level asks:
+> 
+> - Can legal confirm review priority: data residency (EU vs US), liability cap alignment with our template, and confidentiality carve-outs for shared logs.
+> - Please populate the attached redline_tracker.csv with initial flags and a recommended disposition (accept / counter / escalate).
+> - Procurement wants a draft that they can circulate to Finance by next Thu (2026-06-24).
+> 
+> Thanks,
+> Jonas
+>
+Emma Li
+Head of Partnerships | Everledger
+emma.li@everledger.io
++44 20 5555 7766
+
+---
+Note: procurement@everledger.io prefers a single consolidated order form (one PO) rather than multiple line-item POs.
+
+From: Marissa Cole <marissa.cole@redwood.ai>
+To: Jonas Weber <jonas.weber@redwood.ai>, Kimberly Park <kimberly.park@redwood.ai>
+Cc: Soojin Lee <soojin.lee@redwood.ai>, Emma Li <emma.li@everledger.io>
+Date: Fri, 19 Jun 2026 09:10:00 -0700
+Subject: Re: MSA + Order Form kickoff — party responsibilities & evidence request
+
+Thanks — acknowledged and thanks for the context, Emma.
+
+Initial plan / asks from Contracts:
+
+1) Intake items we still need from sales/procurement:
+   - Everledger legal entity full legal name and registered address (for Recitals and signature block).
+   - Primary billing contact (name + email) to populate Exhibit B.
+
+2) Scope we will prioritize in our first pass (48 hours):
+   - Liability cap alignment and carve-outs (IP, gross negligence).
+   - Data residency clause + standard addendum language for EU hosting.
+   - Audit log retention language (we'll propose 12 months exportable + optional longer retention for paid tiers).
+   - Confidentiality: propose minor tightening around logs and customer PII — flag any customer-requested carve-outs.
+
+3) Redline approach:
+   - We will create a tracked redline in the attached MSA v1 and populate redline_tracker.csv with column: clause, issue, recommended_action, owner, priority.
+   - If we see terms requiring an exec exception (e.g., unlimited liability or longer-than-90-day notice windows), we'll tag those as ESCALATE and loop in revenue leadership.
+
+4) Timeline: initial redline + tracker back to this thread by EOD Mon 2026-06-21. If sales needs a faster turnaround, tell me which clauses to prioritize.
+
+I've uploaded a working copy of the redline and tracker to the Drive link and will attach the tracked doc to the next email.
+
+Marissa Cole
+Senior Counsel, Contracts | Redwood Inference
+marissa.cole@redwood.ai | +1 650-555-0123
+
+---
+Attachment stub: redline_tracker.csv (version: prefilled with headers, 3 KB)
+Drive link: https://drive.google.com/drive/folders/1aB2c3EverledgerContract

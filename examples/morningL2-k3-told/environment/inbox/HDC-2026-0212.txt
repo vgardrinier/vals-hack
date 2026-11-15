@@ -1,0 +1,19 @@
+Invoice HDC-2026-0212 from Halverson Data Centers
+
+From: Halverson Data Centers Billing <billing@halversondatacenters.com>
+To: finance@redwood.com
+Date: Fri, 13 Nov 2026 07:14:00 -0800
+Subject: Invoice HDC-2026-0212
+
+Hello Redwood Inference finance team,
+
+Please find our invoice details below.
+
+Invoice number: HDC-2026-0212
+Invoice date: 2026-11-09
+Due date: 2026-12-09
+Amount due: $11,340.50 USD
+
+Payment by ACH to the account on file. Thank you for your business.
+
+Halverson Data Centers billing

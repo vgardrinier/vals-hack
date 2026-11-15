@@ -1,0 +1,67 @@
+Confirmation-token pattern and at-most-once tool invocation guidance across Python/TS/Go SDKs
+
+Issue summary:
+Customer reports repeated side-effects when using the SDKs' function/tool-calling features with automatic SDK retries and server-side timeouts. They are trying to implement an at-most-once pattern across Python, TypeScript, and Go clients and want concrete, language-idiomatic guidance (confirmation token, callback acknowledgement, idempotency keys, and recommended SDK usage).
+
+Impact:
+- Customer (Finrite Inc., dedicated tenant) sees duplicated downstream webhook events and duplicate database writes when SDK retries occur after network blips or streaming reconnects.
+- This impacts production workflows for payment reconciliation and is causing financial reconciliation mismatches.
+
+Environment:
+- Dedicated deployment in prod-us-east backed by reserved capacity.
+- SDKs: python@1.8.2, typescript@2.3.0, go@0.9.1.
+- Model: rwd-llama-13b-quant serving on gpu-pool-3.
+
+Steps to reproduce (customer-provided):
+1) Configure function/tool-calling where Redwood will POST a JSON payload to an internal webhook (ack endpoint) and then the customer will perform the side-effect (DB insert).
+2) Client sends a prompt that triggers the tool call; SDK has built-in retry configured at 3 attempts and 2s exponential backoff.
+3) Introduce a network pause on the webhook path (simulate transient timeout).
+4) SDK retries the request; server eventually processes the original tool call and also the retry, resulting in two DB inserts.
+
+Customer logs / excerpts:
+- "webhook delivered: id=txn_2391 status=200" then shortly later "retrying call id=txn_2391" then second delivery accepted and duplicate DB id created.
+- SDK trace shows call_id and attempt numbers, but call_id is different across retry attempts (SDK-generated per attempt).
+
+Investigation notes (support):
+- Hypothesis 1: SDK retry creates a new call instance without preserving an idempotency/confirmation token in the payload, so downstream sees two distinct requests.
+- Hypothesis 2: Server-side timeout and reconnect path causes the client to assume delivery failure; lack of upstream acknowledgement race leads to duplicate side-effects.
+- Confirmed: current SDK behavior does not automatically inject an idempotency token into the tool invocation payload. The server emits streaming ACK events for successful tool execution, but customer webhooks are external to Redwood and may not be observed by SDK.
+
+Recommended patterns (consolidated guidance we should provide to customer):
+1) Confirmation token (recommended):
+   - Generate a stable idempotency token on the client (UUID v4 or application transaction id) and pass it as part of the tool call payload metadata (e.g., tool_call.metadata.confirmation_token).
+   - On your webhook/side-effect handler, persist the token with a unique constraint; if you receive the same token again, respond 200 without re-applying the side-effect.
+
+2) Acknowledgement handshake (server-mediated):
+   - Implement a short-lived confirmation endpoint within Redwood flow: Redwood can wait for your explicit acknowledgement within streaming window (recommended for synchronous operations). If your ack arrives, Redwood will mark the tool call delivered and suppress retries. This requires your ack URL to respond within the model stream SLO.
+
+3) At-most-once via central dedupe service (recommended for critical writes):
+   - Use a central dedupe store (Redis SET or DB unique index keyed by confirmation_token) before performing the side-effect. Even if two requests reach the handler concurrently, only one should succeed in the insert path.
+
+4) SDK-specific best practices:
+   - Python: use the request hook to attach a generated confirmation_token to tool calls before invoking client.create_tool_call(...). Use retry settings but ensure confirmation_token persists across retries by storing it in the retry state.
+   - TypeScript: attach idempotency metadata to the tool payload and set the SDK's maxAttempts lower for side-effecting calls; prefer client.executeTool({ idempotencyKey }) wrapper provided in our next minor release.
+   - Go: include a context value with the token and ensure the retry middleware copies the context key into repeated attempts.
+
+Short-term workarounds provided to customer:
+- Add an idempotency header/field and return 200 immediately when duplicate token is seen.
+- Reduce SDK retry attempts to 1 for operations that trigger irreversible side-effects while implementing dedupe on receiver.
+
+Resolution plan (engineering):
+- Provide concrete code snippets and an SDK patch to accept a caller-supplied confirmation_token field and automatically persist it across retry attempts.
+- Update SDK docs and examples with an "at-most-once tool-calling" cookbook.
+- Add a server-side optional feature flag (dedupe_by_token) for dedicated tenants that will check incoming tool payload metadata and suppress duplicate deliveries within a configurable TTL.
+
+Follow-up actions and ownership:
+- Support: continue coordinating with Finrite (Aisha) to validate a workaround.
+- SDK: patch PR target: sdk-patches/pull/241 (assigned to Jon).
+- Infra/Platform: investigate adding dedupe_by_token feature flag for dedicated tenants; ticket INT-4022 created for platform work.
+
+Notes for internal triage:
+- This ticket overlaps with prior reports about duplicate tool invocations on streaming reconnects (see linked issues). We should avoid proposing a single "SDK fix" without also offering receiver-side dedupe guidance because customers control recipients for tool calls.
+
+2026-03-02 10:12 - Aisha Rahman (Support): Opened ticket with Finrite logs attached. Customer needs immediate workaround; production reconciliation pipeline affected.
+2026-03-02 11:05 - Jon Miller (SDK Eng): Initial triage - confirms SDK does not auto-propagate an idempotency token across retries. Will prepare code examples for Python/TS/Go.
+2026-03-03 08:41 - Finrite (Customer): We can add a unique invoice_id to payload but want recommended pattern for SDK integration so we don't have to change all services at once.
+2026-03-04 14:30 - Jon Miller (SDK Eng): Uploaded draft patch in PR github.com/redwood-inference/sdk-patches/pull/241. Patch exposes confirmation_token field and ensures middleware preserves it across retries. Requesting security review for header propagation.
+2026-03-05 09:20 - Support (Aisha): Sent short-term workaround steps (reduce retries and add server dedupe) to customer; customer to validate and report back. SLA due 2026-03-06.

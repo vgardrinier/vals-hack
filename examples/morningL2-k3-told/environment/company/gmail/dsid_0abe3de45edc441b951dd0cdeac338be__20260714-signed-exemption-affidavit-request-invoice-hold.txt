@@ -1,0 +1,115 @@
+Request: Redwood buyer resale certificate (state forms) — invoice hold INV-3321
+
+From: BlueRidge Supplies <billing@blueridge.com>
+To: Grace O'Connor <grace_oconnor@redwood.com>
+Cc: Monica Patel <monica_patel@redwood.com>
+Date: 2026-07-12T16:15:00Z
+Subject: Request for buyer resale certificate (state forms) — INV-3321
+
+Hi Grace,
+
+Following up on invoice INV-3321 (attached) — our accounting team placed this on hold because they need the buyer's resale certificate or a signed affidavit to substantiate the exemption for resale. Can Redwood provide a signed buyer resale certificate for the jurisdictions listed below so we can release the invoice? We can accept scanned PDFs or a DocuSign return.
+
+- Ship-to states on the order: Texas (TX) and California (CA)
+- Invoice: INV-3321 (attached)
+
+I attached the invoice and our upload instructions (portal expects a state-specific form). If you can sign and return the appropriate state forms (TX Form 01-339 or California CDTFA certificate, or our multi-state affidavit), that should be sufficient.
+
+Quick ask: can you return by end of week? Our AR team will release the hold once we have the signed docs.
+
+Thanks,
+Alicia Gomez
+Billing Specialist | BlueRidge Supplies
+billing@blueridge.com
+[Attachment: INV-3321.pdf]
+
+From: Grace O'Connor <grace_oconnor@redwood.com>
+To: BlueRidge Supplies <billing@blueridge.com>
+Cc: Monica Patel <monica_patel@redwood.com>
+Date: 2026-07-12T17:30:00Z
+Subject: Re: Request for buyer resale certificate (state forms) — INV-3321
+
+Hi Alicia,
+
+Thanks for the heads-up — we can sign the buyer resale documentation. A couple of quick clarifying items so we return the correct paperwork:
+
+1) Which specific form(s) does your portal require for TX and CA? We can complete the TX resale affidavit (Form AP-114) and the CA CDTFA blanket resale certificate if needed, but your upload instructions referenced TX Form 01-339 which I'm not familiar with.
+2) Please confirm whether you need Redwood's reseller permit number included on the form or just the company name/address and a signature.
+3) Do you need the document notarized or is an electronic signature via DocuSign acceptable?
+
+For reference, Redwood's details:
+Redwood Inference, Inc.
+Business address: 1120 Market St, San Francisco, CA 94103
+Federal Tax ID: XX-XXXXXXX (we will redact on public versions)
+
+If you send the exact fillable PDFs your portal expects I can complete, sign, and return them today. If DocuSign is easiest, please send the envelope link and we will sign there.
+
+Cc'ing Monica from finance for any invoice/PO confirmations.
+
+Best,
+Grace O'Connor
+Finance Manager | Redwood Inference
+grace_oconnor@redwood.com
+[Signature]
+
+From: BlueRidge Supplies <billing@blueridge.com>
+To: Grace O'Connor <grace_oconnor@redwood.com>
+Cc: Monica Patel <monica_patel@redwood.com>
+Date: 2026-07-13T15:05:00Z
+Subject: Re: Request for buyer resale certificate (state forms) — INV-3321
+
+Grace —
+
+Thanks for the quick reply. Attached are two items: our upload instructions and the fillable state forms we need completed (TX and CA). Our portal will accept DocuSign or a scanned signed PDF. No notarization required.
+
+Portal notes: we require the buyer name, business address, and either the buyer's reseller permit number (if you have one) or a statement that the buyer is registered as a retailer/reseller. The vendor portal will not accept forms that omit the buyer address.
+
+Attachments: BlueRidge_Upload_Instructions.pdf, TX_CA_Fillable_Forms.zip (both attached).
+
+If you can return both TX and CA forms completed and signed, we'll process the release. Appreciate it.
+
+Kind regards,
+Alicia Gomez
+Billing Specialist | BlueRidge Supplies
+[Attachment: BlueRidge_Upload_Instructions.pdf]
+
+From: Grace O'Connor <grace_oconnor@redwood.com>
+To: BlueRidge Supplies <billing@blueridge.com>
+Cc: Monica Patel <monica_patel@redwood.com>
+Date: 2026-07-14T16:22:00Z
+Subject: Re: Request for buyer resale certificate (state forms) — INV-3321
+
+Alicia —
+
+Attached is the signed buyer resale certificate bundle for Texas and California. I completed the forms with Redwood's business address and included our internal reseller reference number where applicable. Details below:
+
+- Attached files: Redwood_Buyer_Resale_Certificate_TX_CA.pdf (signed PDF), Signed_TX_Form.pdf (separate TX form), DocuSign-Envelope-12345 (we completed via DocuSign and attached a PDF copy)
+- Redwood included: Business address (1120 Market St, San Francisco, CA 94103) and our company legal name. We do not publish our Federal Tax ID on vendor portals; we redacted that field on the public copy but can provide it under an NDA if required.
+- Reseller reference: Redwood Resale ID: R-987654 (internal reference for your portal)
+
+Monica — please confirm PO #P-9901 matches INV-3321 so BlueRidge can clear the hold on their side.
+
+Alicia — let me know once the portal accepts the files and the invoice is released. If BlueRidge needs the original signature on company letterhead mailed or a notarized copy for audit, we can do that but will need a short lead time.
+
+Thanks,
+Grace O'Connor
+Finance Manager | Redwood Inference
+[Attachment: Redwood_Buyer_Resale_Certificate_TX_CA.pdf]
+[Attachment: Signed_TX_Form.pdf]
+[Attachment: DocuSign-Envelope-12345 PDF copy]
+
+On Tue, Jul 13, 2026 at 15:05 BlueRidge Supplies <billing@blueridge.com> wrote:
+> Grace —
+>
+> Thanks for the quick reply. Attached are two items: our upload instructions and the fillable state forms we need completed (TX and CA). Our portal will accept DocuSign or a scanned signed PDF. No notarization required.
+>
+> Portal notes: we require the buyer name, business address, and either the buyer's reseller permit number (if you have one) or a statement that the buyer is registered as a retailer/reseller. The vendor portal will not accept forms that omit the buyer address.
+>
+> Attachments: BlueRidge_Upload_Instructions.pdf, TX_CA_Fillable_Forms.zip (both attached).
+>
+> If you can return both TX and CA forms completed and signed, we'll process the release. Appreciate it.
+>
+> Kind regards,
+> Alicia Gomez
+> Billing Specialist | BlueRidge Supplies
+> [Attachment: BlueRidge_Upload_Instructions.pdf]

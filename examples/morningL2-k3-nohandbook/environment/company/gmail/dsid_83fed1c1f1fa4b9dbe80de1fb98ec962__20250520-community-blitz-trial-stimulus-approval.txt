@@ -1,0 +1,100 @@
+Community Blitz promo allocation and trial extension request
+
+From: Alyssa Gordon <alyssa@openloopmedia.com>
+To: kimberly_park@redwood.com
+Date: Tue, 20 May 2025 09:12:00 -0700
+Subject: Request: Community Blitz newsletter promo codes
+
+Hi Kimberly,
+
+Hope you’re well — we’re running a small ‘Community Blitz’ newsletter aimed at small business founders (launching 6/3) and would love to include Redwood trial credits as a featured sponsor perk. Quick ask: can Redwood provide 1,500 single-use promo codes (API trial credits) and allow a 21-day trial window for redemption? The cohort skews small/revenue-constrained so the extra time helps them get value.
+
+Attached a short brief with audience and send cadence (openloop_request_brief.pdf). We can accept staggered delivery if you prefer. Also please confirm any campaign-level tracking we should include (UTM parameters, promo name).
+
+Primary contact here is me — Alyssa Gordon, Head of Events, OpenLoop Media.
+
+Thanks — excited to collaborate.
+
+— Alyssa
+Alyssa Gordon
+Head of Events, OpenLoop Media
+alyssa@openloopmedia.com
+
+Attachments: openloop_request_brief.pdf (1 page brief)
+
+
+From: Kimberly Park <kimberly_park@redwood.com>
+To: Alyssa Gordon <alyssa@openloopmedia.com>
+Cc: marissa_cole@redwood.com, priyom_das@redwood.com
+Date: Tue, 20 May 2025 11:03:00 -0700
+Subject: Re: Request: Community Blitz newsletter promo codes
+
+Hi Alyssa — thanks for the brief and context. Kimberly here (Growth Partnerships at Redwood). Quick thoughts:
+
+- We can usually support partner promo allocations for newsletter campaigns. For a first pass I want to be conservative on the initial batch while we confirm tracking and billing. Would you be OK if we provision 1,000 codes up front and hold 500 in reserve to top up after the first send performance?
+- We can extend the trial window to 21 days for a named cohort, but that requires an approval from marketing finance for non-standard duration. I’ll loop them in if we lock counts.
+- Please confirm the exact promo name you want us to create (we recommend a short token like OLM-BLITZ-21) and the UTM parameters you plan to use. We also need to know whether the codes will be used in a single mailing or split across two sends.
+
+If that works, Marissa and Priyom (cc’d) will coordinate allocation and delivery. I’ll also add the HubSpot deal reference for accounting.
+
+Best,
+Kimberly Park
+Growth Partnerships | Redwood Inference
+kimberly_park@redwood.com
+
+
+From: Marissa Cole <marissa_cole@redwood.com>
+To: kimberly_park@redwood.com, Alyssa Gordon <alyssa@openloopmedia.com>
+Cc: priyom_das@redwood.com
+Date: Tue, 20 May 2025 13:22:00 -0700
+Subject: Re: Request: Community Blitz newsletter promo codes
+
+Thanks for looping me in. Reviewing the brief now — OpenLoop’s audience looks like a good fit. I can approve an initial allocation of 1,250 promo codes and the 21-day trial extension for the named campaign, subject to a quick billing acknowledgement: any redemptions beyond the committed 1,250 will be billed at our standard partner overage rate (we’ll need to capture the HubSpot deal to tie redemptions).
+
+Request for Alyssa: please confirm that the campaign will use a single promo code pool and that you’ll share the final send date(s) at least 48 hours before send so we can generate codes and verify tracking. I’ve created a HubSpot link for the deal: https://app.hubspot.com/deal/5243/DL-2025-1438 — please attach your campaign brief there so finance has context.
+
+Suggested promo name: OLM-BLITZ-21 (keeps reporting clean). If you need a custom redirect or landing-parameter we can do that but it takes 24 hours to onboard.
+
+Marissa Cole
+Partner Marketing | Redwood Inference
+marissa_cole@redwood.com
+
+
+From: Priyom Das <priyom_das@redwood.com>
+To: kimberly_park@redwood.com, marissa_cole@redwood.com, Alyssa Gordon <alyssa@openloopmedia.com>
+Date: Wed, 21 May 2025 08:16:00 -0700
+Subject: Re: Request: Community Blitz newsletter promo codes
+
+All — ops note from my side: we can generate a batch of 1,250 single-use promo codes tied to OLM-BLITZ-21. I’m attaching the CSV with the first tranche of 1,000 codes for your records (promo_codes_batch_OLM.csv). Delivery plan:
+
+- Generate & QA codes: today (we’ll mark 1,000 ACTIVE, 250 HELD)
+- Provide code CSV + simple redemption guide to Alyssa 48 hours prior to send
+- Set trial window to 21 days for codes redeemed under OLM-BLITZ-21; backend flag will be applied at issuance.
+- Overages: if more than 1,250 codes redeem we will flag the HubSpot deal and route to billing for overage charges; Marissa will lead that approval.
+
+Alyssa — please confirm final send date and whether you want a single CSV or staggered drops (we can support both).
+
+Attachments: promo_codes_batch_OLM.csv (contains 1,000 ACTIVE codes + 250 reserved placeholders)
+
+Thanks — will proceed once Kimberly/Marissa confirm the numbers.
+
+— Priyom
+Growth Ops | Redwood Inference
+priyom_das@redwood.com
+
+
+From: Alyssa Gordon <alyssa@openloopmedia.com>
+To: kimberly_park@redwood.com
+Cc: marissa_cole@redwood.com, priyom_das@redwood.com
+Date: Wed, 21 May 2025 15:48:00 -0700
+Subject: Re: Request: Community Blitz newsletter promo codes
+
+Perfect — thanks everyone, this timeline works. Confirming: we’ll take the 1,250 codes (initial send ~1,000 on 2025-06-03; hold 250 for follow-up on 2025-06-10), promo name OLM-BLITZ-21, 21-day trial window. I’ll upload the campaign brief to the HubSpot deal and share the final send list by Friday 2025-05-23.
+
+One small ask: can we set the campaign redirect to include a campaign param (utm_campaign=olm_blitz_may2025) — if that’s possible please let me know what the final redirect URL will be so we can wire it in the newsletter template.
+
+Thanks again — excited to feature Redwood.
+
+Best,
+Alyssa
+

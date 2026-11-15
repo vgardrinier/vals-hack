@@ -1,0 +1,56 @@
+Okta token-size enforcement causing 400s on Feature Flags admin console login
+
+Issue summary:
+Users are receiving HTTP 400 / 'invalid_request: token_too_large' responses when attempting to sign in to the internal Feature Flags admin console. The problem began after an Okta configuration rollout that enabled stricter token size enforcement on SAML/OIDC assertions.
+
+Impact:
+- Engineers cannot access Feature Flags admin UI to modify rollout rules and emergency feature toggles.
+- On-call workflows (hotfix rollouts) are blocked for any team that relies on the console.
+- Incident response window lengthened due to inability to temporarily flip flags.
+
+Environment:
+- Affected app: feature-flags-admin (internal console)
+- Environment: prod-us-east (internal tooling network)
+- Identity provider: Okta (org-wide policy change rolled out 2026-03-12 04:00 UTC)
+
+Steps to reproduce:
+1) Navigate to https://internal.featureflags.redwood/ and click 'Sign in with Okta'.
+2) Authenticate through Okta SSO flow for a user with > 20 group memberships (common for platform/admins).
+3) Okta redirects back to identity-proxy with SAML/OIDC token; the proxy returns 400 and the browser shows 'invalid_request: token_too_large'.
+
+Observed behavior:
+- Immediate 400 response from identity-proxy with message referencing token size limits.
+- No user session is created; UI shows login error.
+- Okta admin audit logs show policy enforcement events coincident with the timing of failed logins.
+
+Expected behavior:
+- Successful SSO exchange and creation of an internal session for the console.
+
+Initial hypothesis:
+- Okta recently enabled a new token-size enforcement rule for assertion length (related to group claim expansion). Users with many group memberships produce tokens that exceed the new limit; identity-proxy rejects long tokens leading to 400s.
+
+Relevant links/runbooks/logs:
+- Slack: #support (thread t/okta-token-size-2026-03-12)
+- Okta admin audit: https://okta.redwood/admin/audit?event=token_enforcement (internal)
+- Runbook: https://confluence.redwood/internal/runbooks/identity-proxy-token-failures (internal)
+
+Temporary mitigation attempted so far:
+- Reproduced with a test account and confirmed group-count correlates with failure.
+- Support temporarily re-routed a small subset of requests to fallback-idp (unavailable for most internal apps) — partial mitigation for one team.
+- Okta admin contacted to confirm the policy change and request a rollback or scoped exception for internal tooling while we implement a fix.
+- Confirmed timing matches Okta org policy rollout (2026-03-12 04:00 UTC).
+- Token length correlates with number of group memberships; test accounts with <10 groups succeed.
+- identity-proxy has an internal maximum accepted token size of ~12KB in middleware (limitation introduced by the SAML parsing library upgrade in 2026-02).
+- Options considered: 1) Ask Okta to rollback/scoped-exception, 2) Increase identity-proxy token size ceiling, 3) Trim group claims (claim reduction) at Okta or proxy.
+- Risk assessment: Increasing proxy token size requires a careful memory/DoS review; claim-trimming on Okta requires policy changes and may affect RBAC resolution for other apps.
+- Reproduced locally with an assertion fixture; created a test PR to add logging and guardrails to identity-proxy parsing (github.com/redwood-inference/identity-proxy/pull/1423).
+2026-03-12 05:02 - Sofia Mendes (SRE): Initial triage complete. Confirmed 400 originates from identity-proxy middleware. Reproduced with test token. Linking to INT-224466 for token parsing change history.
+2026-03-12 06:20 - Priya Sharma (IAM): Okta tenant team says policy was enabled org-wide to mitigate oversized assertion attacks. They're open to a scoped exception for the feature-flags app while we remediate.
+2026-03-12 07:15 - Liam O'Connor (assignee): Implementing short-term proxy-side increase to token size ceiling on a canary in staging to validate memory characteristics (PR: github.com/redwood-inference/identity-proxy/pull/1423). Will monitor for increased CPU/memory on canary node.
+2026-03-12 09:40 - Aisha Patel (reporter): Several oncall shifts affected; please prioritize exception if available — safety-critical toggles blocked for infra team.
+2026-03-12 11:05 - Okta Admin Team: Scoped exception created for app-client-id ff-admin-client (valid for 72 hours). Please proceed with code changes and schedule permanent fix.
+2026-03-13 02:30 - Liam O'Connor: Staging canary shows no memory spike with increased limit to 32KB. Preparing rollout plan for prod canary at 03:30 UTC with automated rollback on OOM or error surge.
+Triage complete. Okta granted a 72-hour scoped exception for ff-admin-client to restore access. Staged an identity-proxy code change to increase token ceiling to 32KB with monitoring and memory guards. Next steps: prod canary rollout, formalizing claim-trimming plan with IAM, and add long-term mitigation to identity runbook.
+Prod canary rollout of identity-proxy token ceiling change (03:30 UTC 2026-03-13)
+Add claim-trimming policy to Okta for internal apps and plan for phased rollouts
+Finalize PR review and post-deploy monitoring dashboard for token-size metrics

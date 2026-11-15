@@ -1,0 +1,54 @@
+Audit log pipeline alerts too noisy after rollout (drop-rate/latency) — tune thresholds + update runbook guidance
+
+Issue Summary
+- Since enabling the initial audit log delivery alerts (latency + drop rate), On-Call has been paged repeatedly for short-lived, low-impact fluctuations. The alerts are generating noise and are not aligned with the intended incident thresholds for audit pipeline reliability.
+
+Impact
+- Increased on-call load and alert fatigue for #eng-oncall / #eng-sre.
+- Several pages triggered during expected/benign conditions (brief exporter backpressure, transient ingestion backlog recoveries, low-volume tenants).
+- Risk: real incidents may get ignored or delayed due to repeated false positives.
+
+What we’re seeing
+- Drop-rate alert firing during short ingestion backlogs or during exporter retries, even when events are later delivered (at-least-once semantics).
+- Latency alert firing on p95 spikes during low traffic periods, especially in regions with fewer events.
+- Alerts firing per-dimension (region/service) without sufficient volume gating.
+
+Scope
+- Tune thresholds and evaluation windows for audit log pipeline alerts.
+- Add volume gating / minimum sample requirements.
+- Update the audit pipeline incident runbook to reflect new alert semantics and include a ‘noise triage’ checklist.
+
+Notes / Context
+- The audit log delivery SLO and dashboards were recently rolled out; the current alerting configuration appears overly sensitive.
+- This ticket is intended to adjust alerting behavior without changing core pipeline delivery semantics.
+
+Proposed changes (implementation guidance)
+1) Drop-rate alert
+- Change evaluation from short-window percentage to burn-rate style alerting with multiple windows (fast + slow) to reduce flapping.
+- Add minimum-event-volume gating (do not page if below N events in window).
+- Keep a lower-severity warning notification for early signals (non-paging).
+
+2) Latency alert
+- Page only on sustained p95 delivery latency above threshold for >= 15m (instead of 5m), plus volume gating.
+- Prefer region-aggregated SLO for paging; keep per-region/per-service as non-paging signals.
+
+3) Exporter queue/backpressure
+- Convert “queue depth” alerts to warnings unless backlog grows monotonically for >= 20m.
+- Ensure dashboards show “ingestion backlog vs exporter backlog” to route the incident correctly.
+
+Acceptance Criteria
+- Paging alerts align with actionable incidents (sustained drop-rate or sustained high delivery latency).
+- On-call pages reduce materially (target: <2 pages/week for audit pipeline absent real incident).
+- Runbook updated with new thresholds, triage steps, and links to the relevant dashboards.
+
+Owner / Reviewers
+- Owner: Sean Gallagher (SRE)
+- Consult: Rafael Mendes (runbook), Aisha Bello (alerting/dashboards), Logan Wright (coverage telemetry impacts)
+
+2026-02-12 (Aisha Bello): Flagging this as an internal quality-of-life issue for on-call. We’ve had 6 pages in 48 hours for audit pipeline ‘drop rate’ but no customer-visible impact (events delivered within ~10–25m). Requesting SRE to tune alert windows + add volume gating.
+2026-02-13 (Sean Gallagher): Agreed—current config is too twitchy. The drop-rate alert is effectively measuring short-term backlog, not true loss. I’ll propose burn-rate alerts + a minimum sample threshold, and will split paging vs warning signals.
+2026-02-14 (Rafael Mendes): Please update the runbook with explicit guidance on ‘backlog != loss’ and a step to check exporter retry metrics before escalating. I can review wording once thresholds are finalized.
+2026-02-17 (Sean Gallagher): Implemented changes in alert definitions: (1) drop-rate paging now requires sustained burn-rate across fast+slow windows; (2) latency paging requires >=15m sustained p95 above threshold with min volume; (3) per-region alerts demoted to warning. Requesting Aisha to sanity-check in dashboards.
+2026-02-18 (Aisha Bello): Reviewed in dashboards—looks much better. Alert now stays quiet during brief retry storms. We still get a warning in Slack when exporter backlog spikes, which is fine. +1 to ship.
+2026-02-19 (Sean Gallagher): Runbook updated with triage checklist + revised thresholds. Closing as resolved; we’ll monitor page volume for a week and reopen if needed.
+Adjusted audit log pipeline paging alerts to reduce flapping and align with actionable conditions: added volume gating, switched drop-rate paging to burn-rate multi-window evaluation, increased latency alert evaluation window, and demoted per-dimension signals to warnings. Updated the audit pipeline incident runbook with new thresholds and a noise-triage checklist.

@@ -1,0 +1,110 @@
+Penetration test executive summary release — embargo logistics & evidence access
+
+From: Kevin Sullivan <kevin.sullivan@acmeinc.com>
+To: priya_natarajan@redwood.example
+Cc: Jill Park <jill.park@acmeinc.com>, security@acmeinc.com
+Date: 2026-08-19T16:12:00-07:00
+Subject: Request: PT exec summary + evidence access + NDA redaction questions
+
+Hi Priya —
+
+Thanks again for running the engagement with our team. Our InfoSec review is wrapping up and we need a short executive summary of the penetration test to share with our board and procurement. We understand full report sharing may require additional legal controls. Two quick asks:  
+
+1) Can you provide a redacted executive summary (1–2 pages) we can circulate?
+2) For our SOC 2 attestation and internal audit, our security team will need timeboxed access to evidence (screenshots, logs) and a mapping of any redactions you apply.
+
+We have a standard vendor NDA in place but will likely need a short addendum (embargo and limited distribution clause). Can you confirm your process and suggested timeline?
+
+Appreciate a short reply with next steps so procurement can coordinate paperwork.
+
+—Kevin
+Kevin Sullivan
+Senior Security Manager, Acme Inc
+kevin.sullivan@acmeinc.com
+
+From: priya_natarajan@redwood.example
+To: Kevin Sullivan <kevin.sullivan@acmeinc.com>
+Cc: marcus_lin@redwood.example, laura_bennett@redwood.example, vivek_kulkarni@redwood.example, rachel_kim@redwood.example
+Date: 2026-08-19T17:03:00-07:00
+Subject: Re: Request: PT exec summary + evidence access + NDA redaction questions
+
+Kevin —
+
+Thanks for the note and the clear asks. Short answer: yes, we can provide a redacted executive summary and controlled, time-limited evidence access. Proposed approach:  
+
+- Exec summary: a 1–2 page PDF (high-level findings, severity summary, remediation status) with sensitive artifacts redacted. We’ll watermark and version it (RDW_PenTest_ExecSum_v1.pdf).
+- Evidence access: secure viewer link for a 14-day window for up to 3 named reviewers (view-only, no downloads). We’ll include a redaction map (CSV) that lists what sections were redacted and why.
+- NDA addendum: we prefer a short addendum that adds an embargo (14 days) and restricts forwarding. Our legal team (cc’d: laura_bennett) will propose language; procurement can sign via DocuSign.
+
+Timeline: internal security/engineering review and redaction by EOD tomorrow (Aug 20). If that works we can share the exec summary + evidence instructions and DocuSign link the morning of Aug 20, and open the secure viewer once the addendum is signed.
+
+If Acme needs a longer embargo or a different reviewer list, let us know now so we can adjust.
+
+Best,
+Priya Natarajan
+Technical Account Manager, Redwood Inference
+
+From: marcus_lin@redwood.example
+To: priya_natarajan@redwood.example, Kevin Sullivan <kevin.sullivan@acmeinc.com>
+Cc: vivek_kulkarni@redwood.example
+Date: 2026-08-19T18:21:00-07:00
+Subject: Re: Request: PT exec summary + evidence access + NDA redaction questions
+
+On Thu, Aug 19, 2026 at 5:03 PM Priya Natarajan wrote:
+> Timeline: internal security/engineering review and redaction by EOD tomorrow (Aug 20).
+
+Kevin — quick technical notes on evidence scope so expectations match:  
+
+- We will NOT provide raw packet captures or unredacted backend logs.
+- We can provide sanitized request/response traces and screenshot artifacts that demonstrate exploit reproduction, with IPs/user identifiers redacted.
+- The evidence CSV will reference specific finding IDs from the full report and a short rationale for each redaction.
+- For the secure viewer, we will enable session logging (who viewed, timestamps) and disable copy/paste.
+
+If Acme’s SOC 2 auditor requires additional artifacts, please share the auditor contact — we can discuss a limited escrow path or in-person review under supervision.
+
+—Marcus
+Marcus Lin
+Staff Security Engineer, Redwood Inference
+
+From: laura_bennett@redwood.example
+To: Jill Park <jill.park@acmeinc.com>, Kevin Sullivan <kevin.sullivan@acmeinc.com>, priya_natarajan@redwood.example
+Cc: vivek_kulkarni@redwood.example
+Date: 2026-08-20T08:12:00-07:00
+Subject: Re: Request: PT exec summary + evidence access + NDA redaction questions
+
+Hi Jill/Kevin —
+
+We’ve drafted a short NDA addendum that:  
+
+1) Confirms an embargo period of 14 days from delivery of the exec summary;  
+2) Restricts distribution to the three named reviewers and Acme’s SOC 2 auditor (if auditor contact is provided);  
+3) Prohibits storage of evidence artifacts outside Acme’s approved S3 buckets and requires secure-viewer-only access unless escrow is agreed;  
+4) Requires destruction certification after access window expires.
+
+I’ve attached the DocuSign envelope (link) and included a redaction justification matrix in RDW_PenTest_FullReport_summary_redaction_map.csv. We’re flexible on minor wording but would like signature prior to turning on viewer access.
+
+Attachment: Evidence_Share_Instructions.docx (access steps + reviewer list template)
+
+If acceptable, Priya will send the exec sum and link once signed.
+
+—Laura Bennett
+Senior Counsel, Redwood Inference
+
+From: Kevin Sullivan <kevin.sullivan@acmeinc.com>
+To: laura_bennett@redwood.example, priya_natarajan@redwood.example
+Cc: Jill Park <jill.park@acmeinc.com>, marcus_lin@redwood.example
+Date: 2026-08-20T11:45:00-07:00
+Subject: Re: Request: PT exec summary + evidence access + NDA redaction questions
+
+Laura/Priya —
+
+Thanks for the fast turnaround and the clear plan. Procurement has reviewed the addendum; the 14-day embargo and reviewer limit are fine. Two quick follow-ups before we sign:  
+
+1) Can the secure viewer window be extended to 21 days if our lead auditor needs extra time? We can request extension in writing; would Redwood approve one ad-hoc 7-day extension?
+2) Please include the name and contact for the person at Redwood who will perform the session logging if we need an auditor attestation.
+
+If those two items are OK, Jill will sign the DocuSign and we’ll provide auditor contact details. Looking forward to the exec sum.
+
+—Kevin
+Kevin Sullivan
+Senior Security Manager, Acme Inc

@@ -1,0 +1,44 @@
+architecture
+
+maria: Quick RFC follow-up — proposal to attach a retry-credit bucket to each tenant and enforce at ingress. Credits are consumed by hedges/backup attempts and replenished at a tiered rate. This lets us limit retry blast while keeping enterprise customers with higher SLAs covered.
+
+akshay: sketch the mechanics? short example pls.
+
+maria: config sketch: 
+```
+retry_credits:
+  tiers:
+    free: { rate: 1/s, max_burst: 5 }
+    pro: { rate: 5/s, max_burst: 25 }
+    enterprise: { rate: 20/s, max_burst: 100 }
+  borrow_from_shard: true
+  depletion_policy: downgrade_to_no_retries
+```
+
+joel: main concern: streaming + resumable flows. If we charge credits for every resumed handshake we double-count. Need to differentiate initial hedges vs in-stream resume. Also per-connection vs per-tenant accounting — broken clients could exhaust tenant budget.
+
+sarah: +1. For streaming, count credits only for full new attempts (e.g., server-side hedges or new request hedges). Resume handshakes should not deduct unless a new outbound hedge is actually issued. That avoids penalizing clients for network flakiness.
+
+maria: good. operational rules: 1) admission check at TCP/TLS accept; if tenant credits are depleted, mark connection as "best-effort" (X-Redwood-Retry-Policy: none) and fall back to local fast-paths only. 2) if credits are near limit, throttle hedges and prefer single-request fallback. 3) admin override for emergencies.
+
+akshay: how to surface this in the Console/metrics? we should show per-tenant credit burn, current bucket level, delta over 1/5/60m, and a list of recent downgrade events. Also add an alert when usage > 80% of committed quota or when downgrade rate spikes.
+
+joel: implement notes: keep token buckets in shard-local memory for latency. Persist periodic checkpoints to control plane for accounting + billing. On shard failover, conservative default = zero-borrow (i.e., don't issue hedges) until control-plane reconciliation to avoid accidental over-issuance. That reduces risk but may temporarily penalize enterprise customers — we should document that.
+
+sarah: rollout plan: behind feature flag. Phase 1 internal-only on staging with synthetic hedging load. Phase 2 limited beta with 3 customers (one per tier). Phase 3 gradual global. Add SLO guardrails: if error-rate increase beyond X% during beta rollback.
+
+maria: UX: add header + response code when downgrade occurs so downstream apps can observe (X-Redwood-Retry-Downgrade: true). Also surface in logs with structured reason codes: RETRY_DEPLETED, SHARD_FAILOVER, ADMIN_FORCE.
+
+akshay: danger case: a noisy lower-tier tenant exhausts shared shard pool and affects higher-tier tenants if borrow_from_shard=true. Suggest borrowable but capped per-tenant share and prioritized preemption for higher tiers.
+
+maria: agreed. borrowable with priority lanes; preempt older best-effort borrowers first.
+
+joel: timeline & actions: implement proto of admission hook + in-memory token bucket (joel), feature-flag gate + console metrics (akshay), alerting + SLO runbook (sarah), docs + SDK header spec (maria). Target: staging proto in 2 weeks, limited beta in 6 weeks.
+
+sarah: I'll write the incident-playbook snippet for shard-failover and downgrade detection.
+
+maria: thanks — I'll draft the RFC update and include config + rollout notes.
+
+deploy-bot: feature-flag retry-credit-v1 toggled to "off" in staging (production still off) :white_check_mark:
+
+maria: ok, next sync after joel posts a PoC branch link. :thumbsup:

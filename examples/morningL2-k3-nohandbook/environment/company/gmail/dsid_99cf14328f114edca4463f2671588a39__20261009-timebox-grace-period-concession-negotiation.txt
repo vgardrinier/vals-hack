@@ -1,0 +1,91 @@
+ClearArc pilot: request for grace period or conversion of unused days
+
+From: Jenny Lee <j.lee@cleararc.com>
+To: kimberly_park@redwood.com
+Cc: procurement@cleararc.com
+Date: Fri, 01 Oct 2026 09:12:00 -0700
+Subject: Request: short grace period or convert unused pilot days to credits
+
+Hi Kimberly,
+
+Thanks for the help so far — ClearArc's engineering ramp hit a few external blockers during the first two weeks of the pilot and our usage is well below what we expected. Procurement asked me to check whether Redwood can either: (a) grant a 2-week grace/extension to the current time-boxed pilot, or (b) convert unused pilot days to a credit that we can apply toward an early production commit.
+
+We started the pilot on 2026-09-01, and our usage report (attached) shows ~40 unused days across the test accounts. Procurement is leaning toward credits we can map to milestone deliverables, but the product team would prefer the extra run time to validate inference edge cases.
+
+Can you outline the simplest amendment you could provide? If you have a standard conversion rate (days -> credit) or a short amendment template, that would be ideal — procurement needs it for their internal approval.
+
+Attachments: ClearArc_Trial_Usage_Report.pdf (stub)
+
+Thanks,
+Jenny
+Jenny Lee
+Head of Integrations
+ClearArc Systems
+
+From: Kimberly Park <kimberly_park@redwood.com>
+To: Jenny Lee <j.lee@cleararc.com>
+Cc: procurement@cleararc.com
+Date: Sat, 02 Oct 2026 10:08:00 -0700
+Subject: Re: Request: short grace period or convert unused pilot days to credits
+
+Hi Jenny — really appreciate the context and the usage report — helpful. Two pragmatic options we can offer right away:
+
+1) Time-box extension: a one-time 14-day extension to the current pilot window. No charge for the extension itself; if you convert to a committed plan within 30 days after the extension, we can apply a 10% onboarding credit to the first month.
+
+2) Milestone credit conversion: convert up to 30 unused pilot days into a spend credit valued at 70% of list price for the equivalent token/day capacity. Credits can be applied against an initial committed invoice and documented as a short addendum (no change to the MSA).
+
+I attached a short one-pager that walks through the conversion math plus a draft amendment (amendment-draft-v1.docx) you can share with procurement. If procurement prefers a different conversion rate or wants a small extension plus credits, we can likely accommodate with approvals.
+
+Practical question: which is the priority for ClearArc — more runtime to validate (time extension) or a credit you can apply against an early commit? If you want, we can do a combined approach: 7–10 day extension plus a smaller credit.
+
+If procurement needs contract language, I can loop in Legal.
+
+Attachments: amendment-draft-v1.docx (stub); pilot-conversion-onepager.pdf (stub)
+
+Best,
+Kimberly Park
+Enterprise Sales
+Redwood Inference
+
+From: Jenny Lee <j.lee@cleararc.com>
+To: kimberly_park@redwood.com
+Cc: procurement@cleararc.com
+Date: Mon, 05 Oct 2026 14:21:00 -0700
+Subject: Re: Request: short grace period or convert unused pilot days to credits
+
+Thanks Kim — that is helpful and easy to share with procurement. A couple of asks from our side after review:
+
+- Would Redwood consider a 21-day extension instead of 14? Our team needs the extra runway to replay a backlog of inference scenarios.
+- Procurement is asking for minimal SLA language during the extension (example: 99.9% availability for hosted evaluation endpoints) because they're concerned about trials that stall and invalidate results.
+- If we go the credit route, they want credits mapped to milestone deliverables and an explicit expiry (12 months).
+
+I attached a high-level procurement spreadsheet with their preferred phrasing — it lists the MSA addendum items they typically require. If you can confirm whether the 21 days + SLA is doable, or propose a small blended option (e.g., 14 days + credits + a 7% onboarding credit), that would move things through purchasing faster.
+
+Attachments: procurement_requirements.xlsx (stub)
+
+Regards,
+Jenny
+
+From: Kimberly Park <kimberly_park@redwood.com>
+To: aditya_rao@redwood.com, priyom_das@redwood.com
+Date: Fri, 09 Oct 2026 11:03:00 -0700
+Subject: Fwd: ClearArc pilot — extension ask & options
+
+Internal note — forwarding ClearArc thread. Summary and recommendation below before I respond to Jenny: 
+
+Summary: ClearArc is asking either (A) 21-day extension to validate backlog, or (B) convert unused days to credits (procurement prefers this). They also want a minimal SLA during the extension and credits to expire at 12 months.
+
+My recommendation: approve a 21-day extension conditioned on signing a short addendum that: (1) caps the extension to a single, non-renewing 21-day run; (2) ties any credits to a post-extension committed purchase (credits expire in 12 months); and (3) we offer a blended commercial: 7% onboarding credit (instead of the 10% I initially suggested) if they commit within 45 days after the extension.
+
+SLA ask: we can offer a light SLA statement limited to hosted evaluation endpoints (99.9% best-effort availability) but we should avoid broader operational SLA or penalties for trial period. If Legal/Aditya are comfortable with that language, I think it's reasonable and keeps procurement happy.
+
+Next steps I need from you: 
+- Aditya: sign off on the proposed SLA language and single-use concession (21 days + 7% onboarding credit).
+- Priyom: please prepare a short addendum based on amendment-draft-v1.docx that implements the above and marks credits expiry at 12 months.
+
+I'll hold on external response until I have both approvals.
+
+Thanks,
+Kimberly
+Enterprise Sales
+Redwood Inference

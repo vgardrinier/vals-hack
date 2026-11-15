@@ -1,0 +1,106 @@
+Pipeline signal check — 48h commit scoreboard
+
+From: Kimberly Park <kimberly@redwood.inference>
+To: Ben Carter <ben@redwood.inference>, Marissa Cole <marissa@redwood.inference>, Priyom Das <priyom@redwood.inference>, Laura Bennett <laura@redwood.inference>
+Cc: 
+Date: Thu, 13 Aug 2026 09:12:00 -0700
+Subject: Pipeline signal check — 48h commit scoreboard
+
+Team —
+
+We have 48 hours until EOW close window for Stellar Markets. Quick ask: please update stage, commit confidence, and blockers in the attached scoreboard by EOD tomorrow. Key expectations: 
+- Confirm PO timing (legal + procurement paths) — mark as PO-Ready / PO-Blocked.
+- For any deals with >70% commit confidence, list the exact next step owner and ETA.
+- Call out any technical gating (integration pilot, SSO, VPC) that could shift timing.
+
+I attached a working scoreboard (commit_scoreboard_20260815.csv) and the latest MA plan from the AE track (Stellar_MA_plan_v4.xlsx). I will consolidate into the summary for finance by Monday morning.
+
+Thanks — keep entries tight (one line per deal).
+
+Kimberly Park
+Head of Revenue Operations
+Redwood Inference
+
+-----
+From: Ben Carter <ben@redwood.inference>
+To: Kimberly Park <kimberly@redwood.inference>, Marissa Cole <marissa@redwood.inference>
+Cc: Priyom Das <priyom@redwood.inference>
+Date: Fri, 14 Aug 2026 11:04:00 -0700
+Subject: Re: Pipeline signal check — 48h commit scoreboard
+
+Kimberly —
+
+Updated the scoreboard with my book (rows 12–28). Snapshot highlights:
+- DW-4387 (Stellar Markets): moved to "Contracting — PO-Ready". Procurement expects DocuSign by Monday; procurement contact says no legal redlines expected.
+- DW-4419 (Greenbyte): still "Commit — 60%"; waiting on exec sign-off (VP Product) — owner: Marissa, ETA Mon 08/17.
+- DW-4393 (Nimbus): moved to "Lost — pricing mismatch" (no further action).
+
+Attachments referenced in cell notes. I left brief notes in the comments column for each row.
+
+Ben Carter
+Account Executive, North America
+Redwood Inference
+
+On Thu, Aug 13, 2026 at 09:12 AM Kimberly Park <kimberly@redwood.inference> wrote:
+> Team —
+> 
+> We have 48 hours until EOW close window for Stellar Markets. Quick ask: please update stage, commit confidence, and blockers in the attached scoreboard by EOD tomorrow. Key expectations: 
+> - Confirm PO timing (legal + procurement paths) — mark as PO-Ready / PO-Blocked.
+> - For any deals with >70% commit confidence, list the exact next step owner and ETA.
+> - Call out any technical gating (integration pilot, SSO, VPC) that could shift timing.
+> 
+> I attached a working scoreboard (commit_scoreboard_20260815.csv) and the latest MA plan from the AE track (Stellar_MA_plan_v4.xlsx). I will consolidate into the summary for finance by Monday morning.
+> 
+> Thanks — keep entries tight (one line per deal).
+> 
+> Kimberly Park
+> Head of Revenue Operations
+> Redwood Inference
+
+-----
+From: Marissa Cole <marissa@redwood.inference>
+To: Kimberly Park <kimberly@redwood.inference>, Ben Carter <ben@redwood.inference>, Priyom Das <priyom@redwood.inference>, Laura Bennett <laura@redwood.inference>
+Cc: 
+Date: Sat, 14 Aug 2026 16:28:00 -0700
+Subject: Re: Pipeline signal check — 48h commit scoreboard
+
+Adding clarifying notes for Stellar (DW-4387):
+- Commercial: AE (Ben) confirmed PO-Ready — procurement looped (contracts@sageworks.com).
+- Technical: Integration pilot scheduled for 8/20; nothing blocking sign-off for billing.
+- Finance ask: If procurement needs a revised T&Cs clause, flag immediately — they requested our standard SOC 2 attestation and limited retention clause (attached excerpt).
+
+I attached the short MA excerpt I shared with Ben and the procurement contact (Stellar_MA_plan_v4.xlsx). If anyone needs me to jump on a quick call with Procurement on Monday (8/17), I can — otherwise I’ll stay on email.
+
+Marissa Cole
+Senior Sales Engineer
+Redwood Inference
+
+On Fri, Aug 14, 2026 at 11:04 AM Ben Carter <ben@redwood.inference> wrote:
+> Kimberly —
+> 
+> Updated the scoreboard with my book (rows 12–28). Snapshot highlights: ...
+
+-----
+From: Kimberly Park <kimberly@redwood.inference>
+To: Ben Carter <ben@redwood.inference>, Marissa Cole <marissa@redwood.inference>, Priyom Das <priyom@redwood.inference>, Laura Bennett <laura@redwood.inference>
+Cc: Ellen Park <ellen@stellarmarkets.com>, Procurement <contracts@sageworks.com>
+Date: Sun, 15 Aug 2026 17:03:00 -0700
+Subject: Re: Pipeline signal check — 48h commit scoreboard
+
+Thanks for the fast updates — consolidated notes below for finance submission: 
+- Stellar Markets (DW-4387): Contracting, PO-Ready, DocuSign requested 8/17 — probability 85%. Procurement contact: contracts@sageworks.com.
+- Greenbyte (DW-4419): Commit confidence 60% — follow-up owner Marissa, exec sign-off target 8/17.
+- Nimbus (DW-4393): Closed-Lost — no revenue.
+
+Action items for today: 
+1) Ben — confirm the exact purchaser name and email for the DocuSign payload (reply to contracts@sageworks.com and CC me).
+2) Marissa — standby for Monday procurement call if they ask for an attestation excerpt (you already have it attached).
+3) Priyom/Laura — I will send the final rollup to Finance at 09:00 PT on 8/16; if any status changes, update the scoreboard before 22:00 PT tonight.
+
+Final rollup will include a one-line reason for any >10% changes in forecast vs. prior commit.
+
+Kimberly Park
+Head of Revenue Operations
+Redwood Inference
+
+Attachments: Stellar_MA_plan_v4.xlsx (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet), commit_scoreboard_20260815.csv (text/csv)

@@ -1,0 +1,131 @@
+Re: MAP & Eval Maestro — deployment-mode selection and region runway
+
+From: Laura Bennett <laura.bennett@redwood.com>
+To: Jane Doe <jane.doe@healthnova.com>, Carlos Mendez <c.mendez@healthnova.com>
+Cc: 
+Date: Tue, 07 Apr 2026 09:12:00 -0700
+Subject: MAP & Eval Maestro — deployment-mode selection and region runway
+
+Hi Jane / Carlos,
+
+Thanks again for the time yesterday. Attached is our working MAP (HealthNova_MAP_v3.xlsx) and a short evaluation checklist we call 'Eval Maestro' — it's a practical sequence we've used to choose deployment mode and region with other regulated customers. High level ask: we'd like a decision on deployment mode (Hosted vs Dedicated vs Private) and preferred region so we can lock capacity and finalize the commercial terms in the next 2–4 weeks.
+
+Proposed Eval Maestro (recommended minimal path):
+- Week 0: Confirm compliance constraints + data residency (you).
+- Week 1–2: Small-scale eval using Hosted in us-east (30k tokens/day pattern).
+- Week 3: Performance run + smoke tests (latency, KV cache behavior).
+- Week 4: Canary with dedicated pool (if opting Dedicated) or full cutover plan (if Private).
+
+Questions from our side to unblock timelines:
+1) Any hard constraints requiring on-prem/private right away?
+2) Preferred region(s) for production (us-east, us-west, eu-west)?
+3) Procurement owner + target PO/contract date?
+
+Attachments: HealthNova_MAP_v3.xlsx (MAP with milestones), Redwood_EvalChecklist.pdf (Eval Maestro checklist).
+
+Proposed next step: 30-min sync on Thu 10am PT to lock the MAP. If that works, I'll send a calendar invite and include our solutions engineer.
+
+Thanks,
+--
+Laura Bennett
+Enterprise Sales
+Redwood Inference
+laura.bennett@redwood.com
++1 415-555-0186
+
+From: Jane Doe <jane.doe@healthnova.com>
+To: Laura Bennett <laura.bennett@redwood.com>
+Cc: Carlos Mendez <c.mendez@healthnova.com>
+Date: Tue, 07 Apr 2026 11:08:00 -0700
+Subject: Re: MAP & Eval Maestro — deployment-mode selection and region runway
+
+Laura —
+
+Thanks for the doc and clear plan. A few quick notes from our compliance and infra leads:
+- We are SOC 2 sensitive for PHI-adjacent metadata; we will need SOC2 evidence and a short note on retention and audit logs.
+- Prefer us-east for latency, but our legal team may insist on a separate dedicated footprint if we store any patient-identifiable content.
+- Procurement: I'm looping Carlos (security/ops) and our procurement lead, Priya Khatri (priya.khatri@healthnova.com) — Priya is the PO owner. Our target contract date is end of May (around 2026-05-28) if we can validate performance and compliance.
+
+We can take the Hosted eval but will need an option path for Dedicated/Private — please include cost delta and rough cutover plan.
+
+Also attaching a short internal constraints note for context.
+
+Best,
+Jane
+VP Product, HealthNova
+[Attachment: HealthNova_Constraints.docx]
+
+On Tue, Apr 7, 2026 at 9:12 AM Laura Bennett <laura.bennett@redwood.com> wrote:
+> Hi Jane / Carlos,
+> 
+> Thanks again for the time yesterday. Attached is our working MAP...
+
+From: Laura Bennett <laura.bennett@redwood.com>
+To: Aditya Rao <aditya_rao@redwood.com>, Priyom Das <priyom_das@redwood.com>
+Cc: 
+Date: Wed, 08 Apr 2026 10:25:00 -0700
+Subject: Fwd: HealthNova MAP — compliance ask and deployment path (internal)
+
+Aditya / Priyom — looping you in on HealthNova (HN-2026-042). External asked for SOC2 evidence, retention/audit details, and wants a Hosted eval with an option to move to Dedicated/Private. Key asks:
+- Quick SOC2 summary to share (what artifacts can we provide without an NDA).
+- High-level cost delta between Hosted -> Dedicated reserved pool -> Private on-prem (ballpark ranges: % increase).
+- Feasibility notes on hybrid approach (start Hosted Canary in us-east, hold a Dedicated pool warm for PHI workflows).
+- Can we produce a 2-page canary cutover runbook and a 3-week performance smoke test plan?
+
+I've attached the Eval Maestro checklist. Our target: ship answers and an updated MAP to HealthNova by Fri EOD so we don't slip procurement into June.
+
+Thanks —
+Laura
+
+[Attachment: Redwood_EvalChecklist.pdf]
+
+On Tue, Apr 7, 2026 at 11:08 AM Jane Doe <jane.doe@healthnova.com> wrote:
+> Laura —
+> 
+> Thanks for the doc and clear plan...
+
+From: Laura Bennett <laura.bennett@redwood.com>
+To: Jane Doe <jane.doe@healthnova.com>, Carlos Mendez <c.mendez@healthnova.com>, Priya Khatri <priya.khatri@healthnova.com>
+Cc: Aditya Rao <aditya_rao@redwood.com>, Priyom Das <priyom_das@redwood.com>
+Date: Fri, 09 Apr 2026 15:45:00 -0700
+Subject: Re: MAP & Eval Maestro — deployment-mode selection and region runway (answers + proposed runway)
+
+Hi Jane / Carlos / Priya —
+
+Appreciate the quick turnaround. Short answers and an updated runway below; attaching our SOC2 executive summary.
+
+1) SOC2 / audit logs
+- Attached: SOC2_Summary.pdf (control families, auditor, and what evidence we can share pre-NDA).
+- We can produce exportable audit logs for the evaluation window and a retention policy statement (30/90/365 options).
+
+2) Recommended path (minimal risk / fastest close):
+- Week 0 (this week): Confirm procurement owner + sign MSA/LOI.
+- Week 1–2: Hosted eval in us-east (30k token/day pattern) — Redwood provides monitoring + token-level cost breakdown.
+- Week 3–4: Performance run + security scan. If PHI gating appears, we execute a Reserved Dedicated pool cutover (warm pool) in Week 4–5.
+- Week 6: Full production rollout or Private deployment planning (if chosen).
+
+Notes on costs and feasibility:
+- Ballpark delta: Hosted -> Dedicated (reserved) = ~2–3x monthly unit cost for comparable latency SLAs; Dedicated -> Private (on-prem) = additional one-time integration + infra lift (TBD by infra team). We'll follow up with a short estimate doc.
+- Hybrid approach: viable. Start Hosted for fast eval, then route PHI paths to Dedicated when ready.
+
+3) Next steps I can execute this week:
+- Send updated MAP (attached link) with explicit milestones and acceptance criteria.
+- Send DocuSign MSA starter (link below) and a HubSpot quote for finance.
+- Provide a 1-page canary cutover runbook and the 3-week smoke test plan by Mon EOD.
+
+Links:
+- HubSpot quote: https://hubspot.company/quote/HN-2026-042
+- MAP (live): https://drive.redwood/team/HealthNova/MAP_v3
+- DocuSign MSA draft: https://app.docusign.com/some/doc/hn-2026-042
+
+Please confirm: 1) do you want Redwood to proceed with Hosted eval in us-east next Tue? 2) any additional compliance artifacts required before Hosted eval?
+
+Thanks — looking forward to locking dates.
+
+Best,
+--
+Laura Bennett
+Enterprise Sales
+Redwood Inference
+laura.bennett@redwood.com
+[Attachment: SOC2_Summary.pdf]

@@ -1,0 +1,48 @@
+docs
+
+marta: Heads-up  i'm preparing a small docs merge to unify our function/tool calling + structured-output guidance. goals: migration tips, tiny SDK snippets, streaming caveats, and two broken-anchor fixes. drafting in branch docs/tool-calling-migration
+devon: awesome. could you include a short decision table on when to prefer schema validation vs best-effort parsing? customers keep asking if they should require schemas for all tool inputs
+hiro: +1. also call out that the python SDK uses snake_case keys (structured_output) vs camelCase in JS (structuredOutput)  we've seen confusion in examples that mix them
+marta: good point. planning to add a short table and a labeled example per SDK. draft snippets below for quick review before i push:
+```python
+# python minimal example: function/tool call with json schema
+from redwood import RedwoodClient
+c = RedwoodClient()
+resp = c.call_tool(
+    name="get_invoice",
+    input={"invoice_id": "inv_123"},
+    structured_output={
+        "type": "json_schema",
+        "schema": {
+            "type": "object",
+            "properties": {"amount_due": {"type": "number"}},
+            "required": ["amount_due"]
+        }
+    }
+)
+# inspect resp.output for validated JSON, resp.errors for validation issues
+```
+```js
+// js minimal example: camelCase SDK style
+import { RedClient } from '@redwood/inference';
+const client = new RedClient();
+const res = await client.callTool({
+  name: 'get_invoice',
+  input: { invoice_id: 'inv_123' },
+  structuredOutput: {
+    type: 'json_schema',
+    schema: { type: 'object', properties: { amount_due: { type: 'number' } }, required: ['amount_due'] }
+  }
+});
+// res.output is the parsed object or res.errors lists schema violations
+```
+kaela: these look clean. please add one-line guidance for handling validation failures: retry once, then fallback to text parser or bubble up a structured error to the caller. example: `if res.errors: fallback_to_text_parser()`
+marta: will add that. also adding streaming note: when streaming=true the model may send partial JSON that won't validate until complete. recommend either use stream=false for critical validations or use `buffer_full_response=True` to reassemble before validation. link to runtime issue about streaming: https://github.com/redwood-inference/runtime/issues/432
+devon: there are two old anchors in docs/index that 404: /docs/tooling/call vs /docs/structured-output/#jsonschema. please replace with canonical /docs/tool-calling/ and /docs/structured-output/#json-schema. mention in PR description so changelog diff picks it up
+hiro: small wording nit: call the feature "structured output" in prose, but use literal keys in code blocks. avoids mixing docs voice and code style
+marta: good nit. i'll also add a "Migration" subsection: short checklist for teams upgrading from regex-parsing to schema-based validation: 1) audit prompts that relied on regex, 2) add schema with required fields, 3) run validation mode=warn for 48h, 4) switch to enforce and backport to stable branch if pinned customers exist
+kaela: add suggested changelog blurb too: "docs: migration guide for structured output (json schema) + SDK snippet updates" so release notes capture it
+marta: drafting PR now. linking branch: https://github.com/redwood-inference/docs/pull/1762 ; tagging @devex and @support for awareness :bell:
+docs-bot: PR opened by marta: https://github.com/redwood-inference/docs/pull/1762  reviewers requested: @devon @hiro :eyes:
+devon: i'll review and check examples against the linter after you push the branch. thanks!
+marta: thanks team  pushing in ~15m and will follow up with backport PR if we need to update stable branch

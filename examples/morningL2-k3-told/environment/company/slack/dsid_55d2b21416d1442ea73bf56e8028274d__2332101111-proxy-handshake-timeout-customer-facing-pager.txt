@@ -1,0 +1,50 @@
+2332101111
+
+incident-bot: :rotating_light: PAGER: P0 - spike in 5xx and TLS handshake timeouts from eu-west edge cluster. alerts: gateway.handshake.failures > 400/min, traffic impacted ~12% for hosted API. Runbook: https://redwood/runbooks/tls-handshake
+Alex (oncall): acked - jumping in. where's the error surface?
+Maya (eng-runtime): seeing >50% of upstream connections to model-router returning `tls: handshake failure` from the edge proxies. logs: `proxy.go:482 tls handshake error: remote error: tls: bad certificate`
+Alex (oncall): is this client-auth (mTLS) or server cert?
+Maya (eng-runtime): looks like mutual auth failing for a subset of traffic. majority of fails from customers that recently switched to dedicated capacity with client cert pinning.
+Priya (support): multiple customers reporting 502/524. Support ticket stream: https://redwood/tickets/INC-8712 - customers affected list attached there. Communicating we are investigating, ETA TBD.
+Eli (eng-sre): can we confirm cert expiry or rotator failure? Pulling rotator logs now.
+Sam (infra): rotator health looks green, last rotation succeeded 2 days ago. but ocsp-responses show intermittent 503s from CA. could be OCSP stapling failing -> clients reject.
+Maya (eng-runtime): good catch. logs from edge:
+```
+2026-03-15T09:12:03Z proxy TLS handshake error: ocsp staple missing, err="ocsp: responder error (500)"
+2026-03-15T09:12:04Z proxy TLS handshake error: client certificate verify failed
+```
+Alex (oncall): so ocsp/responder error cascades into handshake failures for mTLS clients. What's the blast radius?
+Eli (eng-sre): roughly 10-15% of requests to eu-west edges, but those have high customer impact (PLG + enterprise ingestion). SLO alert threshold hit.
+Priya (support): flagged top 5 paying customers to escalation, lead with mitigation steps.
+Maya (eng-runtime): immediate mitigation options: 1) disable OCSP stapling at edge for eu-west temporarily (reduces verification strictness) 2) enable fallback routing to east-1 for impacted customers 3) roll edge certs to use fresh certs without OCSP dependency.
+Sam (infra): we can toggle OCSP stapling at the proxy config quickly but that reduces revocation checks. need approval for temporary risk.
+Alex (oncall): risk accepted for 30m with follow-up. Do we have a command to flip?
+Eli (eng-sre): yes, config is in k8s configmap `edge-proxy-ocsp-config`. patch like:
+```
+kubectl -n edge patch configmap edge-proxy-ocsp-config --patch '{"data":{"ocsp_enabled":"false"}}'
+```
+and then rollout the daemonset wise: `kubectl rollout restart ds/edge-proxy -n edge`
+Alex (oncall): Priya, notify customers of temporary change and reason. keep language neutral: "temporarily relaxing revocation stapling to restore connectivity while we investigate downstream CA responder errors."
+Priya (support): on it. sending advisory now.
+Maya (eng-runtime): I'll apply the patch to eu-west canaries first. doing canary now.
+k8s-deploy-bot: Canary deploy submitted: ds/edge-proxy eu-west-nodes (3/3) restarted - patch id canary-23321
+Maya (eng-runtime): canary looks good, metrics show handshake error rate in canary down to normal within 30s. rolling to remaining nodes.
+k8s-deploy-bot: Rollout in progress: ds/edge-proxy eu-west (18/18) - 60% updated
+Eli (eng-sre): monitoring for anomalous traffic or misissued certs while stapling disabled.
+Sam (infra): also spinning up traffic steering rule for top-affected customers to route to eu-central fallback. running:
+```
+redwood-routes set --from eu-west --to eu-central --match customer_id in (CUST-A, CUST-B, CUST-C)
+```
+Alex (oncall): good. keep both mitigations in play. Maya confirm handshake errors falling cluster-wide.
+Maya (eng-runtime): confirmed: post-rollout handshake failures down to baseline, 5xx rate back to normal. latency unaffected.
+Priya (support): customers acknowledge improved connectivity. still monitoring.
+Eli (eng-sre): next steps: 1) follow-up with CA vendor about OCSP 503s 2) re-enable stapling only after CA confirms stability and we validate with canary 3) prepare a sticky fallback policy for future responder flaps.
+Sam (infra): filing vendor incident: https://vendor/ocsp/INC-424 - included stapling errors + sample requests.
+Maya (eng-runtime): also creating a smoke test that calls openssl s_client + checks OCSP staple presence as part of edge health checks. PR incoming.
+Alex (oncall): excellent. I'm going to update the incident page and set P0 -> P1 after sustained recovery for 15m.
+Priya (support): moving tickets to monitoring and sending follow-up note to customers with temporary mitigation and timeline.
+Eli (eng-sre): before re-enable, let's run a 1h canary with stapling on for small percentage of traffic. plan looks good.
+Alex (oncall): handoff to Eli for the overnight watch. I'm off in 20. Eli, you'll pick up as owner. keep the bot updated.
+Eli (eng-sre): ack, I own. logging timeline & RCA notes into incident doc: https://redwood/incidents/2332101111
+Alex (oncall): thanks team. great coordination. :thumbsup:
+incident-bot: Incident P0 -> P1: mitigation applied, 5xx rate normalized. Logged timeline and actions.

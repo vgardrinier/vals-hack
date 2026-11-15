@@ -1,0 +1,129 @@
+Private deployment cryptographic custodianship & HSM/BYOK architecture review
+
+From: Jack Morrison <jack.morrison@acme-fin.com>
+To: Priya Natarajan <priya.natarajan@redwood.ai>
+Cc: security_ops@acme-fin.com
+Date: 2026-05-20T15:12:00-07:00
+Subject: Request: BYOK / HSM custodianship model for private deploy
+
+Hi Priya,
+
+Thanks again for the walkthrough earlier. As we scope the VPC/private deployment for our regulated workloads, the security team needs a short architecture review focused on key custodianship and encryption boundaries. Specifically we need to confirm: 
+
+- Can Redwood support BYOK where we maintain root keys (KMS CMKs) in our HSM and only import wrapped DEKs for runtime?
+- What HSM models/attestation are supported (PKCS#11, Nitro, Thales Luna) and do you have FIPS level guidance?
+- How does rotation work end-to-end (who rotates, how are old keys retired, emergency revoke)?
+- Network segmentation requirements: can HSMs live in a dedicated subnet with strict egress rules and TLS mutual auth to Redwood agents?
+
+We have a short audit next month and would appreciate a one-page summary + any diagrams you can share. Also please note we may involve Thales for an integration call — looping them in is fine.
+
+Thanks,
+Jack
+Jack Morrison
+Dir, Cloud Security - Acme Financial
+
+Attachment: acme-kms-requirements.xlsx (stub)
+From: Priya Natarajan <priya.natarajan@redwood.ai>
+To: Jack Morrison <jack.morrison@acme-fin.com>
+Cc: vivek.kulkarni@redwood.ai, mina_haddad@redwood.ai
+Date: 2026-05-20T17:30:00-07:00
+Subject: Re: Request: BYOK / HSM custodianship model for private deploy
+
+Jack — thanks for the clear ask. I prepared a concise design summary and attached a one-page blueprint (Redwood_Key_Design_Blueprint_v1.pdf) illustrating the recommended approach for private (VPC/on-prem) deployments. High-level answers below; I'll add details and a diagram in the attachment.
+
+Summary answers (short):
+- BYOK model: yes — we support an envelope encryption pattern where customer-managed CMKs live in a customer-controlled HSM (BYOK). Redwood receives only wrapped Data Encryption Keys (DEKs). We support both import of externally-wrapped DEKs (bring-wrapped-key) and a remote-wrap flow where Redwood generates a DEK and the customer KMS wraps it under their CMK using an attested TLS session.
+
+- HSM compatibility: we support any HSM exposing PKCS#11 or a vendor API for key import/export (Thales, Luna, Gemalto, Nitro HSM variants). For regulated workloads we recommend a FIPS 140-2 Level 3 or FIPS 140-3 L2+ HSM depending on threat model; we can provide specific test matrices.
+
+- Rotation model: preferred pattern is staggered rotation — rotate DEKs frequently (e.g., 30–90 days) and CMKs less frequently (annual or per-policy). Key retirement uses a tombstone period (configurable, recommended 90 days) with automatic rewrap of live artifacts. Emergency revoke: we support immediate blacklisting of CMKs/WRAPPED keys and cross-region fallback to a verified Redwood-managed key only under documented, auditable emergency governance.
+
+- Network & segmentation: HSMs can reside in a dedicated private subnet peered to Redwood agents over a customer-managed transit (VPC peering/PrivateLink/VPN). Minimum egress is mTLS to Redwood agent IPs on port 443 and SSH for maintenance (optional). We recommend isolating HSM management plane to jump-hosts with MFA and IP allowlists.
+
+Next steps:
+1) I'll schedule an architecture review call with Vivek (runtime lead) and Mina (security) to walk through the blueprint.
+2) If helpful, we can invite Thales to confirm the import/wrap flows.
+
+Attaching: Redwood_Key_Design_Blueprint_v1.pdf (diagram + steps).
+
+Best,
+Priya Natarajan
+Senior Solutions Architect, Redwood Inference
+
+Attachment: Redwood_Key_Design_Blueprint_v1.pdf (stub)
+From: Vivek Kulkarni <vivek.kulkarni@redwood.ai>
+To: Priya Natarajan <priya.natarajan@redwood.ai>, Jack Morrison <jack.morrison@acme-fin.com>
+Cc: laura.bennett@redwood.ai, hiro.tanaka@redwood.ai
+Date: 2026-05-21T09:05:00-07:00
+Subject: Re: Request: BYOK / HSM custodianship model for private deploy
+
+Jack / Priya — a few operational notes from the runtime and infra perspective: 
+
+- Envelope encryption: we recommend DEKs be AES-256-GCM with associated metadata that includes key id, version, and epoch. DEKs should be ephemeral in agent memory (never persisted unwrapped) and protected with a hardware-backed key-encryption-key (KEK) provided by the customer CMK.
+
+- Attestation & import: for the remote-wrap flow, we use a mutual-TLS + attestation token exchange (TPM/attest agent) to verify the agent before requesting a wrap. For bring-wrapped-key, the HSM must export a wrapped key blob that conforms to a PKCS#11-wrapped format (or CMS/WrappedData) that we can ingest. If Thales requires a vendor-specific envelope we can add a small adapter.
+
+- HSM network: put HSMs in a management subnet with no internet egress; all wrapping/unwrapping calls are initiated from the agents inside your VPC via a private peering link. Agents talk to the HSM over the vendor-specific protocol (e.g., 2050/TCP for Luna, or PKCS#11 over socket). We will ship a hardened agent (FIPS-mode TLS stacks) and can pin ciphers.
+
+- Logging & audit: Redwood will produce KMS audit events (key-id, operation, agent-id, request-id, timestamps) and we can forward those logs to your SIEM over the private link. If you require HSM-audit retention, we recommend retaining HSM syslogs for 1 year (configurable).
+
+- Backup & escrow: we recommend a split-knowledge key-escrow for CMKs used for emergency unwrap. Escrow should be stored in a different physical region and require multi-person approval.
+
+I attached a quick network sketch (hsm-network-segmentation-diagram.png) and noted a couple of items we should validate with Thales: support for remote-wrap API and whether offline key ceremony/import is needed for their appliance.
+
+—Vivek
+Vivek Kulkarni
+Head of Runtime, Redwood Inference
+
+Attachment: hsm-network-segmentation-diagram.png (stub)
+From: Mina Haddad <mina_haddad@redwood.ai>
+To: Priya Natarajan <priya.natarajan@redwood.ai>, Vivek Kulkarni <vivek.kulkarni@redwood.ai>, Jack Morrison <jack.morrison@acme-fin.com>
+Cc: hiro.tanaka@redwood.ai
+Date: 2026-05-21T11:20:00-07:00
+Subject: Re: Request: BYOK / HSM custodianship model for private deploy
+
+Thanks — this is good. A couple of security-specific clarifications we need before the audit: 
+
+1) Rotation SLA and signal: please spell out who triggers CMK rotation vs DEK rotation. My preference is: customer triggers CMK rotation (we can automate rewrap), Redwood triggers DEK rotation based on token volume/time (configurable), and both events emit a KMS event that we can ingest into your SIEM.
+
+2) Key life cycle states: please confirm state transitions (Active -> Pending-Retire -> Retired -> Destroyed) and timelines. We need the ability to freeze/rollback a rotation within a 24–48 hour window in case of a regression to model behavior.
+
+3) Attestation & proof of possession: for any remote-wrap flow we require a signed attestation token from the agent including firmware hash + agent version. If the HSM supports it, we also want an HSM-signed nonce proving the CMK is within a certified boundary.
+
+4) Secrets handling in CI/CD: we need a recommended workflow for provisioning agent config and wrapped keys into CI/CD (GitHub Actions / Jenkins). Prefer ephemeral secrets via a sealed secret store (Vault / sealed-secrets) and avoid storing wrapped keys in plaintext in repos.
+
+Can you update the blueprint with: a short lifecycle table, attestation sample, and recommended CI/CD pattern?
+
+-Mina
+Mina Haddad
+Sr Manager, Security & Compliance, Redwood Inference
+
+> On May 20, 2026, at 5:30 PM, Priya Natarajan <priya.natarajan@redwood.ai> wrote:
+> 
+> > Jack — thanks for the clear ask. I prepared a concise design summary and attached a one-page blueprint (Redwood_Key_Design_Blueprint_v1.pdf) illustrating the recommended approach for private (VPC/on-prem) deployments. High-level answers below; I'll add details and a diagram in the attachment.
+
+From: Jack Morrison <jack.morrison@acme-fin.com>
+To: Priya Natarajan <priya.natarajan@redwood.ai>
+Cc: security_ops@acme-fin.com
+Date: 2026-05-22T08:00:00-07:00
+Subject: Re: Request: BYOK / HSM custodianship model for private deploy
+
+Priya / team — this is exactly what we need for the audit. Appreciate the clarity. Quick confirmation and next actions: 
+
+Action items:
+- Priya: update blueprint with lifecycle table, attestation sample, and CI/CD guidance (due 2026-05-25)
+- Vivek: validate Thales remote-wrap API compatibility & provide adapter estimate (due 2026-05-27)
+- Mina: provide SIEM ingestion schema and retention recommendation for audit package (due 2026-05-24)
+- Acme security: share current HSM model + network diagram (we will circulate)
+
+Also attaching a short RFI we received from procurement (acme-kms-rfi-answers.pdf) that includes expected certifications.
+
+Call: let's do a quick 30-minute sync on 2026-05-26 10:00 AM PT — I will send a calendar invite.
+
+Thanks again — please include any governance language for emergency unwrapping; procurement asked for a sample process document.
+
+-Jack
+Jack Morrison
+Dir, Cloud Security - Acme Financial
+
+Attachment: acme-kms-rfi-answers.pdf (stub)

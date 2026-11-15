@@ -1,0 +1,132 @@
+ArgentBank security handoff — evidence, retention & next steps
+
+From: Sofia Ivanova <sofia.ivanova@redwood-inference.com>
+To: Ellis Turner <ellis.turner@argentbank.com>; Ben Jacobs <ben.jacobs@argentbank.com>
+Cc: Irene Choi <irene.choi@redwood-inference.com>, Marissa Cole <marissa.cole@redwood-inference.com>, Neha Kapoor <neha.kapoor@redwood-inference.com>
+Date: Tue, 19 May 2026 15:03:00 -0700
+Subject: ArgentBank security handoff — evidence, retention & next steps
+
+Hi Ellis — thanks again for the call earlier today. Quick recap and proposed next steps so we have a single decision log to track. I captured what I heard; please correct anything I’ve mis-stated.
+
+Summary of what we covered
+- Primary drivers: regulated payments flows, auditability for ACH/settlements, and DLP requirements for customer PII.
+- Required evidence: SOC 2 report (or SOC 2 in-progress evidence), audit log export capability (queryable by time range), retention policy for logs (24 months preferred; 12 months minimum), and penetration test report or scheduled window.
+- Data residency & DPA: ArgentBank needs an explicit DPA clause for audit logs and a retention schedule in the contract.
+- Risk tolerance: Argent is comfortable with a compensating control for short-term (30d) KV-cache logs during peak ingestion if we commit to a plan to ingest full audit traces within 72 hours.
+
+Proposed action items (owners + rough ETA)
+1) Share preliminary SOC 2 scope table and mapping (Sofia) — attachment SOC2-Scope-Table.xlsx — by EOD Wed 5/20.
+2) Security DDQ / artifact handoff (Argent security) — request: pen-test summary + SOC timeline — expected 2 weeks.
+3) Retention decision: confirm 24 months or negotiate 12 -> (Ellis/Ben) — reply by 5/24.
+4) Pen-test window: propose Redwood test window July 12–16; Argent to confirm vendor availability (Ben) — confirm by 6/4.
+5) Legal: draft DPA redline with explicit retention clause (Redwood legal, copied to sales) — target 1 week after SOC artifacts land.
+
+Attachments referenced: SOC2-Scope-Table.xlsx (attached), sample DPA redlines (DPA-redlines.docx, attached).
+
+Next meeting: propose a 30-minute technical handoff with Argent security + Redwood syssec on May 26 (calendar invite pending).
+
+Thanks — I’ll upload the SOC scope spreadsheet to the shared Drive folder and drop the link into HubSpot.
+
+—
+Sofia Ivanova
+Enterprise Sales | Redwood Inference
+sofia.ivanova@redwood-inference.com | +1 (415) 555-0147
+https://redwood.inference
+From: Ellis Turner <ellis.turner@argentbank.com>
+To: Sofia Ivanova <sofia.ivanova@redwood-inference.com>
+Cc: Ben Jacobs <ben.jacobs@argentbank.com>, security@argentbank.com
+Date: Tue, 19 May 2026 16:10:00 -0700
+Subject: Re: ArgentBank security handoff — evidence, retention & next steps
+
+Thanks Sofia — this lines up with our notes. A couple of clarifications from our side: 
+- Retention: 24 months is preferred but our legal team will accept 12 months with contractual guarantees around export and auditability. We will make a call by next Monday 5/24.
+- SOC 2: we have a current Type II in-progress with a final report expected late June — security will share a cover note and the latest evidence bundle once it’s available.
+- Pen test: Ben is our lead; I’ve looped him in to confirm vendor windows.
+
+Ben — can your team confirm whether a July 12–16 window works or if we should push to late July? Also we need a short summary of any previous high-severity findings to assess remediation timelines.
+
+Ellis
+Ellis Turner
+Head of Payments Risk | Argent Bank
+ellis.turner@argentbank.com | +1 (212) 555-0108
+
+On Tue, May 19, 2026 at 15:03 Sofia Ivanova <sofia.ivanova@redwood-inference.com> wrote:
+> [original message above]
+
+From: Irene Choi <irene.choi@redwood-inference.com>
+To: Sofia Ivanova <sofia.ivanova@redwood-inference.com>, Marissa Cole <marissa.cole@redwood-inference.com>, Neha Kapoor <neha.kapoor@redwood-inference.com>
+Date: Tue, 19 May 2026 18:22:00 -0700
+Subject: Re: ArgentBank security handoff — evidence, retention & next steps
+
+Adding a short internal note with what SysSec and Legal will need so we can move quickly once Argent shares artifacts: 
+- SysSec ask list (to validate against their DDQ): audit log schema, API for log export (json/csv examples), retained fields and PII redaction rules, encryption-at-rest proof, key rotation cadence.
+- Evidence mapping: map SOC sections -> Redwood artifacts (we can reuse much of the standard pack but will need a one-page mapping doc).
+- Pen-test: we will provide scope doc and a preferred test harness; we need to know if Argent requires an external vendor or will run an internal test. If external, we’ll coordinate white-listing of test IPs.
+
+Action owners I recommend: 
+- Neha: lead evidence mapping and coordinate with syssec (ETA: 5/27).
+- Marissa: own DPA redline draft for commercial review (ETA: 5/24 draft).
+- Sofia: keep Argent sync and collect SOC artifacts into Drive/HubSpot.
+
+I’ll pre-seed the Drive folder with a template mapping and a minimal SOC checklist.
+
+Irene
+Irene Choi
+Sr. Security Solutions Manager | Redwood Inference
+irene.choi@redwood-inference.com
+
+> On Tue, May 19, 2026 at 15:03 Sofia Ivanova <sofia.ivanova@redwood-inference.com> wrote:
+> > [original message above]
+
+From: Ben Jacobs <ben.jacobs@argentbank.com>
+To: Sofia Ivanova <sofia.ivanova@redwood-inference.com>, Ellis Turner <ellis.turner@argentbank.com>
+Cc: security@argentbank.com
+Date: Wed, 20 May 2026 09:12:00 -0700
+Subject: Re: ArgentBank security handoff — evidence, retention & next steps
+
+Hi Sofia — quick note from security: attaching a short pen-test summary (pen-test-summary.pdf) and our template for artifact handoff. A couple of asks: 
+1) Please confirm the canonical location you’ll use for artifact upload (Drive link or SFTP). We prefer SFTP for high-sensitivity files; if Drive is used, we require org-level sharing restrictions.
+2) Can Redwood provide a one-page description of how audit logs are exported (API endpoints + rate limits)? Security needs the export format to validate our retention/ingest assumptions.
+3) DPA: I attached our preferred redline comments; legal will expect Redwood to take a look.
+
+We’ll try to confirm retention stance (24m vs 12m) by Monday; if you can surface the SOC sections mapping this week it will speed legal review.
+
+Thanks,
+Ben Jacobs
+Director, Information Security | Argent Bank
+ben.jacobs@argentbank.com
+
+---
+Attachment: pen-test-summary.pdf (attested summary, redacted)
+
+From: Sofia Ivanova <sofia.ivanova@redwood-inference.com>
+To: Ellis Turner <ellis.turner@argentbank.com>, Ben Jacobs <ben.jacobs@argentbank.com>
+Cc: Irene Choi <irene.choi@redwood-inference.com>, Marissa Cole <marissa.cole@redwood-inference.com>, Neha Kapoor <neha.kapoor@redwood-inference.com>
+Date: Wed, 20 May 2026 13:45:00 -0700
+Subject: Re: ArgentBank security handoff — evidence, retention & next steps
+
+Thanks Ben / Ellis — appreciate the quick turnaround and attachments. Finalizing the decision log below and next steps (owners + calendar items).
+
+Decision log / commitments: 
+- Retention: Argent to confirm 24/12 by 2026-05-24 (Ellis) — mitigation: Redwood will keep a rolling 30-day ingestion cache and full audit export available on request within 72 hours until retention is finalized.
+- SOC 2: Argent will share the in-progress artifact bundle; Redwood will map artifacts to SOC sections and hand to Legal (Neha owner).
+- Pen-test: Redwood proposes internal coordination week of July 12; Argent to confirm vendor or internal ownership (Ben).
+- Artifact exchange method: preference is SFTP for high-sensitivity bundles. Sofia will provision a temporary SFTP endpoint and share credentials via our secure vault.
+
+Immediate next actions (this week):
+1) I will upload SOC2-Scope-Table.xlsx to the Drive folder and paste the link into HubSpot (complete: 5/20). Related HubSpot record: https://hubspot.com/deal/ARG-2026-34.
+2) Neha will start evidence mapping and share initial sheet by 5/27.
+3) Marissa to send DPA redline draft to Argent legal by 5/24.
+4) Schedule a 30-minute technical handoff with Ben & Security — proposed: Tue 5/26 10:00am ET (calendar invite sent).
+
+If that all looks right I’ll mark the HubSpot deal with the compliance milestone and close out this discovery thread. Thanks all —
+
+—
+Sofia Ivanova
+Enterprise Sales | Redwood Inference
+sofia.ivanova@redwood-inference.com | +1 (415) 555-0147
+
+Attachments: SOC2-Scope-Table.xlsx, DPA-redlines.docx
+
+On Wed, May 20, 2026 at 09:12 Ben Jacobs <ben.jacobs@argentbank.com> wrote:
+> [message above]

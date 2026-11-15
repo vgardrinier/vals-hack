@@ -1,0 +1,40 @@
+Encrypted syslog/SFTP audit bundles with per-event reversible pseudonymization, resume tokens, and SOC2 evidence package
+
+Issue summary: Customer requests a production-ready delivery method for tenant-scoped audit events to support an ongoing privacy investigation and SOC2 evidence collection. They need hourly bundled archives over SFTP in addition to an optional TLS syslog stream. Each audit event must be reversible-pseudonymized (escrowed key material) for lawful re-identification, include an ordered sequence number, and ship with a signed manifest that contains resume tokens and HMAC checksums.
+
+Impact: This is blocking the customer's compliance filing. They cannot complete internal forensic review or provide auditors with reproducible evidence until deliveries are validated. Risk: high sensitivity PII present in some audit fields; customer requires cryptographic proofs and a minimal-change integration.
+
+Customer request (deliverables):
+- Hourly gzipped tar bundles (.tar.gz) dropped to a customer-managed SFTP endpoint with object names: AUREUS-audit-YYYYMMDD-HH.tar.gz
+- Per-bundle manifest.json signed with Redwoods rotating KEK (signature metadata included) containing: start_seq, end_seq, per-file HMACs, resume_token for last event, count, event_schema_version
+- Each event must be reversible-pseudonymized using a per-tenant key with HSM-backed escrow; deliver the key-escrow procedure and attestation steps for auditors
+- Optional real-time TLS syslog stream with per-event envelope headers (tenant-id, seq, ts, stream-hmac) for parity with the SFTP feed
+- Integrity and non-repudiation: hourly manifest must be verifiable offline; include sample verification CLI snippet and sample public key used for signature verification
+- Retention and replay: customer needs guidance for replaying slices (resume semantics) and an index file for quick seek by timestamp
+
+Acceptance criteria:
+1) A customer test SFTP drop that matches naming and manifest schema for 3 consecutive hours without gaps
+2) Manifest signatures verify using published public key; HMACs in manifest match files
+3) Reversible pseudonymization flow documented with key escrow steps and timeline for reencryption requests
+4) Minimal latency for syslog envelope delivery (<=10s median) when enabled
+
+Attachments from customer: sample schema mapping (CSV), auditor contact info, SFTP host & SSH key (sensitive channel used), and a compliance questionnaire with requested answers.
+
+Notes on scope: This is an enterprise-level compliance integration. Implementation will touch audit exporter, archive writer, SFTP uploader, and security/KMS teams for escrow documentation. Recommend dedicated engineer pairing with customer success and an SRE to run initial drops.
+Initial triage (2026-03-12): Verified customer request form and attached schema. Confirmed SFTP host reachable from our staging egress. Hypothesis: existing hourly archive job can be extended with manifest signing and escrow hooks. Blockers: key escrow playbook and HSM procedure need security sign-off. Engineering estimate: 3 sprint-days for export changes, 2 days for KMS escrow docs and 1 day for SRE rollout and verification.
+
+Technical checkpoints:
+- Ensure per-tenant key material generation and store in customer-scoped KMS envelope.
+- Implement resume_token as base64(seq||sha256(last_event)) to avoid ambiguity.
+- Add manifest signer microservice to sign with current KEK; plan for rotation metadata in manifest.
+
+Preliminary test plan: Test SFTP drops to customer-provided jumpbox, verify manifest signature and HMACs, run re-identification test in secured environment with escrow keys.
+2026-03-12 09:15 - Nisha Patel (Support): Customer provided schema mapping and their auditor contact. Requesting prioritization; stated filing deadline 2026-03-20.
+2026-03-12 10:02 - Miguel Alvarez (SRE): Validated connectivity to SFTP host from staging. Need security approval for reversible pseudonymization and key escrow flow. Opening INT ticket to engage Security.
+2026-03-12 14:30 - Priya Rao (Security): Will review KMS/escrow procedure. Preliminary OK for HSM-backed escrow but require audit of key access logs and documented reencryption SOP.
+2026-03-13 08:05 - Miguel Alvarez (SRE): Created internal PR for manifest signer prototype (see related_github_prs). Planning customer test for 2026-03-16. Asked to confirm whether customer wants daily or hourly bundles; customer confirmed hourly via email.
+2026-03-13 12:40 - Customer (Aureus Compliance): Confirmed they will provide an SFTP test account and requested a sample signed manifest and verification script prior to test drops.
+1) Security to finalize KMS escrow runbook and provide required operator checklist (owner: Priya Rao)
+2) Engineering to land manifest signer and wire into hourly archive job (owner: Miguel Alvarez)
+3) SRE to schedule test drops to customer test SFTP and perform signature/HMAC verification (target: 2026-03-16)
+4) Deliver SOC2 evidence packet and one-off Q&A responses to auditor after test verification

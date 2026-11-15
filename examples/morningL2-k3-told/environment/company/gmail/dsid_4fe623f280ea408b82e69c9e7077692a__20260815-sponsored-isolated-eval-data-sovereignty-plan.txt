@@ -1,0 +1,91 @@
+Sponsored isolated eval — data sovereignty & audit packet
+
+From: Lara Ortiz <lara.ortiz@acumed.io>
+To: Sean Gallagher <sean.gallagher@redwood.ai>
+Cc: Tom Hwang <tom.hwang@acumed.io>, AcuMed Security <sec@acumed.io>
+Date: Sat, 15 Aug 2026 09:12:00 -0700
+Subject: Sandbox for isolated VPC eval + evidence we need
+
+Hi Sean —
+
+Thanks for the quick intro last week. We’re moving forward with a technical proof-of-concept but our procurement and security teams require an isolated evaluation with data residency controls (VPC peering or private deployment), plus an audit packet before we can sign an MSA.
+
+High-level asks:
+- 30–45 day isolated evaluation environment (no shared tenant)
+- Sponsored credits for the eval (we’re a mid-size health-tech org subject to state data residency rules)
+- SOC 2 type 2 snapshot or equivalent security evidence, network diagram for the sandbox, and an NDA copy
+
+Attached is our vendor questionnaire — can your team complete the sections that are compliance/security specific? We’re hoping to have the sandbox live by the week of Aug 24.
+
+Thanks,
+Lara Ortiz
+Head of Product Ops | AcuMed
+[lara.ortiz@acumed.io]
+[attachment: acumed_vendor_questionnaire.pdf (PDF)]
+From: Sean Gallagher <sean.gallagher@redwood.ai>
+To: Lara Ortiz <lara.ortiz@acumed.io>
+Cc: Marissa Cole <marissa.cole@redwood.ai>, Rishi Malhotra <rishi.malhotra@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Date: Sat, 15 Aug 2026 11:03:00 -07:00
+Subject: Re: Sandbox for isolated VPC eval + evidence we need
+
+Lara —
+
+Appreciate the clear list. We can support an isolated evaluation with a private VPC deployment and provide sponsored credits for the duration of the trial. Quick notes and next steps from our side:
+
+1) Sponsorship: we can cover up to $12k in credits for a 30–45 day test. If you need an extension we can approve a one-time top-up after the initial trial review.
+
+2) Evidence packet: I’ve attached our SOC 2 snapshot and a standard sponsorship/terms PDF. Rishi (security) will validate anything extra you need for the questionnaire.
+
+3) Timeline: to hit Aug 24 we need signed onboarding docs (NDA + SOW) and confirmation of the VPC CIDR and peering requirements by Aug 20.
+
+4) Logistics: Marissa will own onboarding and technical enablement; Laura will coordinate the credit issuance and the partner billing paperwork.
+
+I’ll start the internal approvals for the sponsorship and loop in infra for a private sandbox build once we have NDA + CIDR.
+
+Best,
+Sean Gallagher
+Enterprise Sales
+Redwood Inference
+[attachment: redwood_sponsorship_terms.pdf (PDF)]
+From: Rishi Malhotra <rishi.malhotra@redwood.ai>
+To: Sean Gallagher <sean.gallagher@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>, Laura Bennett <laura.bennett@redwood.ai>
+Date: Mon, 17 Aug 2026 09:18:00 -07:00
+Subject: RE: Sandbox for isolated VPC eval + evidence we need
+
+Sean / team —
+
+Quick security checklist for AcuMed’s questionnaire and the sandbox build:
+- Provide SOC 2 snapshot (attached) and our standard security FAQ for vendor assessments.
+- Network diagram: for private VPC we need AcuMed CIDR blocks, allowed egress endpoints (we restrict that for air-gapped customers), and any IP allowlist for management.
+- Data residency: confirm whether PHI will be used in the sandbox. If yes, we need a signed DPA and explicit encryption-at-rest policy acknowledgment from AcuMed.
+- Audit logs: we’ll provide access to the audit log stream (read-only) during the eval; if they need longer retention that’s a separate add-on.
+
+Credit controls: set a hard cap on credits and enable alerts at 70%/90% usage — Laura can configure. Recommend we provision the initial $12k as Sean outlined and mark any additional top-ups subject to a 1:1 technical review after day 21.
+
+I’ll prepare a redwood_audit_faq.txt and our minimal SOC snapshot for them to attach to their questionnaire.
+
+Rishi
+Security & Compliance, Redwood
+[attachment: redwood_soc2-snapshot.pdf (PDF)]
+From: Lara Ortiz <lara.ortiz@acumed.io>
+To: Sean Gallagher <sean.gallagher@redwood.ai>
+Cc: Tom Hwang <tom.hwang@acumed.io>, AcuMed Security <sec@acumed.io>
+Date: Tue, 18 Aug 2026 14:05:00 -07:00
+Subject: Re: Sandbox for isolated VPC eval + evidence we need
+
+Hi Sean —
+
+This is great — thanks to you and the security team for the fast turnaround. We reviewed the SOC snapshot and the sponsorship terms; we’ll sign the NDA and return it by EOD tomorrow. A few quick clarifications from procurement/security:
+
+• We will not put PHI into the trial environment initially — synthetic payloads instead. If we move to real data we’ll circle back for the DPA.
+• CIDR for peering: 10.42.0.0/16 (we’ll confirm subnet layout after NDA).
+• Can you confirm the $12k cap and the 21-day review trigger for top-ups? Also need the DocuSign link for the NDA + SOW so I can route to legal.
+
+Attached the vendor questionnaire with a few fields for your team (sections 3–6). If you can complete those before Tuesday morning we can keep the Aug 24 kickoff.
+
+Thanks — looking forward to getting this live.
+
+Best,
+Lara Ortiz
+Head of Product Ops | AcuMed
+[attachment: acumed_vendor_questionnaire_filled_sections.pdf (PDF)]

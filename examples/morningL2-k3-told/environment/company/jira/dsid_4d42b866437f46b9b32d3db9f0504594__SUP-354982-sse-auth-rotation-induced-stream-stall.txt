@@ -1,0 +1,57 @@
+SSE streaming stalls mid-generation after short-lived auth token rotation
+
+Issue summary:
+Customer BrightLens reports that SSE chat responses repeatedly stall mid-generation during multi-minute conversations. This started after yesterday's auth rollout that introduced shorter session token TTLs and a synchronous revalidation path for streaming requests.
+
+Impact:
+- Intermittent but reproducible stalls mid-response for ~30-90s, then eventual connection close.
+- Affects only dedicated customer pools in us-east; estimated ~6% of streaming sessions for BrightLens over the last 12 hours.
+- Customers observe degraded UX in live agent assistant and automated reports.
+
+Environment:
+- Dedicated pool: redwood-dedicated-us-east-3
+- Edge/Proxy version: edge-proxy@v2.14.0 (released 2026-03-09 03:10 UTC)
+- Auth service: token-rotation feature enabled (short-ttl mode)
+- Serving runtime: rw-runtime@1.7.3
+
+Steps to reproduce (observed by customer + reproduced by Support):
+1) Start a long SSE chat request with an input that triggers ~600-900 tokens of generation (customer provided corpus).
+2) Allow the session to run for ~2–6 minutes (token TTL window).
+3) The client sends the next keepalive/chunk; at this point the auth token has rotated on the client side and a refresh flow occurs.
+4) Server stops emitting generation tokens for 30–90s (no SSE chunks), then eventually the connection closes with a 502/connection-reset in the client.
+
+Observed behavior:
+- Worker logs show repeated auth-service calls with increased latency and intermittent 401/timeout responses.
+- Edge-proxy reports: "authz-check: blocking verification for connection_id=<redacted>" followed by a backoff and no write to socket.
+- Serving runtime continues CPU work but kernel output is not flushed to socket (socket write path is gated by auth middleware).
+
+Expected behavior:
+- Token rotation should not block in-flight streaming generation. If a revalidation is required, it should not cause stalls; a graceful 401 and reconnect or async verification should be used.
+
+Relevant logs (excerpted):
+- edge-proxy: [2026-03-10T09:14:22Z] authz-check start conn=<id> token_age=301s
+- auth-service: [2026-03-10T09:14:22Z] verifyToken slow (p99=1.3s) backing-off to external-kms
+- serving-runtime: [2026-03-10T09:14:24Z] flush-to-socket blocked waiting on auth for conn=<id>
+- edge-proxy: [2026-03-10T09:15:45Z] authz-check failure: upstream timeout 10s
+
+Workarounds attempted by Support/Customer:
+- Increased keepalive frequency on client -> no reliable change in stall frequency.
+- Customer rolled back client-side token refresh to refresh earlier than TTL expiry -> reduced occurrences but not practical as a long-term fix.
+- Support temporarily increased token TTL for the impacted dedicated pool (mitigation).
+
+Notes:
+- This appears correlated with the auth rollout that made token verification synchronous on the streaming request path (edge-proxy). Previous behavior cached verification result per-connection for the token TTL and did not block streaming.
+- The problem reproduces reliably against the dedicated pool when token TTL < ~5 minutes and when external KMS responses spike.
+
+2026-03-10 09:25 - Aisha Patel (Support): Initial customer report received. Captured sample session ID and requested logs. Escalating to SRE due to P1 impact.
+2026-03-10 09:48 - Diego Ramirez (SRE): Reproduced in staging with token-rotation feature enabled. Observed auth-service p99 spikes and edge-proxy blocking behavior. Assigning to edge team for immediate mitigation.
+2026-03-10 10:20 - Elena Novak (Edge Eng): Identified commit that added synchronous verifyToken on every chunk (PR #1192). Rolling patch to short-circuit verification for in-flight connections and cache positive results for TTL window.
+2026-03-10 11:05 - Diego Ramirez (SRE): Applied temporary mitigation (increase TTL to 10m) to BrightLens dedicated pool. Monitoring shows stall rate dropped from ~6% to <0.5% over 45m.
+2026-03-12 15:10 - Ivan Cho (Auth Eng): Root cause confirmed: token-rotation change removed per-connection cached verification. Auth service can be slow under KMS fallback; synchronous checks blocked socket flush. Permanent fix requires async verification path + short-lived cache on edge-proxy.
+Mitigation: Increased session token TTL for BrightLens dedicated pool and rolled back synchronous verification on edge-proxy (hotfix edge-proxy@v2.14.1). Permanent fix: implement async verification + per-connection positive cache; PR opened: https://github.com/redwood-inference/edge-proxy/pull/1198.
+
+Rollout notes: v2.14.1 deployed to us-east dedicated pools 2026-03-11 22:30 UTC. Post-deploy monitoring shows stall rate returned to baseline. Customer notified and accepted workaround. Follow-up action: add unit/integration tests for streaming path under auth rotation and add a perf guard for auth-service latency to prevent blocking streaming worker threads. Postmortem page: https://redwood.atlassian.net/wiki/spaces/OPS/pages/Stream+Auth+Rotation+Postmortem
+Add integration test for streaming + token rotation (owner: Edge Eng)
+Instrument auth-service KMS fallback to alert when p95 > 500ms (owner: Auth Eng)
+Add canary rollout gating for auth-related changes (owner: SRE)
+Notify product about change in token TTL semantics and update docs (owner: Docs)

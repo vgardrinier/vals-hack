@@ -1,0 +1,3 @@
+Invoice STP-2026-0282 from Selbourne Talent Partners
+
+From: Selbourne Talent Partners Billing <billing@selbournetalent.com>\nTo: finance@redwood.com\nDate: Fri, 06 Nov 2026 07:30:00 -0800\nSubject: Invoice STP-2026-0282\n\nHello Redwood Inference finance team,\n\nPlease find our invoice details below.\n\nInvoice number: STP-2026-0282\nInvoice date: 2026-11-03\nDue date: 2026-12-03\nAmount due: $3,516.01 USD\n\nPayment by ACH to the account on file. Thank you for your business.\n\nSelbourne Talent Partners billing

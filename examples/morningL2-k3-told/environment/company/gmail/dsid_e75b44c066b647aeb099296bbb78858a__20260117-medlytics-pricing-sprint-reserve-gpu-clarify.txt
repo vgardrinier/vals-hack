@@ -1,0 +1,119 @@
+Dedicated capacity pricing — reserve GPU sizing & token economics
+
+From: Soojin Lee <soojin_lee@redwood.com>
+To: Alyssa Moore <alyssa@medlytics.ai>
+Cc: Dylan Brooks <dylan_brooks@redwood.com>, Neha Kapoor <neha_kapoor@redwood.com>
+Date: Thu, 15 Jan 2026 15:04:00 -0800
+Subject: Dedicated capacity pricing — reserve GPU sizing & token economics
+
+Hi Alyssa — great conversation today, thanks for the time. Quick recap and a small set of asks so we can turn the call into a clear proposal: 
+
+Recap (what we heard)
+- Two primary workloads: (1) patient-facing summarization microservice (~low latency, 1–2s target) and (2) back-office clinical QA batch jobs (higher throughput, more tolerant latency).
+- Expected steady-state monthly consumption: roughly 150M–300M tokens/month (you mentioned 4–10M/day as a window) — with spikes up to ~20M tokens/day during pilot.
+- Preferred GPU family: you flagged H100s for 2–3x perf on long-context generative workloads, but also open to A100 if cost is the priority.
+- Target unit economics: you asked us to show options that hit ~$15–$25 per 1M tokens (target ~$20/1M tokens).
+- Procurement: Medlytics procurement will require an MSA + SOW and PO process.
+
+Key clarifying questions (we need answers to finalize pricing bands)
+1) Can you confirm the 150M–300M tokens/month range as the best estimate for the next 6 months? If not, please provide a conservative and upside number.
+2) For the patient-facing service: target p95 latency SLO and target concurrency (requests/sec) — we want to size KV cache and batching correctly.
+3) Preferred GPU: do you want a pricing comparison (A100 vs H100) at the committed-band level, or should we only price the H100 path?
+
+What we’ll deliver after clarification
+- A committed-capacity proposal mapping 3 reserve bands (small/medium/large) to GPUs, throughput (tokens/sec), and a per-1M-token unit price. See attached MAPS_token_estimate.xlsx for a worked example.
+- Draft commercial terms (MSA + 30-day SOW) and an initial estimate of SLA/credits.
+
+Action items and owners
+- Alyssa: confirm monthly range + p95 latency target by EOD Mon (Jan 19).
+- Soojin: prepare 3-band reserve pricing and TCO model (deliver by Wed Jan 21).
+- Dylan: validate region capacity for H100 availability (internal).
+- Neha: run a quick sensitivity for $/1M tokens at 150M/250M/350M monthly tokens.
+
+Attachments: MAPS_token_estimate.xlsx (worked token-to-GPU mapping), Redwood-dedicated-pricing-playbook.pdf (approach), procurement-MSA-draft.docx (template).
+
+Thanks — happy to jump on a 30m follow-up if it helps.
+
+Best,
+Soojin Lee
+Senior Solutions Engineer | Redwood Inference
+soojin_lee@redwood.com | +1 415-555-0182
+
+
+From: Alyssa Moore <alyssa@medlytics.ai>
+To: Soojin Lee <soojin_lee@redwood.com>
+Cc: Dylan Brooks <dylan_brooks@redwood.com>, Neha Kapoor <neha_kapoor@redwood.com>, procurement@medlytics.ai
+Date: Fri, 16 Jan 2026 10:12:00 -0800
+Subject: Re: Dedicated capacity pricing — reserve GPU sizing & token economics
+
+Soojin — thanks for the clear recap and the attachments (downloading now). Quick answers inline: 
+
+1) Monthly range: our conservative plan is 120M tokens/month, expected cadence ~220M/month, upside (scale) 420M/month over 6 months if pilot goes well. The internal forecast is attached (Medlytics-usage-forecast.csv).
+2) Patient-facing SLO: p95 <= 1.5s, typical concurrency target is 40 concurrent requests with short contexts (~1k tokens/request average). Back-office batch job runs overnight and needs sustained throughput ~300k tokens/sec for windows of 30–60 minutes.
+3) GPU family: procurement prefers A100 for cost reasons, but Engineering prefers H100 for the patient-facing models. We need pricing that shows both — can you give committed-band pricing for both A100 and H100?
+
+Procurement note: we will require a 60-day review period for the MSA and standard PO flow. I’ll loop in our legal if we get to final commercial terms.
+
+If you can get the three-band proposal showing committed monthly tokens, corresponding reserved GPU count (A100/H100 options), and the implied $/1M token price, we can review and pick a band.
+
+Thanks — Alyssa
+Alyssa Moore
+Head of Platform Integrations | Medlytics
+alyssa@medlytics.ai | +1 212-555-0199
+
+
+From: Soojin Lee <soojin_lee@redwood.com>
+To: Alyssa Moore <alyssa@medlytics.ai>
+Cc: Ben Carter <ben_carter@redwood.com>, Dylan Brooks <dylan_brooks@redwood.com>, Neha Kapoor <neha_kapoor@redwood.com>
+Date: Fri, 16 Jan 2026 15:46:00 -0800
+Subject: Re: Dedicated capacity pricing — reserve GPU sizing & token economics
+
+Alyssa — perfect, thanks for the forecast and the SLO targets. We’ll do the A100/H100 comparison across three reserved bands. High-level preview below so you have context before the formal spreadsheet: 
+
+Preview (illustrative numbers, final model attached Wed)
+- Small band (entry): 4x A100 or 2x H100 equivalent — steady tokens/month ~100M–200M; implied price ~ $28/1M (A100) or $22/1M (H100) with 12-month reservation.
+- Medium band (recommended pilot): 8x A100 or 4x H100 — steady tokens/month ~200M–400M; implied price ~ $20/1M (A100) or $16/1M (H100).
+- Large band (enterprise): 16x A100 or 8x H100 — steady tokens/month >400M; implied price ~ $14/1M (A100) or $11/1M (H100).
+
+Notes:
+- These are unit-level token economics that include baseline model costs, GPU amortization, and average batching/caching assumptions for your 1k-token request profile. They assume a 12-month reserved commitment. We’ll show sensitivity to 6/12/24 month terms in the model.
+- For the patient-facing SLO (p95 <= 1.5s) we recommend the medium H100 band to hit headroom for concurrency + KV cache. If you want cost-first, the medium A100 band is the cheaper upfront option.
+
+Next internal steps: Ben  can you validate whether we can guarantee H100 availability in us-west2 for a 4x H100 reserve? Dylan, please also confirm ops availability and any lead time.
+
+I’ll push the full three-band workbook (A100 & H100 columns, tokens->throughput mapping, and draft commercial terms) by Wed Jan 21. After that we can schedule a 30m decision call.
+
+Best,
+Soojin
+Senior Solutions Engineer | Redwood Inference
+soojin_lee@redwood.com
+
+-----Original message-----
+On Fri, Jan 16, 2026 at 10:12 AM Alyssa Moore <alyssa@medlytics.ai> wrote:
+> Soojin — thanks for the clear recap and the attachments (downloading now). Quick answers inline:
+> ...
+
+
+From: Soojin Lee <soojin_lee@redwood.com>
+To: Ben Carter <ben_carter@redwood.com>, Dylan Brooks <dylan_brooks@redwood.com>, Neha Kapoor <neha_kapoor@redwood.com>
+Date: Sat, 17 Jan 2026 09:22:00 -0800
+Subject: Fwd: Dedicated capacity pricing — reserve GPU sizing & token economics (Medlytics)
+
+Team — forwarding Alyssa’s confirm + our preview. Quick internal asks before I finalize the workbook:
+
+1) Ben: pricing approval — can we lock the illustrative band margins (small/med/large) shown below or do we need to widen? We need to be able to offer the medium H100 at ~$16/1M in the proposal to be competitive.
+2) Dylan: can you validate H100 availability in us-west2 for 4x reserved starting Mar 1 (pilot kickoff)? Also call out any lead times for procurement to expect.
+3) Neha: please prepare the sensitivity table for 6/12/24 month terms and include a short paragraph on assumptions (avg tokens/request, batching effect, caching hit-rate).
+
+Quote preview repeated:
+- Small: 4x A100 or 2x H100 — ~100M–200M tokens/mo — $28/1M (A100) | $22/1M (H100)
+- Medium: 8x A100 or 4x H100 — ~200M–400M tokens/mo — $20/1M (A100) | $16/1M (H100)
+- Large: 16x A100 or 8x H100 — >400M tokens/mo — $14/1M (A100) | $11/1M (H100)
+
+I’ll assemble the final workbook and draft SOW once I get confirmations. Target to send external proposal Wed Jan 21.
+
+Thanks — Soojin
+
+> On Fri, Jan 16, 2026 at 03:46 PM Soojin Lee <soojin_lee@redwood.com> wrote:
+> > Alyssa — perfect, thanks for the forecast and the SLO targets. We’ll do the A100/H100 comparison across three reserved bands. High-level preview below...
+

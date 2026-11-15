@@ -1,0 +1,3 @@
+Invoice SPS-2026-0182 from Brightvale Payroll Services
+
+From: Brightvale Payroll Services Billing <billing@brightvalepayroll.com>\nTo: finance@redwood.com\nDate: Tue, 01 Sep 2026 07:14:00 -0700\nSubject: Invoice SPS-2026-0182\n\nHello Redwood Inference finance team,\n\nPlease find our invoice details below.\n\nInvoice number: SPS-2026-0182\nInvoice date: 2026-08-29\nDue date: 2026-09-28\nAmount due: $1,195.98 USD\n\nPayment by ACH to the account on file. Thank you for your business.\n\nBrightvale Payroll Services billing

@@ -1,0 +1,3 @@
+Invoice QFN-2026-0351 from Quillmark Fiber Networks
+
+From: Quillmark Fiber Networks Billing <billing@quillmarkfiber.net>\nTo: finance@redwood.com\nDate: Tue, 29 Sep 2026 07:12:00 -0700\nSubject: Invoice QFN-2026-0351\n\nHello Redwood Inference finance team,\n\nPlease find our invoice details below.\n\nInvoice number: QFN-2026-0351\nInvoice date: 2026-09-26\nDue date: 2026-10-26\nAmount due: $2,493.46 USD\n\nPayment by ACH to the account on file. Thank you for your business.\n\nQuillmark Fiber Networks billing

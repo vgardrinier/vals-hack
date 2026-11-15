@@ -1,0 +1,111 @@
+Post-demo: ID & Access evidence intake and next steps
+
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Elena Morales <elena.morales@medibridge.com>
+Cc: Monica Patel <monica.patel@redwood.com>, Rishi Malhotra <rishi.malhotra@redwood.com>
+Date: Tue, 20 Jul 2026 15:02:00 -0700
+Subject: Post-demo: ID & Access evidence intake and next steps
+
+Hi Elena —
+
+Thanks again for taking the demo earlier today. Quick recap and suggested next steps so we have a single thread for your security intake team:
+
+1) Ask summary (from your side)
+- SOC 2 Type II report and any relevant audit scope notes
+- Clarification on SSO options (SAML vs OIDC) and SCIM provisioning support
+- RBAC, admin controls, and audit log retention/export capabilities
+- Answers to a short vendor security questionnaire (we can fill it in or you can share your standard doc)
+
+2) What I attached here (two quick stubs):
+- Redwood_SOC2_Type2_2025.pdf (recent report, redacted summary)
+- redwood_sso_scim_factsheet.pdf (SSO flows, supported protocols, SCIM basics)
+
+3) Proposed next steps
+- Rishi (cc'd) will handle the technical evidence and SCIM spec.
+- If you want a formal vendor questionnaire filled, either attach it to this thread or send a link to the intake form below. We usually return completed questionnaires within 3 business days for standard items.
+- Optional: technical deep-dive on Friday (July 23) for RBAC/logs/SCIM provisioning.
+
+If you can confirm the list above (and whether you prefer SAML or OIDC for SSO), we’ll prioritize the items.
+
+Thanks —
+Karthik Iyer
+Account Executive | Redwood Inference
+karthik.iyer@redwood.com | +1 (415) 555-0123
+
+Attachments: Redwood_SOC2_Type2_2025.pdf (stub), redwood_sso_scim_factsheet.pdf (stub)
+
+From: Elena Morales <elena.morales@medibridge.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>
+Cc: MediBridge Security <security@medibridge.com>
+Date: Tue, 20 Jul 2026 17:28:00 -0400
+Subject: Re: Post-demo: ID & Access evidence intake and next steps
+
+Karthik —
+
+Thanks for the clear recap. A few clarifying questions from our security intake team before we schedule the deep-dive:
+
+- Do you support OIDC for SSO, or is SAML the primary/only option? We prefer OIDC but can accommodate SAML if needed.
+- Can you provide a SCIM provisioning API spec (endpoints, auth, rate limits) — if you have an OpenAPI/YAML that’s ideal.
+- What is your default audit log retention for admin actions and can we request exports (CSV/JSON) for a 90-day window?
+- Are there any separate admin roles (super-admin, org-admin, billing) and can role assignments be restricted by group via SCIM?
+
+We’ll attach our vendor questionnaire to this thread after an internal pass. If you can point us to an intake/HubSpot link (if you use one) that would be helpful for tracking.
+
+Thanks,
+Elena Morales
+Security Lead, MediBridge Health
+elena.morales@medibridge.com
+
+From: Rishi Malhotra <rishi.malhotra@redwood.com>
+To: Elena Morales <elena.morales@medibridge.com>
+Cc: Karthik Iyer <karthik.iyer@redwood.com>, Monica Patel <monica.patel@redwood.com>
+Date: Wed, 21 Jul 2026 08:04:00 -0700
+Subject: Re: Post-demo: ID & Access evidence intake and next steps
+
+On Tue, Jul 20, 2026 at 5:28 PM Elena Morales <elena.morales@medibridge.com> wrote:
+> Karthik —
+>
+> Thanks for the clear recap. A few clarifying questions from our security intake team before we schedule the deep-dive:
+>
+> - Do you support OIDC for SSO, or is SAML the primary/only option? We prefer OIDC but can accommodate SAML if needed.
+> - Can you provide a SCIM provisioning API spec (endpoints, auth, rate limits) — if you have an OpenAPI/YAML that’s ideal.
+> - What is your default audit log retention for admin actions and can we request exports (CSV/JSON) for a 90-day window?
+> - Are there any separate admin roles (super-admin, org-admin, billing) and can role assignments be restricted by group via SCIM?
+
+Hi Elena — thanks for the questions. Quick answers below and attaching the SCIM spec + admin logs README for detail.
+
+- SSO protocols: we support both SAML 2.0 and OIDC. If you prefer OIDC we can provide example client configs and metadata.
+- SCIM: See attached scim_api_spec_v1.yaml — endpoints include /scim/v2/Users and /scim/v2/Groups, token-based auth (OAuth bearer) with a default rate limit of 100 reqs/min per org.
+- Audit logs: admin action logs retained for 365 days by default. We can produce exports in JSON/CSV for requested ranges; exports are delivered via a secure S3 link.
+- RBAC: built-in roles include super-admin, org-admin, admin, auditor, and user. Group-based role assignment is supported via SCIM groups; we can map SCIM group membership to Redwood roles during provisioning.
+
+Next steps I propose:
+1) I’ll populate your vendor questionnaire — please attach when ready or point me at the intake link.
+2) Schedule a 45-min tech deep-dive on Fri (July 23) to walk SCIM flows and admin export. I’m available 9–12 PT that day.
+3) If you need a formal evidence package (config screenshots, policy excerpts), we can assemble and deliver within 2 business days after the call.
+
+Attaching: scim_api_spec_v1.yaml (stub), admin_logs_export_readme.md (stub)
+
+Regards,
+Rishi Malhotra
+Security Engineer | Redwood Inference
+rishi.malhotra@redwood.com
+
+
+From: Elena Morales <elena.morales@medibridge.com>
+To: Rishi Malhotra <rishi.malhotra@redwood.com>, Karthik Iyer <karthik.iyer@redwood.com>
+Date: Wed, 21 Jul 2026 09:14:00 -0700
+Subject: Re: Post-demo: ID & Access evidence intake and next steps
+
+Rishi / Karthik —
+
+Perfect — thanks for the quick answers and the attachments. We will: 
+- Upload our vendor questionnaire to the thread by end of day today.
+- Book the technical deep-dive for Fri Jul 23 at 10:00 PT (please confirm Zoom link).
+
+Appreciate the quick turnaround. Looking forward to the call —
+Elena
+Elena Morales
+Security Lead, MediBridge Health
+
+[On a separate note: please send the Zoom/Calendar invite to security@medibridge.com as well]

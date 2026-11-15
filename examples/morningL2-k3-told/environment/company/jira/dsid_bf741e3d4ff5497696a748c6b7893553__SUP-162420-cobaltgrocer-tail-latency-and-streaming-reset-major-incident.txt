@@ -1,0 +1,44 @@
+CobaltGrocer: prolonged tail latency and streaming RESETs during peak-hour checkout flows
+
+Issue summary: During CobaltGrocer's weekday afternoon peak (13:00–15:00 PST) customers reported elevated completion tail latency and increased streaming connection resets for checkout conversational flows. Impact: checkout chat completions intermittently truncated or failed to stream, increasing abandoned carts and urgent escalation from customer engineering. Environment: prod us-west-2, dedicated routing policy 'enterprise-usw2', traffic routed to dedicated GPU pool 'dg-pool-31'.
+Multiple merchant checkout conversations experienced either abrupt streaming RESETs mid-completion or completions taking 2–6s longer than SLA 200ms p95 on tail tokens. Customer observed a 4.8% increase in failed/aborted checkout events during the window and reported immediate business impact (failed payments & increased support calls).
+2026-03-10 12:52 UTC - CobaltGrocer CS reported spikes in failed streaming completions via support channel.
+2026-03-10 12:55 UTC - Triage and P0 declared.
+2026-03-10 13:05 UTC - On-call SRE (Liam Chen) engaged, began correlation with autoscaler and kernel metrics.
+2026-03-10 13:18 UTC - Observability indicated CPU+PCIe stalls on subset of nodes and increased rpc retry rates between api-gateway and serving runtime.
+2026-03-10 13:40 UTC - Temporary routing policy applied to divert 20% traffic to fallback quantized model variant.
+2026-03-10 14:05 UTC - Rollback of a recent kernel selector change rolled out to affected pool; streaming resets and tail latency reduced.
+2026-03-10 14:30 UTC - Customer confirmed degraded behavior subsided; monitoring continued for residual errors.
+2026-03-13 09:00 UTC - Post-incident review with engineering and customer completed.
+1) Use CobaltGrocer prod API key to start streaming completion for checkout flow (endpoint: POST /v1/chat/stream) with prompt length 120–300 tokens and max_tokens=512.
+2) Send concurrent 120 RPS sustained for 10+ minutes (mirrors customer peak).
+3) Observe p95/p99 tail token latency and occasional HTTP/2 RST_STREAM responses from serving-runtime connection.
+4) Compare behavior when routing to fallback quantized model variant vs primary runtime variant.
+Selected excerpts:
+- api-gateway: 2026-03-10T13:09:22Z WARN rpc.retry=4 path=/v1/chat/stream backend=serving-runtime node=dg-node-31a error=RST_STREAM
+- serving-runtime: 2026-03-10T13:09:22Z ERROR kvcache.c:241 stall_detected duration_ms=4120 p99_seq=498 kernel=attention-opt-v2
+- autoscaler: 2026-03-10T13:10:05Z INFO scale_event reason=burst threshold=0.85 current_util=0.92 pool=dg-pool-31
+- perf-agent: 2026-03-10T13:12:10Z WARN pciethrottle=throttle_count=7 node=dg-node-31b
+Trace: GCP trace https://console.traces.redwood.ai/trace/abcd-20260310-cobalt
+Hypotheses: 1) Kernel selector update (attention-opt-v2) increased PCIe transfer contention on a subset of nodes causing KV-cache stalls and streaming resets. 2) Autoscaler oscillation briefly pushed traffic onto under-provisioned nodes exposing a noisy neighbor effect. Findings: profiling showed attention-opt-v2 increased aggregate device-to-host transfers for certain sequence-length distributions used by CobaltGrocer checkout prompts. Nodes with slightly older firmware experienced PCIe throttling leading to stalls recorded in perf-agent. Correlation between scale events and surge in RST_STREAMs confirmed traffic shifting amplified failures.
+- Immediately applied temporary routing to fallback quantized variant (reduced device-to-host transfers).
+- Rolled back kernel selector change from attention-opt-v2 to attention-opt-v1 on dg-pool-31.
+- Patched autoscaler cooldown to avoid sub-30s oscillations for dedicated pools.
+- Opened firmware update roll for dg-node-31a/31b with infra team.
+- Increased observability retention for relevant traces by 7 days to assist postmortem.
+Root cause: combination of a recent kernel selector change that increased PCIe activity for long-chat sequences and autoscaler oscillation shifting traffic to nodes with firmware-induced PCIe throttling. Resolution steps: rolled back kernel selector in affected pool (2026-03-10 13:05 UTC), adjusted autoscaler cooldown (2026-03-10 13:22 UTC), and scheduled firmware updates on two nodes. Customer validated that streaming stability and tail latency returned to acceptable ranges by 14:30 UTC. No code-level rollback required beyond selector config. Incident declared resolved after 3-hour monitoring window.
+- 2026-03-10 13:00 UTC - Initial acknowledgement sent to CobaltGrocer CS with incident ticket and status.
+- 2026-03-10 14:00 UTC - Update: applied partial routing to fallback; noticing measurable improvement.
+- 2026-03-10 15:10 UTC - Post-incident summary and mitigation plan shared; included workaround and timeline for permanent fixes.
+Customer follow-up requested an RCA and action items; completed on 2026-03-13.
+- INT-442: Implement kernel-selector safety gate and rollout checklist for dedicated pools (owner: Product Ops).
+- INT-443: Firmware update for dg-node-31a/31b (owner: Infra).
+- SUP-162421: Customer-facing RCA and billing review for impacted window (owner: Support).
+- Monitoring: add alert if rpc.retry rate > 5% for 5m between api-gateway and serving-runtime for dedicated pools.
+Lessons learned: better gating for kernel-selector changes on dedicated customer pools is required; autoscaler cooldown defaults need revision for small dedicated pools to prevent oscillation. Action items scheduled and owners assigned. No customer credits issued yet; Support to evaluate financial impact after RCA and billing analysis.
+2026-03-10 12:57 - Aisha Khan (Support): Customer reports streaming truncation at ~13:00 PST. Declaring P0 based on business impact. Escalating to SRE and Eng.
+2026-03-10 13:07 - Liam Chen (SRE): Investigating autoscaler and node-level perf metrics; seeing rpc retry spikes and pciethrottle warnings on dg-node-31b.
+2026-03-10 13:26 - Maya Ortiz (Serving Eng): Kernel selector attention-opt-v2 landed yesterday in canary for long-seq tuning. Reverting on pool-31 now.
+2026-03-10 13:45 - Liam Chen (SRE): Post-revert metrics: RST_STREAM events down 92% and p99 tail latency reduced to baseline. Continuing monitoring.
+2026-03-13 08:58 - Aisha Khan (Support): Postmortem call scheduled with CobaltGrocer for 2026-03-13 09:00 UTC; shared draft RCA ahead of call.
+2026-03-13 12:10 - Product Ops (Jae Min): Filed follow-up task to add a kernel-selector safety gate for dedicated pools (link INT-442).

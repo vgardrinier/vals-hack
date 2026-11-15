@@ -1,0 +1,32 @@
+MiraHealth: perceived inference hangs during morning batch — intermittent 429 quota signals amplified by client retries
+
+Issue summary: MiraHealth reported repeated customer-facing ’inference hangs’ between 08:30–09:20 EDT on 2026-03-10. Symptom reported by customer: long tail requests (30–120s) and apparent timeouts; instruments in their UI show many requests failing and then retrying.
+
+Impact: Production inference for MiraHealth (dedicated pool) experienced degraded p95/p99 latency for text generation endpoints; multiple customer application threads reported blocking waiting for responses and user-facing errors. Impacted ~30% of requests for that tenant during the incident window; major impact for their morning batch job.
+
+Environment: Dedicated tenant in prod-us-east using pinned model redwood-13b-instruct. SDK observed: mira-sdk-js v1.4.2 integrated with custom retry wrapper.
+
+Observed behavior: Redwood backend returned intermittent 429 responses with short-lived quota signals. The customer SDK wrapper retries aggressively (no exponential backoff) which caused a burst of repeated requests in short windows. This amplified load on the tenant's dedicated serving pool and produced longer queues inside the gateway, which in turn increased latency and produced additional 5xx/timeout symptoms at the client.
+
+1) Configure a dedicated tenant with modest concurrent limit and soft quota thresholds (mirrors MiraHealth setup).
+2) Run an early-morning batch of 500 concurrent inference requests (mix of streaming and non-streaming) at a token rate similar to customer workload, using mira-sdk-js v1.4.2 + custom retry wrapper that retries immediately on non-2xx.
+3) Observe gateway returning intermittent 429s and the client immediately retrying with no backoff, causing request bursts and queueing at gateway and backend.
+4) Check metrics: increased gateway request concurrency, queue length in serving-runtime, rising p95/p99 token latency and backend retry rates.
+Initial triage by Support: confirmed incident window and mapped to tenant-specific soft quota throttle signals; customer reported client-side retries correlate with spike times.
+Checked console dashboards: per-tenant rate-limiter counters show repeated short 429 bursts rather than sustained limit crossings; concurrency inside dedicated pool spiked following each customer retry wave.
+Hypothesis A: SDK custom retry wrapper ignores Retry-After header and retries immediately, causing self-amplifying traffic bursts that exceed short-term burst quota and create queueing.
+Hypothesis B: Gateway returned 429 without Retry-After consistently for some paths (streaming vs non-streaming) which left client implementations with no guidance and different retry logic.
+Telemetry: request traces (link: https://console.redwood.ai/traces?tenant=mirahealth&from=2026-03-10T08:30&to=2026-03-10T09:00) show retry chains of depth 3–6 within 2s windows.
+Reproduction: Team reproduced locally using load harness and mira-sdk-js wrapper; immediate-retry pattern recreated the gateway queueing and p99 latency increases.
+Root cause candidate: Combination of conservative soft-quota enforcement on the dedicated pool + client retry behavior that does not honor backoff/Retry-After headers.
+Amplification loop: tenant-level soft quota produced intermittent 429s. Client-side immediate retries (no exponential backoff / ignored Retry-After) converted transient quota signals into sustained request bursts, overloading gateway queues and increasing p99 latency for the tenant.
+Short-term workaround provided to MiraHealth: 1) patch client to implement exponential backoff with jitter and respect Retry-After header (we provided code snippet), 2) temporarily increase the tenant burst window and soft-quota threshold for the dedicated pool to absorb morning batch load, 3) enable per-route explicit 'Retry-After' header emission from gateway.
+
+Operational fix rolled out: engineering adjusted gateway behavior to include Retry-After for soft-quota 429 responses and increased default Retry-After value for streaming endpoints. Also opened PR to add server-side mitigations that limit immediate retries per connection and to emit clearer quota headers (PRs listed above).
+
+Follow-ups: 1) Update SDKs with safe-retry defaults (mira-sdk-js patch PR #412), 2) run post-fix load test for dedicated tenants with similar concurrency patterns, 3) create runbook entry for customers on best retry practices.
+2026-03-10 09:05 - Maya Chen (Support): Acknowledged with customer, requested exact SDK version and sample client retry config. Escalated to SRE due to queueing metrics.
+2026-03-10 09:20 - Owen Carter (SRE): Observed gateway queue spike; pushed temporary increase to tenant burst allowance and enabled debug tracing for tenant. Noted missing Retry-After headers for some streaming routes.
+2026-03-10 10:10 - MiraHealth (Customer): Confirmed they will patch client to add exponential backoff; asked for recommended backoff parameters for morning batch.
+2026-03-10 11:30 - Arjun Patel (Backend): Deployed gateway change to consistently emit Retry-After for soft-quota 429s across streaming and non-streaming routes (canary to 10% of traffic for tenant).
+2026-03-12 14:00 - Owen Carter (SRE): Verified post-deploy metrics: retry-chain depth reduced from median 4 to 1.3, p99 token latency back within SLA. Marking customer mitigation as successful; follow-ups scheduled.

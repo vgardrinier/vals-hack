@@ -1,0 +1,121 @@
+Doorway criteria, exit checks & validation runbook (MAP)
+
+From: Raj Patel <raj@medalign.com>
+To: Vivek Kulkarni <vivek@redwood.com>
+Cc: Ellen Cho <ellen@medalign.com>
+Date: 2026-08-29T10:12:00-07:00
+Subject: Re: MAP kickoff – what counts as 'done' for our evaluation?
+
+Vivek / team,
+
+Thanks again for the walkthrough yesterday. As we move into the 4-week evaluation window, our execs want a tight definition of what success looks like — not just uptime and latency, but concrete exit checks we can sign off on.
+
+High-level asks from MedAlign:
+- A shortlist of pass/fail checks we can put in our procurement checklist (regulatory, performance, data handling).
+- One-page runbook for smoke/integration tests our engineers can run during the trial.
+- Clear owners and timeline so we can bind internal approval to dates.
+
+Can you share a proposed "doorway" set of criteria (i.e., the minimal bar to move into pilot-to-prod negotiations) and the sample tests you expect us to run? Preferably by end-of-week so we can review with security.
+
+—Raj
+Senior Product Manager
+MedAlign Health
+
+Attachments: none
+
+From: Vivek Kulkarni <vivek@redwood.com>
+To: Raj Patel <raj@medalign.com>
+Cc: Ellen Cho <ellen@medalign.com>, Marissa Cole <marissa@redwood.com>
+Date: 2026-08-30T09:04:00-07:00
+Subject: Re: MAP kickoff – what counts as 'done' for our evaluation?
+
+Raj, Ellen — good framing. Attaching a draft checklist (doorway-criteria-checklist.xlsx) and a short smoke-test spec (smoke-test-cases.md). Below is a compact doorway proposal we think maps cleanly to your procurement review.
+
+Doorway criteria (minimal bar to move from evaluation -> procurement/negotiation):
+1) Security & Data Controls (non-negotiable)
+   - SOC2 scope confirmation: Redwood will provide latest attestation and evidence for ingestion controls.
+   - Data residency guarantee for PII samples used in the trial (logs retained < 30 days).
+2) Deterministic smoke performance
+   - 99th percentile response latency <= 250ms for 1–4 token prompt baseline on dedicated-tiny model.
+   - End-to-end throughput of 50 QPS sustained for 10m with <1% error rate in our test harness.
+3) Functional correctness (quality check)
+   - Task-level precision: regression against your golden set >= 92% (we'll exchange the golden set).
+   - No high-severity hallucination failures in 200 sampled prompts (failure defined in attached spec).
+4) Operational observability
+   - Token-level cost and latency traces visible in console for the trial environment.
+   - Exportable audit log for 7 days (with vendor-provided proof-of-delivery).
+5) Integration & rollback
+   - Example integration with your staging environment via API key rotation and per-route model pinning.
+   - Clear rollback trigger: if >3 production-impacting errors in 24h during pilot, auto-fallback to model variant.
+
+Proposed owners & run schedule:
+- Redwood: provide checklist, test vectors, and a step-by-step smoke test runner (deliver by Thu). (Owner: Marissa Cole)
+- MedAlign: run the smoke script against staging and return results + 10 failure examples (Owner: Raj).
+- Success decision: joint review call on Week 2 Monday; if doorway criteria met, move to procurement packet.
+
+I attached the checklist and the smoke-test cases. Happy to iterate — if you want, Marissa can walk through the checklist tomorrow.
+
+Thanks,
+Vivek Kulkarni
+VP, Partnerships & GTM
+Redwood Inference
+
+Attachments: doorway-criteria-checklist.xlsx, smoke-test-cases.md
+
+From: Marissa Cole <marissa@redwood.com>
+To: Vivek Kulkarni <vivek@redwood.com>, Ben Carter <ben@redwood.com>
+Cc: Raj Patel <raj@medalign.com>, Ellen Cho <ellen@medalign.com>
+Date: 2026-08-31T14:21:00-07:00
+Subject: Re: MAP kickoff – what counts as 'done' for our evaluation?
+
+Looping Ben in to confirm the test harness and to outline the quick-fix plan for any performance gaps. Ben — if we see latency slip at 99th during the queueing test, our playbook is: 1) enable prefix KV caching for matched routes, 2) bump to a quantization-safe variant, 3) if still bad, advise a short burst (10m) on Dedicated capacity.
+
+A couple of notes on the checklist we've attached (high-level):
+- Evidence required: for each security item, list the exact artifact (SOC2 PDF, control owner, timestamp).
+- For the golden set quality test, MedAlign should provide the canonical ground truth (we will not share internal prompts).
+- Smoke runner: a single script that returns pass/fail per-case plus an artifacts bundle (logs + tokens) that MedAlign can upload to the Drive link.
+
+Proposed timeline:
+- Thu (2026-09-02): Redwood delivers test runner and postman collection.
+- Fri (2026-09-03): MedAlign runs tests & returns results.
+- Mon (2026-09-06): Joint decision call; if doorway satisfied, prepare procurement packet by 9/10.
+
+Ben — can you confirm you can deliver the runner by Thu?
+
+—Marissa
+Director, Solutions
+Redwood Inference
+
+Quoted: 
+> On Aug 30, 2026, at 9:04 AM, Vivek Kulkarni <vivek@redwood.com> wrote:
+>
+> Raj, Ellen — good framing. Attaching a draft checklist (doorway-criteria-checklist.xlsx) and a short smoke-test spec (smoke-test-cases.md).
+
+From: Ben Carter <ben@redwood.com>
+To: Marissa Cole <marissa@redwood.com>, Vivek Kulkarni <vivek@redwood.com>
+Cc: Raj Patel <raj@medalign.com>, Ellen Cho <ellen@medalign.com>
+Date: 2026-09-02T16:03:00-07:00
+Subject: Re: MAP kickoff – what counts as 'done' for our evaluation?
+
+Marissa / team — confirmed. I will deliver:
+1) smoke-test-cases.md: runnable python harness + docker image (sends configurable QPS and logs per-case).
+2) doorway-criteria-checklist.xlsx: mapped to evidence columns and a short "how-to-prove" note.
+3) a canned runbook with exact curl commands and expected response shape for each test.
+
+Quick clarifications for the run config (so MedAlign can prep):
+- Use apiKey staging keys we shared earlier.
+- Default test set: 200 prompts (150 quality probes, 30 stress latency, 20 edge/regulatory probes).
+- Pass thresholds: overall pass >= 90% on quality probes AND 99p latency <= 250ms on the stress set.
+
+If MedAlign hits an intermittent failure, include the artifacts bundle (the harness will collect token traces and the per-request model variant). We'll review traces together in the Monday call.
+
+Raj / Ellen — expecting your run results by EOD Fri so we can keep Monday's decision call on schedule.
+
+Ben Carter
+Solutions Engineering
+Redwood Inference
+
+Forwarded message: 
+> On Aug 31, 2026, at 2:21 PM, Marissa Cole <marissa@redwood.com> wrote:
+>
+> Looping Ben in to confirm the test harness and to outline the quick-fix plan for any performance gaps...

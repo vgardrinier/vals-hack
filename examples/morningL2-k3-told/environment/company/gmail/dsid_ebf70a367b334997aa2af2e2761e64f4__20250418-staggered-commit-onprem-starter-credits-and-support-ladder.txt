@@ -1,0 +1,146 @@
+Staggered commit proposal: starter credits, support ladder, and platform fee phasing
+
+From: Andre Muller <andre.muller@heliohealth.com>
+To: mateo_alvarez@redwood.com
+Cc: procurement@heliohealth.com
+Date: Fri, 18 Apr 2025 15:23:00 -0400
+Subject: Exploring phased on-prem commit + starter credit?
+
+Hi Mateo,
+
+Thanks again for the demo last week. We're interested in a VPC/on-prem deployment for our core clinical models but need a pricing structure that lets us pilot with limited upfront commitment and then scale. Two asks from procurement: 1) Can Redwood provide a short starter credit for an initial pilot (2-3 months) before formalizing a commit? 2) We'd like to amortize the platform fee over the term so it doesn't hit our CapEx in year 1.
+
+Attached is our RFP excerpt and a rough usage profile. Key constraints: SOC2 evidence must be available during pilot, and we need an escalation path for model regressions.
+
+Can you outline options for a staggered commit (pilot -> staged increase -> full commit), suggested starter credit sizing, and how the platform fee could be phased or amortized? Also, what support tiers would you recommend for a pilot vs production?
+
+Thanks — appreciate a quick outline so procurement can map to our SOW template.
+
+Best,
+Andre
+Andre Muller
+Head of Cloud Procurement
+Helio Health
+procurement@heliohealth.com
+
+Attachment: Helio_RFP_2025-04.pdf (pdf)
+From: mateo_alvarez@redwood.com
+To: Andre Muller <andre.muller@heliohealth.com>
+Cc: marissa_cole@redwood.com, neha_kapoor@redwood.com
+Date: Fri, 18 Apr 2025 18:02:00 -0400
+Subject: Re: Exploring phased on-prem commit + starter credit?
+
+Andre — thanks for the clear asks and the RFP extract. Below is a concise set of options that map to common procurement patterns for Private deployments. I kept the tradeoffs explicit so your finance/procurement team can plug numbers into the SOW.
+
+Option A — Pilot-first (minimal risk)
+- Term: 6 months total (2 month pilot + 4 month staged run)
+- Commit: nominal (1–3 node reserved baseline) with right-to-expand
+- Starter credit: 2 months platform fee waived for pilot period if customer agrees to convert to a 12-month committed term after pilot
+- Support: Standard (business hours) during pilot, upgrade to Pro (24x7 P1) on conversion
+- Platform fee treatment: credit applied up-front; remaining platform fee amortized across 12-month committed term upon conversion
+
+Option B — Accelerated commit (balanced economics)
+- Term: 12–18 months
+- Commit: tiered capacity (baseline + burst pool) with defined breakpoints at month 6 and 12
+- Starter credit: 1 month platform fee + implementation credit (one-time) if signed within 30 days
+- Support: Pro by default; add on an implementation retainer for first 3 months
+- Platform fee treatment: option to amortize annually for accounting (we can provide an invoice schedule that smooths the platform fee monthly)
+
+Operational/practical notes:
+- SOC2: we can provide our attestation and a SOC2 summary within 5 business days; full report available under NDA.
+- Escalation: we recommend a named escalation path with an SLO for regressions (response targets + on-call engineer for week 1 of pilot).
+- Exit / downgrade: prorated credits on reserved capacity if termination after 6 months, subject to minimum usage thresholds.
+
+I attached a starter pricing matrix (spreadsheet) with sample breakpoints and the platform fee amortization schedule you can hand to your FP&A team.
+
+If either option looks promising, Marissa (cc'd) can publish a tailored quote and a draft SOW. Happy to hop on a 30 min call this week to align procurement and legal.
+
+Best,
+Mateo Alvarez
+Director, Strategic Accounts — Private Deployments
+Redwood Inference
+mateo_alvarez@redwood.com
+Attachment: Redwood_helio_pricing_v1.xlsx (xls)
+From: marissa_cole@redwood.com
+To: Andre Muller <andre.muller@heliohealth.com>, mateo_alvarez@redwood.com
+Cc: neha_kapoor@redwood.com
+Date: Sat, 19 Apr 2025 09:15:00 -0400
+Subject: Fwd: pricing spreadsheet + amortization scenarios (Helio)
+
+Andre / team — forwarding the spreadsheet Mateo mentioned. I added two tabs: 'Starter-credit scenarios' and 'Platform-fee amortization (monthly)'. Notes inline:
+- Starter credit ADJUSTMENT: we recommend 2 months waived for a 12-mo conversion, or 1 month + $25k implementation credit for a quick-convert path.
+- SLA impact: any waived platform fee for pilot requires minimum SLO commitments on capacity; otherwise we reserve right to limit burst capacity during pilot.
+- Legal: our standard SOW contains a clause for amortization and invoice scheduling; will mark the clause for redline if needed.
+
+I'll be available Monday to run numbers with your FP&A.
+
+Marissa Cole
+Principal, Commercial Ops
+Redwood Inference
+Attachment: Redwood_helio_pricing_v1.xlsx (updated)
+From: Andre Muller <andre.muller@heliohealth.com>
+To: mateo_alvarez@redwood.com
+Cc: procurement@heliohealth.com
+Date: Mon, 21 Apr 2025 08:47:00 -0400
+Subject: Re: Staggered commit proposal: starter credits, support ladder, and platform fee phasing
+
+Team — thanks for the detailed options. A few counterpoints from procurement and finance after an initial review:
+1) Pilot length: we prefer a 3-month pilot (to include clinical validation) rather than 2. Can Redwood extend the starter credit to cover 3 months if we agree to a 18-month committed term?
+2) Platform fee discounting: instead of waiving, finance is asking whether Redwood can offer a 10–20% discount on the platform fee in year 1 and then revert to list. This helps our CapEx/OpEx planning.
+3) Amortization documentation: we'll need an invoice schedule and sample journal entries that our accounting can review to confirm amortization treatment.
+
+Also, a procurement-specific ask: if legal needs 3 weeks for SOW review, can you commit to a 4-week implementation window post-signature? That helps us commit to a go-live target.
+
+Attached are our procurement notes (high level).
+
+If we can get to agreement on these points, procurement will prepare a PO; legal will expect to see the annotated SOW for redlines next week.
+
+Regards,
+Andre
+
+Attachment: Helio_counter_pricing_notes.docx (docx)
+
+---
+On Fri, Apr 18, 2025 at 6:02 PM mateo_alvarez@redwood.com wrote:
+> Andre — thanks for the clear asks and the RFP extract. Below is a concise set of options that map to common procurement patterns for Private deployments. I kept the tradeoffs explicit so your finance/procurement team can plug numbers into the SOW.
+> 
+> Option A — Pilot-first (minimal risk)
+> - Term: 6 months total (2 month pilot + 4 month staged run)
+> - Commit: nominal (1–3 node reserved baseline) with right-to-expand
+> - Starter credit: 2 months platform fee waived for pilot period if customer agrees to convert to a 12-month committed term after pilot
+> - Support: Standard (business hours) during pilot, upgrade to Pro (24x7 P1) on conversion
+> - Platform fee treatment: credit applied up-front; remaining platform fee amortized across 12-month committed term upon conversion
+> 
+> (full message attached)
+From: mateo_alvarez@redwood.com
+To: Andre Muller <andre.muller@heliohealth.com>
+Cc: marissa_cole@redwood.com, neha_kapoor@redwood.com, sean_gallagher@redwood.com
+Date: Tue, 22 Apr 2025 13:45:00 -0400
+Subject: Re: Staggered commit proposal: starter credits, support ladder, and platform fee phasing
+
+Andre — appreciate the quick review and the clear counterpoints. Summary of what we can commit to and next steps below.
+
+Agreed concessions we can offer (subject to SOW/PO):
+- Pilot: 3-month pilot covered by a 2-month starter credit plus a $15k implementation credit applied at conversion.
+- Term: 18-month minimum committed term on conversion triggers the credits above.
+- Platform fee: 12% discount on platform fee for year 1 if you sign an 18-month committed term within 30 days of this email; year 2+ revert to standard list unless a new agreement is signed.
+- Implementation window: we will target a 4-week implementation after signature; we'll provide a named PM and an on-call engineer for the first 30 days.
+
+Deliverables we will send by EOD tomorrow:
+- Annotated draft SOW with amortization clause highlighted (for your legal team)
+- Invoice schedule and a sample amortization posting template for FP&A
+- Updated pricing workbook with your 3-month pilot scenario and the 12% discount applied
+- DocuSign link for the commercial term sheet (non-binding) so procurement can prepare a PO in parallel
+
+Next steps for Helio:
+- Procurement to confirm PO timeline (we'll align DocuSign to that target)
+- Legal to return redlines on the SOW within 3 weeks; we'll aim to respond within 5 business days of receipt
+
+If that all sounds reasonable I'll loop legal and initiate the DocuSign. Thanks for collaborating — happy to jump on a 30 minute call if you want to walk the FP&A schedule together.
+
+Best regards,
+Mateo Alvarez
+Director, Strategic Accounts — Private Deployments
+Redwood Inference
+mateo_alvarez@redwood.com
+Phone: (415) 555-0192

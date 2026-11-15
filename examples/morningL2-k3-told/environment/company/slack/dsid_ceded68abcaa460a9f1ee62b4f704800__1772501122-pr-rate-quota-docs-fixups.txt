@@ -1,0 +1,22 @@
+docs
+
+nina_docs: Quick flag while updating the Rate Limits & Billing doc: a few small but user-visible issues need fixing together. Can we bundle?
+sam_engineer: what are they?
+nina_docs: 1) examples still only show `retry_after` (seconds). Runtime returns `retry_after_ms` now. We should show both and recommend `retry_after_ms`. 2) quota docs mention "tokens" inconsistently; use "billing units" and add a tiny conversion table. 3) one internal link points to an old path that 302s; replace with the console canonical path.
+ryan_support: Support is getting tickets where customers use `retry_after` directly and oversleep. A short SDK snippet showing ms fallback would be super helpful.
+sam_engineer: I can add JS + Python snippets and a unit test for the snippet runner. Draft JS:```js
+const body = await resp.json();
+const waitMs = body.retry_after_ms ?? (body.retry_after ? body.retry_after * 1000 : null);
+if (waitMs) await sleep(waitMs);
+```
+sam_engineer: Python:```py
+body = resp.json()
+wait_ms = body.get('retry_after_ms') or (body.get('retry_after') and body['retry_after'] * 1000)
+if wait_ms:
+    time.sleep(wait_ms / 1000)
+```
+ci-bot: Link-checker: flagged 1 redirect (docs -> /usage/summary).
+nina_docs: I'll open a single PR with three commits: (a) retry payload + snippets + tests, (b) billing units wording + conversion table, (c) link fixes and screenshot swap. PR draft: https://github.com/redwood-inference/docs/pull/701
+ryan_support: tagging support in PR description and add note that Billing Viewer role is required to see per-tier metrics.
+sam_engineer: assigning reviewers @nina_docs + @ryan_support. Aiming to merge before the Friday patch.
+nina_docs: thanks, will post changelog blurb after merge.

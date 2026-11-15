@@ -1,0 +1,114 @@
+Planning: Demo — need new slot after security & procurement added
+
+From: Marissa Cole <marissa.cole@redwood.ai>
+To: Olivia Martin <olivia.martin@zenithpay.com>, Carlos Ruiz <c.ruiz@zenithpay.com>
+Cc: Rishi Malhotra <rishi.malhotra@redwood.ai>, Neha Kapoor <neha.kapoor@redwood.ai>
+Date: Sat, 22 Aug 2026 09:12:00 -0700
+Subject: Intro demo — confirm 8/25 10:00am PT?
+
+Hi Olivia & Carlos,
+
+Thanks again for the time yesterday — excited to run the intro demo next week. Per our notes, does 8/25 at 10:00am PT work for your team? I’ve tentatively blocked 45 minutes.
+
+Draft agenda attached (Zenith_demo_agenda_v1.pdf) — we plan to cover:
+- Quick product overview (10m)
+- Walkthrough: payments reconciliation flow (20m)
+- Security & deployment Q&A (10m)
+- Next steps / MAP (5m)
+
+If that slot is good I’ll send a calendar invite and a mutual action plan.
+
+Thanks,
+Marissa Cole
+Enterprise Sales | Redwood Inference
+marissa.cole@redwood.ai | +1 (415) 555-0137
+
+---
+Attachment: Zenith_demo_agenda_v1.pdf (application/pdf; stub)
+From: Olivia Martin <olivia.martin@zenithpay.com>
+To: Marissa Cole <marissa.cole@redwood.ai>, Carlos Ruiz <c.ruiz@zenithpay.com>
+Cc: David Cho <dcho@procureplus.com>
+Date: Sat, 22 Aug 2026 11:03:00 -0700
+Subject: Re: Intro demo — confirm 8/25 10:00am PT?
+
+Thanks Marissa — 8/25 10:00am PT would work for product and payments. Two quick asks: could you include our security lead (David Cho) and our infra/platform manager (Carlos) on the call? They need to review the deployment model and data flow. Also we’ve added procurement to the review loop. I’ve cc’d David and Carlos.
+
+If possible, include a brief runbook slide or pointer to how certs/keys are managed; procurement will want an entry on licensing and SLA.
+
+Thanks,
+Olivia Martin
+Director of Product, ZenithPay
+Olivia.Martin@zenithpay.com
+
+---
+(Quoted message below)
+On Sat, Aug 22, 2026 at 09:12 AM Marissa Cole <marissa.cole@redwood.ai> wrote:
+> Thanks again for the time yesterday — excited to run the intro demo next week...
+From: Marissa Cole <marissa.cole@redwood.ai>
+To: Olivia Martin <olivia.martin@zenithpay.com>, Carlos Ruiz <c.ruiz@zenithpay.com>, David Cho <dcho@procureplus.com>
+Cc: Rishi Malhotra <rishi.malhotra@redwood.ai>, Neha Kapoor <neha.kapoor@redwood.ai>, Aditya Rao <aditya.rao@redwood.ai>
+Date: Mon, 24 Aug 2026 08:05:00 -0700
+Subject: RE: Intro demo — confirm 8/25 10:00am PT? (security & procurement joining)
+
+Hi all — welcome David and thanks Carlos for jumping in. We’re happy to include security and procurement folks. Two points to call out:
+
+1) Our Security SME (Aditya) will want to walk through our deployment model, cert/KMS options, and audit logging. I cc’d him so he can prepare a 10-min deep dive.
+2) Given travel for a few of your execs and the extra stakeholders, the previously scheduled 8/25 10:00am PT slot is tight for a full technical + procurement conversation. Would you be open to moving to a 60-minute slot so we don’t rush the Q&A?
+
+Proposed alternate times (all PT):
+- Wed 8/26, 11:00am–12:00pm
+- Thu 8/27, 9:00am–10:00am
+- Fri 8/28, 1:00pm–2:00pm
+
+I attached an updated agenda that separates the security deep dive and the licensing/pricing discussion.
+
+Available to be flexible — let me know which of the three works best and I’ll update the calendar + MAP.
+
+Best,
+Marissa
+Marissa Cole
+Enterprise Sales | Redwood Inference
+marissa.cole@redwood.ai
+
+---
+Attachment: Zenith_demo_agenda_v2.pdf (application/pdf; stub)
+From: David Cho <dcho@procureplus.com>
+To: Marissa Cole <marissa.cole@redwood.ai>, Olivia Martin <olivia.martin@zenithpay.com>, Carlos Ruiz <c.ruiz@zenithpay.com>
+Cc: Rishi Malhotra <rishi.malhotra@redwood.ai>
+Date: Mon, 24 Aug 2026 09:12:00 -0700
+Subject: Re: RE: Intro demo — confirm 8/25 10:00am PT? (security & procurement joining)
+
+Hi Marissa — thanks for the options. Procurement prefers a later slot so we have time to gather the initial licensing ask. Fri 8/28 1:00pm–2:00pm PT works best for me. If you can include an attachment or bullet list of the licensing tiers we’ll circulate to legal before the call.
+
+I’ll plan to have a one-page procurement checklist ready.
+
+-David
+David Cho
+Sr. Procurement Manager | ProcurePlus (vendor to ZenithPay)
+DCho@procureplus.com
+
+On Mon, Aug 24, 2026 at 08:05 AM Marissa Cole <marissa.cole@redwood.ai> wrote:
+> Hi all — welcome David and thanks Carlos for jumping in...
+From: Rishi Malhotra <rishi.malhotra@redwood.ai>
+To: Olivia Martin <olivia.martin@zenithpay.com>, Marissa Cole <marissa.cole@redwood.ai>, David Cho <dcho@procureplus.com>, Carlos Ruiz <c.ruiz@zenithpay.com>
+Cc: Neha Kapoor <neha.kapoor@redwood.ai>, Aditya Rao <aditya.rao@redwood.ai>
+Date: Mon, 24 Aug 2026 15:48:00 -0700
+Subject: RE: RE: Intro demo — confirm 8/25 10:00am PT? (security & procurement joining)
+
+Thanks everyone — Friday 8/28 1:00pm–2:00pm PT is confirmed on our side. Marissa / Olivia, I sent a calendar invite and included the updated agenda and the mutual action plan (ZP_MutualActionPlan.xlsx).
+
+Notes for the call:
+- Aditya: 10–12 min security/deployment deep dive (certs, KMS options, audit logs)
+- Neha: 10 min pricing model & licensing tiers (high-level only; procurement checklist should suffice)
+- Rishi: product demo and integration checklist (20 min)
+- 10 min for live Q&A and next steps
+
+Marissa — please confirm if you want us to circulate any pre-reads to the Zenith team ahead of Friday.
+
+Cheers,
+Rishi Malhotra
+Senior Solutions Engineer | Redwood Inference
+rishi.malhotra@redwood.ai
+
+---
+Attachment: ZP_MutualActionPlan.xlsx (application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; stub)

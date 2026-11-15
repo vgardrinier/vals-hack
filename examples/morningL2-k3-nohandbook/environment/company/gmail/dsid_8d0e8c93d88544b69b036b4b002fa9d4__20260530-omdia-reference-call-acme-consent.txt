@@ -1,0 +1,153 @@
+Omdia reference request — ACME (reference call & consent)
+
+From: Liam Patel <liam.patel@omdia.com>
+To: Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>
+Cc: Marissa Cole <marissa.cole@redwoodinference.com>, Omdia Research <research@omdia.com>
+Date: Fri, 22 May 2026 09:14:00 -0700
+Subject: Request: Omdia reference call with Acme (30 min)
+
+Hi Stephanie —
+
+I'm leading a short vendor evaluation for a cloud inference report at Omdia. Acme has agreed to be a potential reference for Redwood and I wanted to check whether your team is available to coordinate a 25–30 minute reference call next week. The analyst panel would like to understand production performance, deployment model (dedicated vs hosted), and cost/latency tradeoffs you discussed with the customer.
+
+Would appreciate if you can:
+- Confirm a Redwood point of contact for the call
+- Share any consent form or reference rules we should route to the customer
+- Propose two 30-minute windows (US Eastern preferred)
+
+I've attached a short list of suggested questions (omdia_questionnaire_v1.pdf). Happy to adapt.
+
+Thanks —
+Liam Patel
+Senior Analyst, Omdia
+liam.patel@omdia.com
+
+On Fri, May 22, 2026 at 09:14 AM Liam Patel <liam.patel@omdia.com> wrote: (attached questionnaire)
+From: Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>
+To: Liam Patel <liam.patel@omdia.com>
+Cc: Marissa Cole <marissa.cole@redwoodinference.com>, Jonas Weber <jonas.weber@redwoodinference.com>, Omdia Research <research@omdia.com>
+Date: Fri, 22 May 2026 11:02:00 -0700
+Subject: Re: Request: Omdia reference call with Acme (30 min)
+
+Hi Liam —
+
+Thanks for the note and for sharing the questions. We'd be glad to support a reference call with Acme. I'll be the Redwood point of contact coordinating logistics and post-call follow-ups. Looping Marissa (Customer Success) to confirm permissions and Jonas (Sales) for commercial context.
+
+Proposed windows (US Eastern):
+- Tue 26 May, 11:00–11:30 ET
+- Thu 28 May, 13:00–13:30 ET
+
+Marissa — can you confirm whether Acme has a reference consent on file (or should we send a short consent form)? I've attached a redacted case excerpt that explains the deployment details we plan to discuss.
+
+If those times don't work, we can push to the following week. No recording without explicit permission from Acme.
+
+Best,
+Stephanie Nguyen
+Sr. Director, Solutions
+Redwood Inference
+stephanie.nguyen@redwoodinference.com
+
+> On Fri, May 22, 2026 at 09:14 AM Liam Patel <liam.patel@omdia.com> wrote:
+> > (see attached omdia_questionnaire_v1.pdf)
+From: Marissa Cole <marissa.cole@redwoodinference.com>
+To: Emily Turner <emily.turner@acmecorp.com>, Liam Patel <liam.patel@omdia.com>
+Cc: Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>, Jonas Weber <jonas.weber@redwoodinference.com>
+Date: Sat, 23 May 2026 08:47:00 -0700
+Subject: Acme — reference consent & logistics
+
+Hi Emily / Liam —
+
+Glad to hear Acme is open to this. Emily — thanks in advance for being willing to speak with Liam and the Omdia team. To make this quick, attached is our standard one-page consent form (acme_consent-form.pdf). It covers what can be quoted, recording permission, and the contacts for any follow-ups. If that looks fine, we can route for your e-signature (DocuSign).
+
+Agenda: 1) Brief intro (2–3 mins) 2) Acme's use case & architecture (8–10 mins) 3) Results and metrics (8–10 mins) 4) Q&A (5 mins). We've also attached a draft agenda (call_agenda.docx).
+
+Liam — once Emily confirms availability we'll send a calendar invite. Can you confirm whether Omdia wants the call recorded or prefer notes only?
+
+Thanks —
+Marissa Cole
+Customer Success Manager
+Redwood Inference
+marissa.cole@redwoodinference.com
+
+Attachment: acme_consent-form.pdf
+From: Emily Turner <emily.turner@acmecorp.com>
+To: Marissa Cole <marissa.cole@redwoodinference.com>, Liam Patel <liam.patel@omdia.com>
+Cc: Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>
+Date: Sun, 24 May 2026 10:22:00 -0400
+Subject: Re: Acme — reference consent & logistics
+
+Hi all —
+
+Thanks for coordinating. I can do Thurs 28 May, 1:00–1:30 PM ET. I reviewed the consent form — a couple of small redlines (no publication of our PII and any quote must be approved), otherwise fine. I can sign electronically.
+
+One quick question for the Omdia team: will this be published as part of a paid research note or is it background-only? Also please confirm if the call will be recorded.
+
+Thanks —
+Emily Turner
+VP, Platform Engineering
+Acme Corp
+emily.turner@acmecorp.com
+Phone: +1 212-555-0184
+
+> On May 23, 2026, at 08:47 AM, Marissa Cole <marissa.cole@redwoodinference.com> wrote:
+> > (attached consent form and agenda)
+From: Jonas Weber <jonas.weber@redwoodinference.com>
+To: Liam Patel <liam.patel@omdia.com>, Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>
+Cc: Marissa Cole <marissa.cole@redwoodinference.com>, Emily Turner <emily.turner@acmecorp.com>
+Date: Mon, 25 May 2026 14:05:00 -0700
+Subject: Re: Scheduling — Omdia reference call with Acme
+
+Liam / team —
+
+Thanks Emily and Marissa for the quick turn. Thu 28 May 13:00 ET works for us. We'll send the calendar invite and a DocuSign link for the consent form so Emily can e-sign.
+
+One ask from our side: Omdia, if you intend to cite direct quotes or use the call in published material, please flag that now so we can ensure Acme's approval path is clear. If it's background-only, that's fine.
+
+I've put together a short agenda and will host the call from our side — I'll join as well for commercial context and to answer any deployment/contract questions.
+
+Jonas Weber
+VP, Sales
+Redwood Inference
+jonas.weber@redwoodinference.com
+
+Attachment: call_agenda.docx
+Link: https://docusign.com/abcdef123456
+From: Liam Patel <liam.patel@omdia.com>
+To: Emily Turner <emily.turner@acmecorp.com>, Jonas Weber <jonas.weber@redwoodinference.com>, Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>
+Date: Thu, 28 May 2026 13:35:00 -0400
+Subject: Re: Reference call — quick recap and next steps
+
+Thanks everyone for a productive 28 May call — appreciate Acme's candidness. Quick recap from Omdia's side:
+- We will treat the conversation as background for the paid research note, not verbatim quotes, unless Acme explicitly approves quotes in writing.
+- No recording retained by Omdia per Emily's preference; notes only.
+- Omdia may follow up with a short clarifying question set (2–3 items) via email.
+
+Jonas / Stephanie — if you can share the signed consent and a short one-paragraph quote from Acme that they approve for publication, that would be helpful. Emily — thanks again; we may ping you with a follow-up clarification.
+
+Best,
+Liam Patel
+Senior Analyst, Omdia
+From: Stephanie Nguyen <stephanie.nguyen@redwoodinference.com>
+To: Emily Turner <emily.turner@acmecorp.com>, Liam Patel <liam.patel@omdia.com>
+Cc: Marissa Cole <marissa.cole@redwoodinference.com>, Jonas Weber <jonas.weber@redwoodinference.com>
+Date: Sat, 30 May 2026 15:42:00 -0700
+Subject: Follow-up: testimonial draft & permission to publish
+
+Hi Emily —
+
+Thanks again for taking the time to speak with Liam. Attached is a very short draft testimonial (acme-testimonial-draft.txt) and the signed consent (acme_consent-form.pdf). The testimonial is intentionally brief; feel free to edit for tone or accuracy. If you approve, we'll confirm publication scope with Omdia and provide the final quote to them.
+
+Key items:
+- Consent: signed and returned (attached).
+- Recording: none (notes only).
+- Quote: please reply with approval or edits.
+
+If you'd rather we keep it background-only, say the word and we'll decline any quote usage. Appreciate your help here.
+
+Best regards,
+Stephanie Nguyen
+Sr. Director, Solutions
+Redwood Inference
+stephanie.nguyen@redwoodinference.com
+
+Attachment: acme-testimonial-draft.txt; acme_consent-form.pdf

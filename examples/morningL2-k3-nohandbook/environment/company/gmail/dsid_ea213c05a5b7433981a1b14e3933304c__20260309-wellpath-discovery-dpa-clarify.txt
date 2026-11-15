@@ -1,0 +1,120 @@
+Discovery recap & DPA questions — residency, logs, subprocessors (WellPath pilot)
+
+From: Rafael Mendes <rafael.mendes@redwood.ai>
+To: Althea Thomas <althea.thomas@wellpath.com>
+Cc: Ben Carter <ben.carter@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>
+Date: Mon, 09 Mar 2026 11:02:00 -0700
+Subject: Discovery recap & DPA questions — residency, logs, subprocessors (WellPath pilot)
+
+Hi Althea — thanks again for the call earlier. Quick recap from our side and a few follow-ups so we can size the pilot and get legal aligned: 
+
+Recap (5‑min):
+- Pilot scope: 10k inference requests/day for triage workflows; PII limited to name, DOB, facility ID.
+- Expected peak tokens: ~1.2M tokens/day (batching expected).
+- Region preference: us-east for latency (but customer residency requirement may apply).
+
+Open questions you flagged (so we can answer concretely):
+1) Controller vs. processor responsibilities — you asked us to confirm how Redwood is positioned in the DPA for the pilot.
+2) Subprocessor disclosures — you asked for an up-to-date list and whether any subprocessor processes PII outside the US.
+3) Breach notification window and escalation path — what timeline will Redwood commit to in the DPA?
+4) Logging and retention — what application logs we retain by default and how long (audit, request/response, KV cache TTLs).
+
+I've attached a short one‑pager (redwood-dpa-summary.pdf) that summarizes our standard positions and configurable options (retention tiers, residency choices, and the subprocessor list link). Can you confirm which items from the list are must-haves vs. preferences for WellPath? That will help Marissa (legal) and Ben (solutions) prepare a concise response and proposed DPA language.
+
+Next steps (proposal):
+- You confirm must-haves from the four items above by EOD Wed.
+- We prepare a single-page DPA addendum + proposed language for the controller/processor clause and breach-notify wording for review.
+- Quick 30-min follow-up Thurs with Ben + Marissa to close items and share the redline.
+
+Thanks — Rafael
+Rafael Mendes
+Enterprise AE | Redwood Inference
+rafael.mendes@redwood.ai
+Redwood Inference
+
+Attachments: redwood-dpa-summary.pdf
+
+From: Althea Thomas <althea.thomas@wellpath.com>
+To: Rafael Mendes <rafael.mendes@redwood.ai>
+Cc: security@wellpath.com
+Date: Tue, 10 Mar 2026 09:18:00 -0700
+Subject: Re: Discovery recap & DPA questions — residency, logs, subprocessors (WellPath pilot)
+
+Hi Rafael — thanks for the clear recap. Quick answers and follow-ups from our side so you can scope legal asks: 
+
+Must-haves for WellPath (priority):
+- Explicit clause: WellPath is the Controller; Redwood is a Processor for customer-provided data. If Redwood collects telemetry tied to customer accounts, please indicate that separately and the legal basis.
+- Subprocessor list: we need the current list and confirmation which subprocessors (if any) may access or store the customer PII and whether any of those are outside the US.
+- Breach notify: we require first notice to our security team within 24 hours of detection and a written incident report within 72 hours. We understand remediation timelines vary, but initial contact must be quick.
+- Logs/retention: we need request/response logs for 180 days (availability of the logs for e-discovery), and audit logs for admin actions for 1 year. If those are configurable, we’ll note our preferred tiers.
+
+Attachments: I’m attaching our internal data requirements checklist to highlight the points we rely on (wellpath-data-requirements.xlsx).
+
+Once we have your standard language and whether you can meet the 24/72 timeline and 180/365 retention buckets, we can route an internal legal review. If you can provide the subprocessor URL and a DPA redline by Thursday EOD that would be ideal.
+
+Best,
+Althea Thomas
+Head of Data Security | WellPath Health
+althea.thomas@wellpath.com
+
+On Mon, Mar 9, 2026 at 11:02 AM Rafael Mendes <rafael.mendes@redwood.ai> wrote:
+> (original message omitted)
+
+From: Rafael Mendes <rafael.mendes@redwood.ai>
+To: Marissa Cole <marissa.cole@redwood.ai>
+Cc: Ben Carter <ben.carter@redwood.ai>
+Date: Tue, 10 Mar 2026 09:22:00 -0700
+Subject: Fwd: Discovery recap & DPA questions — residency, logs, subprocessors (WellPath pilot)
+
+Marissa — forwarding Althea’s reply (below). Key asks: 24-hour initial notice, 72-hour written report, subprocessor list (US vs non-US), and logs retention 180 days (request/response) + 1 year (admin/audit). Can we meet these or propose acceptable alternatives?
+
+Specific asks for legal redline: 
+- Controller/processor clause language that explicitly states WellPath is controller; Redwood is processor for customer data. Note: telemetry that Redwood collects for product improvement is processed as controller-owned telemetry — please advise standard wording.
+- Confirm whether our current subprocessors (link) access PII and whether any store data outside US. If any, do we have encryption/contractual controls in place?
+- Breach notify: can Redwood commit to initial contact within 24 hours? If not, propose the shortest reasonable SLA we can commit to (we need a rationale).
+- Logs: is the 180-day R/R log retention available by default or as an add-on? Admin/audit retention for 1 year — feasible?
+
+Althea attached their checklist — I attached it here for context. Planning a follow-up Thurs if legal can produce a short DPA addendum + suggested language we can send to the customer.
+
+Thanks,
+Rafael
+(attachment forwarded: wellpath-data-requirements.xlsx)
+
+From: Marissa Cole <marissa.cole@redwood.ai>
+To: Rafael Mendes <rafael.mendes@redwood.ai>, Ben Carter <ben.carter@redwood.ai>
+Date: Wed, 11 Mar 2026 09:45:00 -0700
+Subject: Re: Fwd: Discovery recap & DPA questions — residency, logs, subprocessors (WellPath pilot)
+
+Thanks for the ping and the context — below are concise replies you can share with Althea, plus proposed DPA language snippets. I also attached a short addendum draft (redwood-dpa-addendum.docx) to iterate on.
+
+1) Roles (controller/processor)
+- Standard position: Redwood acts as a Processor when processing customer-provided data pursuant to customer instructions; WellPath will be the Controller for the pilot dataset.
+- Telemetry: Redwood collects platform telemetry (metrics, usage) which we treat as technical product data; we propose an explicit carve-out stating telemetry is processed as Redwood controller data and is only used aggregated/anonymized for product improvement unless otherwise agreed.
+
+Proposed snippet: "Customer is the Controller of Customer Data; Redwood Inference is the Processor and will process Customer Data in accordance with Customer's documented instructions. Notwithstanding the foregoing, Redwood may collect platform telemetry and operational metrics and shall process such telemetry as Controller for the purpose of product operations and improvement, subject to the restrictions in Section X."
+
+2) Subprocessors
+- Current list: use link https://redwood.ai/subprocessors/current-list (we’ll provide an exported CSV if they need it).
+- PII access: the vast majority of subprocessors (cloud storage, monitoring) do not access raw PII; exceptions are our managed logging vendor which ingests encrypted request metadata for delivery (we can exclude any vendor on request).
+- Geography: most subprocessors operate in the US; a small set of analytics partners operate in EU. We can provide a mapping by vendor and country in the exported list.
+
+3) Breach notifications
+- Detection vs. notification: we commit to an initial acknowledgment to the customer’s security contact within 24 hours of Redwood detecting a confirmed incident affecting Customer Data. The 72-hour written incident report is feasible for incidents where facts are available; for complex incidents we will provide periodic updates until the report is complete.
+- Proposed phrasing: "Redwood will notify Customer’s designated security contact within twenty-four (24) hours after Redwood confirms that a security incident affecting Customer Data has occurred and will provide a written incident report with available facts within seventy-two (72) hours, with follow-up updates as investigations progress."
+
+4) Logging and retention
+- Default logging: request/response logs are retained 90 days by default. We offer a configurable retention tier of 180 days for request/response logs as a paid option for Dedicated/Private customers; admin/audit logs retention of 1 year is available as an add-on.
+- For pilot sizing we can temporarily enable 180-day R/R retention and 1-year admin logs for the trial if Procurement signs a short-term amendment (we can track the incremental cost in the MLP).
+
+Next steps / action items for Rafael:
+- Share the snippets above with Althea; ask whether the telemetry carve-out is acceptable.
+- Offer the subprocessor export (CSV) and ask which vendors they want further POA for.
+- Confirm whether WellPath will accept short-term paid retention for the pilot; if yes, I’ll prepare a one-page amendment to the SOW/DPA.
+
+I attached the DPA addendum draft and a one-pager on subprocessor protections. If you want me to send this directly to Althea (to speed things), say the word and I’ll send with a short cover note.
+
+Marissa Cole
+Senior Counsel, Privacy & Contracts | Redwood Inference
+marissa.cole@redwood.ai
+
+Attachments: redwood-dpa-addendum.docx

@@ -1,0 +1,124 @@
+Next steps: retention & deletion SLAs (logs/backup)
+
+From: David Kim <david.kim@redwood.com>
+To: Timothy Long <timothy.long@clearhealth.com>, Alyssa Chen <alyssa.chen@clearhealth.com>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Marcus Lin <marcus_lin@redwood.com>
+Date: Mon, 05 Oct 2026 15:12:00 -0700
+Subject: Post-call recap + retention / deletion notes
+
+Tim — thanks for the time today. Quick recap and proposed next steps from our side: 
+
+Summary of what we covered:
+- ClearHealth needs clarity on log retention, backup retention, and guaranteed deletion (esp. deletion from backups).
+- Questions about SOC 2 status and supporting artifacts, encryption and KMS controls for backups, and scope for HIPAA/GDPR regulated workloads.
+
+Immediate clarifications (from Redwood):
+- SOC 2: Redwood is in the final stages of a Type II assessment; we expect a completed report Q1 2027. We can provide a readiness summary and control mapping now (attached upon request).
+- Encryption: All customer data in transit is TLS; at rest we use AES-256. For Redwood Private customers we offer customer-managed KMS/HSM integration.
+- Default retention (hosted API): request logs and runtime traces retained 90 days; conversational payloads (customer data) 30 days by default. Backup snapshots are retained 180 days in our standard offering, with configurable shorter or longer windows for Dedicated/Private customers.
+- Deletion SLA: deletion requests remove live data within 24 hours and we guarantee removal from recoverable backups within 30–90 days depending on archival class; we can discuss a contractual 30-day deletion SLA for enterprise customers with dedicated retention policies.
+
+Proposed next steps:
+1) I will send our retention SLA excerpt and a one-page SOC 2 readiness summary (we can redline SLA if needed).
+2) Laura (cc) will initiate the vendor security questionnaire/doc and an NDA if required.
+3) Marcus (cc) can join a technical deep-dive to go over encryption, backups, and deletion mechanics — propose Wed 10/12 or Thu 10/13.
+
+Please confirm which artifacts you want first (SLA excerpt, SOC2 readiness summary, or full questionnaire) and whether you prefer us to use the DocuSign NDA link or your procurement template.
+
+Thanks — talk soon.
+
+—
+David Kim
+Enterprise Solutions
+Redwood Inference
++david.kim@redwood.com
+
+From: Timothy Long <timothy.long@clearhealth.com>
+To: David Kim <david.kim@redwood.com>
+Cc: Alyssa Chen <alyssa.chen@clearhealth.com>, Marcus Lin <marcus_lin@redwood.com>
+Date: Tue, 06 Oct 2026 09:34:00 -07:00
+Subject: Re: Post-call recap + retention / deletion notes
+
+David — appreciate the summary. A few follow-ups from our security team before we lock next steps:
+
+1) Backups: are your backups encrypted with customer keys or Redwood-managed keys by default? For ClearHealth we need to know if we can require CMK (customer-managed keys) for hosted production data. Also: are backups replicated across regions or single region by default?
+2) Deletion: when you say removal from recoverable backups within 30–90 days, does that include deep-archive copies (cold storage)? Our legal team expects a written guarantee that data is not recoverable after the stated SLA.
+3) SOC 2 artifacts: we need the current control mapping and any evidence you can share now (readiness docs, policy excerpts). A completed Type II report would be ideal but we understand timing.
+4) HIPAA/GDPR: do you provide a BAA and data processing addendum? If so, can you share a template or point to where we can review it?
+
+Marcus from our side will coordinate the technical answers — looping him in. We'll want Marcus (security) and our procurement lead on the follow-up call. 
+
+If you can send the SLA excerpt and the vendor questionnaire form, we'll circulate internally and propose times for the deep-dive.
+
+Best,
+Timothy
+Head of Platform Security
+ClearHealth
+
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Timothy Long <timothy.long@clearhealth.com>, David Kim <david.kim@redwood.com>
+Cc: Alyssa Chen <alyssa.chen@clearhealth.com>, Marcus Lin <marcus_lin@redwood.com>
+Date: Wed, 07 Oct 2026 11:08:00 -07:00
+Subject: Vendor security questionnaire + NDA (initial)
+
+Tim — Laura from Legal here. Following David's note, I'm attaching our standard vendor security questionnaire (document attached as a working copy). If ClearHealth prefers to push your questionnaire instead, we can start with that.
+
+Quick items from Legal: 
+- We'll provide a redlineable BAA/DPA template for HIPAA/GDPR once we confirm the commercial terms.
+- For SOC 2: we can provide a control mapping and interim evidence (policy documents, architecture diagrams). Full Type II report will be shared when available.
+- Please confirm whether you require a mutual NDA prior to exchanging internal artifacts; we can send a DocuSign link if helpful.
+
+Action: I'll kick off the questionnaire and would appreciate your security team's preliminary answers in the next 5 business days so Marcus (Redwood infra) can follow up on technical items.
+
+Regards,
+Laura Bennett
+Senior Counsel, Contracts & Privacy
+Redwood Inference
+
+From: David Kim <david.kim@redwood.com>
+To: Timothy Long <timothy.long@clearhealth.com>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Marcus Lin <marcus_lin@redwood.com>, Alyssa Chen <alyssa.chen@clearhealth.com>
+Date: Thu, 08 Oct 2026 08:46:00 -07:00
+Subject: Re: Post-call recap + retention / deletion notes
+
+Tim — attaching the two artifacts we discussed:
+- redwood-sla-retention-2026.pdf (excerpt with deletion SLA options and backup retention classes)
+- redwood-soc2-readiness-summary.pdf (control mapping and high-level schedule)
+
+Quick answers inline to your questions:
+- Keys: hosted-managed backups use Redwood-managed KMS by default (AWS KMS with strict access controls). For Dedicated and Private we support customer-managed keys (CMK) and HSM-backed KMS. We can add a contractual requirement for CMK in the hosted plan for enterprise customers if ClearHealth requires it.
+- Replication: standard hosted configuration stores backup snapshots in the primary region; cross-region replication is available as an opt-in feature for DR and immutability requirements.
+- Deep-archive: deep-archive (cold) classes are not part of the default 30-day deletion SLA; if ClearHealth wants a 30-day guaranteed removal including deep-archive we will need to include an archival purge clause in the contract. Typical timelines: live data purge <24 hours; recoverable backups purge target 30 days; archival purge up to 90 days unless contracted otherwise.
+- BAA/DPA: we have a BAA template and DPA we can share — Laura will lead that.
+
+Links:
+- HubSpot deal: https://app.hubspot.com/deals/CLH-2026-042
+- Proposed NDA: https://docusign.com/example/CLH-NDA-2026
+
+Next step: please confirm whether you want us to commit to 30 days across all storage classes (live + backups + archive) or whether a split SLA (30 days live + 90 days archive) is acceptable as baseline. We can prepare a contractual redline once you confirm.
+
+—
+David Kim
+Enterprise Solutions
+Redwood Inference
+Attachments: redwood-sla-retention-2026.pdf, redwood-soc2-readiness-summary.pdf
+
+From: Timothy Long <timothy.long@clearhealth.com>
+To: David Kim <david.kim@redwood.com>, Laura Bennett <laura_bennett@redwood.com>
+Cc: Marcus Lin <marcus_lin@clearhealth.com>, Alyssa Chen <alyssa.chen@clearhealth.com>
+Date: Fri, 09 Oct 2026 10:03:00 -07:00
+Subject: Re: Post-call recap + retention / deletion notes
+
+Thanks — the artifacts look good as a starting point. We will: 
+- Circulate the vendor questionnaire and the SLA excerpt to our security and legal teams today.
+- Marcus (security) will coordinate a technical deep-dive; tentative call on Mon 10/12 at 11:00 PT (we'll confirm).
+- Regarding deletion SLA: our procurement prefers a 30-day full purge (live + backups + archives). If Redwood requires an archival carve-out, please include the proposed archival purge timeline in the contract redline.
+
+We'll also need the BAA template before the deep-dive so our legal team can review. If you can send the DocuSign NDA, we'll execute that and return the questionnaire answers within 3-5 business days.
+
+Appreciate the quick turnaround — we'll be in touch.
+
+Best,
+Timothy Long
+Head of Platform Security
+ClearHealth

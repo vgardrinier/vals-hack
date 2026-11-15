@@ -1,0 +1,100 @@
+June pipeline sweep — risk flags + commit confirmations
+
+From: Dylan Brooks <dylan_brooks@redwood.com>
+To: Marissa Cole <marissa_cole@redwood.com>
+Cc: Rishi Malhotla <rishi_malhotla@redwood.com>, Connor O'Brien <connor_obrien@redwood.com>, Dev Patel <dev_patel@redwood.com>
+Date: Wed, 10 Jun 2026 09:12:00 -0700
+Subject: June pipeline sweep — risk flags + commit confirmations
+
+Team,
+
+Quick pipeline hygiene note ahead of Thursday's forecast sync: finance ran a sweep and highlighted a handful of opportunities where the committed amount or stage doesn't match recent activity. I pulled a snapshot (attached) and flagged deals into red/yellow/green so we can surface immediate risk and required save-plans. Please review the flags for deals you own and reply with: 1) commit confirmation (amount & close date) or 2) short save plan (3 bullets: blockers, next action, owner) by EOD Friday.
+
+Red (immediate action required):
+- Luminate — $425k (contract review stalled; legal questions from their procurement)
+- NovaCorp — $310k (PO delay; procurement requested SOC 2 sub-scope)
+
+Yellow (watch):
+- Vega Health — $95k (executive approval pending)
+
+Green (on track):
+- MicronApps — $60k
+
+Attachment: Q2_pipeline_snapshot.xlsx (xlsx, 145KB)
+Related: HubSpot deal 67890 (link below).
+
+Why this matters: Finance needs an updated commit number for the Q2 close forecast and a written save plan for red deals to justify reserve. If a deal will not close this quarter, mark it down now.
+
+If helpful, Marissa and Connor, let's carve 30 minutes Thursday to deep-dive Luminate. I can loop in Evelyn from Finance.
+
+Thanks,
+
+Dylan
+Dylan Brooks
+Director, Revenue Operations
+Redwood Inference
+
+---
+[Attachment: Q2_pipeline_snapshot.xlsx]
+From: Marissa Cole <marissa_cole@redwood.com>
+To: Dylan Brooks <dylan_brooks@redwood.com>
+Cc: Rishi Malhotla <rishi_malhotla@redwood.com>, Connor O'Brien <connor_obrien@redwood.com>, Dev Patel <dev_patel@redwood.com>
+Date: Thu, 11 Jun 2026 11:03:00 -0700
+Subject: Re: June pipeline sweep — risk flags + commit confirmations
+
+Dylan — thanks for the heads up. Quick updates below for the Luminate thread and related asks.
+
+Luminate (RWD-2026-458) — currently flagged RED
+- Commit: still tentative; they verbally agreed to $425k but procurement has pushed back on contractual data residency wording.
+- Save plan (short):
+  * Owner: Marissa Cole (AE) — I will own exec escalation.
+  * Blockers: Legal/data residency language; procurement wants addendum clarifying KV cache behavior and retention.
+  * Next action: Schedule legal-to-legal call this week; I will share proposed addendum and a brief technical note from Dev. Target: 6/18 to finalize wording.
+- Forecast impact: If addendum not accepted, move to OCP (outcome uncertain) and reduce Q2 commit to $0. If accepted, still expect close by 6/25.
+
+NovaCorp — status unchanged, PO pending (I've emailed Rachel Li to ask for timeline).
+
+MicronApps — confirm green; closing this week, invoices queued.
+
+Action items I will take by EOD Friday:
+- Send proposed addendum draft to their legal (attach Luminate_save_plan.docx)
+- Book 30m legal sync and invite Dev for technical clarifications
+- Update HubSpot with revised close plan and mark any reserve if needed
+
+Quoted for context:
+On Wed, Jun 10, 2026 at 9:12 AM Dylan Brooks <dylan_brooks@redwood.com> wrote:
+> Team,
+> 
+> Quick pipeline hygiene note ahead of Thursday's forecast sync: finance ran a sweep...
+
+Thanks — I will follow up once I have the legal call scheduled.
+
+—
+Marissa Cole
+Senior Account Executive, Enterprise
+Redwood Inference
+
+[Attachment: Luminate_save_plan.docx]
+From: Dylan Brooks <dylan_brooks@redwood.com>
+To: Marissa Cole <marissa_cole@redwood.com>, Rishi Malhotla <rishi_malhotla@redwood.com>, Connor O'Brien <connor_obrien@redwood.com>, Dev Patel <dev_patel@redwood.com>
+Cc: Evelyn Hart <evelyn_hart@redwood.com>
+Date: Fri, 12 Jun 2026 08:45:00 -0700
+Subject: RE: June pipeline sweep — risk flags + commit confirmations
+
+Appreciate the quick responses and the save-plan draft, Marissa. Evelyn — can finance use Marissa's save plan as the write-up we need for the Q2 close file? If so, please confirm whether we should reserve $425k or keep it as commit pending legal sign-off.
+
+Marissa — two small asks: 1) if you can, drop a conservative commit value in HubSpot (even a $0/0 date) to avoid overstating the commit column; 2) upload any documents to the shared drive link so finance has an audit trail.
+
+I attached a one-pager commit_summary_20260612.pdf that shows current stated commits vs. reserved amounts for the forecast model. Please review and flag any disagreements.
+
+Next: I'm scheduling a 30-min forecast sync for Monday 6/15 — calendar invite to follow. If Luminate's legal call lands before then, we can update the commit in real-time.
+
+Thanks all —
+Dylan
+
+[Attachment: commit_summary_20260612.pdf]
+
+--
+Dylan Brooks
+Director, Revenue Operations
+Redwood Inference

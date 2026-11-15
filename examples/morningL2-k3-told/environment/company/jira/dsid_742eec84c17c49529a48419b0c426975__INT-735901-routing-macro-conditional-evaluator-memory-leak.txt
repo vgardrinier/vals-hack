@@ -1,0 +1,48 @@
+Routing macro conditional evaluator causing memory leak and preventing template refresh
+
+Issue summary:
+The conditional expression evaluator used by the routing macro engine is leaking memory under high-cardinality input sets and preventing the macro/template refresh job from completing.
+
+Impact:
+- Periodic template refreshes (hourly) stall on a subset of routing templates that use complex conditionals (regex + set membership + eval functions).
+- Stalled refreshes cause stale routing tables which leads to a small but measurable spike in misrouted P1/P2 tickets and delays in SLA-driven autoroute decisions.
+- Observed increased OOM kills on the templating-service replicas and a rise in 5xx auxiliary errors on the rule-compiler endpoints.
+
+Environment:
+- Prod cluster: us-east (templating-service v3.8.1, rule-engine v5.2.0)
+- Affected pool: templating-service-replicas-5 (K8s deployment routing-templater)
+1) Deploy templating-service v3.8.1 in a staging namespace with sample routing templates that include ~10k unique conditional keys and complex regex checks
+2) Trigger a full template refresh (POST /internal/templates/refresh) with expanded payload (simulate multiple customers + enrichments)
+3) Observe memory use with `kubectl top pods` and `pmap`/jmap` on the JVM process (service runs on OpenJDK 17 in our deployment)
+4) Repeat refresh every 5 minutes to emulate backlog conditions until service OOMs or response latency exceeds 10s
+Heap usage grows steadily during refresh cycles and is not reclaimed between runs. GC activity increases but fails to compact pathological evaluator state, leading to OOM kill after 6-9 refresh attempts. Template refresh job remains in 'Running' state and subsequent ingress requests time out or hit fallback routing.
+Template refresh completes within configured windows, memory peaks are transient and reclaimed by GC, and routing tables update without service restarts.
+Heap histogram snippet (from last run): com.redwood.routing.macro.ConditionalExpression$CompiledRegex: 1,240,221 instances -> ~1.8GB
+Templating-service pod events: OOMKilled x3 between 2026-03-12T23:10Z and 2026-03-13T00:05Z
+Alert: rule-engine.templater.high-heap-us-east firing (avg heap > 4.5GB for 10 mins)
+Tracing link: https://otel.redwood.ai/trace/abcd1234 (shows long-running refresh spans; evaluator spends 65% of time in regex compilation)
+Relevant logs: https://logs.redwood.ai/prod/templater?query=ConditionalExpression+compile+cache
+2026-03-12 14:30 - Initial report from SRE (Diego Morales): noticed templater replicas recycling; added heap alerts and pinned one replica to collect heapdump.
+2026-03-12 15:05 - Collected hprof: large number of compiled regex objects and lambda captures referencing parent template context; probable retention through a non-cleared cache in ConditionalExpressionEvaluator.
+2026-03-13 09:12 - Hypothesis A: caching layer in evaluator does not evict entries keyed by ephemeral input set, causing cardinality explosion.
+Hypothesis B: closure captures in generated predicate code are retaining template AST nodes longer than necessary.
+2026-03-13 11:40 - Reproduced locally in staging with synthetic keys; observed identical heap growth pattern. Disable-regex-compile flag in config reduced growth (proof that regex compile/caching is central).
+2026-03-13 13:20 - Temporary mitigation: enable max-cache-size for evaluator (config flag) and schedule rolling restart of templater replicas to clear heap. Observed stability for 8 hours post-change.
+2026-03-14 02:10 - Root cause analysis ongoing: instrumentation shows ConditionalExpression.compile() stores Pattern objects in a static LRUMap but lacks strong referent and proper size accounting in high-cardinality scenarios.
+2026-03-12 15:20 - Samira Patel (assignee): Thanks @Diego — can you attach the heapdump and the exact refresh payload used? Will triage and reproduce in staging.
+2026-03-12 16:05 - Diego Morales: Uploaded heapdump to the linked storage and added a minimal reproducer script in the PR notes (see related_github_prs).
+2026-03-13 09:30 - Samira Patel: Reproduced locally. Short-term mitigation applied (max-cache-size=1000) and rollouts scheduled to templating-service; monitoring enabled. Will prepare patch.
+2026-03-14 08:00 - Engineering (Marcus Li): We have a candidate patch that adds soft references to the regex cache and guards cache growth by cardinality. Preparing unit and load tests. Target deploy: 2026-03-15 canary in us-east.
+2026-03-14 12:10 - Support tooling (Jin Park): Please note several templates from internal-route-profiles contain unnecessary dynamic regexes; recommended to fall back to pre-compiled simple matchers where possible.
+Short-term workaround: enforce evaluator.max_cache_size=1000 and rollout rolling restarts to templating-service in prod us-east (completed 2026-03-13).
+Medium-term fix: merge PR to replace strong-ref LRU with a size-aware cache using SoftReference for Patterns + explicit eviction on high-cardinality detection. Include telemetry to surface cache hit/miss and cardinality metrics.
+Long-term: add liveness check to template refresh job that aborts and reports when individual template evaluation exceeds configured CPU/memory threshold to prevent long tail stalls.
+PR: github.com/redwood-inference/routing-engine/pull/1349 - evaluator cache soft-ref + eviction (in review)
+Canary deploy: 2026-03-15 us-east templating-service v3.8.2-canary
+Full production rollout: planned 2026-03-17 after canary validation
+Post-deploy action: data-dog dashboards updated with evaluator.cache.size, evaluator.cardinality.percentile, template.refresh.duration
+Create runbook entry for templating-service high-heap scenarios and include emergency config knobs (max_cache_size, disable_regex_compile)
+Audit existing routing templates for high-cardinality dynamic regex usage and remediate top 25 offenders (owner: Routing Platform team)
+Add regression test to CI that runs a synthetic refresh with 10k keys to catch future leaks
+Schedule a postmortem if production impact recurs after patch rollout
+Workaround applied and candidate patch in review. Monitoring shows reduced heap growth after cache size limit. Pending canary and full rollout; ticket will be moved to Resolved once v3.8.2 is fully deployed and stability confirmed for 72 hours.

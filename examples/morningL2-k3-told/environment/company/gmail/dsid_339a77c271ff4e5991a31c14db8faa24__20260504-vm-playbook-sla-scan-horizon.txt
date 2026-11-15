@@ -1,0 +1,107 @@
+Vulnerability management playbook, SLA commitments & scan rhythm
+
+From: Peter Lowe <peter.lowe@acme-corp.com>
+To: rishi.malhotra@redwood.com, laura.bennett@redwood.com
+Date: Mon, 04 May 2026 09:15:00 -0700
+Subject: Request: VM playbook + SLA commitments for SOC2 evidence
+
+Hi Rishi / Laura,
+
+We're preparing our SOC 2 evidence packet and need a consolidated vulnerability management deliverable from Redwood covering:
+
+- Scan cadence (auth/unauth, agent vs. network) and retention of scan artifacts
+- SLA windows for CVE remediation by severity (P0/P1/P2 definitions and target times)
+- Ownership matrix (who gets the Jira ticket, escalation path)
+- Recent scan sample (latest authenticated scan export) and a short summary/playbook PDF we can attach to the SIG/CIS questionnaire
+
+Can you confirm what you can provide and whether you can sign/attest to the SLA language? Our security team (SOC2 Requests) needs this by end of week to include in a control binder.
+
+Thanks,
+Peter Lowe
+Security Assurance Manager
+Acme Corp
+
+---
+Attachments: none in initial request
+
+From: rishi.malhotra@redwood.com
+To: Peter Lowe <peter.lowe@acme-corp.com>
+Cc: laura.bennett@redwood.com
+Date: Mon, 04 May 2026 10:02:00 -0700
+Subject: Re: Request: VM playbook + SLA commitments for SOC2 evidence
+
+Peter — thanks for the ask. We can provide a compact evidence packet that should satisfy SOC 2 / SIG reviewers. High-level summary below; attaching the first-pass artifacts (scan-report-20260501.pdf and vm-playbook-summary.pdf).
+
+Key commitments (summary) — Redwood Inference VM playbook
+- Scan cadence: authenticated weekly scans for infra and container images, monthly full unauthenticated network scans, and nightly dependency/package vulnerability sweeps.
+- SLA windows (by severity):
+  - Critical / P0 (remote code execution with active exploit): acknowledge within 2 hours; mitigation plan within 48 hours; target remediation or compensating control within 7 days.
+  - High / P1 (privilege escalation, data exposure): acknowledge within 8 hours; mitigation plan within 72 hours; target remediation within 14 days.
+  - Medium / P2: acknowledge within 48 hours; remediation target 30 days.
+  - Low / P3: triage in routine sprint, target 90 days.
+- Ownership & workflow: automated ticket creation in Jira on CVE detection, routed to the owning team per attached cve-ownership-matrix.csv; security leads get an automatic escalation at 72h for P1/P0 and at 14d for P2.
+- Evidence retention: raw scan exports retained 12 months, summarized reports retained indefinitely in evidence Drive folder.
+
+We can provide a signed attestation confirming the SLA language above for your binder. If your SOC reviewer needs slight wording changes, we can discuss the exact phrasing we can sign off on.
+
+Next steps:
+1) I'll loop in Mina (security engineering) with the ownership matrix and ask her to add the automation and ticket templates.
+2) If Acme wants a one-page signed attestation, confirm whether the Attestation should be to Acme specifically or a general SOC2 evidence statement — we can produce both.
+
+Rishi Malhotra
+Head of Product Security
+Redwood Inference
+
+Attachments: scan-report-20260501.pdf (PDF, 1.1MB); vm-playbook-summary.pdf (PDF, 120KB)
+
+From: Mina Haddad <mina_haddad@redwood.com>
+To: rishi.malhotra@redwood.com
+Cc: laura.bennett@redwood.com, Peter Lowe <peter.lowe@acme-corp.com>
+Date: Tue, 05 May 2026 08:47:00 -0700
+Subject: Re: Request: VM playbook + SLA commitments for SOC2 evidence
+
+On Mon, May 4, 2026 at 10:02 AM Rishi Malhotra <rishi.malhotra@redwood.com> wrote:
+> We can provide a compact evidence packet that should satisfy SOC 2 / SIG reviewers.
+
+Thanks — adding technical detail for the packet and operational playbook. I've attached the cve-ownership-matrix.csv and included a short checklist below that maps to what your auditor will typically look for.
+
+Operational playbook (excerpts) — Redwood security engineering
+- Detection: weekly authenticated scans (Nessus-based) with nightly SCA (software composition analysis) against container images. Monthly external unauthenticated network scans.
+- Triage & classification: automated CVE enrichment (NVD + vendor advisories) -> severity normalized to Redwood taxonomy (Critical/High/Medium/Low).
+- Ticketing & remediation: automated Jira ticket created with labels: severity, affected-service, rollout-window. Ticket template includes rollback steps and mitigations.
+- Escalation matrix:
+  - P0/P1: owners notified via PagerDuty; security on-call notified immediately; secondary escalation to LAUNCH leadership if not acknowledged within SLA ack window.
+  - P2: notified to owners + security channel; auto-escalation to manager at 14 days.
+- Verification: post-remediation rescans for the fixed asset; evidence attached to Jira and copied to evidence Drive folder.
+- Metrics & reporting: weekly VM dashboard (open CVEs by severity, MTTR by severity, backlog age).
+
+Attachments included: cve-ownership-matrix.csv (CSV); I've also uploaded a ready-to-sign attestation draft to the evidence Drive link (see below). If Acme needs vendor-specific wording, point to the exact clause and we will respond.
+
+Mina Haddad
+Security Engineer, Vulnerability Management
+Redwood Inference
+
+Attachments: cve-ownership-matrix.csv (CSV, 4KB)
+
+From: Peter Lowe <peter.lowe@acme-corp.com>
+To: rishi.malhotra@redwood.com
+Cc: mina_haddad@redwood.com, laura.bennett@redwood.com, SOC2 Requests <soc2-requests@bigbank.com>
+Date: Thu, 06 May 2026 11:22:00 -0700
+Subject: Re: Request: VM playbook + SLA commitments for SOC2 evidence
+
+Rishi / Mina — this is great, thank you. The artifacts and SLA language look like they'll meet our SOC II control owner needs. Two quick asks:
+
+1) Can you provide the one-page signed attestation directed to Acme Corp ("Redwood Inference attests that the vulnerability management commitments described...")? PDF is fine.
+2) Please confirm the retention window for raw scan exports (you noted 12 months) and whether a CSV export of the latest authenticated scan is available for our audit team.
+
+If you can drop the signed attestation and the CSV export into the Drive link you already shared, I'll route to procurement and the auditor.
+
+Thanks — appreciate the quick turnaround.
+
+—Peter
+Peter Lowe
+Security Assurance Manager
+Acme Corp
+
+---
+Acknowledged: Rishi later replied out-of-band and uploaded the signed attestation to the Drive link and confirmed CSV availability.

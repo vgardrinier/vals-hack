@@ -1,0 +1,61 @@
+Suspected auth-code/referrer leak triggered by third-party asset in prospect PDF causing short-lived token use against internal metrics API
+
+Issue summary:
+A prospect PDF circulated by Sales contained an embedded web asset that loaded an external analytics/font host. When multiple employees opened the PDF in Gmail (web), our telemetry shows a cascade of requests that included an SSO redirect to our IdP with a query parameter containing an auth code. One of those codes appears to have been exchanged and resulted in short-lived bearer tokens used to call internal metrics/read-only endpoints.
+
+Impact:
+- Observed 4 distinct short-lived tokens minted and used from an external analytics domain IP range to query /internal/metrics and /billing/usage-read endpoints (no write endpoints observed).
+- A subset of requests returned PII-free metadata but included aggregated org usage numbers. No evidence yet of data exfiltration beyond those API responses.
+- Affected users: small group (approx 6) who opened the PDF in Gmail web; tokens were issued under SSO session context for a service account linked to a CI job (ci-reporter).
+
+Environment:
+- prod / us-east (idp.redwood-internal / auth gateway / internal-metrics)
+- Client: Gmail web (Chrome majority), prospect PDF served from sales-assets.example-vendor.com
+
+Observed timeline:
+- 2026-03-13 08:42 UTC: Sales sends prospect PDF to list (internal recipients include 6 employees).
+- 2026-03-13 09:05 UTC: Spike in outgoing calls to analytics.example-vendor.com from multiple internal addresses.
+- 2026-03-13 09:07 UTC: IdP logs show redirect requests with query parameter `code=` where `redirect_uri` is analytics.example-vendor.com/collect.
+- 2026-03-13 09:09 UTC: Auth exchange logs show 4 successful code->token exchanges for client_id associated with `ci-reporter` SSO integration.
+- 2026-03-13 09:13 UTC: Requests from analytics IPs to internal metrics endpoints detected and blocked by WAF rule added at 09:14 UTC.
+
+Steps to reproduce (investigation reproduction steps):
+1) Open the attached prospect PDF (internal copy) in Gmail web client.
+2) Observe network requests initiated by embedded asset to analytics.example-vendor.com.
+3) Follow redirect chain captured in IdP access logs; confirm `redirect_uri` points at third-party asset host and that query `code` is present in referrer-like URLs.
+
+Initial hypothesis:
+- The prospect PDF includes an embedded remote asset (font/iframe/img) that causes the client to follow an open-redirect on analytics.example-vendor.com which in turn routes to our IdP with a `redirect_uri` parameter that points back to the vendor. The IdP incorrectly accepted that redirect target for a subset of legacy client integrations (ci-reporter) and issued authorization codes which were then exchanged by the third-party domain.
+
+Evidence / logs (summarized):
+- IdP access: 4 redirect requests with query string containing `code=` from analytics.example-vendor.com (09:07-09:08 UTC). See ids: idp-logs-20260313-0907 lines 128-141.
+- Auth server: 4 token issuance events (grant_type=authorization_code) for client `ci-reporter` at 09:09 UTC. Token grant logs show User-Agent with vendor domain in referrer header.
+- API gateway: 4 distinct bearer tokens used to call GET /internal/metrics and GET /billing/usage-read between 09:09-09:13 UTC from vendor CIDR.
+- WAF: blocked subsequent calls after rule insertion at 09:14 UTC.
+
+Immediate mitigation taken:
+- 09:14 UTC: Added WAF rule to block analytics.example-vendor.com IPs from calling internal APIs.
+- 09:20 UTC: Disabled legacy SSO client `ci-reporter` (temporarily) to prevent further token issuance.
+- 09:30 UTC: Rotated client secret for `ci-reporter`; started token revocation for tokens issued in the 09:00-09:30 window.
+- 10:00 UTC: Blocklisted analytics.example-vendor.com at corporate DNS/firewall.
+
+Open questions / next steps:
+- Verify whether the vendor received or stored the auth code / access tokens (reach out to vendor security contact).
+- Confirm whether any downstream logging retained tokens or PII; run audit on internal metrics read responses returned to vendor IPs.
+- Update IdP allowed redirect_uri validation to remove legacy permissive entries and add stricter host-checking.
+- Schedule post-incident review and permanent hardening (IdP redirect validation, client migration plan, Sales guidance on remote assets in prospect materials).
+
+Resolution notes (work-in-progress):
+- Temporary mitigations applied and ci-reporter client rotated. No active suspicious calls after 09:15 UTC once WAF and DNS blocks applied.
+- Investigations ongoing to confirm vendor storage of codes and to decide if additional account rotations required.
+
+References:
+- IdP logs: s3://redwood-logs/idp/idp-logs-20260313 (redacted link)
+- Auth server token events: authz/logs/2026-03-13 (internal)
+- Slack incident thread: #sec-ops (message link: slack://channel?team=T1234&id=C5678)
+
+2026-03-13 09:22 - Amir Chowdhury (Security): Initial triage complete. Evidence shows code-in-query parameters delivered to vendor domain. Recommended immediate disable of ci-reporter client and WAF block. Actioned.
+2026-03-13 09:35 - Riley Santos (SRE): WAF block applied and DNS block in place. Not seeing new auth-code redirects after 09:16 UTC. Will monitor for 24h and audit logs for lateral activity.
+2026-03-13 10:01 - Marcus Huang (Engineering): Rotated client secret for ci-reporter and revoked active tokens in the suspect time window. Pushing a follow-up PR to tighten redirect_uri validation rules on IdP (see related_github_prs).
+2026-03-13 11:10 - Sales (Priya Nair): Prospect PDF has been removed from the share and we have disabled links. Sharing vendor contact for outreach: security@vendor-analytics.example-vendor.com
+2026-03-13 14:00 - Lena Kim (Support): Confirmed internal stakeholders notified. Creating this ticket for formal follow-up and post-incident review scheduling. Assigned to Marcus for engineering changes and Amir for vendor engagement.

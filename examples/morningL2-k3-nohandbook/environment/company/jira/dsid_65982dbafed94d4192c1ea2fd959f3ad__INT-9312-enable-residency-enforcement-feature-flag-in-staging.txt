@@ -1,0 +1,85 @@
+Enable Hosted data residency enforcement feature flag in staging + seed test orgs/API keys for verification
+
+Background
+We are preparing end-to-end staging verification for Hosted data residency enforcement (region pinning + deterministic blocks + standardized errors). This internal support request is to enable the staging feature flags and seed a few test orgs/projects/API keys so Engineering + SRE + Security can validate routing, fallback behavior, logging boundaries, and the public error contract.
+
+Request
+1) Enable residency enforcement feature flags in staging
+- Enable residency policy evaluation + enforcement in gateway + routing.
+- Ensure cross-region fallback is disabled by default when residency constraints are present.
+
+2) Seed staging test entities
+Create the following in staging control plane (do not use real customer data):
+A) Org: "residency-e2e-eu-only" (owner: platform-test@redwood.example)
+- Project: "hosted-chat"
+- Residency policy: allowed_regions=[EU], primary_region=EU (EU region group as defined in internal mapping)
+- API key(s):
+  - Key 1: project-scoped (standard)
+  - Key 2: key-level override (optional) to validate precedence rules
+
+B) Org: "residency-e2e-us-only"
+- Project: "hosted-chat"
+- Residency policy: allowed_regions=[US], primary_region=US
+- API key: project-scoped
+
+C) Org: "residency-e2e-unpinned"
+- Project: "hosted-chat"
+- No residency policy (control behavior baseline)
+
+Notes / constraints
+- Do not paste full API keys into this ticket. Store in 1Password shared vault "Staging Test Credentials" under item: "INT-9312 residency e2e keys".
+- Ensure audit log emission is enabled for policy create/update/delete in staging (for evidence + UI troubleshooting).
+- Ensure request logs for blocked requests include residency decision context fields (policy_id, evaluated_allowed_regions, selected_region, block_reason, request_id) without logging prompt/content.
+
+Approvals needed
+- Security Engineering sign-off for staging enablement: Marcus Lin
+- Product owner sign-off for staging test plan: Naomi Feldman
+
+Success criteria
+- Staging environment can deterministically reproduce a residency block and returns the standardized error contract for both streaming and non-streaming endpoints.
+- Routing does not attempt cross-region fallback when policy prohibits it.
+- Console shows the seeded policies and recent blocked requests, and audit log shows config changes.
+
+References
+- Slack: #eng-sre (thread on alerting + enablement) and #eng-platform (schema/policy precedence)
+- Planned enforcement/error contract PRs: PR-21507, PR-21533
+- Related support bug being validated in staging: SUP-28577 (streaming returned generic 500 previously)
+
+Pre-flight
+- [ ] Confirm staging gateway + routing builds include latest residency enforcement changes.
+- [ ] Confirm residency policy service is deployed in staging and reachable from gateway/routing.
+- [ ] Confirm feature flags exist in staging config service and are scoped to staging only.
+
+Enablement
+- [ ] Enable flag: residency_enforcement_enabled=true (staging)
+- [ ] Enable flag: residency_decision_logging_enabled=true (staging)
+- [ ] Ensure cross-region fallback default behavior: disabled when residency policy present
+
+Seed data
+- [ ] Create org/project + EU-only policy + API keys (stored in 1Password)
+- [ ] Create org/project + US-only policy + API key (stored in 1Password)
+- [ ] Create org/project with no policy (baseline)
+- [ ] Verify policies visible in Console and config history entries recorded
+
+Functional verification
+- [ ] EU-only org: send request via us-east endpoint -> request is blocked with standardized error payload (409) and error_code indicates residency violation
+- [ ] EU-only org: send request via eu endpoint -> succeeds and selected_region is EU
+- [ ] Streaming path: verify blocked request returns residency error (not generic 500) and includes request_id
+- [ ] Unpinned org: verify existing routing behavior unchanged
+
+Observability
+- [ ] Residency decision context present in logs for allow + block (no prompt/content)
+- [ ] Audit log entries exist for policy create/update/delete
+- [ ] Dashboard panels populate for blocked_requests count in staging (if hooked up)
+
+Rollback
+- [ ] Confirm flags can be toggled off and behavior reverts without redeploy
+2025-02-10 10:14 - Sean Gallagher (Assignee): Acknowledged. Will coordinate flag enablement after confirming current staging deploy contains gateway PR-21533 build. Will also confirm routing has PR-21507 in staging before flipping enforcement on.
+2025-02-10 14:02 - Amara Diallo (API Gateway): Gateway staging is on build from main @ 7c31d2a; includes residency error contract changes behind flag. Streaming path fix for SUP-28577 is included. OK to proceed once routing is confirmed.
+2025-02-11 09:18 - Mina Haddad (Routing): Routing staging includes residency evaluation integration (PR-21507) behind the same flag. Cross-region fallback is disabled by default when residency policy present. Only exception is explicitly configured allow_cross_region_fallback (not set for these test orgs).
+2025-02-11 11:27 - Marcus Lin (Security Engineering): Approved staging enablement with constraints: do not log prompts/outputs; ensure policy_id is OK to expose internally; confirm audit events are present for config changes. Please capture screenshots/links for evidence pack once validated.
+2025-02-11 13:05 - Sean Gallagher (SRE): Flags enabled in staging at 13:02 UTC. Seed requests in progress. Created 1Password item and shared with #eng-platform + #eng-sre. (No keys pasted here.)
+2025-02-11 16:44 - Chloe Martin (Console): Confirmed Console shows all three orgs and policy history entries. Blocked requests view shows entries after first test run; request_id links to logs in staging Kibana.
+2025-02-12 10:21 - Brian Murphy (API error contract): Verified block response: HTTP 409, error_code=RESIDENCY_POLICY_VIOLATION, includes request_id and help_url. Streaming path now returns same structured error (previously generic 500).
+2025-02-13 09:03 - Rafael Mendes (SRE Manager): Marking resolved. Next: add staging monitor to catch unexpected spike in block rate during dogfood (tracked separately by ENG-4846 dashboards).
+Completed. Residency enforcement flags enabled in staging; seeded EU-only, US-only, and unpinned test orgs/projects/keys (stored in 1Password). Validated standardized residency violation errors (409) for both streaming and non-streaming, confirmed no cross-region fallback under residency policy, Console visibility + audit log events present.

@@ -1,0 +1,29 @@
+product
+
+Anya (Data): FYI customer asked for a CSV billing export that includes a trace_link column so their billing team can jump straight to problem traces. Need format + perf guidance.
+Maria (PM): Good ask. We should standardize column set. Also include event_time and model_rate_usd.
+Jake (Eng): Implementation constraints: exports are generated from hourly rollups. We can add a sample_trace_id field (nullable) rather than full trace payloads to avoid huge files.
+Sam (SRE): Important: sampled traces only. If the rollup bucket has no sampled trace, we should leave trace_link empty rather than trigger a full capture.
+Lukas (Design): UX: make trace_link a full URL so clicking in spreadsheet opens console. Template: https://console.redwood.ai/traces/{trace_id}?t={tenant_id} . Include a short hover text in Console export modal describing sampling behavior.
+Anya (Data): Proposed CSV header example: 
+```
+tenant_id,route,model_id,event_time,tokens_in,tokens_out,normalized_tokens_usd,charge_usd,sample_trace_id,trace_link
+```
+Sample row: 
+```
+acct_42,/v1/generate,redwood-13b,2025-05-02T01:00:00Z,120,240,0.0031,0.37,abc123,https://console.redwood.ai/traces/abc123?t=acct_42
+```
+Jake (Eng): For trace_link we should URL-safe-encode trace_id. Also rate-limit export generation to avoid heavy queries. Prefer async export job with S3 link.
+Sam (SRE): Agree. Add export throttles per-tenant and pagination for huge date ranges. We'll audit CPU and DB load in staging.
+Anya (Data): Note on dedupe: rollups might combine multiple requests into one aggregated row. sample_trace_id should be an example span, not necessarily representative of all events. We must document that.
+Maria (PM): Launch acceptance (draft):
+- Export CSV includes sample_trace_id + trace_link when available
+- Export job is async and delivered to tenant S3/console export area
+- Docs: clear note on sampling, how trace is selected, and cost assumptions
+- Perf: generating a 90-day export for a mid-tier tenant must finish within 30 mins or queue gracefully
+- Security: trace_link tokens only valid for tenant-scoped sessions (no leakage)
+Jake (Eng): Action: spike to build export job + add trace id lookup from tracing index. ETA 1 week.
+Lukas (Design): I'll add the export modal copy about sampling and an example CSV in the docs.
+BillingBot: Billing export scheduled for job id=export-20250502-01 at 2025-05-02T02:00:00Z
+DeployBot: Staging canary for export-worker scheduled 2025-05-04T09:00:00Z flag=billing-export-trace-link
+Maria (PM): Great. We'll review spike results in next product sync. Ping me when staging numbers are in. :thumbsup:

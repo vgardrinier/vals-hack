@@ -1,0 +1,144 @@
+Supplier compliance packet kickoff — collection of COI, W-9 and PO routing
+
+From: Alex Martinez <alex_martinez@redwood.com>
+To: Sofia Ramos <sofia.ramos@bluepeak.io>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: Tue, 25 Aug 2026 09:00:00 -0700
+Subject: Supplier compliance packet kickoff — COI, W-9 and PO routing
+
+Hi Sofia —
+
+Thanks for agreeing to move forward with Redwood. To get BluePeak fully setup in our procurement system we need a short compliance packet. Can you please provide the following items as attachments to this thread?
+
+- Certificate of Insurance (COI) listing Redwood Inference as certificate holder (GL, E&O/professional liability, and cyber)
+- W-9 (or applicable tax form)
+- Primary contact for PO routing and invoicing (email + billing address)
+- If you have a standard master services agreement or redlines, please indicate so (we'll route to legal separately)
+
+Target for intake: end of day Aug 26 if possible — we can do an expedited PO once we have the COI + W-9. Laura (cc'd) will create the PO and route approvals. Marissa will confirm SOC2/cyber evidence if needed after the COI arrives.
+
+Short answers are fine — just attach the PDFs. If any items will come from another team or portal, flag that and include an ETA.
+
+Thanks,
+Alex Martinez
+Account Executive, Redwood Inference
+alex_martinez@redwood.com | +1 415-555-0198
+
+Attachment stubs: (Please attach as PDFs)
+- requested: COI (GL/E&O/cyber), W-9
+
+From: Sofia Ramos <sofia.ramos@bluepeak.io>
+To: Alex Martinez <alex_martinez@redwood.com>
+Cc: contracts@bluepeak.io
+Date: Tue, 25 Aug 2026 11:15:22 -0700
+Subject: Re: Supplier compliance packet kickoff — COI, W-9 and PO routing
+
+Hi Alex —
+
+Thanks — attaching what we have right now.
+
+Attachments:
+- BluePeak_COI_GL_EO_2026-08-25.pdf (GL and E&O listed; cyber not included on this certificate)
+- W9_BluePeak_2026-08-25.pdf
+
+Quick notes: our cyber policy is currently issued under the parent entity and we can request a separate cyber certificate, but it typically takes 24–48 hours to issue. If you need the cyber endorsement sooner, I can escalate with our broker. PO and billing contact is billing@bluepeak.io (same address on W-9).
+
+Sofia Ramos
+Head of Operations, BluePeak Labs
+sofia.ramos@bluepeak.io | +1 617-555-0113
+
+On Tue, Aug 25, 2026 at 09:00 AM Alex Martinez <alex_martinez@redwood.com> wrote:
+> Hi Sofia —
+> 
+> Thanks for agreeing to move forward with Redwood. To get BluePeak fully setup in our procurement system we need a short compliance packet...
+
+From: Alex Martinez <alex_martinez@redwood.com>
+To: Sofia Ramos <sofia.ramos@bluepeak.io>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: Tue, 25 Aug 2026 13:05:00 -0700
+Subject: Re: Supplier compliance packet kickoff — COI, W-9 and PO routing
+
+Hi Sofia —
+
+Received — thank you for the quick turnaround and the W-9. A couple of follow-ups:
+
+1) Cyber coverage: our procurement team requires either a cyber policy on the COI or a separate cyber certificate showing at least $1M aggregate. If your broker can issue the cyber COI in the next 48 hours that will allow Laura to finalize the PO.
+2) Certificate holder address — please list as: Redwood Inference, 88 Market St, Suite 205, San Francisco, CA 94103.
+3) For invoicing: please confirm billing@bluepeak.io as the address and whether BluePeak prefers net-30 or net-45 terms.
+
+If the cyber cert will be delayed, we can still provision a limited PO for onboarding work (non-production) and hold full production access until the cyber evidence arrives — happy to coordinate that path if helpful.
+
+Thanks,
+Alex
+
+On Tue, Aug 25, 2026 at 11:15 AM Sofia Ramos <sofia.ramos@bluepeak.io> wrote:
+> Hi Alex —
+> 
+> Thanks — attaching what we have right now.
+
+From: contracts@bluepeak.io <contracts@bluepeak.io>
+To: Alex Martinez <alex_martinez@redwood.com>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Marissa Cole <marissa_cole@redwood.com>, Sofia Ramos <sofia.ramos@bluepeak.io>
+Date: Tue, 25 Aug 2026 18:40:05 -0700
+Subject: Re: Supplier compliance packet kickoff — COI, W-9 and PO routing
+
+Hi Alex / team —
+
+Following up from Sofia: attached a cyber certificate issued today that lists Redwood Inference as an additional insured (policy #CY-998122). Also attaching an updated combined COI that includes GL, E&O and Cyber endorsements.
+
+Attachments:
+- BluePeak_Cyber_Insurance_2026-08-26.pdf
+- BluePeak_COI_GL_EO_2026-08-25.pdf (updated with cyber endorsement)
+- W9_BluePeak_2026-08-25.pdf
+
+Billing: billing@bluepeak.io (Net-30). Please route PO to invoices@bluepeak.io once generated.
+
+Let us know if you need carrier contact info — happy to share the broker's name and binder if required for SOC2 review.
+
+Best,
+BluePeak Contracts Team
+contracts@bluepeak.io
+
+On Tue, Aug 25, 2026 at 11:15 AM Sofia Ramos <sofia.ramos@bluepeak.io> wrote:
+> Hi Alex —
+> 
+> Thanks — attaching what we have right now.
+
+From: Laura Bennett <laura_bennett@redwood.com>
+To: Alex Martinez <alex_martinez@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: Wed, 26 Aug 2026 08:30:00 -0700
+Subject: PO creation and routing instructions for BluePeak
+
+Morning team —
+
+Thanks for looping me in. I created PO #PO-2026-5143 for initial onboarding services (non-production) and will route for manager approvals today. Notes:
+
+- PO will reference BluePeak Labs (EIN from W-9).
+- Invoices should be sent to invoices@bluepeak.io per vendor note; finance prefers PDF invoices with PO number in subject.
+- Once we have the final COI with cyber endorsement on file, I will convert the onboarding PO to full production scope and update the billing terms to Net-30.
+
+I'll attach the PO once approvals finish (should be this afternoon). Laura
+
+Laura Bennett
+Procurement Operations Manager, Redwood Inference
+laura_bennett@redwood.com
+From: Alex Martinez <alex_martinez@redwood.com>
+To: Sofia Ramos <sofia.ramos@bluepeak.io>
+Cc: Laura Bennett <laura_bennett@redwood.com>, Marissa Cole <marissa_cole@redwood.com>
+Date: Wed, 26 Aug 2026 10:00:00 -0700
+Subject: Re: Supplier compliance packet kickoff — COI, W-9 and PO routing
+
+Sofia / team —
+
+Received the updated COI and cyber cert — thanks for the fast turnaround. Laura — please confirm when the PO is formally posted and I will send the kickoff calendar invite.
+
+Sofia, expected next steps from our side:
+- PO posted and invoice contact confirmed (Laura)
+- Vendor onboarding checklist completed by Marissa (SOC2 / access items)
+- Kickoff call scheduled for Aug 31 (tentative)
+
+Appreciate the quick responses — welcome aboard.
+
+Best,
+Alex Martinez
+Account Executive, Redwood Inference

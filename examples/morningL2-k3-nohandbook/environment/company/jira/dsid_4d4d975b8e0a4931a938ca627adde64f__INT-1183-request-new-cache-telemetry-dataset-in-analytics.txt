@@ -1,0 +1,96 @@
+Request new analytics dataset/table for cache telemetry aggregates (prefix/KV cache) to support dashboards + recommendations MVP
+
+Requester: Mei Lin (Analytics datasets & batch job engineer)
+
+Background
+We’re instrumenting new prefix/KV cache telemetry in the serving runtime and building (a) cache dashboards/alerts and (b) a first-pass recommendations batch job ("increase hit-rate" levers). Both efforts need a stable, queryable analytics table of *aggregated* cache telemetry with strict privacy and cardinality controls.
+
+Request
+Please create a new curated dataset/table (or view) in the analytics warehouse that contains cache telemetry aggregates at controlled dimensions (no raw prompts, no high-cardinality identifiers). This table will be consumed by:
+- Recommendations batch job (daily + on-demand backtests)
+- SRE/Observability ad-hoc analysis and dashboard backfills
+- Console stub/report validation (internal-only initially)
+
+Proposed dataset/table
+- Dataset (schema/namespace): analytics_prod.telemetry
+- Table name: cache_efficiency_agg_daily (partitioned by ds)
+- Granularity: 1 row per (ds, deployment_mode, region, model_id, model_version_id, route_id_bucketed, prompt_len_bucket, token_hist_bucket)
+  - route_id_bucketed should be allowlisted + mapped (see gateway tagging plan) and/or grouped as "other" to prevent tenant/route explosion.
+
+Required columns (suggested; OK to adjust to match existing warehouse conventions)
+- ds (DATE, partition key)
+- deployment_mode (ENUM-ish: hosted | dedicated | private)
+- region (e.g., us-east, eu-west)
+- model_id (string)
+- model_version_id (string)
+- route_id (string; allowlisted) OR route_group (string; allowlisted) OR route_id_bucketed (string)
+- prompt_len_bucket (string; per standards doc, e.g., 0-128, 129-256, 257-512, 513-1024, 1025-2048, 2049+)
+- token_hist_bucket (string; coarse request-shape bucket; OK if this is prompt_tokens_bucket only for v1)
+
+- prefix_cache_requests (BIGINT)
+- prefix_cache_hits (BIGINT)
+- prefix_cache_partial_hits (BIGINT)  (if available per ADR; otherwise omit)
+- prefix_cache_misses (BIGINT)
+- kv_cache_requests (BIGINT)
+- kv_cache_hits (BIGINT)
+- kv_cache_misses (BIGINT)
+
+- miss_reason_capacity (BIGINT)
+- miss_reason_ttl_expired (BIGINT)
+- miss_reason_policy_disabled (BIGINT)
+- miss_reason_hash_mismatch (BIGINT)
+- miss_reason_version_mismatch (BIGINT)
+  (If miss reason is recorded as a label in metrics, we can pre-pivot to columns in the agg table to keep downstream queries simple and stable.)
+
+- evictions_total (BIGINT)
+- evictions_due_to_pressure (BIGINT) (if reason available)
+- memory_pressure_p95 (DOUBLE) (or avg/max; whichever is easiest and meaningful)
+
+- wasted_prefill_tokens (BIGINT)
+- prefill_tokens_total (BIGINT)
+
+- telemetry_sample_rate (DOUBLE)  (so consumers can de-bias counts where needed)
+- dropped_series_count (BIGINT)  (optional; helps detect ingestion/cardinality guard drops like SUP-3927)
+
+Data sources
+- Source: telemetry aggregates from ingestion (metrics pipeline) after cardinality guards
+- Do NOT include:
+  - tenant_id, user_id, org_id
+  - request_id / trace_id
+  - any prompt text or prompt hashes that could be reversed or used as identifiers
+
+Permissions needed
+- Read access for:
+  - Platform/Telemetry (Logan Wright’s org)
+  - SRE/Observability (Sean Gallagher / Allison Grant)
+  - Product (Paula Mendes / Aditya Rao) *read-only; internal use*
+  - Support/CS (Owen Phillips / Miguel Santos) *optional; likely via curated dashboard not direct table*
+
+Success criteria / acceptance
+- Table is created and populated daily (T+2h after UTC day boundary is fine)
+- Query example can produce cache hit-rate trends by model/region and prompt length bucket
+- Downstream job (recommendations MVP) can join on route/model/version keys without additional PII tables
+- Cardinality guardrails are enforced (no explosion in distinct route_id or model_version_id beyond allowlists)
+
+Operational notes
+- Please add a simple data-quality check: non-null ds, region, model_id; counts non-negative; sudden 0 across all regions flagged.
+- Retention: 30 days raw aggregates is sufficient for MVP; longer retention (90d) is nice-to-have if cost permits.
+
+References
+- Cache recommendations design: sources/confluence/eng-platform/systems-and-services/cache-recommendations-batch-job-design.json
+- Dashboard spec: sources/confluence/eng-platform/dashboards-and-alerts/cache-hit-rate-dashboards-spec.json
+- Cardinality policy: sources/confluence/architecture-and-standards/observability-standards/cache-metrics-naming-and-cardinality-policy.json
+- Gateway tagging plan: sources/google_drive/shared_drives/engineering/platform-engineering/gateway-route-tagging-plan.json
+
+Notes
+We hit a prior issue where label-drop/cardinality guards caused dashboards to show zero hits (SUP-3927). This table should help make these failures obvious (e.g., dropped_series_count, or a separate dq signal) so we don’t misinterpret telemetry gaps as real cache regressions.
+2025-03-06 (Mei Lin): Filing this as internal support because we need the dataset created + permissions handled centrally. We’re blocked on backtesting recommendation heuristics until we can query stable daily aggregates.
+2025-03-07 (Thomas Baird): Acknowledged. Need two clarifications: (1) Do you need hourly granularity or is daily enough for MVP? (2) For route dimension, can we use the gateway’s allowlisted route_group rather than raw route_id to keep series bounded?
+2025-03-07 (Mei Lin): Daily is enough for MVP (recommendations job runs daily). Hourly would be helpful later for incident response but not required. Route_group is acceptable as long as we can map it to the same identifiers SRE uses in dashboards (Hosted vs Dedicated routes differ).
+2025-03-08 (Allison Grant): +1 on route_group. For SRE triage we mostly slice by region/model/prompt bucket, then drill into the top 20 routes only. If we can keep a small allowlist of high-volume routes and bucket the rest as 'other', that works.
+2025-03-10 (Thomas Baird): Plan: create analytics_prod.telemetry.cache_efficiency_agg_daily partitioned by ds. Dimensions: deployment_mode, region, model_id, model_version_id, route_group (allowlisted), prompt_len_bucket, prompt_tokens_bucket. Miss reasons will be pivoted into columns. Will also add telemetry_sample_rate and a simple dq flag (rows_ingested) per partition.
+2025-03-11 (Mei Lin): Sounds good. Please include wasted_prefill_tokens and prefill_tokens_total; the recommendations rely on 'wasted prefill %' + eviction pressure correlation.
+2025-03-12 (Thomas Baird): Implemented table + scheduled job. Backfill for last 7 days completed. Granted read access to groups: eng-platform-telemetry, eng-sre-observability, prod-optimize-pm-readonly. Holding off on support/cs access pending PM approval; can add later via a view.
+2025-03-13 (Paula Mendes): Confirmed PM read-only access is sufficient. Prefer CS consumes through dashboards rather than direct warehouse access. Thanks.
+2025-03-14 (Thomas Baird): Marking resolved. Next steps: if SRE needs hourly granularity for incident response, open a follow-up INT ticket; we can add cache_efficiency_agg_hourly with tighter retention.
+Created analytics_prod.telemetry.cache_efficiency_agg_daily (partitioned by ds) with controlled dimensions and miss-reason pivot columns. Added daily scheduled population + 7-day backfill. Granted read access to Platform/Telemetry, SRE/Observability, and PM read-only group. Deferred direct CS access in favor of dashboards/views. Includes telemetry_sample_rate to support de-biasing and basic ingestion completeness signals to detect label-drop scenarios.

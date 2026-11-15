@@ -1,0 +1,65 @@
+Zeroed invoice line for reserved capacity hours after regional failover; missing credit adjustment
+
+Issue summary:
+Velox Health reports a zeroed invoice line for 'Reserved capacity hours' after a regional failover on 2026-03-09. The expected reserved-hours charge and a corresponding prorated credit for capacity transferred to the failover region are missing. The customer believes credits were applied but then disappeared from the final invoice PDF and API invoice lines.
+
+Impact:
+- Customer-facing invoice shows 0.00 for reserved-hours line for 2026-03-09 02:00-03:00 UTC in ap-southeast-1.
+- Velox Health is an enterprise dedicated customer with contract credits; this affects their month-end reconciliation and finance team sign-off.
+- No service interruption reported, but billing reconciliation is blocked.
+
+Environment:
+- Dedicated pool: velox-prod-pool (reserved capacity contract)
+- Primary region: ap-southeast-1, failover region triggered: us-west-2
+- Production, customer uses model redwood-v2-large for inference
+- Customer-side: organization org-velox-health, billing account BA-9981
+
+Steps to reproduce (customer timeline):
+1) 2026-03-09 01:58 UTC - automated regional probe detects degraded throughput in ap-southeast-1.
+2) 2026-03-09 02:00 UTC - smart-routing triggers failover of some routes to us-west-2.
+3) 2026-03-09 02:30 UTC - capacity rebalancer shifts reserved slots; meter pipeline records reserved-hour usage in us-west-2.
+4) 2026-03-09 04:00 UTC - billing job generates provisional invoice and credits; Velox's billing admin exports invoice PDF and invoice via API.
+5) Customer observes reserved-hours invoice line amount 0.00 and no credit entry for rebalanced capacity.
+
+Observed behavior:
+- Metering API shows token and instance-hour usage in both regions for the hour window.
+- Invoice API and PDF show 0.00 line for 'Reserved capacity — hourly commitment' and no associated credit lines.
+- Internal billing job logs show a credit record for BA-9981, but final invoice generation step appears to have filtered the line during merge.
+
+Expected behavior:
+- Reserved capacity hours billed in the region where they were consumed, with an automatically generated prorated credit line for capacity moved due to failover per contract.
+
+Logs / attachments provided by customer:
+- invoice_pdf_2026-03-09.pdf (customer-provided)
+- api_invoice_export_2026-03-09.json (customer-provided)
+- support:trace:/logs/velox-failover-2026-03-09 (link included in attachments)
+
+Investigation notes (initial):
+- SRE examined meter pipeline: duplicate suppression heuristics are active for reserved-hour aggregation across regions to avoid double billing when rebalancing occurs.
+- Early hypothesis: during the failover, the aggregator wrote a provisional credit in region A and a consumption line in region B, but the invoice-merge step applied a filter that zeroed lines if matching credit and debit rows had differing tenant keys after key rotation.
+- Billing engineer Marcus observed an entry in intermediate_billing_runs table: run_id BR-20260309-22 contains both charge and credit but final_invoice_items linked to BA-9981 show only a zeroed reserved-hours item.
+- Related deployment: gh/infra/metering-dedup-312 was merged 2026-03-08 to tighten dedup logic for streaming and reserved-hour aggregation. That PR may have changed key normalization.
+
+Next steps:
+- Billing to replay BR-20260309-22 with a debug flag to produce full itemization (assigned).
+- Engineering to review key normalization change from gh/infra/metering-dedup-312 and check join keys in invoice merge job.
+- Provide Velox Health a provisional reconciled invoice and hold any automated collection until resolved.
+
+Workaround / Temporary resolution (proposed):
+- Issue a manual credit memo for BA-9981 covering the missing credit and a corrected invoice PDF. Finance escalation available on request.
+
+Priority justification:
+- Enterprise customer, month-end reconciliation blocked; potential revenue recognition and customer trust impact.
+
+2026-03-10 09:12 - Aisha Patel (Support): Opened ticket after call with Velox billing. Customer requests expedited review and provisional credit memo. Attached invoice PDF and API export.
+2026-03-10 11:03 - Marcus Lee (Billing): I see BR-20260309-22 in internal runs. Intermediate table has expected items, final_invoice_items has a zeroed line. Assigning to billing for replay and to infra for dedup check. Tagged gh/infra/metering-dedup-312 as possibly related.
+2026-03-10 13:20 - Priya Raman (SRE): Running a quick replay in staging with the debug flag. Noted that reserved-hour aggregation keys include 'region' and 'tenant_key'; PR 312 removed the tenant_key normalization step. This could cause the merge to consider them distinct and collapse to zero during consolidation.
+2026-03-11 08:45 - Marcus Lee (Billing): Completed replay of BR-20260309-22 with debug. Found that the invoice-merge dedupe rule uses a hash over concatenated keys; when normalization differs the credit and charge hash didn't match and a legacy filter zeroed the charge line. Preparing manual credit memo draft for BA-9981.
+2026-03-11 16:00 - Aisha Patel (Support): Informed customer we will issue provisional credit memo and corrected invoice by 2026-03-12 EOD. Asked finance to hold collection for BA-9981.
+2026-03-12 09:30 - Marcus Lee (Billing): Drafted CM-2026-0312-9981 credit memo and uploaded corrected invoice PDF to ticket attachments. Waiting for finance approval for issuance. Engineering to prepare a patch to reintroduce tenant_key normalization in aggregation or make merge tolerant to key variants.
+2026-03-12 12:10 - Velox Health (Samir Kapoor): Thanks for quick triage. Please confirm credit memo reference we can attach to our GL. Also please share affected hours and the rationale.
+Partial workaround issued: provisional credit memo drafted and corrected invoice uploaded; engineering patch in review to prevent recurrence.
+Manual credit memo (CM-2026-0312-9981) and corrected invoice PDF provided; collections on BA-9981 paused until finance sign-off.
+Patch to metering aggregator to restore tenant_key normalization or make merge tolerant (PR pending)
+Add end-to-end invoice generation test for regional failover cases
+Run a 7-day scan for other customers that experienced failover between 2026-03-08 and 2026-03-10

@@ -1,0 +1,52 @@
+eng-platform
+
+Alex: quick flag — we're seeing gaps where streaming token counts don't make it to the invoice stage. small per-request but sizable aggregated gap.
+
+Mira: noticed a spike in billing.events_unmatched last Wed. probable root: finalization never reached the pipeline when transport closes.
+
+Dave: current flow depends on a final 'commit' event. partial token deltas are emitted as we stream, but only the finalize flips committed=true. if it's missing we ignore them at invoice time.
+
+Alex: concrete example: req r-9f82 — partial deltas up to 84 tokens, client socket dropped, no finalize. downstream invoice job summed only committed rows.
+
+Emma: are partials deduped? or could reconnects lead to double counting?
+
+Dave: we use an `update_seq` per request and upsert on (request_id, update_seq). finalize sets committed flag. reconnects with new seq will appear as new rows unless we coordinate idempotency.
+
+Mira: mitigation idea: run a sweeper job that closes `committed=false` rows older than threshold (e.g., 10m) and emits a provisional invoice line. then later reconciliation can adjust.
+
+SRE-Ops: server-side improvement: add a persistent local spool for finalize events and a background flusher that retries across restarts. on abrupt shutdown try a synchronous write to the spool.
+
+Dave: propose adding a `stream_finalize` witness event with fields and idempotency key:
+
+```
+{ "request_id": "r-...", "event_type": "stream_finalize", "tokens_total": 123, "idempotency_key": "final-r-9f82-v1" }
+```
+
+Upsert by idempotency_key in token_ledger and set committed=true.
+
+Alex: monitoring: new metric `billing.streams.pending_finalize` and dashboard tile `tokens_uncommitted_by_age`. alert when pending_finalize > 500 for 30m.
+
+Mira: reconcile job SQL to find suspects:
+
+```
+SELECT request_id, created_at, total_tokens_estimate, committed
+FROM token_ledger
+WHERE committed = false
+AND created_at < now() - interval '15 minutes'
+ORDER BY created_at DESC
+LIMIT 100;
+```
+
+Emma: UX: show provisional line items labelled clearly on customer invoice? Legal wants careful language. customers dislike surprises.
+
+Alex: product prefers not to surprise customers. maybe show as "provisional usage" with one-line explanation and clear final reconciliation date.
+
+SRE-Ops: routing: partition billing topic by customer_id and sticky-route requests so events for a given customer are ordered. reduces out-of-order upserts.
+
+Dave: timeline: (A) hotfix runtime spool + witness event in 5bd, (B) pipeline upsert/commit change + alerting in next sprint, (C) backfill reconciler before month-end invoicing.
+
+Mira: i'll add alerts and dashboard tiles. Alex file GH issue and link spec. Dave will PR runtime change.
+
+billing-bot: invoice.pipeline.alert created ticket BI-482 for "stream finalize missing - undercount" :eyes:
+
+Alex: thanks — assigning follow-ups. :thumbsup:

@@ -1,0 +1,105 @@
+Tiered bundle repack & commitment squeeze — commercial tradeoffs
+
+From: Stephanie Nguyen <stephanie_nguyen@redwood.com>
+To: Sam Torres <sam.torres@fathomai.com>
+Cc: Elena Cruz <elena.cruz@fathomai.com>
+Date: Tue, 9 Jun 2026 09:12:00 -0700
+Subject: Re: Pricing discussion — draft bundle proposal attached
+
+Hi Sam / Elena,
+
+Thanks again for the call this morning — appreciate the clarity on the 2 product lines you want to standardize under a single runtime. I attached a compact tier proposal (FathomAI_Proposed_Tier_Summary.pdf) that attempts to balance:
+
+- a modest up-front commitment (12 months) to unlock an implementation credit,
+- a steeper seat/throughput discount as you step up usage buckets, and
+- a fallthrough runtime SLA credit for missed latency targets.
+
+Key ask: can you confirm the expected 90-day pilot QPS and the percentage of calls that require latency <150ms? That will let us tighten the seat-to-commitment ratio.
+
+If you want to preserve flexibility we can move to an initial 6-month commitment with lower credits and a migration credit on go-live. Putting both options in the SOW helps legal speed review. I attached a SOW draft (SOW_draft_v2.docx) with placeholders for the pilot KPIs.
+
+Happy to jump on a 30-min call tomorrow to walk through the numbers.
+
+Best,
+Stephanie Nguyen
+Senior Account Executive | Redwood Inference
+stephanie_nguyen@redwood.com | +1 415-555-0182
+
+Attachments: FathomAI_Proposed_Tier_Summary.pdf (pdf, 2 pages), SOW_draft_v2.docx (docx, 6 pages)
+From: Sam Torres <sam.torres@fathomai.com>
+To: Stephanie Nguyen <stephanie_nguyen@redwood.com>
+Date: Tue, 9 Jun 2026 11:03:00 -07:00
+Subject: Re: Pricing discussion — draft bundle proposal attached
+
+Stephanie — thanks for the fast turnaround and thoughtful options. Quick questions from our procurement side before we schedule a follow-up:
+
+1) The pilot QPS will be ~450 QPS, but only ~30% are latency-critical (<150ms).
+2) We want the most flexibility on model variants during pilot — can the commitment bucket be scoped to consumed tokens rather than seat tiers (we expect bursty traffic)?
+3) On credits: how fungible is the implementation credit across SSO/integration and model-compat testing? Our internal PM wants it to cover engineers + software vendor costs.
+
+Also — pricing leadership here pushes back on anything that looks like a heavy multi-year lock. Is there a bridge structure that gives us equivalent unit economics without committing to 12 months?
+
+If it's easier, loop your commercial lead and ops (cc'd) and we can do a short call.
+
+Best,
+Sam Torres
+Head of Platform Partnerships, FathomAI
+sam.torres@fathomai.com
+
+On Tue, Jun 9, 2026 at 09:12 AM Stephanie Nguyen <stephanie_nguyen@redwood.com> wrote:
+> [original message with attachments]
+
+From: Stephanie Nguyen <stephanie_nguyen@redwood.com>
+To: Dylan Brooks <dylan_brooks@redwood.com>, Karthik Iyer <karthik_iyer@redwood.com>
+Date: Wed, 10 Jun 2026 08:27:00 -07:00
+Subject: Fwd: FathomAI — pilot constraints and commitment ask
+
+Dylan / Karthik — forwarding Sam's note (excerpted above). He confirmed 450 QPS and that only ~30% need low-latency. Procurement is pushing back on 12-month locks and wants token-based commitments or a bridge.
+
+My thoughts:
+- Option A (our baseline): 12-mo soft-commit with implementation credit ($45k) + stepped per-token discounts at 10M, 50M, 150M token thresholds. Best unit economics for Redwood but requires internal approval for the credit.
+- Option B (bridge): 3-mo pilot commit to a minimum consumed token floor (token-bucket) that converts to a 9-month amortized commitment if they exceed X tokens within pilot. Implementation credit reduced to $18k. Gives them runway and preserves upside if they scale.
+- Option C (flexible): no time lock, prepay credit pool (smaller) + increased per-token price but with an onboarding rebate if they hit pilot KPIs. Easiest for legal but worst for our revenue predictability.
+
+Attached two sketches: a quick $/token schedule and a draft clause for token-bucket conversion. Need your take on what revenue ops will tolerate and whether we can route the implementation credit as a one-time service credit (not invoice credit) to avoid complex GAAP impact.
+
+Can we decide today so I can get a response to Sam tomorrow?
+
+Thanks,
+Steph
+
+Attachments: commercial_sketch_v1.xlsx (xlsx, 1 sheet)
+From: Stephanie Nguyen <stephanie_nguyen@redwood.com>
+To: Sam Torres <sam.torres@fathomai.com>, Elena Cruz <elena.cruz@fathomai.com>
+Cc: Dylan Brooks <dylan_brooks@redwood.com>, Karthik Iyer <karthik_iyer@redwood.com>
+Date: Thu, 11 Jun 2026 16:02:00 -07:00
+Subject: Re: Tiered bundle repack & commitment squeeze — revised options
+
+Sam / Elena — thanks for the clarity. Per internal alignment (cc'd) here are two concrete options for your review. I attached the updated one-pager and a clean SOW link.
+
+Option 1 — Bridge-first (recommended)
+- 3-month pilot with a token-bucket minimum of 5M tokens (consumed).
+- Implementation credit: $20k applied as service onboarding credit (covers SSO, model-compat testing).
+- If pilot consumption > 20M tokens, automatic conversion to a 9-month amortized commitment at the discounted tiers (10% lower unit price than no-commit).
+- SLA: standard latency SLO, with 50% credit on missed availability SLAs (pilot-only).
+
+Option 2 — Predictable-commit (aggressive economics)
+- 12-month soft-commit with stepped pricing at 10M/50M/150M tokens.
+- Implementation credit: $45k (one-time service credit).
+- Early-exit clause: 60-day notice with pro-rated buyout equal to remaining discount-weighted consumption.
+
+Comparison notes:
+- Option 1 preserves flexibility they asked for (token-bucket) while giving us a path to revenue recognition if adoption accelerates.
+- Option 2 gets the best revenue and gives FathomAI the lowest unit price but adds friction on legal.
+
+Next steps: pick an option and confirm any non-standard procurement terms you need (vendor invoice requirements, PO timing). If preferred, we can convert Option 1 into a short term-sheet and do a client call Friday afternoon.
+
+Thanks,
+Stephanie Nguyen
+Senior Account Executive | Redwood Inference
+stephanie_nguyen@redwood.com
+
+Attachments: FathomAI_Revised_OnePager.pdf (pdf, 2 pages), SOW_draft_v2_clean.docx (docx, 5 pages)
+
+On Wed, Jun 10, 2026 at 08:27 AM Stephanie Nguyen <stephanie_nguyen@redwood.com> wrote:
+> [internal routing message to Dylan & Karthik]

@@ -1,0 +1,101 @@
+1876543210
+
+acme_prod: Hey team — since 03:20 UTC we're seeing p95/p99 jump for tenant acme-corp (routes to model:redwood-ggml-large). Timeouts in our customers' dashboards and some 504s. Example req id: req_8a3f. p95 ~ 600ms -> 3s, p99 -> 9s. Any known incidents?
+
+maya_support: sorry to hear that, digging in. Does this affect all regions or just us-east-1? Any recent config changes on your side?
+
+acme_prod: only us-east-1. No config changes from our end. We did see some 503/504 in the last hour. No new deployments.
+
+maya_support: ok escalating to runtime. @ranjit_runtime can you take a look? attaching the first traces and a couple request IDs.
+
+ranjit_runtime: on it. Can you paste a full raw log for req_8a3f and a couple p99 samples? Also which dedicated pool/instance type is this on?
+
+acme_prod: consolidated logs pasted below (timestamps redacted):
+```
+[2026-03-17T03:21:05Z] req=req_8a3f start routing pool=dedicated-g4dn.xlarge tenant=acme-corp
+[2026-03-17T03:21:06Z] alloc/gpu mem_alloc=3268MB mem_free=232MB slab_free=18MB KV_region=124MiB
+[2026-03-17T03:21:06Z] warn: gpu-oom-guard triggered, falling back to slower-nvtx path
+[2026-03-17T03:21:07Z] serve/finish latency=2800ms token_count=256
+```
+
+acme_prod: here's one p99 trace where the worker fell back to a CPU path and took 8.9s.
+
+maya_support: that gpu-oom-guard message is interesting. @oliver_sre any historical memory-frag patterns here?
+
+oliver_sre: we've seen similar when KV cache for long-history chats grows and slab fragmentation prevents large contiguous allocations. GW note: fallback -> slower path often shows as p99 spike.
+
+ranjit_runtime: initial hypothesis: KV growth + slab fragmentation causing allocator to be unable to satisfy large contiguous allocation for attention buffers -> fallback/slow path rather than hard OOM. That matches the log. Need to confirm with per-process GPU alloc histogram and slab stats. Can acme_prod run the debug probe below on one affected worker?
+
+maya_support: probe (safe, non-destructive):
+```
+# run on the serving host as root
+curl -sS http://localhost:9100/debug/gpu_mem | jq . > /tmp/gpu_mem.json
+/opt/redwood/bin/runtime-tool --inspect-slab | tee /tmp/slab.txt
+nvidia-smi --query-gpu=memory.used,memory.free --format=csv -l 1 -f /tmp/nv.txt & sleep 5 && pkill -f nvidia-smi
+```
+Please paste results.
+
+acme_prod: pasted outputs to shared bucket; key: s3://redwood-support/acme/1876543210/debug.zip. nv output shows mem.used fluctuating ~ 3.1GB and mem.free tiny. slab report shows many small free nodes but no large contiguous block.
+
+ranjit_runtime: confirms fragmentation. KV cache footprint for tenant is ~140MiB but split into many small extents; slab allocator largest free chunk ~24MB which is below needed contiguous allocation ~64MB for the attention kernel with current sequence length. That triggers the oom-guard.
+
+maya_support: ok, what's the immediate mitigation? Customers are impacted.
+
+ranjit_runtime: immediate mitigations (do in this order):
+1) Route heavy p99 traffic for tenant to a different pool with hotter contiguous memory (quick: failover to dedicated-g5xlarge if available).
+2) Temporarily flip tenant-config to reduce max_context_tokens and max_output_tokens (reduce peak alloc).
+3) Trigger KV eviction for that tenant (evict old chat histories) via admin endpoint:
+```
+curl -X POST "https://private-admin.redwood/v1/tenants/acme-corp/kv/evict" -d '{"older_than_secs":86400}' -H "Authorization: Bearer $ADMIN_TOKEN"
+```
+4) Soft restart single affected worker to cause allocator compaction (retain cache warmers).
+
+oliver_sre: also add a quick slab defragmentation flag on runtime (non-production builds have it): `--slab-defrag-on-low-mem=1`. We can hotpatch the flag via rollout to 5% canary.
+
+acme_prod: can you do 1 and 3 now? We're OK with short cache loss.
+
+maya_support: initiating failover to dedicated-g5xlarge pool for acme-corp (5m ETA). Running KV eviction now.
+
+deploy-bot: Job started: failover-route tenant=acme-corp -> pool=dedicated-g5xlarge (job id fb-8923).
+
+deploy-bot: Job completed: routing change applied.
+
+maya_support: eviction API returned 204. Monitoring p99s.
+
+acme_prod: within 6 minutes p95 down to 320ms, p99 down to 720ms. Thanks! Some residual tails at ~1s but much better.
+
+ranjit_runtime: great. For medium-term fix we should:
+- implement slab defrag heuristics in runtime allocator (merge adjacent small free extents).
+- add proactive KV compaction background task that consolidates extents off-peak.
+- add tenant-level kv.size watermark alerts so we detect slow-growing tenants before frag hits p99.
+- expose per-tenant allocation skyline via console.
+
+maya_support: can you draft the PR and a rollout plan? We'll need a canary (5% traffic), monitor p99 and OOM-guard logs, then 25% then 100%. Also add feature flag `slab_defrag_v2` to toggle at tenant-level.
+
+ranjit_runtime: drafting PR now. Rough plan:
+- PR: allocator defrag + background compactor + metrics  (code + unit + integ)
+- Canary: build with `--slab-defrag-v2` enabled in 5% of nodes for 24h, watch `oom_guard_trigger` and `p99_latency` (alert if p99 increases >5% or oom_guard triggers remain).
+- If stable, widen to 25% for 12h, then 100% in 24h.
+
+oliver_sre: add a synthetic test that recreates KV growth fragmentation in CI: long chat append + random snippet sizes to reproduce many small extents. Gate the PR on that test.
+
+acme_prod: appreciate the fast response. For billing windows, will this change any usage math? Evicting KV will cause some re-compute, maybe small extra tokens, ok to bill as normal.
+
+maya_support: noted. We'll log the eviction event in ticket and mark as customer-impact mitigation.
+
+ranjit_runtime: follow-ups assigned:
+- ranjit_runtime: PR + canary config + monitor dashboards.
+- oliver_sre: CI repro test + runbook update.
+- maya_support: customer comms + postmortem draft.
+
+acme_prod: ping me when canary starts. Also can you add an admin hook to preemptively evict if kv.size > 120MB? Would help us self-mitigate.
+
+ranjit_runtime: yes adding tenant watermark alert + optional auto-evict flag behind admin opt-in. We'll include in RFC.
+
+maya_support: closing loop: p99 stable for 45m after failover/evict. Marking this thread resolved for now. Please attach postmortem when done. :thumbsup:
+
+acme_prod: thanks everyone, great service. We'll test with higher seq lengths later and report any regressions.
+
+ranjit_runtime: thanks. We'll post back PR link and rollout notes in this thread.
+
+deploy-bot: Incident note created: INC-20260317-1876543210, severity=high, status=mitigated.

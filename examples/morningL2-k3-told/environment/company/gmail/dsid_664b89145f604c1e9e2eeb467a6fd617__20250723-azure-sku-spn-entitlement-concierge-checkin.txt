@@ -1,0 +1,125 @@
+Azure offer: SPN handshake, SKU mapping, and co-sell entitlement questions
+
+From: Priya Menon <azure-marketplace@microsoft.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>, Marissa Cole <marissa.cole@redwood.com>
+Date: Wed, 23 Jul 2025 09:12:00 -0700
+Subject: Azure offer: SPN handshake, SKU mapping, and co-sell entitlement questions
+
+Hi Karthik / Marissa,
+
+Thanks for starting the Azure Marketplace intake for StellarData. I pulled together the minimal items our validation team needs before we schedule the technical gate review: a SKU-to-Plan mapping (CSV), the Service Principal (SPN) you plan to use for onboarding (with required permissions), and confirmation of co-sell intent so we can enable the appropriate marketplace entitlements.
+
+Quick checklist (attached guidance in the marketplace seller portal):
+- SKU mapping: SKU ID, display name, unit type (monthly seat / consumption), and pricing tier
+- SPN permissions: Owner or Contributor on the Publisher Resource Group + Reader on subscriptions referenced by the offer
+- Co-sell: is this available for marketplace co-sell (yes/no) and lead-sharing contact
+
+Two clarification asks before the tech validation call:
+1) Are you planning to use one SKU with multiple tiers or separate SKUs per tier?
+2) Will the offer call any external endpoints that require inbound network proofs (we sometimes need outbound IP allowlist details)?
+
+I can run the validation once you share the CSV and SPN service principal details. If it helps, we can book a 30-min pre-check this week.
+
+Attachments referenced: marketplace-onboarding-checklist.pdf (guidance), sample-sku-template.csv
+
+Thanks,
+Priya Menon
+Azure Marketplace Specialist
+Microsoft Corporation
+
+
+From: Karthik Iyer <karthik.iyer@redwood.com>
+To: Priya Menon <azure-marketplace@microsoft.com>
+Cc: Marissa Cole <marissa.cole@redwood.com>, Irene Choi <irene.choi@redwood.com>
+Date: Wed, 23 Jul 2025 11:04:00 -0700
+Subject: Re: Azure offer: SPN handshake, SKU mapping, and co-sell entitlement questions
+
+Hi Priya — thanks for the clear checklist. Looping in Irene (infra lead) and Marissa (go-to-market) so we can get you everything you need.
+
+Answers up front: 
+- SKU approach: we plan separate SKUs per tier (FreeTrial, Standard, Enterprise) to keep billing and telemetry isolated. I attached our draft CSV (sku-mapping-draft.csv).
+- SPN: we'll create a dedicated SPN for publishing. Per our security practice we prefer Contributor on the Publisher Resource Group only; we included a screenshot of the SPN roles we propose (spn-permissions-screenshot.png). If Owner is mandatory for any portal tasks, let us know precisely which actions require Owner.
+- Network calls: the runtime reaches out to our telemetry ingestion endpoint (https://telemetry.stellardata.com) and to a CDN for model artifacts. We do not require inbound firewall openings for validation; however if Nexus requires outbound IP ranges we can provide them.
+
+Open items / asks for you: 
+1) Confirm whether Contributor on the Publisher RG suffices for validation steps (or list Owner-only tasks).
+2) Provide the preferred HubSpot deal link or DocuSign flow for the publisher agreement so procurement at StellarData can review.
+
+We'd like to get the tech validation scheduled next week (preferably 30-min). Proposed times: Thu 24 Jul 10:00–11:00 PT or Fri 25 Jul 09:00–09:30 PT.
+
+Thanks,
+Karthik Iyer
+Director, Cloud Partnerships | Redwood Inference
+
+On Wed, Jul 23, 2025 at 09:12 Priya Menon <azure-marketplace@microsoft.com> wrote:
+> Hi Karthik / Marissa,
+> 
+> Thanks for starting the Azure Marketplace intake for StellarData. I pulled together the minimal items our validation team needs before we schedule the technical gate review: a SKU-to-Plan mapping (CSV), the Service Principal (SPN) you plan to use for onboarding (with required permissions), and confirmation of co-sell intent so we can enable the appropriate marketplace entitlements.
+> 
+> Quick checklist (attached guidance in the marketplace seller portal):
+> - SKU mapping: SKU ID, display name, unit type (monthly seat / consumption), and pricing tier
+> - SPN permissions: Owner or Contributor on the Publisher Resource Group + Reader on subscriptions referenced by the offer
+> - Co-sell: is this available for marketplace co-sell (yes/no) and lead-sharing contact
+> 
+> Two clarification asks before the tech validation call:
+> 1) Are you planning to use one SKU with multiple tiers or separate SKUs per tier?
+> 2) Will the offer call any external endpoints that require inbound network proofs (we sometimes need outbound IP allowlist details)?
+> 
+> I can run the validation once you share the CSV and SPN service principal details. If it helps, we can book a 30-min pre-check this week.
+> 
+> Attachments referenced: marketplace-onboarding-checklist.pdf (guidance), sample-sku-template.csv
+> 
+> Thanks,
+> Priya
+
+
+From: Marissa Cole <marissa.cole@redwood.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>, Irene Choi <irene.choi@redwood.com>
+Date: Thu, 24 Jul 2025 08:17:00 -0700
+Subject: Re: Azure offer: SPN handshake, SKU mapping, and co-sell entitlement questions
+
+Karthik / Irene — quick note from GTM: StellarData confirmed they want co-sell enabled and will accept marketplace invoicing (no upfront enterprise contract required).
+
+Action items for infra before we book Priya's slot:
+- Irene: please validate the SPN can be assigned Contributor on the Publisher RG and provide a short README of steps we give Priya for portal tasks that may need Owner.
+- Karthik: once Irene confirms, I will send Priya the HubSpot deal link and list the lead-share contact from StellarData (procurement@stellardata.com).
+
+One-liner: yes to separate SKUs per tier. Keeping telemetry calls outbound only.
+
+-Marissa
+VP, Partnerships | Redwood Inference
+
+
+From: Priya Menon <azure-marketplace@microsoft.com>
+To: Karthik Iyer <karthik.iyer@redwood.com>, Marissa Cole <marissa.cole@redwood.com>
+Cc: StellarData <procurement@stellardata.com>
+Date: Fri, 25 Jul 2025 16:03:00 -0700
+Subject: Re: Azure offer: SPN handshake, SKU mapping, and co-sell entitlement questions
+
+Thanks for the quick turnaround — clear and helpful.
+
+Short answers:
+- Contributor on Publisher RG is sufficient for the validation steps we run (artifact upload, test deploy). Only a small set of portal operations (manifest-level rotation) require Owner; we can perform those jointly with your SPN or use an alternate Owner account.
+- Co-sell: noted, I've enabled the entitlement in our tooling and invited procurement@stellardata.com to the intake.
+
+Next steps I scheduled for you:
+- Technical validation call: Mon, 28 Jul 2025 09:00 PT (invite sent) — 30 minutes (Teams link in calendar invite)
+- DocuSign publisher agreement: https://docusign.microsoft.com/r/abc123 (StellarData procurement already cc'd)
+
+I've attached a short validation checklist and added a reviewer note on the HubSpot deal. If anything changes, reply to this thread and we'll adjust.
+
+Regards,
+Priya Menon
+Azure Marketplace Specialist
+Microsoft Corporation
+
+> On Thu, Jul 24, 2025 at 08:17 Marissa Cole <marissa.cole@redwood.com> wrote:
+> > Karthik / Irene — quick note from GTM: StellarData confirmed they want co-sell enabled and will accept marketplace invoicing (no upfront enterprise contract required).
+> > 
+> > Action items for infra before we book Priya's slot:
+> > - Irene: please validate the SPN can be assigned Contributor on the Publisher RG and provide a short README of steps we give Priya for portal tasks that may need Owner.
+> > - Karthik: once Irene confirms, I will send Priya the HubSpot deal link and list the lead-share contact from StellarData (procurement@stellardata.com).
+> > 
+> > One-liner: yes to separate SKUs per tier. Keeping telemetry calls outbound only.
+> > 
+> > -Marissa

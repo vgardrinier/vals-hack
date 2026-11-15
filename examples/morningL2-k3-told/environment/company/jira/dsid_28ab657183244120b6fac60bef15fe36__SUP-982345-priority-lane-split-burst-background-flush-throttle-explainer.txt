@@ -1,0 +1,51 @@
+Intermittent 429s on background flush after enabling split burst pools and priority lanes
+
+Issue summary:
+Customer enabled split burst pools and priority lanes for their Dedicated pool to separate interactive traffic from background batch flushes. After the change, they report intermittent 429 rejections originating from background flush workers (cron-triggered) while interactive traffic remains healthy.
+
+Impact:
+- Background flush jobs (periodic object sync + embedding backfill) are receiving ~5-10% of requests rejected with 429s during scheduled flush windows.
+- Visible in customer metrics and console: background job latency spikes and partial flush failures; not impacting low-latency interactive calls but causing backlog growth for nightly batches.
+
+Environment:
+- Dedicated pool: dp-ndl-001 (us-east-1)
+- Pool config: split_burst_pools = true, priority_lanes = [interactive, background], smoothing_window = 8s, burst_capacity = 200 tokens/sec (background), 1000 tokens/sec (interactive)
+- Client: Nimbus internal orchestrator using short-lived ephemeral keys scoped to background queue
+
+Steps to reproduce (observed pattern):
+1) Enable split burst pools and create two priority lanes with the configuration above.
+2) Kick off a scheduled background flush (concurrent workers 12).
+3) The background coordinator issues many short concurrent connections (HTTP/2 multiplexed) with ephemeral keys and performs small embedding calls.
+4) After 30–90s, a subset of background requests receive 429 with header X-RateLimit-Reason: token_window_exhausted.
+5) Interactive traffic remains within expected latencies and does not show 429s.
+
+Logs / Evidence:
+- Sample 429 response headers captured by customer: X-RateLimit-Policy: background_lane, X-RateLimit-Reason: token_window_exhausted, Retry-After: 2
+- Edge traces: https://telemetry.redwood.local/trace/nd-ff34 (redacted) show background worker connection fanout at T+45s.
+- Console: per-route token accounting shows background lane consumed a burst credit spike coincident with ephemeral key refresh events.
+
+Hypotheses already considered by Support/CS:
+- Ephemeral key churn from orchestrator correlates with many short sessions, causing refill misalignment between edge and origin windows.
+- Small-request pattern from background flush (many short calls) triggers smaller token-bucket windows leading to sawtooth refill exhaustion even when aggregate tokens should be sufficient.
+- Split pools configured with tight smoothing_window (8s) leads to aggressive refill behavior that disadvantages background lane during multiplexed bursts.
+
+Workarounds attempted by customer:
+- Reduced concurrent background workers from 12 to 4 -> reduced 429s but increased total flush time unacceptably.
+- Added jitter to job start times -> partial improvement.
+- Temporarily increased background burst_capacity to 400 -> reduced 429s but customer concerned about long-term cost and fairness.
+
+Requested next steps / ask from Engineering:SRE:
+- Confirm whether burst credit accounting for split pools can double-count short-lived ephemeral sessions when they reuse pooled IPs/HTTP2 connections.
+- Review token-bucket refill alignment between edge and origin for priority-lane separation; propose a config knob or recommended default for background-heavy workloads.
+- Recommend safe tuning guidance (smoothing_window, burst_capacity, concurrency limits) for orchestrators that use ephemeral keys + short-lived requests.
+
+Acceptance criteria / Desired outcome:
+- Deterministic explanation for 429 pattern seen by customer (root cause or combination of factors).
+- Short-term config changes Support can advise (concrete values) to mitigate 429s without large cost increase.
+- Engineering action item if necessary (bug, telemetry improvement, or default config change for dedicated pools running split burst pools).
+2026-03-10 10:12 - Maya Chen (Support): Opened ticket after initial troubleshooting call with customer. Captured sample headers & logs. Requested SRE review.
+2026-03-10 14:05 - Ethan Ruiz (SRE): Assigned. Logged initial hypothesis re: ephemeral-key churn and refill misalignment; asked for flow-level traces and pool config snapshot.
+2026-03-11 09:21 - Nimbus Ops (Customer): Attached orchestrator logs + config. Confirmed ephemeral key rotate every 60s and HTTP/2 connection reuse enabled. Also shared concurrent worker count and scheduling cron spec.
+2026-03-11 15:40 - Ethan Ruiz (SRE): Noted that background lane metrics show repeated small bursts aligning with key rotation windows. Requested sample pcap/trace from edge to validate token accounting across proxy layer.
+2026-03-12 08:13 - Support (Maya): Sent recommended temporary mitigations: increase background_burst_capacity to 350, add jitter to worker start times, and set concurrency cap to 6. Customer to test and report back.
+2026-03-12 16:55 - Nimbus Ops (Customer): Confirmed mitigations reduced 429s by ~70% during a 4-hour test window. Asked for authoritative tuning guidance and whether this is a product limitation or config mismatch.

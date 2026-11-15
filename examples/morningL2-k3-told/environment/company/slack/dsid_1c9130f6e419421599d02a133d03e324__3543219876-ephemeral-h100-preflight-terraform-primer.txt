@@ -1,0 +1,27 @@
+eng-infra
+
+mika: Quick check — vendor called and said they can pre-provision ephemeral H100s for a 4-hour window on 2026-03-20 US-West. Can we use those for the CSI perf smoke? Anyone have a Terraform var snippet and quota check? cc @lee @ash
+lee: I can run quota check now, pinging cloud console. ETA ~10m
+ash: FYI billing flagged previous H100 bursts; we should set a temporary budget alert before spinning up. Also note we need a support request ID if we ask for a bump.
+vendor-bot: Provision window tentative: 2026-03-20 22:00-02:00 UTC. Please confirm by 2026-03-19 22:00 UTC or we revert.
+mika: Ack. Would prefer to avoid the 24h confirm if possible — any short-notice fallback (different region/sku)? @lee
+lee: Quick findings: project quota global H100 = 12, per-zone = 8. We can place 4 across two zones (2+2) with current limits. If you need all 4 in same zone, I'll file a quota bump. Filing takes ~8-24h.
+sam: Terraform snippet to start with (keep counts parametric, fallback to A100 if H100 unavailable):
+```hcl
+variable "gpu_count" {
+  type    = number
+  default = 4
+}
+module "gpu_pool" {
+  source = "git::ssh://git@github.com/redwood/infra.git//modules/gpu-pool"
+  count  = var.gpu_count
+  gpu_family = "h100"
+  preemptible = true
+}
+```
+Use `infra/terra/modules/gpu-pool` — it supports zone_affinity and fallback_sku var.
+ash: Also add billing tag and budget command so finance doesn't panic: `gcloud beta billing budgets create --billing-account=XXXX --display-name=\"demo-h100\" --amount=600`
+mika: Nice. @lee can you file the support ticket for the zone bump? If ticket is slow, we'll deploy 2 H100 + 2 A100 fallback.
+lee: Filing now — raised ticket INC-9842 (priority: high). I also attached logs showing expected spike. Will update when provider confirms.
+deploy-bot: Reminder: after new nodes attach, run `./scripts/clear-kvcache.sh --env=staging` on canary to avoid stale KV prefixes from the older GPU pool.
+mika: Plan: tentatively reserve 4 (2+2), prepare terraform changes + budget alert, and standby for ticket update. Thanks y'all :thumbsup:

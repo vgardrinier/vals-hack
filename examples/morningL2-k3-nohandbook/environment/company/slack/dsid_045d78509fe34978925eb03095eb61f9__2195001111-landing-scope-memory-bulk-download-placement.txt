@@ -1,0 +1,18 @@
+product
+
+Alex: Dropped a quick prototype for the billing landing — mainly deciding: default scope behavior, bulk-download placement, and legend collapse behavior. https://www.figma.com/file/zzz
+Rina: Quick thought: default to last-used scope per user instead of role. Less surprising for folks who switch contexts.
+Tom: +1. If we show a small badge: "Scope remembered" on first visit, that sets expectations.
+Helena: Bulk-download placement: header-right feels standard, but accounting asked for left because they scan left-to-right for actions. We could telemetry A/B it.
+Marco: Agree on A/B. Add an event `billing.bulk_download.clicked` with `placement:left|right`.
+Rina: Legend collapse: collapse to a single line pill on narrow screens and offer an expand arrow. Keeps charts readable.
+Alex: For mobile, convert per-invoice actions into an overflow menu to avoid buttons wrapping.
+Tom: Accessibility nit: overflow menu items need role=menuitem and keyboard focus styling. Also ensure focus trap isn't used for quick menus.
+AccessibilityBot: scan: colorContrast fail on .legend-pill when brand tint applied; missing aria-label on bulk checkbox.
+Helena: Microcopy: change "Download" to "Download PDF invoice" everywhere. Add separate "Export CSV ledger" action in header.
+Marco: Token units: show compact numbers (e.g., 3.1M tokens) on small widths, full numbers on hover tooltip.
+Rina: Do not mix tokens and dollars on the same bar. If we must show both, add small unit chips (teal="tokens", indigo="$") and a second axis.
+Tom: Interaction: when switching scope, preserve filters and date range. Don't reset selections.
+Alex: I'll update the figma frames with remembered-scope hint, header bulk action variants, and legend-collapse behaviour. Will also add a11y checklist.
+Helena: Can you include keyboard-only walkthroughs in the spec? e.g., tab order: checkbox -> row link -> actions -> menu.
+Alex: Yes — adding keyboard flows and the telemetry keys. Will post update by EOD tomorrow.

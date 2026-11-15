@@ -1,0 +1,118 @@
+Karura: pilot acceptance, KYC & non-standard retention term request
+
+From: Ivan Kovacev <ivan.kovacev@karura.com>
+To: Kimberly Park <kimberly.park@redwood.ai>
+Cc: Lina Torres <lina.torres@karura.com>
+Date: Fri, 30 Oct 2026 09:12:00 -0700
+Subject: Redwood pilot — KYC & retention term ask
+
+Hi Kimberly,
+
+Thanks again for the demo yesterday. Karura is keen to run the 3-month pilot (10 seats, burst up to 15) but our legal team surfaced two items that need to be cleared before procurement can sign:
+
+1) We attached our KYC form (Karura_KYC_Form.docx) — procurement needs to confirm what vendor identity/ownership docs Redwood will accept and an expected turnaround for the KYC check.
+
+2) Our data protection lead asked for a change to the data retention clause: Karura requires that inference logs be deleted after 60 days for pilot workloads (we currently have standard 180-day retention). This is a non-standard term and procurement asked whether Redwood can accept an exception for the pilot only.
+
+We also attached an initial SOW and the draft redline from our counsel (redline_terms.docx). Can you loop in whoever manages approvals on eligibility / sanctions / export controls? We operate EU manufacturing and need to ensure no export restrictions apply.
+
+Appreciate a quick path forward — procurement is pushing to close by next week.
+
+Best,
+Ivan
+Head of Partnerships
+Karura Therapeutics
+
+Attachments: Karura_KYC_Form.docx (docx), Karura_SOW_v1.pdf (pdf), redline_terms.docx (docx)
+From: Kimberly Park <kimberly.park@redwood.ai>
+To: Ivan Kovacev <ivan.kovacev@karura.com>
+Cc: Marissa Cole <marissa.cole@redwood.ai>, Aditya Rao <aditya.rao@redwood.ai>, Stephanie Nguyen <stephanie.nguyen@redwood.ai>
+Date: Fri, 30 Oct 2026 10:05:00 -07:00
+Subject: Re: Redwood pilot — KYC & retention term ask
+
+Ivan — thanks for sending. Looping Deal Desk (Marissa) and Legal (Aditya) plus Compliance (Stephanie) so we can triage quickly. A few notes up front:
+
+- We can start KYC intake immediately; Marissa, can you confirm the documents we need and expected turnaround?
+- Retention: 60 days is outside our standard policy; need an eligibility review and a short-term exception if compliance signs off.
+- Export/sanctions: please confirm Karura's ultimate end-customer countries and any controlled technologies in the SOW; Aditya/Stephanie — can you run the standard screening and export-controls checklist?
+
+We want to avoid blocking the pilot but also need to be sure we meet export and sanctions obligations. Marissa, please propose a mutual action plan and the commercial concession (if any) required to proceed.
+
+Thanks,
+Kimberly
+Director, Strategic Accounts
+Redwood Inference
+
+---
+Attachment(s): forwarded Karura_SOW_v1.pdf, Karura_KYC_Form.docx
+From: Marissa Cole <marissa.cole@redwood.ai>
+To: Kimberly Park <kimberly.park@redwood.ai>
+Cc: Ivan Kovacev <ivan.kovacev@karura.com>, Aditya Rao <aditya.rao@redwood.ai>, Stephanie Nguyen <stephanie.nguyen@redwood.ai>
+Date: Fri, 30 Oct 2026 11:18:00 -07:00
+Subject: RE: Redwood pilot — KYC & retention term ask
+
+Team / Ivan — quick commercial read and recommended MA(ctions):
+
+1) KYC intake: We ask for (a) company registry extract, (b) beneficial owners >25%, (c) government ID for signatory. We can own KYC intake and push through in 48–72 hours if Karura provides the docs. (Ivan — see Karura_KYC_Form fields we need.)
+
+2) Retention exception: For a 3-month pilot only, I recommend approving a 60-day deletion policy if Compliance signs off and we add a clause limiting scope to pilot telemetry (no billing or permanent records). Commercial concession: we ask for a modest 10% pilot fee increase or a shorter pilot term (45 days) to offset operational risk.
+
+3) Discount/terms: Karura requests 25% pilot discount; Deal Desk can approve up to 15% for standard eligibility. Anything >15% requires Exec approval and a signed mutual action plan with stated acceptance criteria.
+
+Recommended next steps:
+- Compliance checks (Stephanie/Aditya) on sanctions/export controls & acceptability of 60-day retention.
+- If Compliance approves, Deal Desk will draft a pilot MPA with the 60-day exception and propose a 15% discount by default.
+- If Karura insists on 25%, we escalate to Exec with a one-pager showing uplift and legal signoffs.
+
+I’ve attached a draft MPA template and redline summary (redline_terms.docx).
+
+Marissa
+Sr. Manager, Deal Desk
+Redwood Inference
+
+Attachments: redline_terms.docx (redline summary), MPA_draft_Karura.docx
+From: Aditya Rao <aditya.rao@redwood.ai>
+To: Kimberly Park <kimberly.park@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>, Stephanie Nguyen <stephanie.nguyen@redwood.ai>
+Cc: Ivan Kovacev <ivan.kovacev@karura.com>
+Date: Mon, 02 Nov 2026 08:22:00 -07:00
+Subject: Re: Redwood pilot — KYC & retention term ask
+
+Thanks — I ran preliminary checks on Karura. Summary:
+
+- Sanctions screen: clean. No matches on major lists (OFAC, EU, UK).
+- Export control note: SOW describes molecular assay optimization (not export-controlled hardware/software). Recommend a quick technical attestation from Karura that they will not route data to restricted jurisdictions.
+- KYC: requested documents are standard; once provided we can complete corporate identity verification within 72 hours.
+
+On the 60-day retention exception: Compliance/Legal will approve a pilot-only 60-day retention provided:
+- The scope is strictly pilot telemetry (token-level telemetry and logs) and excludes billing and audit trails necessary for invoicing or fraud investigations.
+- A sunset clause is added: exception expires at pilot end; standard retention resumes for any subsequent paid engagement.
+- Karura signs an attestation that no controlled technical data (as defined under our export checklist) will be processed in the pilot.
+
+If Deal Desk wants to proceed with 15% discount and the attestation above, I can sign off without Exec escalation. Anything >15% or a permanent retention policy change requires Exec approval (and a risk memo).
+
+Aditya Rao
+Senior Counsel, Privacy & Export Controls
+Redwood Inference
+
+---
+Attachment(s): export_checklist_filled.pdf (internal)
+From: Ivan Kovacev <ivan.kovacev@karura.com>
+To: Kimberly Park <kimberly.park@redwood.ai>, Marissa Cole <marissa.cole@redwood.ai>
+Cc: Aditya Rao <aditya.rao@redwood.ai>, Stephanie Nguyen <stephanie.nguyen@redwood.ai>, Lina Torres <lina.torres@karura.com>
+Date: Mon, 02 Nov 2026 16:07:00 -07:00
+Subject: Re: Redwood pilot — KYC & retention term ask
+
+Thanks all — appreciate the thoroughness and quick turnaround. We will:
+
+- Upload company registry and beneficial owner list to the drive link you provided by EOD tomorrow.
+- Provide the attestation about restricted technical data and confirm all pilot workloads will be routed from our EU site only.
+- Karura is comfortable starting with 15% discount and the 60-day pilot-only retention exception; we prefer the pilot length remain at 90 days if possible.
+
+Can Marissa send the signed MPA with the exception language and a timeline for kick-off? If Compliance gives the OK after KYC, procurement will prepare PO.
+
+Ivan
+Head of Partnerships
+Karura Therapeutics
+
+---
+Forwarded message: Karura_SOW_v1.pdf, Karura_KYC_Form.docx, redline_terms.docx

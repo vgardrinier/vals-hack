@@ -1,0 +1,70 @@
+APIGW request buffering with slow client chunking causes long TTFB and mid-stream resets for streaming completions
+
+Issue summary:
+Customer reports frequent streaming completions stalling mid-response and eventually receiving 504/connection reset when the client uploads prompt payloads over flaky mobile networks using chunked transfer-encoding. This looks correlated to long-lived uploads and slow chunk arrival from the client side.
+
+Impact:
+- Several customers on Dedicated capacity (SpectraForms) observing increased 2xx->504 mid-stream for long-form completions.
+- Increased P50/P95 TTFB and user-visible hangs for chat-style sessions where client sends large metadata + incremental chunks.
+- Affects production traffic in us-east-1 for SpectraForms routes.
+
+Environment:
+- Prod (dedicated pool) / us-east-1
+- API gateway in front of ALB -> private serving fleet
+- APIGW config: request buffering enabled (default), HTTP/1.1 and HTTP/2 supported, idle timeout on ALB 60s
+
+Steps to reproduce (observed by SRE):
+1) Simulate a slow client using: curl --http1.1 -X POST "https://api.redwood.example/v1/stream" -H "Authorization: Bearer <token>" -H "Transfer-Encoding: chunked" --data-binary @chunked_payload_slow --no-buffer
+2) Chunked payload contains large system metadata (tracing headers) and then incremental message chunks spaced ~4-8s apart for ~40s total
+3) Observe APIGW holding request body until enough data / idle window, backend doesn't send streaming tokens until prefix parsed/warmed
+4) After ~55-65s TTFB, ALB closes with 504 or connection reset; client sees mid-stream termination
+
+Observed behavior:
+- Timestamps (sample):
+  - 12:03:02.112 Request initiated from client (first chunk)
+  - 12:03:06.220 APIGW logs: connection open, buffering in progress (buffered_bytes grows)
+  - 12:03:42.901 Serving runtime receives forwarded request (delayed) and begins KV-warmup
+  - 12:04:06.010 ALB timeout / connection reset -> client receives 504 and stream terminated
+- APIGW request buffer size reached intermittently; via header accumulation from corporate proxies (Via, X-Trace) we also see header fields grow which contributes to processing delay
+
+Expected behavior:
+- Backend should receive prompt prefix and begin streaming partial tokens steadily while client continues to upload the remainder of the payload (supporting true client-to-server streaming).
+- No mid-stream resets for workloads that stream client-side chunks at low throughput.
+
+Logs / traces attached (excerpts):
+- apigw/edge logs: "request_buffering=true; buffered_bytes=16384; client_idle=8s"
+- alb logs: "target:healthy; response_code:504; elb_status_reason:Idle timeout"
+- serving-runtime trace: delayed start due to late request forwarding; KV cache warmed after forwarded timestamp
+
+Investigation notes:
+- Reproduced using lab environment with slow-chunked client; behavior matches customer report.
+- Hypothesis: APIGW request buffering + ALB idle timeout combinatorics cause backend to not see the request early, leading to large TTFB. Two contributing factors: slow client chunk cadence and APIGW buffering policy that waits for either full body or threshold before proxying upstream.
+- We observed header growth from intermediate corporate proxies (additional Via/X-Trace additions) which in some runs pushed APIGW into additional parsing/rehydration steps that increase latency further. This is distinct from simple header-size 431 failures — here the request is accepted but buffering behavior delays forwarding.
+- Configuration check: route currently has request_buffering: true (global default). ALB idle timeout set to 60s, APIGW front-end timeout ~75s. Slow-chunk scenarios commonly exceeded backend TTL.
+
+Workarounds in the short term (customer-facing):
+- Recommend client switch to sending initial prefix (system prompt + minimal metadata) in a single initial chunk (or single POST) so backend can start streaming while rest of content continues; avoid many small 4-8s-spaced chunks if possible.
+- If using our SDK, enable 'fast-prefix' mode which sends system prompt + first message immediately before full payload assembly.
+- For Dedicated customers, consider a temporary ALB idle timeout increase to 120s for affected routes while we apply a permanent fix (requires ops approval).
+
+Proposed remediation (SRE/Infra):
+- Evaluate disabling request buffering for streaming endpoints (set request_buffering: false) so APIGW will forward incoming bytes upstream immediately rather than buffering full body. Test for regressions with slow clients.
+- Add explicit support for streaming-friendly headers (e.g., X-Accel-Buffering: no) on our streaming routes; document in SDK.
+- Consider lowering APIGW internal parse thresholds that delay forwarding when header growth is detected (avoid re-hydration stalls).
+- Create a per-route policy that keeps a small guaranteed forwarding window for the prefix (e.g., forward once X bytes received or X seconds elapsed) to balance head-of-line blocking vs large-body buffering.
+
+Next steps / action items:
+- [SRE] (Luca) Add a staging route with request_buffering disabled and run soak tests with slow-chunked clients (target: 48-hour run) — started 2026-03-13.
+- [Support] (Aisha) Communicate SDK fast-prefix recommendation to SpectraForms and provide example patch; scheduled 2026-03-13 10:00Z.
+- [Infra] (R&D) Evaluate ALB timeout change risk for Dedicated tenants; decision due 2026-03-15.
+- [Eng] Create an RFC for a streaming-first APIGW policy to avoid head-of-line blocking for streaming endpoints; draft due 2026-03-19.
+
+Resolution notes (work in progress):
+- Temporary mitigation documented and customer notified on 2026-03-13; SpectraForms applied SDK change and reported immediate reduction in mid-stream resets for test sessions. Full infra change pending SRE validation.
+
+2026-03-12 15:22 UTC - Aisha: Customer opened ticket reporting mid-stream 504s for long-form chat sessions. Provided initial curl reproduction and logs.
+2026-03-12 18:05 UTC - Luca: Reproduced in staging. Observed APIGW buffering behavior delaying upstream forward. Creating staging route with buffering disabled to validate.
+2026-03-13 09:47 UTC - Aisha: Sent SpectraForms SDK patch (fast-prefix) and instructions; customer reported test run shows fewer failures.
+2026-03-13 14:30 UTC - Luca: Staging run (buffering disabled) completed 12h sample with sustained slow-chunk traffic; no mid-stream resets observed. Preparing perf regression report.
+2026-03-14 08:16 UTC - Product: Recommend documenting streaming guidance and adding an SDK flag; queued for next sprint if infra change needed.
+2026-03-14 12:03 UTC - Aisha: Updated customer that we are targeting a safe infra rollout after SRE sign-off. Marking ticket In Progress.

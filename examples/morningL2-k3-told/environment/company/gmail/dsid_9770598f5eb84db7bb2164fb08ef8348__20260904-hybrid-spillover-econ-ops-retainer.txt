@@ -1,0 +1,98 @@
+Hybrid spillover economics & ops: Pinecone + S3 fallback retainer
+
+From: Alyssa Trent <alyssa@pinecone.com>
+To: Monica Patel <monica_patel@redwood.com>, Ben Carter <ben_carter@redwood.com>
+Cc: storage-team@pinecone.io
+Date: 2026-09-04T09:12:00-07:00
+Subject: Proposal: S3 fallthrough economics + ops retainer
+
+Hi Monica / Ben,
+
+Thanks again for the call this morning. As discussed, Pinecone can accept a tiered spillover model that routes cold queries to S3-backed indices; we put together a quick cost model and an ops retainer outline to help quantify cost and responsibility split.
+
+Summary (high level):
+- Measured token cost delta when falling back to S3 vs in-memory vector retrieval (sample workload attached).
+- Suggested retainer covers: index rehydration SLA, TTL policy harmonization, and escalation playbook for query failures.
+- Commercial asks: monthly retainer + per-GB read surcharge.
+
+Action items we propose now:
+1) Redwood to share representative query profile (qps distribution, cold-hit fraction) — helps us run the model against your workload.
+2) Joint technical review of rehydration cadence and TTL enforcement.
+3) Legal to map data-residency obligations for cold spills.
+
+I've attached pinecone_s3_backfill_model.xlsx (spreadsheet of back-of-envelope numbers). Let us know if you want a walkthrough — happy to demo the assumptions.
+
+Best,
+Alyssa
+Business Development, Pinecone
+
+Attachment: pinecone_s3_backfill_model.xlsx (xlsx, 42KB)
+
+From: Monica Patel <monica_patel@redwood.com>
+To: Alyssa Trent <alyssa@pinecone.com>
+Cc: Ben Carter <ben_carter@redwood.com>, Vanessa Ortiz <vanessa_ortiz@redwood.com>
+Date: 2026-09-04T13:02:00-07:00
+Subject: Re: Proposal: S3 fallthrough economics + ops retainer
+
+Thanks Alyssa — useful framing. Looping in Vanessa and Ben for ops/commercial alignment.
+
+Quick response and next steps from our side:
+- We can share a sampled query profile by EOD Monday (will include qps percentiles, cold-hit rate, and average vector size).
+- From an ops perspective we want to validate two modes: (a) read-through with async rehydrate, (b) QPS-driven on-demand rehydrate. Please flag assumptions in your model for each.
+- Proposed scope for a 3-month retainer pilot: 8 hours/month of joint runbook engineering + an SLA for 2h median rehydrate window for indexed shards. Commercials we can discuss after the profile run.
+
+I've attached a short scoping doc to capture the pilot boundaries. Can we schedule a 60-minute technical sync next week (Tue/Wed pref)?
+
+Thanks — Monica
+Director, EmbedOps (Redwood Inference)
+
+Attachment: hybrid-spillover-scoping.docx (docx, 28KB)
+
+On Fri, Sep 4, 2026 at 9:12 AM Alyssa Trent <alyssa@pinecone.com> wrote:
+> Thanks again for the call this morning. As discussed, Pinecone can accept a tiered spillover model...
+
+From: Alyssa Trent <alyssa@pinecone.com>
+To: Monica Patel <monica_patel@redwood.com>, Ben Carter <ben_carter@redwood.com>, Vanessa Ortiz <vanessa_ortiz@redwood.com>
+Date: 2026-09-05T08:25:00-07:00
+Subject: Re: Proposal: S3 fallthrough economics + ops retainer
+
+Perfect — thanks Monica. Attached is a sampled workload CSV that our backend team exported for the model run. It contains anonymized vector sizes, timestamped cold-hit markers, and per-request latency when served from in-memory vs S3.
+
+We can do Tue at 10am PT for the tech sync; sending a calendar invite now.
+
+Cheers,
+Alyssa
+
+Attachment: workload_profile_090426.csv (csv, 65KB)
+
+On Fri, Sep 4, 2026 at 1:02 PM Monica Patel <monica_patel@redwood.com> wrote:
+> Thanks Alyssa — useful framing. Looping in Vanessa and Ben for ops/commercial alignment.
+
+From: Ben Carter <ben_carter@redwood.com>
+To: Monica Patel <monica_patel@redwood.com>, Vanessa Ortiz <vanessa_ortiz@redwood.com>, Karthik Iyer <karthik_iyer@redwood.com>
+Date: 2026-09-05T16:45:00-07:00
+Subject: Fwd: Proposal: S3 fallthrough economics + ops retainer (internal)
+
+Internal summary and next steps (please treat as internal until commercials are agreed):
+
+Summary: Pinecone sent a cost model and sampled workload. They propose a retainer + per-GB read surcharge to cover rehydration and operational overhead for S3 fallback queries. Attached materials are the vendor model + workload extract.
+
+Immediate asks for Redwood:
+- Karthik: build a quick sensitivity matrix (3 scenarios: 5%, 15%, 30% cold-hit) showing monthly cost delta and per-query latency tail. Need by Tue EOD to prep for pricing.
+- Vanessa: ops lead — prepare a draft runbook for rehydrate flow and incident escalation; include who owns initial retries, backoff, and monitoring signals.
+- Monica: finalize pilot scope doc and confirm the 60-min tech sync (Monica to send calendar confirmation).
+
+Also flagged for Legal & Finance: depending on the sensitivity of spilled vectors we may need to review data-residency clauses; if Pinecone processes spill data in a different region we may require encryption-at-rest + KMS mapping in the SLA.
+
+Forwarded message (for context):
+> From: Alyssa Trent <alyssa@pinecone.com>
+> Date: 2026-09-04 09:12:00 -0700
+> Subject: Proposal: S3 fallthrough economics + ops retainer
+> To: Monica Patel <monica_patel@redwood.com>, Ben Carter <ben_carter@redwood.com>
+>
+> (see attached vendor model)
+
+Ben
+Sr. Partnerships, Redwood Inference
+
+Attachment references: pinecone_s3_backfill_model.xlsx, workload_profile_090426.csv, hybrid-spillover-scoping.docx

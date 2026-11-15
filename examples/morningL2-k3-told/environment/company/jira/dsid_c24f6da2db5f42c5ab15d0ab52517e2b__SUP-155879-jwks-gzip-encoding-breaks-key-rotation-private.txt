@@ -1,0 +1,61 @@
+JWKS endpoint returning gzipped payload with incorrect Content-Encoding breaks key rotation for private IDP, causing 401/403 on new tokens
+
+Issue summary:
+Customer reported that services in their private VPC began failing authorization for requests authenticated with newly issued tokens immediately following a scheduled key rotation on their external identity provider (IdP). Failures present as 401 or 403 when Redwood validates signatures against the rotating JWKS.
+
+Impact:
+- Multiple API clients for Finlytics (private deployment) started seeing 401/403 for any tokens minted after 2026-03-12T02:00Z.
+- Affected flows: console access for operators, scheduled import jobs, and backend-webhook calls.
+- Customer reports degraded batch processing and inability to complete scheduled exports.
+
+Environment:
+- Private deployment (customer-managed IdP) behind idp-proxy in VPC (prod us-east).
+- Redwood idp-proxy version: 1.9.2 (deployed as sidecar in their private control plane).
+- IdP: vendor-saml-oauth (hosted by customer) version: 3.4.1.
+
+Steps to reproduce (as provided by customer):
+1) Trigger a JWKS key rotation on their IdP (performed via vendor console).
+2) Observe JWKS endpoint (https://idp.finlytics.example/.well-known/jwks.json) return 200 with Content-Encoding: gzip and a gzip-compressed body.
+3) Redwood idp-proxy attempts to fetch JWKS for rotation and fails to parse keys, causing signature verification to fail for tokens issued after rotation.
+4) Affected requests return 401 or 403 depending on downstream checks.
+
+Observed logs / traces:
+- idp-proxy logs: "failed to parse jwks: invalid JSON" at rotation fetch time. No stack trace beyond parse error.
+- curl of JWKS endpoint from a support test runner: HTTP/1.1 200 OK
+  Content-Encoding: gzip
+  Content-Type: application/json
+  Content-Length: 842
+  (body is gzipped)
+- When retrieving with `curl --compressed` the content uncompresses correctly and JSON is valid.
+- Our JWKS fetcher does not set Accept-Encoding and does not handle Content-Encoding: gzip; it attempts to parse the raw bytes as JSON and fails.
+
+Investigation notes:
+- Hypothesis: IdP started returning gzipped JWKS payloads to save bandwidth; the response includes Content-Encoding: gzip but idp-proxy's HTTP client is not decompressing before JSON decode. This was introduced after a vendor-side config change on the IdP around the same time as customer rotation.
+- Reproduction confirmed from Redwood support runner inside the customer's VPC using the same idp-proxy network path.
+- The failure only affects rotations (new key fetch). Existing cached keys continue to validate existing tokens until their TTL expires.
+- This explains why tokens minted before rotation work while new tokens fail immediately.
+
+Workaround (customer-facing):
+- Temporary workaround performed with customer: Configure their IdP to disable gzip encoding on JWKS endpoint (vendor setting). After they disabled compression, idp-proxy successfully fetched and parsed the rotated keys and token validation resumed.
+- Alternative: Restart idp-proxy with an environment variable to force use of a decompression-capable HTTP client (not available in current release).
+
+Root cause (current suspicion):
+- idp-proxy HTTP client used by private control plane does not honor Content-Encoding: gzip on JWKS responses; it attempts to JSON parse compressed bytes. The IdP rotation coincided with a vendor change enabling gzip by default.
+
+Resolution plan / Proposed fix:
+1) Short-term (hotfix): Backport a patch to idp-proxy that enables transparent gzip decoding for JWKS fetches and release a 1.9.3-hotfix build. Verify behavior with a test JWKS server returning gzipped payload.
+2) Mid-term: Add integration tests in idp-proxy that exercise JWKS fetch under different Content-Encoding and Transfer-Encoding headers.
+3) Long-term: Add monitoring/alerting rule to detect parse failures during JWKS rotation (rise in jwks_parse_errors metric) and an automated fallback to re-request with Accept-Encoding: identity.
+
+Customer communication guidance:
+- Apologize for the disruption and explain that rotation itself was healthy but our fetcher mishandled compressed responses.
+- Confirm the workaround applied (disabling gzip) and the plan for a hotfix release with ETA.
+
+Notes:
+- This is customer-impacting for an enterprise/private deployment and requires coordination with infra for private-control-plane releases and secure rollout (canary in customer's staging then prod).
+
+2026-03-12 10:22 UTC - Maya Singh (Support): Customer opened ticket after 02:15Z rotation; provided JWKS endpoint URL and curl output showing Content-Encoding: gzip.
+2026-03-12 12:05 UTC - Evan Brooks (SRE): Reproduced in our test runner inside customer's VPC path. Confirmed gzipped body not parsed by current idp-proxy binary. Assigned to engineering for a hotfix branch.
+2026-03-12 15:40 UTC - Priya Nair (Eng, idp-proxy): Confirmed root cause; pushing a minimal patch that wraps HTTP client responses with gzip.NewReader when Content-Encoding contains 'gzip'. Starting CI run for 1.9.3-hotfix.
+2026-03-13 08:10 UTC - Evan Brooks (SRE): Hotfix build 1.9.3-hotfix created and smoke-tested against customer's JWKS endpoint. Verified rotation fetch and successful key parse. Preparing release notes and canary rollout plan for customer's private control plane.
+2026-03-13 11:50 UTC - Maya Singh (Support): Customer applied initial workaround (disabled gzip at IdP) and reported service recovery at 2026-03-12T18:30Z. Will schedule coordinated restart to apply hotfix when ready.

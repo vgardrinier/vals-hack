@@ -1,0 +1,123 @@
+Tri-City micro-summits: rotating shared booths & MDF swap
+
+From: Elena Torres <elena@tri-citytech.com>
+To: vanessa_ortiz@redwoodinference.com
+Cc: partnerships@tricitytech.com
+Date: Sat, 15 Aug 2026 09:12:00 -0700
+Subject: Proposal: Tri-City micro-summits + rotating booth model
+
+Vanessa —
+
+Thanks again for the quick chat last week. TriCityTech is piloting a micro-summit circuit across three regional markets (Seattle, Denver, Austin) and we think Redwood would be a perfect co-presenting partner. High level: two-hour evening micro-summits with a 30-min joint keynote, 45-min customer panel, and a short demo area — we want to avoid the typical expo chaos.
+
+We have a proposal outline and a suggested MDF swap: TriCity provides venue/attendee lead capture and we offer a fixed MDF commitment that gets offset against future joint demand-gen. We also propose rotating the shared booth ownership each night so both brands get floor presence and lead ownership by geography.
+
+Attached is an initial MOU and an ops spreadsheet (names and rough budget). Can you confirm if Redwood would be open to:
+- MDF swap instead of a straight co-fund for the pilot
+- rotating booth ownership model (one brand staffed as lead per city)
+- a mutual action plan with target lead counts per city
+
+Happy to jump on a quick 30-min call this week to iron details.
+
+Best,
+Elena Torres
+Head of Partnerships, TriCityTech
+Elena Torres
+Attachments: TriCity-MDF-term-draft-v1.pdf, shared-booth-rotation-ops.xlsx
+
+
+From: vanessa_ortiz@redwoodinference.com
+To: Elena Torres <elena@tri-citytech.com>
+Cc: marissa_cole@redwoodinference.com, karthik_iyer@redwoodinference.com
+Date: Sat, 15 Aug 2026 11:04:00 -07:00
+Subject: Re: Proposal: Tri-City micro-summits + rotating booth model
+
+Elena —
+
+Appreciate the deck and the MOU. This sounds like a high-signal pilot and aligns with our regional GTM push. Quick responses to your asks:
+
+- MDF swap: potentially yes — we need the draft to include clear KPIs (MQL targets, lead qualification workflow, and what counts as a creditable lead).
+- Rotating booth ownership: fine by us if we can agree on staffing minimums and lead capture handoff procedures (QR/wristband scan + HubSpot owner assignment).
+- Mutual action plan: we'll propose a MAP template with timelines and deliverables.
+
+Next steps I propose:
+1) Internal sync (Marissa and Karthik looped) to review ops and staffing constraints — can you give us expected day-of headcount and AV needs per city?
+2) Draft a one-page SLA addendum to the MOU with lead conversion KPIs and credit rules — we can share via Google Drive.
+3) 30-min alignment call Monday or Tuesday next week? I have windows Mon 10:00-11:00 PT and Tue 13:00-15:00 PT.
+
+Thanks — excited about this.
+
+Vanessa Ortiz
+Head of Field & Partner Marketing
+Redwood Inference
+Mobile: (415) 555-0199
+Attachments: tri-city-micro-summit-mou.docx
+
+
+From: marissa_cole@redwoodinference.com
+To: vanessa_ortiz@redwoodinference.com, karthik_iyer@redwoodinference.com
+Date: Sun, 16 Aug 2026 09:08:00 -07:00
+Subject: Re: Proposal: Tri-City micro-summits + rotating booth model
+
+Looping Marissa in (oops — that's me). Quick ops notes:
+
+- Day-of staff: minimum 2 SDRs + 1 solutions engineer per city to support demos; prefer 3 SDRs if expected headcount > 120.
+- AV: single projector and mic for keynote, breakout room (or small theater) for demos. If TriCity handles venue, we need AV contact and a run-of-show by D-7.
+- Booth rotation: we should specify booth handoff windows (end of day + lead reconciliation within 24 hours).
+
+I drafted a one-page SLA template (see Drive link) and populated city lead targets based on TriCity's attendee estimates (in the ops spreadsheet). I also added a staffing cost estimate for the staffing nights.
+
+Marissa Cole
+Sr. Field Marketing Manager
+Redwood Inference
+Attachments: none
+
+
+From: karthik_iyer@redwoodinference.com
+To: vanessa_ortiz@redwoodinference.com, marissa_cole@redwoodinference.com, Elena Torres <elena@tri-citytech.com>
+Date: Mon, 17 Aug 2026 10:22:00 -07:00
+Subject: Re: Proposal: Proposal: Tri-City micro-summits + rotating booth model
+
+Elena / Team —
+
+Thanks — quick logistics and procurement flags from my side:
+
+- MDF accounting: we need a vendor-grade invoice and a simple redemption schedule. If TriCity will offset MDF against future demand-gen credits, that needs a clear ledger entry and expiry (we're proposing 12 months).
+- Insurance / indemnity: will the MOU include standard event insurance requirements? If TriCity owns the venue, we'll ask for a certificate of insurance naming Redwood as additional insured for the event dates.
+- PO & payment: Redwood requires an invoice or a DocuSign-backed agreement before MDF is disbursed.
+
+If you can include those in v2 of the MOU we'll be closer to sign-off. Also, can you provide HubSpot or CSV export field mapping so we can automate lead ingestion post-event?
+
+I'll join the alignment call — Tue 13:30 PT works for me.
+
+— Karthik
+Karthik Iyer
+Director, Partnerships Operations
+Redwood Inference
+
+From: Elena Torres <elena@tri-citytech.com>
+To: vanessa_ortiz@redwoodinference.com
+Cc: partnerships@tricitytech.com, marissa_cole@redwoodinference.com, karthik_iyer@redwoodinference.com
+Date: Wed, 18 Aug 2026 16:04:00 -07:00
+Subject: Re: Proposal: Tri-City micro-summits + rotating booth model
+
+Vanessa / Team —
+
+Thanks for the quick turnaround. Per Karthik's notes we've updated the MOU v2 to include:
+- 12-month MDF credit expiry and a simple ledger table
+- DocuSign agreement flow and invoice requirements for MDF drawdown
+- Event insurance clause and requirements for certs of insurance
+- Lead field mapping CSV and sample HubSpot import file (drive link below)
+
+I've attached MOU_v2 and a DocuSign link for signatures. Proposed MAP and run-of-show are in the Drive folder as well.
+
+DocuSign: https://docusign.com/transaction/ABC12345
+Drive: https://drive.google.com/drive/folders/1aBcD-tricity-marketing
+
+Can we confirm the alignment call Tue 13:30 PT? If that's locked I will send calendar invites.
+
+Best,
+Elena Torres
+Head of Partnerships, TriCityTech
+Attachments: TriCity-MDF-term-draft-v2.pdf
+

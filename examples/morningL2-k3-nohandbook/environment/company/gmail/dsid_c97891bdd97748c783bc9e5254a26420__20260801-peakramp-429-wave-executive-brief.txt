@@ -1,0 +1,146 @@
+Peak ramp: 429/5xx wave during LaunchCo scheduled load test
+
+From: Alex Ramirez <alex@launchco.com>
+To: dylan_brooks@redwood.example.com
+Cc: launch-eng@example.com
+Date: 2026-08-01T09:12:00-07:00
+Subject: Load test (09:00-09:30) - sharp increase in 5xx/429s
+
+Hi Dylan,
+
+We started our scheduled ramp at 09:00 PDT and hit a hard failure window ~09:08-09:12. Observed by our telemetry:
+- 5xx rate peaked ~12% (mostly 502/503)
+- 429s peaked ~18% during the same window
+- median latency doubled to ~480ms, p95 ~1.8s
+
+Attached is a small sample of client-side traces and a few request IDs (launchco_sample_traces.log). We were following the ramp plan in v2. The traffic pattern is mostly steady concurrency increase (no aggressive retry script on our side), but some clients did their own retries.
+
+Can you confirm whether Redwood applied any emergency throttling or circuit-breaker during that interval? We need immediate visibility — production launch is in 48 hours and this is blocking our go/no-go.
+
+Please loop in your ops and PMs.
+
+Thanks,
+Alex
+Alex Ramirez
+Head of Platform Engineering, LaunchCo
+
+
+From: dylan_brooks@redwood.example.com
+To: marissa_cole@redwood.example.com, rishi_malhotra@redwood.example.com
+Cc: launch-eng@example.com
+Date: 2026-08-01T09:25:00-07:00
+Subject: Re: Load test (09:00-09:30) - sharp increase in 5xx/429s
+
+Marissa / Rishi —
+
+Received from LaunchCo, forwarding initial details. Key points: LaunchCo scheduled a planned ramp (we had the plan in docs) and they're now seeing significant 5xx/429s and latency spikes. Attached their sample traces and the ramp plan (launch_ramp_plan_v2.pdf).
+
+Hypothesis to start:
+- Autoscaler reaction + cold instance churn could cause elevated 5xx for a short window.
+- Client-side retry patterns may have amplified load and triggered our route-level rate limiting, producing 429s.
+- Possible inter-region routing flaps (they're using our us-west cluster).
+
+Immediate asks:
+1) Ops: pull per-route 5m/1m error and throttling metrics and example request IDs (Grafana link below).
+2) SRE: check autoscale events, recent deploys, and any emergency circuit-breaker activations.
+3) Sales/CS: confirm whether this requires exec visibility / credits if launch slips.
+
+I'm standing by on Zoom; will gather logs.
+
+- Dylan
+Dylan Brooks
+Account Executive, Redwood Inference
+
+
+From: LaunchCo SRE <sre@launchco.com>
+To: dylan_brooks@redwood.example.com, marissa_cole@redwood.example.com
+Date: 2026-08-01T10:05:00-07:00
+Subject: Re: Load test (09:00-09:30) - sharp increase in 5xx/429s
+
+Hi Dylan / team,
+
+Quick follow-up from our side after deeper trace analysis and client logs:
+- We did see several client SDK instances with misconfigured backoff: initial retry t=100ms, no exponential backoff for ~20% of callers. Those clients retried aggressively at the 09:08 mark.
+- Some requests hit long-tail cold-start paths (KV cache misses) which returned 503s temporarily.
+- We also saw cluster-wide admission control respond with 429s once queue lengths exceeded configured thresholds.
+
+We've paused the test at 10:00 to avoid more degradation. We need a coordinated guidance from Redwood on:
+- Recommended ramp rate for the next attempt
+- Any temporary allowance for burst above default per-account rate during the next ramp
+
+Linking a short log excerpt below and our internal playbook references.
+
+Thanks,
+Alex Ramirez (on behalf of LaunchCo SRE)
+
+On Tue, Aug 1, 2026 at 09:12 AM Alex Ramirez <alex@launchco.com> wrote:
+> We started our scheduled ramp at 09:00 PDT and hit a hard failure window ~09:08-09:12.
+> Attached is a small sample...
+
+
+From: rishi_malhotra@redwood.example.com
+To: marissa_cole@redwood.example.com, sean_gallagher@redwood.example.com, dylan_brooks@redwood.example.com
+Cc: launch-eng@example.com
+Date: 2026-08-01T11:40:00-07:00
+Subject: Escalation: LaunchCo peak ramp caused retry amplification & admission 429s — request for temporary exception
+
+Marissa / Sean —
+
+Summary (executive):
+- What happened: LaunchCo executed a planned ramp; client-side misconfigured retries + our admission control combined to create a retry-amplified traffic wave. Result: transient 5xx and sustained 429s for ~6 minutes at peak, impacting their launch verification.
+- Impact: Customer paused their test; launch in 48 hours is at risk. Business: potential expansion/commitment tied to this launch (deal LD-2026-0042).
+- Immediate mitigation we propose: allow a controlled burst window for LaunchCo in us-west cluster for the next ramp attempt (4x the default burst) and temporarily raise the per-account circuit breaker threshold for 60 minutes while we observe. Also instruct LaunchCo to apply client backoff fixes.
+
+Risks & guardrails:
+- We'll limit the exception to a single 60-minute window with strict monitoring and an abort trigger if cluster p95 CPU or queue latency exceed safe thresholds.
+- We'll log and audit any traffic above normal for billing/credits review.
+
+Request: exec sign-off for the temporary exception (authorization required for SLA/operational deviation). I recommend authorization limited to Marissa or a delegated ops lead.
+
+Attachments: small sample traces attached.
+
+- Rishi
+Rishi Malhotra
+Head of Platform Reliability, Redwood Inference
+
+
+From: marissa_cole@redwood.example.com
+To: rishi_malhotra@redwood.example.com, dylan_brooks@redwood.example.com
+Cc: sean_gallagher@redwood.example.com, legal@redwood.example.com, finance@redwood.example.com
+Date: 2026-08-01T12:15:00-07:00
+Subject: Re: Escalation: LaunchCo peak ramp caused retry amplification & admission 429s — request for temporary exception
+
+Thanks for the clear summary, Rishi.
+
+We will approve a one-time, tightly scoped operational exception as follows:
+- Window: next scheduled ramp attempt, one 60-minute window only.
+- Allowance: up to 4x burst above LaunchCo's normal rate; we do not change global admission controls — just per-account burst allowances and a raised circuit-breaker threshold.
+- Monitoring: ops must place automated abort hooks (CPU, queue latency, error rate).
+- Commercial: offer LaunchCo a 10% service credit if the launch is delayed due to platform fault. Finance/Legal looped for terms.
+
+Rishi / Ops: implement the guardrails and post the exact time window here once set. Dylan: coordinate with LaunchCo about client-side backoff fixes and a verification run.
+
+- Marissa
+Marissa Cole
+VP, Sales — Redwood Inference
+
+
+From: dylan_brooks@redwood.example.com
+To: Alex Ramirez <alex@launchco.com>
+Cc: marissa_cole@redwood.example.com, rishi_malhotra@redwood.example.com, sean_gallagher@redwood.example.com
+Date: 2026-08-01T15:45:00-07:00
+Subject: Re: Load test (09:00-09:30) - next steps and post-incident actions
+
+Alex —
+
+Thank you and the SRE team for the rapid analysis. Per Marissa's sign-off, we have authorized a single 60-minute scoped burst window for your next verification ramp. Rishi will post the exact time and enable the abort hooks; I will coordinate the customer checklist below before we re-run:
+- LaunchCo fixes: patch client SDK backoff (diff attached), reduce initial concurrent workers by 30% for first 5 minutes.
+- Redwood ops: enable per-account burst allowance, raise CB threshold for 60 minutes, enable automated abort on CPU p95 > 85% or 5xx rate > 5% for 2 minutes.
+- Commercial: 10% credit conditional on platform fault delaying launch; legal/finance to confirm.
+
+Post-incident follow-ups: Rishi will lead a short postmortem and produce an action list (postmortem-draft.md). Please share any additional traces. We'll schedule a 45-minute readout this afternoon.
+
+Regards,
+Dylan Brooks
+Account Executive, Redwood Inference
+

@@ -1,0 +1,111 @@
+Field devices + consent language for Redwood booth
+
+--- Message 1/4 (original) ---
+From: Everest Events <events@everest.com>
+To: Olga Petrov <olga_petrov@redwood.com>
+Date: Thu, 10 Sep 2026 09:12:00 -0700
+Subject: Field devices + consent language for Redwood booth
+
+Hi Olga,
+
+We’re finalizing logistics for the Everest summit next month and wanted to align on a couple items for the Redwood booth:
+
+- What exact consent language should be shown on the badge scanner and on the QR lead form? We need something that covers marketing contact and product follow-up.
+- Can the badge scanner push leads directly into our HubSpot instance (we’re on Enterprise)? If so, what fields do you need from our side?
+- Any device onboarding checklist or certs we should collect from the vendor prior to the show?
+
+Appreciate a quick runbook — show organizers asked for a copy by end of day Monday.
+
+Thanks,
+Lara V.
+Event Producer, Everest Events
+events@everest.com
+(555) 322-8890
+
+--- Message 2/4 ---
+From: ScanFast Systems <support@scanfast.com>
+To: Olga Petrov <olga_petrov@redwood.com>, Ben Carter <ben_carter@redwood.com>
+Date: Thu, 10 Sep 2026 11:03:00 -0700
+Subject: Re: Field devices + consent language for Redwood booth
+
+Olga / Ben,
+
+Thanks for looping us in. Short answers: yes, and yes. ScanFast devices can POST JSON or drop CSVs to an SFTP; we also support a direct HubSpot Webhook connector we've used for other shows. Outline below:
+
+- Consent language: We recommend a two-line opt-in: "I agree to be contacted by Redwood Inference about product updates and event follow-ups." Include a link to your privacy center. The device UI supports a small disclaimer and a QR to view full text.
+- Fields we capture by default: first_name, last_name, email, company, job_title, badge_id, scan_time, source_event. We can optionally capture phone and notes.
+- Delivery options: (1) HubSpot webhook (OAuth) mapping, (2) SFTP CSV drops every 2 minutes, (3) Kafka / HTTP POST to your ingest endpoint.
+- Security: devices use TLS1.3, signed firmware; we can provide cert thumbprints and a firmware manifest for your security team.
+
+Attached: scanfast-integration-guide.pdf (device specs, sample payloads, firmware info).
+
+If you want, we can run a 30-minute test flow next week to validate field names and opt-in rendering.
+
+Best,
+Samir Patel
+Partner Ops, ScanFast Systems
+support@scanfast.com
+[Attachment: scanfast-integration-guide.pdf (PDF, 650KB)]
+
+--- Message 3/4 ---
+From: Olga Petrov <olga_petrov@redwood.com>
+To: Ben Carter <ben_carter@redwood.com>, Laura Bennett <laura_bennett@redwood.com>, Grace O'Connor <grace_oconnor@redwood.com>
+Date: Fri, 11 Sep 2026 08:27:00 -0700
+Subject: Re: Field devices + consent language for Redwood booth
+
+Team — thanks, Samir. Quick plan to hand off to Everest and get vendor onboarding done:
+
+1) Consent language: use ScanFast's recommendation but substitute Redwood branding and link to https://redwood.inference/privacy. Draft attached (consent_language_v2.docx). Laura, can you sign off on privacy/legal wording?
+2) HubSpot mapping: we should prefer the HubSpot webhook so leads land in realtime. Ben — can you take point on mapping the fields to our lead routing? I’ve attached a starter CSV with required HubSpot properties.
+3) Device certs and security: ask ScanFast to drop firmware manifest and cert thumbprints in Drive. Grace, can you confirm whether RDC (Redwood Dedicated customers) requires any additional PKI info?
+4) Onboarding checklist: I built a simple checklist for site logistics and vendor contact points (event-onboarding-checklist.xlsx). We should send this to Everest and ScanFast after Laura's sign-off.
+
+Next steps / timeline:
+- Laura to confirm consent language by EOD Monday (9/13)
+- Ben to produce final hubspot-field-mapping.csv by Tue (9/14)
+- Schedule a vendor test with ScanFast for Wed (9/15) 10:00am PT
+
+Thanks — we want to avoid any manual CSV drops during the show. Realtime ingestion keeps latency low.
+
+Cheers,
+Olga Petrov
+Head of Events, Redwood Inference
+olga_petrov@redwood.com
+[Attachment: event-onboarding-checklist.xlsx (XLSX, 90KB)]
+
+--- Message 4/4 (most recent) ---
+From: Ben Carter <ben_carter@redwood.com>
+To: Olga Petrov <olga_petrov@redwood.com>, Everest Events <events@everest.com>, ScanFast Systems <support@scanfast.com>, HubSpot Integration <hub-integ@hubspot.com>
+Date: Sat, 12 Sep 2026 15:34:00 -0700
+Subject: Re: Field devices + consent language for Redwood booth
+
+All — quick status and confirmations after the legal review:
+
+On consent wording (Laura + Legal): approved with one small edit (adds link to privacy center and an opt-out checkbox on the web form). Attached is the final consent doc.
+
+HubSpot mapping: we’ll use webhook ingestion into HubSpot. Mapping file attached (hubspot-field-mapping.csv). Minimum required HubSpot properties: email, firstname, lastname, company, jobtitle, source_event (we’ll populate as "Everest Summit 2026"), and redwood_lead_origin (scanner vs qr-form). HubSpot integration team, please confirm OAuth client redirect URL: https://console.redwood.inference/hubspot/oauth/callback
+
+Device onboarding: ScanFast — please upload the firmware manifest and cert thumbprints to the shared drive folder (link below) and confirm the SNI on device TLS certs. We will run the test on Wed 9/15 10:00am PT — meeting invite to follow.
+
+Related links: HubSpot ticket RED-4721 (for OAuth / scopes) and onboarding folder: https://drive.google.com/drive/folders/1a2B_onboarding_docs
+
+Attachments: hubspot-field-mapping.csv, consent_language_v2.docx
+
+Ben Carter
+Senior Field Ops, Redwood Inference
+ben_carter@redwood.com
+(415) 555-0123
+
+On Thu, Sep 10, 2026 at 11:03 AM ScanFast Systems <support@scanfast.com> wrote:
+> Olga / Ben,
+> 
+> Thanks for looping us in. Short answers: yes, and yes. ScanFast devices can POST JSON or drop CSVs to an SFTP; we also support a direct HubSpot Webhook connector we've used for other shows.
+> 
+> - Consent language: We recommend a two-line opt-in: "I agree to be contacted by Redwood Inference about product updates and event follow-ups." Include a link to your privacy center.
+> - Fields we capture by default: first_name, last_name, email, company, job_title, badge_id, scan_time, source_event.
+> - Delivery options: (1) HubSpot webhook (OAuth) mapping, (2) SFTP CSV drops every 2 minutes, (3) Kafka / HTTP POST to your ingest endpoint.
+> - Security: devices use TLS1.3, signed firmware; we can provide cert thumbprints and a firmware manifest for your security team.
+> 
+> [Attachment: scanfast-integration-guide.pdf]
+
+--- End thread ---

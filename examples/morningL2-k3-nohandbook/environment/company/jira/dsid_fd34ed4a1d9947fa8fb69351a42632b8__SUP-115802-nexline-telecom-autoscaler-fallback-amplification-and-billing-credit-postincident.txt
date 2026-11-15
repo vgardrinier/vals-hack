@@ -1,0 +1,59 @@
+Nexline Telecom: autoscaler fallback amplification causing duplicate completions, streaming resets, and billing spike
+
+Issue summary:
+On 2026-03-12 09:14 UTC Nexline Telecom observed repeated truncated streaming responses, duplicate completions, and a sharp increase in token usage that resulted in an invoice exposure. The customer reported timeouts and garbled partial-replies across two regions (us-east, eu-west).
+
+Impact:
+- Customer-facing chat flows truncated or duplicated messages for ~42 minutes.
+- Token usage spiked by ~7.8x their baseline for the affected services, causing billing exposure and customer escalation.
+- Some streaming connections reset mid-response; clients retried without idempotency keys, amplifying completions.
+
+Environment:
+- Deployment: Redwood Hosted + Dedicated fallback routing for Nexline enterprise pool.
+- Regions: us-east-1 and eu-west-1 (production).
+- Models: gptj-xxl-quantized-v2 (preferred on dedicated), gptj-xxl-legacy (hosted fallback).
+
+Timeline (UTC):
+- 09:13: first alerts: increased 5xx rate and streaming disconnects on dedicated pool.
+- 09:14: Nexline traffic routed to hosted fallback policy due to autoscaler marking dedicated pool as underprovisioned.
+- 09:15–09:40: numerous client retries observed; streaming resets and duplicate completions recorded in telemetry.
+- 09:42: Support opened major incident; SRE rollback plan prepared.
+- 09:48: Autoscaler policy reverted and routing fix deployed; streaming stability returned by 09:56.
+
+Steps to reproduce (internal):
+1. Create mixed-quantized and non-quantized model variants in a dedicated pool.
+2. Simulate sustained burst of traffic that triggers autoscaler thresholds.
+3. Induce transient kernel-selection latency on quantized variant (test harness commit linked below).
+4. Observe fallback routing to hosted variant and repeated client retries without idempotency keys.
+
+Observed logs / key signals:
+- serving-runtime logs: repeated "No available node in pool -> triggering fallback" messages with 200ms timeouts.
+- autoscaler metrics: temporary mis-evaluation of GPU availability due to quantized kernel probe timeouts (spike in probe latency to ~1.2s).
+- routing traces: requests dropped idempotency headers during path rewrite to hosted endpoints.
+- billing telemetry: per-tenant token counter jumped by 680% for affected endpoints.
+
+Customer impact and communication:
+- Nexline reported production customer-visible defects and opened an urgent escalation with their CTO.
+- Support provided interim mitigation guidance and hourly updates until remediation.
+
+Next steps captured in ticket: see post_incident_actions and resolution fields.
+
+Initial hypothesis: autoscaler over-evaluated pool pressure due to probe latency on quantized kernels.
+Found mismatch: routing rewrite strippped X-Idempotency-Key header when routing to hosted fallback (routing proxy v2.9.1).
+Telemetry shows repeated retries from client SDKs without idempotency header, causing duplicate completions on the hosted variant.
+Commit 3a7f9b2 in autoscaler introduced a probe timeout default change (from 100ms -> 500ms) that made quantized kernels appear unhealthy under short-lived jitter.
+Root cause: combined effect of autoscaler probe timeout change + routing proxy rewrite bug + client SDKs retrying without idempotency keys.
+Reproduction validated in staging by toggling probe timeout and simulating jitter; duplicate completion observed when header stripping present.
+2026-03-12 09:45 UTC - Marisol Vega (Support): 'Confirming Nexline reporting duplicate replies and large token delta. SRE oncall @Ibrahim assigned.'
+2026-03-12 09:50 UTC - Ibrahim Khan (SRE): 'Rolling back autoscaler probe timeout change to previous default; deploying routing patch to preserve X-Idempotency-Key.'
+2026-03-12 10:05 UTC - Nexline (Customer): 'Partial mitigation observed, streaming is more stable but we still see a few duplicates.'
+2026-03-12 10:30 UTC - Ibrahim Khan (SRE): 'Routing patch confirmed; recommend token reconciliation and billing credit. Raising PR to enforce idempotency header preservation in gateway.'
+2026-03-12 12:00 UTC - Marisol Vega (Support): 'Issued interim billing credit of $18,240 to Nexline pending final reconciliation. Customer accepted and requested postmortem.'
+2026-03-13 14:20 UTC - Product (Amelia Park): 'Schedule follow-up with Nexline next week to review RFC for safer fallback semantics and stronger SLA for dedicated pools.'
+Applied immediate mitigations: rolled back autoscaler probe timeout change, deployed routing patch to preserve idempotency headers, and updated client SDK guidance to set X-Idempotency-Key on retries. Issued provisional billing credit of $18,240 to Nexline Telecom. Created follow-up RFC for more conservative fallback thresholds and mandatory header forwarding. Incident declared resolved after stability returned and token ingestion normalized.
+Add automated alert for 'probe latency > 300ms' correlated with fallback events.
+Modify autoscaler default probe timeout back to 100ms and add gradual backoff logic for quantized kernel probes.
+Harden routing proxy to never strip idempotency headers during endpoint rewrite; add unit tests.
+Add an integration test simulating mixed quantization pools with burst traffic to detect amplification loops.
+Perform billing reconciliation report and finalize customer credit; share result with Nexline and close finance loop.
+Update runbook: include explicit checklist for fallback-related customer escalations and a communications template.

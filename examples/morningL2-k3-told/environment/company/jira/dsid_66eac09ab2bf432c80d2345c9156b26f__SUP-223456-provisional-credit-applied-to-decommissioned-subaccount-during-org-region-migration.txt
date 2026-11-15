@@ -1,0 +1,36 @@
+Provisional-credit applied to decommissioned subaccount during org-region migration causing finalized invoice mismatch
+
+Issue summary: Customer reports a finalized invoice with a missing provisional credit. During a scheduled org-region migration (us-east -> us-west), several subaccounts were decommissioned and reattached. CurioAI sees a $4,872 charge on invoice INV-2026-03-07 where a provisional credit for reserved-hours should have been applied. Impact: unexpected invoice increase, finance escalation, potential service interruption if unpaid. Related context: customer uses Dedicated Reserved + Hosted fallback; they recently migrated primary billing region and ran batch embedding jobs during the migration window.
+2026-03-11 22:00 UTC - CurioAI began org-region migration (billing region switch).
+2026-03-12 01:15 UTC - Large batch embed job submitted by subaccount 'curio-research-03' (5M tokens).
+2026-03-12 01:20 UTC - Orchestration process decommissioned subaccount and reattached under new org mapping.
+2026-03-12 02:00 UTC - Billing postback for the job sent; provisional credit initially calculated and assigned to subaccount id XYZ-03.
+2026-03-12 04:30 UTC - Postback reconciler replayed historical events during migration; duplicate reprocessing flagged and one provisional credit reversed to 'decommissioned-subaccount'.
+2026-03-12 08:00 UTC - Invoice INV-2026-03-07 finalized without the provisional credit applied to CurioAI parent org.
+1) Create subaccount and run a large batch embedding job using embedder-v2.1 in us-west-2.
+2) Trigger a simulated org-region migration/mapping update that decommissions and reattaches subaccounts during job/postback window.
+3) Allow postback-reconciler to process both initial and replayed events (simulate duplicate postback).
+4) Finalize invoice for the billing period and inspect provisional credit allocation and invoice lines.
+Provisional credit for reserved-hours was calculated but marked as 'applied_to: decommissioned-subaccount' during reconciliation.
+Finalized invoice shows the charge with no offsetting provisional credit line on the parent org.
+Audit trail shows credit created (credit id CR-90822) but later reversed with reason 'orphaned-account-finalizer'.
+Provisional credit should be reparented to the active parent org if the originating subaccount is decommissioned within reconciliation window.
+Finalized invoice should include provisional credit line or a holding credit balance applied to the customer ledger.
+postback-reconciler.log: 2026-03-12T02:01:13Z INFO postback received job_id=JB-55f3, subaccount=XYZ-03, tokens=5023450
+billing-service.audit: 2026-03-12T02:02:45Z DEBUG provisional_credit_created id=CR-90822 amount=4872 scope=subaccount:XYZ-03
+org-service.log: 2026-03-12T01:20:07Z INFO subaccount XYZ-03 decommissioned during migration mapping_change_id=MAP-774
+postback-reconciler.log: 2026-03-12T04:31:09Z WARN duplicate-postback-detected job_id=JB-55f3 replay=true action=reverse_credit credit_id=CR-90822 reason=orphaned-account-finalizer
+CurioAI (finance lead - Maya Park) 2026-03-12 10:03 UTC: 'We were expecting the provisional reserved-hours credit to offset the embedding job. Invoice shows full charge and our accounting team flagged this as a variance. Please escalate and advise next steps.'
+Initial triage: reproducible race between org-service decommission and postback processing leading to credit assigned to a subaccount state that no longer had an active parent pointer.
+Hypothesis: reconciler's orphan-detection rule marks credits as non-transferable if decommission timestamp < credit applied timestamp; migration caused timestamp inversion.
+Checked reconciler code: orphaning threshold default 2h; migration replay logic reprocessed historical events and triggered orphaning flow when mapping changed after initial credit creation.
+Found related job: MAP-774 (org mapping update) executed 2026-03-12T01:20Z; reconciler replay occurred 2026-03-12T04:30Z and considered subaccount state=decommissioned leading to reverse_credit path.
+No previous automated rollback or manual adjustment performed for INV-2026-03-07.
+Manually create and apply an invoice-level adjustment credit (CR-EMERG-223456) to CurioAI ledger for $4,872 to cover the missing provisional credit.
+Hold autopay for INV-2026-03-07 until adjustment is confirmed to avoid collection action.
+1) Apply manual ledger credit CR-EMERG-223456 to CurioAI and mark invoice as adjusted. 2) Patch postback-reconciler to reparent credits for decommissioned subaccounts when a valid parent mapping exists within a configurable time window (PR attached). 3) Backfill: run reconciler script to identify other credits reversed with reason 'orphaned-account-finalizer' during MAP-774 window and re-evaluate reparenting. 4) Postmortem and customer communication. Target fixes deployed to prod by 2026-03-18.
+In progress: manual ledger credit applied on 2026-03-13; awaiting internal patch and backfill verification. Customer notified and autopay held.
+2026-03-12 12:10 UTC - Tomás Ortega (Billing Eng): 'Assigning. I'll coordinate with org-service and reconciler owners. Initial workaround: create emergency ledger credit.'
+2026-03-13 09:05 UTC - Finance Ops (Leah Kim): 'Manual credit CR-EMERG-223456 applied and reflected in customer ledger. Waiting for reconciler patch. Please confirm invoice line reversal so we can close.'
+2026-03-13 14:18 UTC - Tomás Ortega: 'Opened PR #4589 to add reparenting logic and to make orphaning threshold configurable. Running integration tests against MAP-774 replay scenario.'
+2026-03-14 08:30 UTC - Customer (Maya Park): 'Thank you. We'll hold payment pending final confirmation and postmortem.'

@@ -1,0 +1,43 @@
+MTU fragmentation causing intermittent TLS handshake failures and streaming disconnects across peered VPCs
+
+Issue summary: Customer's private deployment (peer: FinNova VPC <-> Redwood Private VPC) experiences intermittent TLS handshake failures and websocket streaming disconnects when traffic crosses the peering connection. Failures started after a customer network change on 2026-03-10 morning.
+
+Impact: Multiple API streaming sessions drop during authorization/TLS setup; non-streaming requests sometimes succeed but show elevated handshake latency and occasional 525-style TLS errors. Customer reports degraded user experience for transaction-signer flows. Estimated affected customer sessions: ~15-30% during peak.
+
+Environment details: Private deployment in us-east-1 using VPC peering (account-level peering) with FinNova-managed transit VPN overlay. Customer is running Redwood Private (v1.8.2) with public model pulls disabled; model hosting and runtime are in our peered subnet.
+
+1) Establish connection from FinNova app host (10.44.12.x) -> Redwood Private endpoint over peered VPC path
+2) Initiate websocket streaming session to /v1/chat/stream with model=gpt-4o-mini
+3) Observe TLS handshake stalls ~1-3s and occasional failure with client-side error 'tls: handshake failure'
+4) Repeat with curl --http2 to same endpoint: non-streamed requests sometimes succeed but show MTU-related packet drops in tcpdump
+5) Trigger large initial client hello (SNI + large ALPN) to reproduce more reliably
+client: tls: handshake failure (local) at 2026-03-10T12:14:22Z
+proxy (envoy) upstream log: connection failure during TLS handshake: read tcp 10.0.5.23:443->10.44.12.9:54321: read: connection reset by peer
+tcpdump (customer side): 'ip frag id 0x1a2b proto TCP frag (MTU 1400) ...' and repeated 'ICMP frag needed and DF set'
+kernel (customer) dmesg: TCP: Possible MTU/MSS issue, path MTU discovery failing for peered path
+Initial hypothesis: MTU mismatch or fragmentation across the peering + transit VPN overlay is causing TCP segments containing TLS ClientHello to be dropped or trigger ICMP 'fragmentation needed' that is not delivered back to origin due to firewall rules. This results in handshake stalls and resets.
+
+What we checked: 
+- Verified VPC peering routes are present and no explicit blackhole routes in Redwood side.
+- Captured tcpdump on both sides; observed large packets from client being sent with DF bit set and then ICMP 'fragmentation-needed' messages on intermediate transit which do not reach client.
+- Customer firewall policy was blocking ICMP Type 3 Code 4 on the VPN appliance; customer confirmed a recent firmware update rolled in a new default ACL.
+- Observed increased TLS handshake timeouts around times of Ciclists; do not see application-level rate limiting or backend overload.
+
+Immediate risk: High for streaming features where initial frames are large (SNI + ALPN + token). Longer term risk: intermittent transaction failures under load.
+
+Next steps being coordinated: 
+- Apply temporary workaround (MSS clamping and disabling TSO/GSO on customer VPN instances) on customer side to avoid large frames.
+- Ask customer to allow ICMP Type 3 Code 4 across the VPN path and to confirm no firewall silently drops ICMP.
+- On Redwood side, add fallback to smaller TLS ClientHello size (client-side change not possible) and enable server-side MSS clamping on peered tunnel egress where feasible.
+- Schedule change window to test with jumbo frames vs MSS clamp and capture full pcap across path.
+
+2026-03-10T12:38:00Z - Support (Aisha): Triage complete. Reached out to customer network team via email and opened Slack thread #support-fin-nov. Asked for pcap and firewall ACLs. (see slack thread: https://redwood.slack.com/archives/C07SUPPORT/p164)
+2026-03-10T13:06:00Z - Customer (FinNova NOC): Confirmed recent VPN appliance FW update and default ACL change that blocks 'icmp type 3 code 4'. Provide ACL and we will test toggling rule during maintenance window at 16:00 UTC.
+2026-03-10T14:20:00Z - SRE (Liam): Captured egress tcpdump from our peered subnet; we see 'ICMP frag needed' originating from transit but not reaching client. Attempting MSS clamp at edge will be next. Linked issue SUP-55021 for similar conntrack/ephemeral port symptoms but different root cause.
+2026-03-10T16:10:00Z - Customer (FinNova NOC): Temporary ACL change applied to allow ICMP Type3 Code4. Observing reduced handshake failures. Will run 2-hour soak and report back.
+2026-03-11T09:30:00Z - Support (Aisha): Customer reports handshake failures dropped to ~2% after ACL change + TSO/GSO disable. Planning postmortem and remediation checklist.
+Workaround: Customer temporarily allowed ICMP Type 3 Code 4 across the VPN and disabled TSO/GSO on the VPN appliance; SRE applied MSS clamping on Redwood egress for the peered subnet. Post-change metrics show TLS handshake failure rate reduced from ~18% to ~2%.
+
+Permanent action items: document MTU/MSS checklist in Private deployment runbook; add automated PMTU probe during onboarding; consider optional server-side MSS clamping for peered tunnels. Customer to schedule firmware ACL change to allow PMTU ICMP on production path during maintenance window.
+
+Status: Mitigated (temporary workaround applied). Engineering follow-up: schedule infra change to enable egress MSS clamp and add monitoring alert for 'ICMP frag needed' counts.

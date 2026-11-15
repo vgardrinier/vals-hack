@@ -1,0 +1,69 @@
+SSE stream terminated by customer WAF on large payloads; resume omits closing token and reconnect duplicates user prompt in convstate
+
+Issue summary:
+Customers on Private deployments behind an appliance WAF (mod_security variant) observe SSE streams cut off mid-response for outputs containing large embedded payloads (long base64 inline images or multi-thousand-token code blocks). After the TCP teardown the client reconnects and the platform attempts an SSE resume, but the resumed stream lacks the final terminal event ("[DONE]"/closing JSON chunk). In addition the customer's conversational state shows the user message duplicated once after the reconnect, causing downstream logic to run the same generation twice.
+
+Impact:
+- AcmeHealth production users intermittently receive truncated assistant responses (missing closing bracket or end marker) for long responses.
+- Reconnects sometimes cause duplicated user entries in conversation state, triggering duplicate side effects in the customer's application (e.g., duplicate DB writes).
+- Incident spikes are correlated with large payload responses and occur only when the customer's WAF is enabled in their VPC path.
+
+Environment:
+- Private deployment (customer-managed VPC with sidecar edge proxy)
+- Region: us-west-2
+- Model: redwood/gptx-13b-quantized-v2 pinned by customer
+- WAF: third-party appliance (customer reports ModSecurity ruleset customized)
+
+Expected behavior:
+- SSE stream produces final terminal event and client receives complete JSON/markdown output.
+- Resume should reattach and continue without duplicating conversation-turns in convstate.
+
+Actual behavior:
+- Upstream connection receives a FIN from the WAF path when a large data chunk is emitted. Redwood edge proxy logs 200 then short TCP FIN from downstream; platform sees abrupt EOF.
+- Resume path sends a resume delta but the delta processor drops the terminal event in a race with connection-close handling.
+- Session-token rotation logic during resume causes a duplicated user-turn entry in conv state for some sessions.
+
+1) Customer config: private deployment with edge-sidecar routing through WAF appliance that performs content inspection.
+2) Use chat completion with long output: include a large base64 inline image (~80KB) or ask for multi-file code output (~3000 tokens).
+3) Observe stream from client: stream runs for ~2-6s then connection terminates with truncated JSON; client reconnects and requests resume.
+4) Check conversation history via customer API: sometimes the original user message appears twice and the assistant output remains incomplete on first resume attempt.
+
+edge-proxy (us-west-2) tail:
+2026-03-10T15:04:32.123Z INFO  conn_id=abc123 client=10.1.4.22 upstream=10.2.9.10 status=200 bytes_sent=81920
+2026-03-10T15:04:34.859Z WARN  conn_id=abc123 downstream=10.1.4.1 event=received_FIN_from_downstream reason=WAF_close_on_inspection
+2026-03-10T15:04:34.861Z ERROR conn_id=abc123 stream_id=st-789 abrupt_eof detected; resume_token=rt-55a drop_flag=true
+2026-03-10T15:04:35.002Z INFO  session_resume session=usr-42 resume_request=received; delta_seq=1024
+2026-03-10T15:04:35.004Z ERROR resume_processor session=usr-42 dropped_terminal_event race=conn_close_handler
+2026-03-10T15:04:35.150Z INFO  convstate update session=usr-42 user_message_id=msg-900 duplicated=true
+
+Customer-side WAF logs (redacted):
+2026-03-10T15:04:34 Rule 942100 matched pattern payload_size > 65536 -> action=close_connection (silently drop)
+
+2026-03-10 16:10 - Support (Aisha Kaplan): Initial report from AcmeHealth. Customer pasted streaming transcript and edge-proxy logs. Customer reports duplicated user messages correlated with reconnects.
+2026-03-10 17:01 - Eng (Tomas Rivera): Reproduced locally with WAF rule simulator. Observed FIN sequence from simulated WAF during large buffer flush. Filed reproduce harness in repo and linked PRs.
+2026-03-11 08:33 - SRE (Maya Chen): Noted that resume delta processing uses a non-blocking cleanup path that can run concurrently with conn-close; race can drop final event. Added instrumentation to resume_processor to capture terminal_event lifecycle.
+2026-03-11 12:44 - Customer (AcmeHealth - Anil Patel): Provided sample request payload and confirmed mitigation when decreasing inline image size below 64KB. Asks for recommended workaround until fix is deployed.
+2026-03-12 09:20 - Eng (Tomas Rivera): Patch candidate created to serialize resume delta finalize step with conn-close handler. PR attached to linked_github_prs. Planning rollout to private channel for validation.
+2026-03-12 13:02 - Support (Aisha Kaplan): Notified customer of in-progress fix and recommended immediate workaround: avoid embedding base64 > 64KB or enable WAF passthrough for streaming endpoints.
+Findings summary:
+- Root cause: interplay of customer WAF terminating downstream TCP on large payloads and a race in our resume_processor that finalizes terminal events asynchronously. When the conn-close handler and resume finalizer interleave, terminal event emission may be dropped.
+- Secondary issue: session-token rotation during resume flow can cause convstate append to run twice if resume ack path is retried; this is a separate race in session-store write-after-ack code path.
+- Reproducible with WAF simulator and large streaming payload (>= ~65KB chunk emitted).
+- Affected only in Private deployments where an intermediate appliance can issue a silent teardown; Hosted customers not impacted because our edge removes/controls WAF behavior.
+
+Telemetry:
+- ~12 confirmed incidents this week for AcmeHealth, correlated to payload size and rule 942100 in their WAF.
+
+Mitigation implemented in two parts:
+1) Immediate customer workaround recommended: reduce inline base64 attachments > 64KB or configure WAF to allow passthrough for /resume and streaming endpoints. Customer acknowledged and applied temporary WAF override.
+2) Engineering fix: serialized finalize() in resume_processor to ensure terminal event is emitted or transactionally recorded before connection cleanup begins. Added idempotent guards to convstate append to prevent duplicate user-turns on retries.
+3) Patch rollout: patched edge-proxy and resume_processor; integration tests added to simulate WAF-driven FIN and validate terminal emission. Patch PRs: edge-proxy/pull/721 and serving-runtime/pull/1184.
+
+Deployment plan:
+- Canary deploy to private customers who opt-in for next 48h.
+- Monitor metrics: stream_terminal_emitted ratio and convstate_duplicate_rate.
+- If canary is green, schedule global private-channel rollout next week.
+
+1) Avoid embedding large inline base64 blobs in streaming responses. If images are necessary, return a hosted URL instead of inline base64.
+2) In customer WAF, whitelist or passthrough streaming endpoints (/v1/stream, /v1/resume) and disable size-based silent-close rules for those paths.
+3) Short term: use non-streaming completion API for very large outputs until patch is validated.

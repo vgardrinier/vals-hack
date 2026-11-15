@@ -1,0 +1,130 @@
+Pilot alignment: scope, success metrics, owners, and access checklist
+
+From: Mateo Alvarez <mateo.alvarez@redwoodinference.com>
+To: Sophie Tran <sophie.tran@bluefront.ai>, Ben Jacobs <ben.j@bluefront.ai>
+Cc: Vanessa Ortiz <vanessa.ortiz@redwoodinference.com>, Grace O'Connor <grace.oconnor@redwoodinference.com>
+Date: Sun, 11 Oct 2026 16:10:00 -0700
+Subject: Pilot alignment: scope, success metrics, owners, and access checklist
+
+Hi Sophie / Ben —
+
+Thanks again for the call earlier today. Quick recap from our side and proposed next steps so we’re all aligned before we kick off the pilot: 
+
+Key pain points you shared
+- Low-quality retrieval & hallucinations in domain-specific KB responses (esp. policy documents).
+- Unpredictable token costs when running long-context prompts across many customer records.
+- Need for auditable logs for compliance review.
+
+Pilot goals (30-day sprint)
+1) Reduce hallucination rate on knowledge queries by 40% (measured via the prompt eval set).
+2) Achieve median token latency < 250ms for 1k-token contexts in our dedicated environment.
+3) Deliver logs and retention config to satisfy your audit workflow.
+
+Scope we propose
+- Model: distil-open-12b (proof-of-concept), fallback to quantized 8-bit variant for burst tests.
+- Workloads: 2 evaluation prompt sets (policy Q&A + customer summaries), 1000 sample docs for indexing.
+- Integration: API-based calls; no schema changes on your side.
+
+Ownership & roles
+- Bluefront: Sophie (product lead) — prompt/labeling owners; Ben (infra) — access approvals and SSO.
+- Redwood: Mateo — pilot PM and single point of contact; Vanessa — SRE/infra access; Grace — prompt-eval lead.
+
+Immediate asks from Bluefront
+- Provide SSO admin contact + expected account email domains for SAML setup.
+- Share sample prompt set (10-20 canonical examples) and 250 sample docs for initial indexing.
+- Confirm regulatory retention window for logs (we discussed 90 vs 365 days).
+
+Attachments shared
+- pilot_charter_bluefront_v1.pdf (charter + success metrics template)
+- redwood_access_checklist.xlsx (accounts, firewall/IPs, SSO steps)
+- prompt_evals_template.csv (format for labels)
+
+Proposed timeline
+- Week 0 (this week): access & SSO, inbox for log delivery, data sample upload.
+- Week 1: baseline evals + prompt tuning.
+- Week 2: dedicated infra provisioning & latency tuning.
+- Week 3: validation run and handoff to your reviewers.
+
+Can you confirm availability for a 30-minute kickoff on Tuesday, Oct 13 at 10:00 AM PT? If that works we’ll send the calendar invite and start the SSO setup flow.
+
+Thanks — I’ll hold until I hear back on availability and SSO contact.
+
+Best,
+Mateo Alvarez
+Solutions Engineer | Redwood Inference
+mateo.alvarez@redwoodinference.com | +1 (415) 555-0132
+
+---
+Attachment: pilot_charter_bluefront_v1.pdf (attachment stub)
+Attachment: redwood_access_checklist.xlsx (attachment stub)
+Attachment: prompt_evals_template.csv (attachment stub)
+
+From: Sophie Tran <sophie.tran@bluefront.ai>
+To: Mateo Alvarez <mateo.alvarez@redwoodinference.com>
+Cc: Ben Jacobs <ben.j@bluefront.ai>, procurement@bluefront.ai
+Date: Mon, 12 Oct 2026 09:22:00 -07:00
+Subject: Re: Pilot alignment: scope, success metrics, owners, and access checklist
+
+Thanks Mateo — this is perfect and very clear. Quick answers from our side: 
+
+- Tuesday Oct 13, 10:00 AM PT works for Sophie and me — we’ve blocked it.
+- SSO admin is Ben (ben.j@bluefront.ai) — he’ll follow up with the SAML metadata and the list of domains.
+- For retention, we need logs retained for 365 days for compliance, but we can start with a 90-day retention for the pilot if it simplifies the setup; we’ll want the option to enable 365 in prod.
+- We’ll upload the first batch of 250 docs and a 15-example prompt set to the Drive folder by EOD Monday.
+
+One procurement note: procurement@bluefront.ai asked whether you can share a short summary of data handling during the pilot (where tokens and logs are stored, who has access) so they can attach it to the PO.
+
+Looking forward to the kickoff.
+
+— Sophie
+Head of Product, Bluefront AI
+Sophie.Tran@bluefront.ai | +1 (617) 555-8821
+
+On Sun, Oct 11, 2026 at 4:10 PM Mateo Alvarez <mateo.alvarez@redwoodinference.com> wrote:
+> (original recap omitted)
+
+From: Mateo Alvarez <mateo.alvarez@redwoodinference.com>
+To: Sophie Tran <sophie.tran@bluefront.ai>, Ben Jacobs <ben.j@bluefront.ai>
+Cc: Vanessa Ortiz <vanessa.ortiz@redwoodinference.com>, Grace O'Connor <grace.oconnor@redwoodinference.com>, procurement@bluefront.ai
+Date: Tue, 13 Oct 2026 08:15:00 -07:00
+Subject: Re: Pilot alignment: scope, success metrics, owners, and access checklist
+
+Thanks Sophie — great. We’ll send the calendar invite in a moment. Attached is a short one-pager focused on data handling for procurement, plus the SSO onboarding doc. Quick answers here: 
+
+- Pilot data & logs: stored in Redwood's dedicated environment for the pilot region (us-west-2). Access is restricted to the pilot team; full audit logs are available via the console and can be exported.
+- Token handling: request/response tokens are ephemeral and not used to train any models. We include a sample log schema in the one-pager.
+- Admin & access: Ben will be added to our SAML tenant; Vanessa (SRE) will coordinate the firewall/IP allowlist.
+
+Next steps I’m owning this week
+- Send calendar invite for 10/13 10:00 AM PT (INVITE SENT).
+- Kick off SAML metadata exchange (Ben to provide).
+- Provision a staging namespace and drop initial eval baseline by Oct 15.
+
+Vanessa / Grace: can one of you pick up SSO provisioning and baseline evals respectively?
+
+Thanks — Mateo
+
+---
+Attachment: redwood_data_handling_onepager.pdf (attachment stub)
+Attachment: sso_onboarding_instructions.pdf (attachment stub)
+
+From: Ben Jacobs <ben.j@bluefront.ai>
+To: Mateo Alvarez <mateo.alvarez@redwoodinference.com>, Sophie Tran <sophie.tran@bluefront.ai>
+Cc: Vanessa Ortiz <vanessa.ortiz@redwoodinference.com>, Grace O'Connor <grace.oconnor@redwoodinference.com>, procurement@bluefront.ai
+Date: Mon, 18 Oct 2026 09:05:00 -07:00
+Subject: Re: Pilot alignment: scope, success metrics, owners, and access checklist
+
+Appreciate the follow-ups. Quick status from infra/procurement: 
+
+- I’ve uploaded SAML metadata to the Drive folder and added ben.j@bluefront.ai as the SSO admin. 
+- Procurement asked for a single-line PO description and an approximate cost estimate for a 30-day pilot; procurement@bluefront.ai will draft the PO once they have that.
+- We validated the allowlist IPs with Vanessa earlier today — she confirmed they’re ready on your side.
+
+We’re good to proceed. Sophie and I will validate the first baseline eval on Oct 20.
+
+Ben
+Infra Lead, Bluefront AI
+ben.j@bluefront.ai | +1 (415) 555-9910
+
+On Tue, Oct 13, 2026 at 8:15 AM Mateo Alvarez <mateo.alvarez@redwoodinference.com> wrote:
+> (provisioning & next steps)

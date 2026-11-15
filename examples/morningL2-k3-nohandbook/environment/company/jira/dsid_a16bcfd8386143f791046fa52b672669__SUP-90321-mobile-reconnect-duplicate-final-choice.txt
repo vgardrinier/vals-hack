@@ -1,0 +1,58 @@
+Duplicate final choice and lingering partial tokens after mobile app background/reconnect (WebSocket)
+
+Issue summary:
+Customer ClipNote reports that when their mobile app (iOS) backgrounds and then reconnects over WebSocket, the final choice from the model is sometimes duplicated and a short sequence of partial tokens reappears after the UI believes the response is finished. This occurs sporadically and appears correlated with mobile network transitions (Wi-Fi -> cellular) and device sleep/resume.
+
+Impact:
+- Affects production users of ClipNote mobile app (estimated ~0.6% of sessions during last 48h).
+- Duplicated final output leads to confusing UI (repeated sentence) and occasionally triggers client-side logic that posts the same message twice.
+- Customer classifies as P1 / Sev1 due to visible UX regressions on their paid tier.
+
+Environment:
+- Customer tier: enterprise (dedicated capacity).
+- Region: us-east (cluster rwi-prod-1).
+- Mobile: iOS 15/16, app uses Redwood mobile SDK v0.9.3 (WebSocket transport).
+- Proxy: customer sits behind an edge proxy with short NAT idle timeouts (~30s).
+
+Steps to reproduce (customer-provided):
+1) Start a streaming generation from the ClipNote mobile app (WebSocket).
+2) Allow the device to auto-lock or manually background the app (~10-60s).
+3) Move device between Wi-Fi and cellular or wait for NAT to expire, then foreground the app so the SDK auto-reconnects the same conversation.
+4) Observe the transcript: sometimes the final sentence is emitted twice and a 2-6 token fragment appears after the end event that matches the tail of the previous tokens.
+
+Observed behavior:
+- Server logs show a normal final 'done' event for the original connection.
+- On reconnect, the SDK performs a resume by resending the last seen frame index. The reconnect session sometimes emits a short fragment (2-6 tokens) that duplicates the tail of the previous choice, then emits a terminal event again.
+- Packet captures show the old TCP connection closed by NAT; a new TCP/TLS handshake and WS upgrade follow. There is a narrow window where both server-side streaming buffer and client-side resume logic appear to output the same final fragment twice.
+
+Expected behavior:
+- After a successful resume the client should not receive duplicate tokens from the server and the final-choice should only be delivered once.
+
+Logs and supporting artifacts:
+- Customer-provided client logs (attached) show resume index: 1234, server ack for last_frame: 1234 followed by final choice.
+- Server-side excerpt (rwi-prod-1, stream_id=clipnote-55819): shows final chunk and 'stream_end' event at 2026-03-09T21:12:08Z.
+- Packet capture (pcap) indicates server's final chunk left the socket but client NAT teardown caused retransmit window that led to resume handshake being processed by a different proxy worker.
+
+Initial hypothesis:
+1) Race between server emitting final end event and client resume causing the runtime to produce a short duplicate fragment when a reconnection maps to a different worker that still has buffered partial output.
+2) Idempotency/sequence-state not being validated across resume when reconnection lands on a different serving-runtime instance behind the proxy.
+3) The mobile SDK's auto-resume may resubmit the final request fragment without strict de-dup checks, allowing duplicated tokens to reappear in UI.
+
+Immediate workaround suggested to customer:
+- Disable automatic resume on app foreground and instead perform a full new request on app resume (client-side change). This avoids duplicate fragments at expense of re-generation.
+- If possible, increase proxy NAT timeout to reduce frequency of early disconnects (edge fix).
+
+Next steps (investigation):
+- SRE: reproduce locally using network throttling and NAT timeout simulation with mobile SDK emulator (assigned to Jordan Blake).
+- Engineering: add additional server-side dedupe by final_choice_id in the streaming proxy and include 'final_choice_id' in end events for cross-worker dedupe (proposal to be drafted).
+- SDK: add an optional 'resume_strategy' toggle that disables auto-replay of last fragment and opts for explicit dedupe logic.
+
+Reference artifacts/links:
+- Slack thread: #support-clipnote (https://slack.redwood.com/archives/C0234ABC/clipnote-resume-dup)
+2026-03-10 10:12 - Priya Menon: Created ticket after initial call with ClipNote. They provided client logs, pcap and repro steps. Customer is on dedicated capacity (rwi-prod-1). Asked for an initial triage within 4 hours.
+2026-03-10 11:05 - Jordan Blake (SRE): Confirmed reproducible locally using iOS simulator + network emulation (NAT timeout 30s). Able to reproduce duplicate 3-token tail ~30% of reconnections in test harness. Opening deeper trace on proxy routing to verify worker affinity on reconnect.
+2026-03-11 09:20 - Mei Chen (Serving Runtime): Observed that stream state checkpoint is written to in-memory cache on worker A. If reconnect lands on worker B, B fetches last_frame but also drains a small buffered output chunk from shared queue which can re-emit final fragment. Need stronger resume-id consistency across workers or attach final_choice_id to final events.
+2026-03-12 16:45 - Jordan Blake: Applied temporary mitigation in streaming-proxy branch to preferentially route resume requests by session affinity header; tests show duplication rate dropped to <0.5% in staging. Drafting PR for review: https://github.com/redwood-inference/streaming-proxy/pull/412
+2026-03-13 12:10 - Support (Priya): Shared mitigation steps with customer. Customer confirmed that disabling auto-resume in their SDK removed duplication in their canary build. Customer requests a server-side fix so they don't have to modify app behavior for all users.
+
+Work in progress. Temporary mitigations validated: (1) client-side disable auto-resume; (2) proxy affinity reduces occurrence. Long-term plan: introduce final_choice_id in end events and enforce cross-worker dedupe in serving runtime. Follow-up action: create INT ticket for runtime change and schedule rollout on rwi-prod-1. Owner: Mei Chen (runtime); ETA for PR + canary: 2 sprints.

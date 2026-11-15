@@ -1,0 +1,135 @@
+Urgent: Hosted API latency surge impacting Lytica — runtime memory fragmentation suspected
+
+From: Maria Torres <maria.torres@lytica.ai>
+To: Ava Chen <ava.chen@redwood.ai>
+Cc: ops@lytica.ai, cto@lytica.ai
+Date: Thu, 5 Nov 2026 09:03:12 -0800
+Subject: [ALERT] Hosted API severe latency — p95 45-60s, 502s increasing
+
+Hi Ava,
+
+We started seeing a large increase in request latency and 502/5xx errors against your hosted endpoint for our account (Lytica) at ~08:55 PT. P95 jumped from ~200ms to ~45s and p99 to ~120s for our inference workloads. Throughput dropped by ~60%. This is affecting our search ranking pipeline.
+
+Quick data:
+- spans: 2026-11-05T08:55:15Z -> 2026-11-05T09:02:40Z
+- sample request id: ly-req-99233
+- we see repeated server OOM in the response payload (attachment: ly-oom-snippet.log)
+
+Please advise immediate mitigation steps or a timeline — we are throttling traffic now but need an ETA.
+
+Thanks,
+Maria Torres
+Ops Lead, Lytica
+
+--
+Lytica (ops@lytica.ai)
+
+From: Ava Chen <ava.chen@redwood.ai>
+To: Maria Torres <maria.torres@lytica.ai>, ops@lytica.ai
+Cc: Connor O'Brien <connor.obrien@redwood.ai>, Stephanie Nguyen <stephanie.nguyen@redwood.ai>
+Date: Thu, 5 Nov 2026 09:20:03 -0800
+Subject: Re: [ALERT] Hosted API severe latency — p95 45-60s, 502s increasing
+
+Thanks Maria — acknowledging. I’m pulling telemetry now and have owned an incident channel.
+Immediate actions we are taking:
+- Throttling routes for non-critical traffic for your account to reduce pressure.
+- Routing new requests to a low-concurrency fallback pool.
+- Connor is scooping trace logs; I’ll share a short status update within 30 minutes.
+
+We’ll prioritize a mitigation that reduces p99 while we investigate the root cause. Apologies for the disruption.
+
+Ava Chen
+Senior Solutions Engineer, Redwood Inference
+ava.chen@redwood.ai
++1 415-555-0198
+
+From: Connor O'Brien <connor.obrien@redwood.ai>
+To: Ava Chen <ava.chen@redwood.ai>, Stephanie Nguyen <stephanie.nguyen@redwood.ai>
+Cc: 
+Date: Thu, 5 Nov 2026 09:32:47 -0800
+Subject: Re: [ALERT] Hosted API severe latency — initial telemetry
+
+Looking at runtime traces for ly-req-99233 and cluster slices for the window:
+- Symptoms: repeated ephemeral GPU allocations followed by OOM+process restart on a subset of hosts.
+- Hypothesis: aggressive KV cache blowup + fragmentation pattern on our GPU allocator. When the allocator fails to satisfy small-scoped allocations we see cascading GC and process churn, which stalls the request queue and inflates tail latency.
+- Evidence: kernel logs show "cudaMalloc failed: out of memory" and back-to-back model worker restarts on nodes gpu-prod-12/14.
+
+Immediate mitigation suggestions I pushed already:
+1) reduce per-worker concurrency for affected pool from 8 -> 2 (in flight now)
+2) force fallback to 8-bit quantized variant for Lytica routes (reduces working set)
+3) temporarily enable prefix cache eviction to cap KV growth
+
+I uploaded an initial trace bundle: https://console.redwood.ai/trace/lytica/2026-11-05/oom-idx-47 (private link) and left a log dump as 20261105-lytica-trace-oom.log.
+
+Connor O'Brien
+SRE - Inference Runtime, Redwood Inference
+
+From: Stephanie Nguyen <stephanie.nguyen@redwood.ai>
+To: Ava Chen <ava.chen@redwood.ai>, Connor O'Brien <connor.obrien@redwood.ai>, Sean Gallagher <sean.gallagher@redwood.ai>
+Date: Thu, 5 Nov 2026 10:05:21 -0800
+Subject: Re: [ALERT] Exec sync requested — customer impact brief attached
+
+Ava / Connor — looping in Sean. This is customer-impacting for Lytica (large enterprise workload, revenue-sensitive). Quick exec summary for your visibility:
+- Impact: sustained p95/p99 latency regression and increased 5xx for ~7 minutes -> customer throttled traffic; visible revenue risk.
+- Root cause (initial): GPU memory fragmentation -> model workers OOMing and restarting under load.
+- Mitigation in progress: per-worker concurrency reduction, fallback to quantized model, and cache eviction.
+- Asks: 1) authorize emergency customer credit (we should offer a one-time credit and SLA exception), 2) approve short-term rollback to previous allocator flags if needed.
+
+Attaching: customer-impact-brief.pdf (short timeline + impact)
+
+-Stephanie
+Director, Sales Operations, Redwood Inference
+
+From: Sean Gallagher <sean.gallagher@redwood.ai>
+To: Stephanie Nguyen <stephanie.nguyen@redwood.ai>, Ava Chen <ava.chen@redwood.ai>, Connor O'Brien <connor.obrien@redwood.ai>
+Date: Thu, 5 Nov 2026 11:12:08 -0800
+Subject: Re: [ALERT] Exec sync requested — approval to remediate
+
+Thanks for the summary. Approve the following:
+- Offer Lytica a one-time service credit equal to 25% of last month's usage while we complete the RCA.
+- Approve emergency toggle to revert allocator flags for the affected pools for up to 4 hours while we validate stability.
+- Please prepare an exec note for CS and Billing and include a short customer-facing timeline.
+
+Connor/Ava: execute mitigations and confirm once p99 returns to baseline.
+
+-Sean Gallagher
+VP, Customer Reliability, Redwood Inference
+
+From: Ava Chen <ava.chen@redwood.ai>
+To: Maria Torres <maria.torres@lytica.ai>, ops@lytica.ai
+Cc: Connor O'Brien <connor.obrien@redwood.ai>, Stephanie Nguyen <stephanie.nguyen@redwood.ai>, Sean Gallagher <sean.gallagher@redwood.ai>
+Date: Thu, 5 Nov 2026 12:45:54 -0800
+Subject: Re: [ALERT] Hosted API severe latency — remediation and next steps
+
+Hi Maria — quick update and what we did: 
+- Mitigations applied (by 09:38 PT): reduced per-worker concurrency, forced quantized model variant for your routed pool, and enabled aggressive KV prefix eviction. We also toggled the allocator flags on the affected pool as emergency rollback (authorized).
+- Result: p95 dropped from ~45s to ~320ms within 7 minutes; p99 improved from ~120s to ~1.2s. Throughput recovered to ~90% baseline.
+- Artifacts attached: 20261105-lytica-trace-oom.log (traces + kernel snippets), mitigation-playbook.md (short runbook of steps we applied).
+
+Next steps:
+1) Short RCA: runtime GPU allocator is experiencing fragmentation under a specific workload pattern. We will prioritize a patch to improve slab reuse and reduce KV allocation churn.
+2) Post-incident: engineering will schedule a deeper review and a fix in the next sprint; I’ll share an ETA by EOD tomorrow.
+3) Billing: Stephanie will follow up on the approved credit.
+
+Apologies for the disruption — we’ll own the follow-through and share a formal RCA. Please let me know if you want a joiner call.
+
+Best,
+Ava Chen
+Senior Solutions Engineer, Redwood Inference
+ava.chen@redwood.ai
+
+From: Ops Team <ops@lytica.ai>
+To: Ava Chen <ava.chen@redwood.ai>, Connor O'Brien <connor.obrien@redwood.ai>
+Cc: Maria Torres <maria.torres@lytica.ai>, cto@lytica.ai
+Date: Fri, 6 Nov 2026 14:21:05 -0700
+Subject: Re: [ALERT] Hosted API severe latency — remediation and next steps
+
+Thanks Ava — we see big improvement and appreciate the quick action. Two asks before we close: 
+- Please share a short RCA document (timeline, root cause, long-term fix plan) and the specific allocator flags you toggled.
+- We’d like a 30-minute walkthrough of the logs and the trace bundle (our engineering and platform teams). Can you propose two slots tomorrow?
+
+Also, we still see a small number of test requests with OOM traces attached; I included the snippet returned in our test run (we attached it to this thread).
+
+Regards,
+Ops Team
+Lytica

@@ -1,0 +1,44 @@
+architecture
+
+Priya Nair: Heads up — thinking about a brokerage layer that mediates regional degrade decisions. Problem statement: when a region is constrained we need to decide per-request whether to degrade (lower-tier model), reroute to another region, or queue. Tradeoffs: latency vs cost vs data residency. Wanted to surface options before I write an RFC.
+
+Mateo Chen: Do we mean a centralized broker service vs a per-edge sidecar? Those have very different failure/latency characteristics.
+
+Lin Zhao: Per-edge sidecar => fastest decision path, avoids extra hop. Downside: harder to enforce global constraints (like per-tenant budget) and harder to get cross-region telemetry. Hybrid might work: sidecar for fast local checks, central broker for global policy/budget.
+
+Raj Patel: Also how do we prevent oscillations? If broker keeps flipping a tenant between degrade/reroute on short spikes, latency and user experience will jump. Need hysteresis and a backoff window.
+
+Sofia Gomez: We should also add eval hooks — when we kick in a degrade model we should sample outputs and run quick regressions to detect quality drift. Also we need token-level cost accounting exposed so cost tradeoffs are visible.
+
+Priya Nair: Agreed. Quick straw-proposal for decision return shape from brokerage: action in {route, degrade, queue}, reason, budget_token, degrade_model_id, ttl_ms, decision_id for traceability. Keep the synchronous decision small; heavy checks async.
+
+Mateo Chen: Example decision shape would help. Something like:
+
+```json
+{
+  "action": "degrade",
+  "reason": "region_saturated",
+  "degrade_model": "rwd-gpt-lite-v1",
+  "budget_token": "tkn-123",
+  "ttl_ms": 30000,
+  "decision_id": "dec-20240615-01"
+}
+```
+
+Lin Zhao: Where do eval hooks live? Broker collects sample request IDs and kicks off async evals to the eval service. Suggest: lightweight inline checks (latency, token delta, simple heuristics) and async quality checks (semantic regression) that feed back into broker weights.
+
+Raj Patel: Billing note: budget_token semantics must be idempotent and handle retries. Also need to define units consumed when downgrade happens (do we bill lower-tier model units or original?). This affects invoicing and cost reporting.
+
+Sofia Gomez: Observability: include a route_decision_trace header in the proxied request so downstream logs can correlate. Expose per-tenant metrics: degrade_rate, avg_fallback_latency, cost_saved. Emit decision_id on traces and a decision_reason tag.
+
+Priya Nair: Another edge: tenant-specific overrides / canary. Broker needs to support sticky overrides per-tenant (e.g., customer X is exempt from degrade until we finish manual test). Also rollout: canary controls and gradual ramp.
+
+deploy-bot: deploy requested: https://ci.internal/redwood/pipelines/32123 — staging rollout for brokerage-proto
+
+Mateo Chen: Proposed action items: 1) Draft RFC with decision shape and hybrid sidecar/broker pattern + API contract (sync/async). 2) Telemetry schema (metrics + trace headers). 3) Small simulator to test hysteresis/oscillation under bursty load. 4) Define budget_token lifecycle and billing semantics.
+
+Priya Nair: I'll take the RFC + simulation prototype. Lin will prototype a sidecar shim + adapter to broker. Raj will own telemetry schema and budget_token semantics. Sofia will create observability dashboard templates. We'll open an RFC ticket and link this thread.
+
+Sofia Gomez: :thumbsup: I'll create the dashboard ticket and add sample panels (degrade_rate, fallback_latency, decision_count by reason).
+
+Priya Nair: Thanks all — will post RFC draft by EOD Thursday and ping for review.
